@@ -13,3 +13,10 @@ test('L’interface gère les favoris par utilisateur identifié',()=>{
  assert.match(app,/from\('offrya_favorites'\)\.insert\(\{user_id:state\.session\.user\.id,mission_id:id\}\)/);
  assert.match(app,/data-favorite=/);
 });
+
+test('La couche SQL retire les permissions de devis sans effacer les données',()=>{
+ const revokes=fs.readFileSync(path.join(__dirname,'../sql/disable_quotes_contracts.sql'),'utf8');
+ assert.match(revokes,/revoke select,insert,update,delete on public\.offrya_quotes/);
+ assert.match(revokes,/revoke execute on function public\.offrya_decide_quote/);
+ assert.doesNotMatch(revokes,/drop table/i);
+});

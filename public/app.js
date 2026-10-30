@@ -3,11 +3,11 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],quotes:[],contracts:[],prefs:null,wait:false,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,authMode:'login'};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,wait:false,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,authMode:'login'};
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
-function tab(name){if(!$(name))return;document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.id===name));document.querySelectorAll('.nav-link').forEach(el=>el.classList.toggle('active',el.dataset.tab===name));const titles={dashboard:'Vue d’ensemble',missions:'Missions privées',boamp:'Marchés publics',inbox:'Messagerie',quotes:'Devis & contrats',settings:'Mon compte'};$('pageTitle').textContent=titles[name];$('breadcrumb').textContent='OFFRYA / '+titles[name].toUpperCase();location.hash=name;window.scrollTo({top:0,behavior:'smooth'});}
+function tab(name){if(!$(name))return;document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.id===name));document.querySelectorAll('.nav-link').forEach(el=>el.classList.toggle('active',el.dataset.tab===name));const titles={dashboard:'Vue d’ensemble',missions:'Missions privées',boamp:'Marchés publics',inbox:'Messagerie',settings:'Mon compte'};$('pageTitle').textContent=titles[name];$('breadcrumb').textContent='OFFRYA / '+titles[name].toUpperCase();location.hash=name;window.scrollTo({top:0,behavior:'smooth'});}
 for(const n of document.querySelectorAll('[data-tab]'))n.addEventListener('click',()=>{tab(n.dataset.tab);if(n.dataset.action==='publish')$('missionForm').scrollIntoView({behavior:'smooth'});});
 function requireAuth(){if(!state.db){toast('Connectez d’abord votre projet Supabase OFFRYA.');return false;}if(!state.session){$('authModal').classList.remove('hidden');toast('Inscription ou connexion nécessaire.');return false;}return true;}
 function requireRole(role){if(!requireAuth())return false;if(!state.profile){tab('settings');toast('Complétez votre profil avant de commencer.');return false;}if(state.profile.role!==role){toast(role==='client'?'Un compte Client est nécessaire pour publier.':'Un compte Professionnel est nécessaire pour répondre.');return false;}return true;}
@@ -18,20 +18,18 @@ async function refresh(){
  const missionResult=await state.db.from('offrya_missions').select('*').order('created_at',{ascending:false}).limit(200);
  if(missionResult.error)throw missionResult.error;
  state.missions=missionResult.data||[];
- if(!state.session){state.profile=null;state.conversations=[];state.messages=[];state.quotes=[];state.contracts=[];state.prefs=null;state.wait=false;state.profiles=[];state.favorites=[];render();return;}
+ if(!state.session){state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.wait=false;state.profiles=[];state.favorites=[];render();return;}
  const uid=state.session.user.id;
- const [prof,conv,quotes,contracts,prefs,wait,profiles,favorites]=await Promise.all([
+ const [prof,conv,prefs,wait,profiles,favorites]=await Promise.all([
   state.db.from('offrya_profiles').select('*').eq('id',uid).maybeSingle(),
   state.db.from('offrya_conversations').select('*').order('created_at',{ascending:false}).limit(100),
-  state.db.from('offrya_quotes').select('*').order('created_at',{ascending:false}).limit(100),
-  state.db.from('offrya_contracts').select('*').order('created_at',{ascending:false}).limit(100),
   state.db.from('offrya_alert_preferences').select('*').eq('user_id',uid).maybeSingle(),
   state.db.from('offrya_waitlist').select('user_id').eq('user_id',uid).maybeSingle(),
   state.db.from('offrya_profiles').select('id,display_name,role,city,specialty').limit(300),
   state.db.from('offrya_favorites').select('mission_id')
  ]);
- for(const res of [prof,conv,quotes,contracts,prefs,wait,profiles,favorites])if(res.error)throw res.error;
- state.profile=prof.data;state.conversations=conv.data||[];state.quotes=quotes.data||[];state.contracts=contracts.data||[];state.prefs=prefs.data;state.wait=Boolean(wait.data);state.profiles=profiles.data||[];state.favorites=(favorites.data||[]).map(x=>x.mission_id);
+ for(const res of [prof,conv,prefs,wait,profiles,favorites])if(res.error)throw res.error;
+ state.profile=prof.data;state.conversations=conv.data||[];state.prefs=prefs.data;state.wait=Boolean(wait.data);state.profiles=profiles.data||[];state.favorites=(favorites.data||[]).map(x=>x.mission_id);
  if(state.thread&&!state.conversations.find(x=>x.id===state.thread))state.thread=null;
  if(state.thread)await loadMessages(state.thread,false);
  render();
@@ -47,8 +45,6 @@ function renderMissions(){
 function renderInbox(){
  const items=state.conversations;
  $('conversationList').innerHTML=items.length?items.map(c=>`<button class="conv-item ${state.thread===c.id?'selected':''}" data-thread="${esc(c.id)}">${esc(titleForMission(c.mission_id))}<small>${esc(profileName(c.client_id===state.session?.user.id?c.professional_id:c.client_id))} · ${date(c.created_at)}</small></button>`).join(''):'<div class="empty">Aucune discussion. Un professionnel peut commencer un échange depuis une mission ouverte.</div>';
- const available=state.conversations.filter(c=>c.professional_id===state.session?.user.id&&!state.quotes.some(q=>q.conversation_id===c.id));
- $('quoteConversation').innerHTML='<option value="">Choisir une discussion</option>'+available.map(c=>`<option value="${esc(c.id)}">${esc(titleForMission(c.mission_id))}</option>`).join('');
  $('messageForm').querySelector('button').disabled=!state.thread;
  $('threadTitle').textContent=state.thread?titleForMission(items.find(x=>x.id===state.thread)?.mission_id):'Sélectionnez une discussion';
  if(state.thread)renderMessages();else $('messageList').innerHTML='<div class="empty">Choisissez une discussion.</div>';
@@ -56,12 +52,6 @@ function renderInbox(){
 function renderMessages(){
  $('messageList').innerHTML=state.messages.length?state.messages.map(m=>`<div class="bubble ${m.sender_id===state.session?.user.id?'mine':''}">${esc(m.body)}<time>${date(m.created_at)} · ${new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time></div>`).join(''):'<div class="empty">Commencez la conversation.</div>';
  $('messageList').scrollTop=$('messageList').scrollHeight;
-}
-function renderQuotes(){
- const qnames={pending:'En attente',accepted:'Accepté',rejected:'Refusé'};
- $('quoteList').innerHTML=state.quotes.length?state.quotes.map(q=>{const c=state.conversations.find(c=>c.id===q.conversation_id);const isClient=c?.client_id===state.session?.user.id;return `<article class="data-item"><div class="item-top"><strong>${euro(q.amount_cents)} HT</strong><span class="tag">${qnames[q.status]||esc(q.status)}</span></div><div class="item-title">${esc(titleForMission(c?.mission_id))}</div><div class="item-desc">${esc(q.details)}</div>${isClient&&q.status==='pending'?`<div class="item-actions"><button class="button primary micro-button" data-quote-action="accept" data-id="${q.id}">Accepter</button><button class="button secondary micro-button" data-quote-action="reject" data-id="${q.id}">Refuser</button></div>`:''}</article>`;}).join(''):'<div class="empty">Aucun devis à ce jour.</div>';
- const labels={active:'En cours',delivered:'Prestation réalisée',completed:'Terminé',cancelled:'Annulé',disputed:'Litige'};
- $('contractList').innerHTML=state.contracts.length?state.contracts.map(c=>`<article class="data-item"><div class="item-top"><strong>${euro(c.amount_cents)} HT</strong><span class="tag">${labels[c.status]}</span></div><div class="item-title">${esc(titleForMission(c.mission_id))}</div><div class="item-desc">${esc(profileName(c.professional_id))} · ${date(c.created_at)} · Suivi déclaratif : pas de paiement ou signature électronique.</div><div class="item-actions">${c.status==='active'&&c.professional_id===state.session?.user.id?`<button class="button primary micro-button" data-contract="${c.id}" data-status="delivered">Marquer réalisée</button>`:''}${c.status==='delivered'&&c.client_id===state.session?.user.id?`<button class="button primary micro-button" data-contract="${c.id}" data-status="completed">Valider terminée</button>`:''}${c.status==='active'&&c.client_id===state.session?.user.id?`<button class="button secondary micro-button" data-contract="${c.id}" data-status="cancelled">Annuler le suivi</button>`:''}${['active','delivered'].includes(c.status)&&c.client_id===state.session?.user.id?`<button class="button secondary micro-button" data-contract="${c.id}" data-status="disputed">Signaler un litige</button>`:''}</div></article>`).join(''):'<div class="empty">Aucun contrat suivi.</div>';
 }
 function renderSettings(){
  const yes=Boolean(state.session),has=Boolean(state.profile);
@@ -72,9 +62,9 @@ function renderSettings(){
 }
 function render(){
  const yes=Boolean(state.session);$('authOpen').textContent=yes?state.session.user.email.split('@')[0]:'Se connecter';$('logout').classList.toggle('hidden',!yes);$('avatar').textContent=state.profile?.display_name?.[0]?.toUpperCase()||'V';
- $('statMissions').textContent=state.missions.filter(x=>x.owner_id===state.session?.user.id).length;$('statConvos').textContent=state.conversations.length;$('statQuotes').textContent=state.quotes.length;$('statContracts').textContent=state.contracts.length;
- $('dashActivity').innerHTML=yes?`<div class="data-item"><div class="item-title">${esc(state.profile?.display_name||'Profil à compléter')}</div><div class="item-desc">${state.profile?.role==='client'?'Compte client':'Compte professionnel'} · ${state.conversations.length} discussion(s)</div></div><div class="data-item"><div class="item-title">${state.contracts.length} contrat(s) suivis</div><div class="item-desc">Aucun paiement et aucune commission pendant la bêta.</div></div>`:'<div class="empty">Connectez-vous pour voir vos données.</div>';
- renderMissions();renderInbox();renderQuotes();renderSettings();
+ $('statOpen').textContent=state.missions.filter(x=>x.status==='open').length;$('statMissions').textContent=state.missions.filter(x=>x.owner_id===state.session?.user.id).length;$('statConvos').textContent=state.conversations.length;$('statFavorites').textContent=state.favorites.length;
+ $('dashActivity').innerHTML=yes?`<div class="data-item"><div class="item-title">${esc(state.profile?.display_name||'Profil à compléter')}</div><div class="item-desc">${state.profile?.role==='client'?'Compte client':'Compte professionnel'} · ${state.conversations.length} discussion(s)</div></div><div class="data-item"><div class="item-title">Contact direct et gratuit</div><div class="item-desc">Échangez dans la messagerie, puis organisez librement votre accord, les tarifs et le règlement avec l'autre partie. OFFRYA n'intervient pas dans la transaction.</div></div>`:'<div class="empty">Connectez-vous pour voir vos contacts et vos missions.</div>';
+ renderMissions();renderInbox();renderSettings();
 }
 async function loadMessages(id,doRender=true){
  const r=await state.db.from('offrya_messages').select('*').eq('conversation_id',id).order('created_at',{ascending:true}).limit(200);
@@ -87,15 +77,12 @@ $('missionForm').onsubmit=async e=>{e.preventDefault();if(!requireRole('client')
 $('missionList').onclick=async e=>{
  const btn=e.target.closest('[data-contact],[data-close-mission],[data-favorite]');if(!btn)return;
  if(btn.dataset.favorite){if(!requireAuth())return;const id=btn.dataset.favorite;try{const result=state.favorites.includes(id)?await state.db.from('offrya_favorites').delete().eq('user_id',state.session.user.id).eq('mission_id',id):await state.db.from('offrya_favorites').insert({user_id:state.session.user.id,mission_id:id});if(result.error)throw result.error;await refresh();toast(state.favorites.includes(id)?'Mission ajoutée aux favoris.':'Favori retiré.');}catch(err){showError(err);}return;}
- if(btn.dataset.closeMission){if(!confirm('Clôturer cette mission ? Les devis en attente ne pourront plus être acceptés.'))return;try{const r=await state.db.rpc('offrya_close_mission',{p_id:btn.dataset.closeMission});if(r.error)throw r.error;await refresh();toast('Mission clôturée');}catch(err){showError(err);}return;}
+ if(btn.dataset.closeMission){if(!confirm('Clôturer cette mission ? Elle ne sera plus visible dans les recherches, mais vos conversations resteront accessibles.'))return;try{const r=await state.db.rpc('offrya_close_mission',{p_id:btn.dataset.closeMission});if(r.error)throw r.error;await refresh();toast('Mission clôturée');}catch(err){showError(err);}return;}
  if(!requireRole('pro'))return;const mission=state.missions.find(m=>m.id===btn.dataset.contact);if(!mission)return;
  try{let c=state.conversations.find(c=>c.mission_id===mission.id&&c.professional_id===state.session.user.id);if(!c){const r=await state.db.from('offrya_conversations').insert({mission_id:mission.id,client_id:mission.owner_id,professional_id:state.session.user.id}).select().single();if(r.error){if(r.error.code==='23505'){await refresh();c=state.conversations.find(x=>x.mission_id===mission.id&&x.professional_id===state.session.user.id);}else throw r.error;}else c=r.data;}if(!c)throw Error('Discussion introuvable');state.thread=c.id;await loadMessages(c.id);await refresh();tab('inbox');}catch(err){showError(err);}
 };
 $('conversationList').onclick=async e=>{const btn=e.target.closest('[data-thread]');if(!btn)return;state.thread=btn.dataset.thread;try{await loadMessages(state.thread);}catch(err){showError(err);}};
 $('messageForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth()||!state.thread)return;const f=e.currentTarget,body=f.elements.body.value.trim();if(!body)return;try{const r=await state.db.from('offrya_messages').insert({conversation_id:state.thread,sender_id:state.session.user.id,body});if(r.error)throw r.error;f.reset();await loadMessages(state.thread);}catch(err){showError(err);}};
-$('quoteForm').onsubmit=async e=>{e.preventDefault();if(!requireRole('pro'))return;const f=e.currentTarget,x=Object.fromEntries(new FormData(f));try{const r=await state.db.from('offrya_quotes').insert({conversation_id:x.conversation_id,professional_id:state.session.user.id,amount_cents:Math.round(Number(x.amount)*100),details:x.details.trim()});if(r.error)throw r.error;f.reset();toast('Devis envoyé au client.');await refresh();}catch(err){showError(err);}};
-$('quoteList').onclick=async e=>{const b=e.target.closest('[data-quote-action]');if(!b)return;const accepted=b.dataset.quoteAction==='accept';if(!confirm(accepted?'Accepter ce devis et ouvrir le suivi du contrat ?':'Refuser ce devis ?'))return;try{const r=await state.db.rpc('offrya_decide_quote',{p_quote_id:b.dataset.id,p_accept:accepted});if(r.error)throw r.error;toast(accepted?'Devis accepté et contrat créé.':'Devis refusé.');await refresh();}catch(err){showError(err);}};
-$('contractList').onclick=async e=>{const b=e.target.closest('[data-contract]');if(!b)return;if(!confirm('Confirmer ce changement d’état ?'))return;try{const r=await state.db.rpc('offrya_set_contract_status',{p_id:b.dataset.contract,p_status:b.dataset.status});if(r.error)throw r.error;toast('Suivi de contrat mis à jour.');await refresh();}catch(err){showError(err);}};
 $('profileForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget,x=Object.fromEntries(new FormData(f)),id=state.session.user.id;try{const r=state.profile?await state.db.from('offrya_profiles').update({display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim()}).eq('id',id):await state.db.from('offrya_profiles').insert({id,role:x.role,display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim()});if(r.error)throw r.error;toast('Profil enregistré');await refresh();}catch(err){showError(err);}};
 $('preferencesForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget;const payload={user_id:state.session.user.id,missions_enabled:f.elements.missions_enabled.checked,messages_enabled:f.elements.messages_enabled.checked,department:f.elements.department.value.trim().toUpperCase(),category:f.elements.category.value};try{let r;if(state.prefs){delete payload.user_id;r=await state.db.from('offrya_alert_preferences').update(payload).eq('user_id',state.session.user.id);}else r=await state.db.from('offrya_alert_preferences').insert(payload);if(r.error)throw r.error;toast('Préférences enregistrées.');await refresh();}catch(err){showError(err);}};
 $('waitBtn').onclick=async()=>{if(!requireAuth())return;try{const r=state.wait?await state.db.from('offrya_waitlist').delete().eq('user_id',state.session.user.id):await state.db.from('offrya_waitlist').insert({user_id:state.session.user.id});if(r.error)throw r.error;toast(state.wait?'Liste d’attente quittée.':'Inscription gratuite enregistrée.');await refresh();}catch(err){showError(err);}};
@@ -114,6 +101,6 @@ async function init(){
   try{await refresh();}catch(err){info('Supabase nécessite une configuration complète et les tables SQL. '+err.message,true);render();}
  }else{info('Mode installation : connectez un projet Supabase OFFRYA pour activer les comptes, les missions et les échanges. Le BOAMP reste accessible.',true);render();}
  await loadBoamp();
- const hash=location.hash.slice(1);if(['missions','boamp','inbox','quotes','settings'].includes(hash))tab(hash);
+ const hash=location.hash.slice(1);if(['missions','boamp','inbox','settings'].includes(hash))tab(hash);
 }
 init().catch(showError);

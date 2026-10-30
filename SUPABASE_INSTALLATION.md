@@ -19,3 +19,5 @@
 5. Mettre à jour la politique de confidentialité et les mentions légales avant ouverture publique.
 
 Le projet NextWeb Agency `akghlyxqgfblhrvzsqcc` n'a pas été modifié.
+
+**Nouvelle version :** après la migration initiale et le correctif RLS, appliquer `sql/disable_quotes_contracts.sql` pour désactiver les anciens modules de devis et contrats, sans effacer leurs tables.

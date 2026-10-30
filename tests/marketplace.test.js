@@ -12,3 +12,11 @@ test('E-mail : échappement du contenu et désabonnement',()=>{const d=buildDige
 test('Accès : aucun webhook de paiement et aucuns secrets dans le frontend',()=>{const server=fs.readFileSync(path.join(__dirname,'../server.js'),'utf8');const app=fs.readFileSync(path.join(__dirname,'../public/app.js'),'utf8');const index=fs.readFileSync(path.join(__dirname,'../public/index.html'),'utf8');assert.ok(!app.includes('SUPABASE_SECRET_KEY'));assert.ok(!index.includes('SUPABASE_SECRET_KEY'));for(const s of ['/api/checkout','/api/stripe'])assert.ok(!server.includes(s));});
 test('Routes santé, pages, désabonnement GET invalide et 405',async()=>{const server=createServer(handle);await new Promise(done=>server.listen(0,'127.0.0.1',done));const base='http://127.0.0.1:'+server.address().port;
  try{const h=await fetch(base+'/api/health').then(r=>r.json());assert.equal(h.paymentsEnabled,false);assert.equal(h.version,'4.0.0');assert.equal((await fetch(base+'/app.js')).status,200);assert.equal((await fetch(base+'/styles.css')).status,200);assert.equal((await fetch(base+'/api/unsubscribe')).status,400);assert.equal((await fetch(base+'/api/checkout',{method:'POST'})).status,405);assert.equal((await fetch(base+'/sql/schema.sql')).status,404);assert.equal(csvValue('=alert(1)'),"\"'=alert(1)\"");}finally{await new Promise(done=>server.close(done));}});
+
+test('La plateforme ne propose pas de devis ni suivi interne de contrats',()=>{
+ const index=fs.readFileSync(path.join(__dirname,'../public/index.html'),'utf8');
+ const app=fs.readFileSync(path.join(__dirname,'../public/app.js'),'utf8');
+ for(const needle of ['data-tab="quotes"','id="quotes"','id="quoteForm"','id="quoteList"','id="contractList"','id="statQuotes"','id="statContracts"'])assert.equal(index.includes(needle),false,needle);
+ for(const needle of ["from('offrya_quotes')","from('offrya_contracts')","rpc('offrya_decide_quote'","rpc('offrya_set_contract_status'",'renderQuotes()'])assert.equal(app.includes(needle),false,needle);
+ assert.match(index,/directement entre eux/);
+});

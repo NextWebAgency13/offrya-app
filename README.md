@@ -15,9 +15,15 @@ npm test
 npm run dev
 ```
 
-4. Ouvrir http://localhost:3000. Vérifier une inscription, confirmation e-mail, connexion, profil Client, mission, compte Pro, discussion, devis, acceptation, contrat et favoris.
+4. Ouvrir http://localhost:3000. Vérifier une inscription, confirmation e-mail, connexion, profil Client, mission, compte Pro, discussion privée, prise de contact, clôture de mission et favoris.
 5. Déployer sur HTTPS avec `SUPABASE_URL` et `SUPABASE_PUBLISHABLE_KEY` dans les variables d'environnement de l'hébergeur. Ne pas exposer les clés `sb_secret_`.
 
 **Alertes email :** non activées. Ne renseigner `SUPABASE_SECRET_KEY`, `UNSUBSCRIBE_SECRET` et `RESEND_API_KEY` que lorsqu'un domaine d'envoi et le consentement auront été correctement configurés.
 
 **Statut :** migration exécutée sur Supabase mais tests d'intégration multi-comptes et mise en ligne à faire. Le nom OFFRYA reste une identité candidate en attendant la vérification juridique définitive.
+
+## Mode mise en relation — simplification
+
+L’interface OFFRYA est centrée sur la publication, les filtres, la messagerie privée, les favoris et les alertes opt-in. Les prix, devis éventuels, accords et paiements se gèrent directement entre les parties **hors de la plateforme**. Aucune commission ni facturation ne sont actives.
+
+La migration `sql/disable_quotes_contracts.sql` bloque les anciennes routes de devis/contrats au niveau des permissions Supabase. Les tables existantes sont conservées pour éviter toute suppression irréversible de données.
