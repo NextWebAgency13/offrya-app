@@ -19,3 +19,5 @@ jobs:
         with:
           node-version: '22'
       - run: npm test
+      - name: Diagnose official BOAMP API response
+        run: node scripts/diagnose-boamp.js
