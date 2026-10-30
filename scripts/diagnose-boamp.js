@@ -22,3 +22,13 @@ for (const [name,url] of cases){
  finally{clearTimeout(timer)}
 }
 })();
+(async()=>{
+ const {queryBoamp}=require('../lib/boamp');
+ for(const options of [{limit:3},{q:'nettoyage',dept:'31',limit:3}]){
+  try{
+   const found=await queryBoamp(options);
+   console.log(JSON.stringify({smoke:'OFFRYA queryBoamp',options,total:found.total,items:found.items.map(x=>({id:x.id,title:x.title.slice(0,60),url:x.url}))}));
+   if(!found.items.length || !found.total)process.exitCode=1;
+  }catch(e){console.error('OFFRYA smoke failed',e.message);process.exitCode=1;}
+ }
+})();

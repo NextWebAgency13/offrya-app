@@ -37,3 +37,25 @@ test('Normalisation BOAMP : erreur ou données invalides sans annonces inventée
 test('CSV : neutralisation des formules et guillemets',()=>{
  assert.equal(csvValue('=2+2'),'"\'=2+2"');assert.equal(csvValue('bonjour "Paris"'),'"bonjour ""Paris"""');
 });
+
+test('API BOAMP v2.0 réelle : records contiennent record.fields, récupérés sans erreur', async()=>{
+ const record={record:{id:'raw-hash',fields:{
+   idweb:'26-105028',objet:'Nettoyage des bâtiments administratifs',
+   nomacheteur:'Collectivité territoriale',code_departement:['31'],
+   dateparution:'2026-10-30',datelimitereponse:'2026-11-30T12:00:00+01:00',
+   url_avis:'https://www.boamp.fr/pages/avis/?q=idweb:26-105028'}}};
+ assert.equal(normalizeRecord(record)?.id,'26-105028');
+ const result=await queryBoamp({q:'nettoyage',dept:'31'},async()=>({ok:true,json:async()=>({total_count:9,links:[],records:[record]})}));
+ assert.equal(result.total,9);
+ assert.equal(result.items.length,1);
+ assert.equal(result.items[0].title,'Nettoyage des bâtiments administratifs');
+ assert.equal(result.items[0].departments,'31');
+});
+test('API v2.1 : résultats plats toujours compatibles',async()=>{
+ const result=await queryBoamp({},async()=>({ok:true,json:async()=>({total_count:1,results:[{
+  idweb:'26-105028',objet:'Travaux de rénovation',
+  url_avis:'https://www.boamp.fr/pages/avis/?q=idweb:26-105028'
+ }]})}));
+ assert.equal(result.items.length,1);
+ await assert.rejects(queryBoamp({},async()=>({ok:true,json:async()=>({total_count:12})})),/records\/results/);
+});
