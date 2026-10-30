@@ -17,7 +17,7 @@ for (const [name,url] of cases){
   const body=await res.text();
   let data={};try{data=JSON.parse(body)}catch{}
   const first=data.results?.[0]||{};
-  console.log(JSON.stringify({name,status:res.status,total:data.total_count,items:data.results?.length,fields:Object.keys(first).slice(0,35),sample:Object.fromEntries(['idweb','objet','dateparution','datelimitereponse','url_avis','code_departement'].map(k=>[k,first[k]])),error:!res.ok?body.slice(0,1700):undefined}));
+  console.log(JSON.stringify({name,status:res.status,total:data.total_count,items:data.results?.length,topLevel:Object.keys(data),fields:Object.keys(first).slice(0,35),sampleBody:name==='baseline'?body.slice(0,1600):undefined,sample:Object.fromEntries(['idweb','objet','dateparution','datelimitereponse','url_avis','code_departement'].map(k=>[k,first[k]])),error:!res.ok?body.slice(0,1700):undefined}));
  }catch(e){console.log(JSON.stringify({name,error:String(e)}))}
  finally{clearTimeout(timer)}
 }
