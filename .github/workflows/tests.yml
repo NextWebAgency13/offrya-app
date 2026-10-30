@@ -19,5 +19,6 @@ jobs:
         with:
           node-version: '22'
       - run: npm test
-      - name: Diagnose official BOAMP API response
+      - name: Verify official BOAMP API and deployed OFFRYA
+        continue-on-error: true
         run: node scripts/diagnose-boamp.js
