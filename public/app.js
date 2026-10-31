@@ -9,6 +9,7 @@ function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
 function tab(name){if(!$(name))return;document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.id===name));document.querySelectorAll('.nav-link').forEach(el=>el.classList.toggle('active',el.dataset.tab===name));const titles={dashboard:'Accueil',missions:'Missions privées',boamp:'Marchés publics',professional:'Espace professionnel',inbox:'Messagerie',settings:'Mon compte'};$('pageTitle').textContent=titles[name];$('breadcrumb').textContent='OFFRYA / '+titles[name].toUpperCase();location.hash=name;if(name==='boamp'&&canUsePremium()&&!state.boamp.length)loadBoamp();window.scrollTo({top:0,behavior:'smooth'});}
 for(const n of document.querySelectorAll('[data-tab]'))n.addEventListener('click',()=>{tab(n.dataset.tab);if(n.dataset.action==='publish')$('missionForm').scrollIntoView({behavior:'smooth'});});
+function isGuest(){return Boolean(state.session?.user?.is_anonymous);}
 function requireAuth(){if(!state.db){toast('Le service de connexion est momentanément indisponible.');return false;}if(!state.session){$('authModal').classList.remove('hidden');toast('Inscription ou connexion nécessaire.');return false;}return true;}
 function requireRole(role){if(!requireAuth())return false;if(!state.profile){tab('settings');toast('Complétez votre profil avant de commencer.');return false;}if(role==='pro'&&(state.profile.role!=='pro'||!canUsePremium())){toast('Activez votre compte professionnel pour répondre aux missions.');tab('professional');return false;}return true;}
 function titleForMission(id){return state.missions.find(m=>m.id===id)?.title||'Mission';}
@@ -71,9 +72,9 @@ function renderMessages(){
 function renderSettings(){
  const yes=Boolean(state.session),has=Boolean(state.profile);
  $('accountState').textContent=yes?`Compte : ${state.session.user.email}${canUsePremium()?' · Professionnel vérifié et abonné':''}`:'Connectez-vous pour sauvegarder vos informations.';
- const f=$('profileForm');f.elements.display_name.value=state.profile?.display_name||'';f.elements.role.value=state.profile?.role||'client';f.elements.role.disabled=has&&state.profile?.role==='pro';f.elements.city.value=state.profile?.city||'';f.elements.specialty.value=state.profile?.specialty||'';
+ const f=$('profileForm');f.elements.display_name.value=state.profile?.display_name||'';f.elements.role.value=state.profile?.role||'client';f.elements.role.disabled=isGuest()||(has&&state.profile?.role==='pro');f.elements.city.value=state.profile?.city||'';f.elements.specialty.value=state.profile?.specialty||'';
  const p=$('preferencesForm');p.elements.missions_enabled.checked=state.prefs?.missions_enabled||false;p.elements.messages_enabled.checked=state.prefs?.messages_enabled||false;p.elements.department.value=state.prefs?.department||'';p.elements.category.value=state.prefs?.category||'';
- const canManage=Boolean(state.session&&state.subscription?.stripe_customer_id);
+ const canManage=Boolean(state.session&&!isGuest()&&state.subscription?.stripe_customer_id);
  $('accountBillingPortal').disabled=!canManage;
  $('accountBillingInfo').textContent=!state.session?'Connectez-vous pour gérer votre abonnement.':canManage?'Votre abonnement est associé à un compte Stripe.':'Aucun abonnement Stripe associé à ce compte. En cas de difficulté, contactez le support.';
 }
@@ -191,7 +192,7 @@ async function saveProfessionalDraft(step){
 }
 $('proBegin').onclick=async()=>{
  if(!state.db)return toast('Inscription momentanément indisponible.');
- if(!state.session){state.signupForPro=true;document.querySelector('[data-auth="signup"]').click();authModal(true);return;}
+ if(!state.session||isGuest()){state.signupForPro=true;document.querySelector('[data-auth="signup"]').click();authModal(true);if(isGuest())toast('Le compte professionnel nécessite une inscription identifiable. Les missions invitées restent liées à cette session.');return;}
  try{
   if(!state.profile){
    const display=state.session.user.email?.split('@')[0]?.slice(0,100)||'Professionnel';
@@ -358,7 +359,7 @@ $('priorityAlertsList').onclick=async event=>{
 };
 
 function render(){
- const yes=Boolean(state.session);$('homePrivateDashboard').classList.toggle('hidden',!yes);$('statOpenLabel').textContent=canUsePremium()?'Missions accessibles':'Mes missions en cours';$('homeMissionHeading').textContent=canUsePremium()?'Missions accessibles':'Mes missions en cours';$('authOpen').textContent=yes?state.session.user.email.split('@')[0]:'Se connecter';$('logout').classList.toggle('hidden',!yes);$('avatar').textContent=state.profile?.display_name?.[0]?.toUpperCase()||'V';
+ const yes=Boolean(state.session);$('homePrivateDashboard').classList.toggle('hidden',!yes);$('statOpenLabel').textContent=canUsePremium()?'Missions accessibles':'Mes missions en cours';$('homeMissionHeading').textContent=canUsePremium()?'Missions accessibles':'Mes missions en cours';$('authOpen').textContent=!yes?'Se connecter':isGuest()?'Suivi invité':(state.session.user.email?.split('@')[0]||'Mon compte');$('logout').classList.toggle('hidden',!yes||isGuest());$('avatar').textContent=state.profile?.display_name?.[0]?.toUpperCase()||'V';
  $('statOpen').textContent=state.missions.filter(x=>x.status==='open'&&(canUsePremium()||x.owner_id===state.session?.user.id)).length;$('statMissions').textContent=state.missions.filter(x=>x.owner_id===state.session?.user.id).length;$('statConvos').textContent=state.conversations.length;$('statFavorites').textContent=state.favorites.length;
  $('dashActivity').innerHTML=yes?`<div class="data-item"><div class="item-title">${esc(state.profile?.display_name||'Profil à compléter')}</div><div class="item-desc">${state.profile?.role==='client'?'Compte client':'Compte professionnel'} · ${state.conversations.length} discussion(s)</div></div><div class="data-item"><div class="item-title">Échanges directs entre utilisateurs</div><div class="item-desc">Échangez dans la messagerie, puis organisez librement votre accord, les tarifs et le règlement avec l'autre partie. OFFRYA n'intervient pas dans la transaction.</div></div>`:'<div class="empty">Connectez-vous pour voir vos contacts et vos missions.</div>';
  renderMissions();renderInbox();renderSettings();renderPremium();renderPriorityAlerts();
@@ -368,9 +369,54 @@ async function loadMessages(id,doRender=true){
  if(r.error)throw r.error;state.messages=r.data||[];if(doRender){renderInbox();tab('inbox');}
 }
 $('missionSearch').onclick=renderMissions;
-$('newMissionBtn').onclick=()=>{if(requireRole('client'))$('missionForm').scrollIntoView({behavior:'smooth'});};
-$('missionForm').onsubmit=async e=>{e.preventDefault();if(!requireRole('client'))return;const f=e.currentTarget;const x=Object.fromEntries(new FormData(f));const amount=x.budget?Math.round(Number(x.budget)*100):null;
- try{const r=await state.db.from('offrya_missions').insert({owner_id:state.session.user.id,title:x.title.trim(),description:x.description.trim(),category:x.category,department:x.department.trim().toUpperCase(),city:x.city.trim(),budget_cents:amount});if(r.error)throw r.error;f.reset();toast('Mission publiée.');await refresh();}catch(err){showError(err);}};
+$('newMissionBtn').onclick=()=>{$('missionForm').scrollIntoView({behavior:'smooth'});$('missionForm').elements.title.focus({preventScroll:true});};
+// Une session invitée est créée en coulisse uniquement au premier dépôt.
+// Elle ne demande ni e-mail ni mot de passe ; elle conserve l'accès privé sur cet appareil.
+async function ensureMissionPublisher(){
+ if(!state.db)throw Error('Publication momentanément indisponible.');
+ let {data:{session},error}=await state.db.auth.getSession();
+ if(error)throw error;
+ if(!session){
+  const guest=await state.db.auth.signInAnonymously();
+  if(guest.error)throw Error('Publication sans compte actuellement indisponible. Merci de réessayer ou de contacter le support.');
+  session=guest.data?.session;
+ }
+ if(!session?.user?.id)throw Error('Impossible de sécuriser la session de publication.');
+ const uid=session.user.id;
+ const profile=await state.db.from('offrya_profiles').select('id').eq('id',uid).maybeSingle();
+ if(profile.error)throw profile.error;
+ if(!profile.data){
+  const inserted=await state.db.from('offrya_profiles').insert({
+   id:uid,role:'client',display_name:'Auteur de mission',city:'',specialty:''
+  });
+  if(inserted.error&&inserted.error.code!=='23505')throw inserted.error;
+ }
+ state.session=session;
+ return uid;
+}
+$('missionForm').onsubmit=async e=>{
+ e.preventDefault();
+ const f=e.currentTarget;
+ if(f.dataset.sending==='true')return;
+ const x=Object.fromEntries(new FormData(f));
+ const amount=x.budget?Math.round(Number(x.budget)*100):null;
+ const button=f.querySelector('button[type="submit"]');
+ f.dataset.sending='true';button.disabled=true;
+ try{
+  const uid=await ensureMissionPublisher();
+  const r=await state.db.from('offrya_missions').insert({
+   owner_id:uid,title:x.title.trim(),description:x.description.trim(),
+   category:x.category,department:x.department.trim().toUpperCase(),
+   city:x.city.trim(),budget_cents:amount
+  });
+  if(r.error)throw r.error;
+  f.reset();await refresh();
+  toast(isGuest()?'Mission publiée sans compte. Gardez ce navigateur pour suivre les réponses.':'Mission publiée gratuitement.');
+  $('missionStatus').textContent=isGuest()?'Mission publiée. Votre suivi reste disponible dans ce navigateur tant que vous ne supprimez pas ses données.':'Mission publiée. Retrouvez-la dans Mes missions.';
+  $('missionStatus').classList.remove('hidden');
+ }catch(err){showError(err);}
+ finally{delete f.dataset.sending;button.disabled=false;}
+};
 $('missionList').onclick=async e=>{
  const btn=e.target.closest('[data-contact],[data-close-mission],[data-favorite]');if(!btn)return;
  if(btn.dataset.favorite){if(!requireAuth())return;const id=btn.dataset.favorite;try{const result=state.favorites.includes(id)?await state.db.from('offrya_favorites').delete().eq('user_id',state.session.user.id).eq('mission_id',id):await state.db.from('offrya_favorites').insert({user_id:state.session.user.id,mission_id:id});if(result.error)throw result.error;await refresh();toast(state.favorites.includes(id)?'Mission ajoutée aux favoris.':'Favori retiré.');}catch(err){showError(err);}return;}
@@ -396,7 +442,7 @@ $('boampSearch').onclick=()=>loadBoamp();$('boampMore').onclick=()=>loadBoamp(tr
  }catch(err){showError(err);}
 };
 function authModal(show){$('authModal').classList.toggle('hidden',!show);}
-$('authOpen').onclick=()=>{if(state.session){tab('settings');return;}authModal(true);};$('authClose').onclick=()=>authModal(false);$('authModal').onclick=e=>{if(e.target===$('authModal'))authModal(false);};
+$('authOpen').onclick=()=>{if(isGuest()){tab('missions');toast('Vos missions sont conservées dans cette session invitée sur cet appareil.');return;}if(state.session){tab('settings');return;}authModal(true);};$('authClose').onclick=()=>authModal(false);$('authModal').onclick=e=>{if(e.target===$('authModal'))authModal(false);};
 for(const b of document.querySelectorAll('[data-auth]'))b.onclick=()=>{state.authMode=b.dataset.auth;document.querySelectorAll('[data-auth]').forEach(x=>x.classList.toggle('active',x===b));$('authTitle').textContent=state.authMode==='signup'?'Créer un compte':state.authMode==='reset'?'Réinitialiser le mot de passe':'Se connecter';$('authSubmit').textContent=state.authMode==='signup'?'Créer le compte':state.authMode==='reset'?'Envoyer le lien':'Se connecter';$('authPasswordRow').classList.toggle('hidden',state.authMode==='reset');};
 $('authForm').onsubmit=async e=>{e.preventDefault();if(!state.db)return showError(new Error('Le service de connexion est momentanément indisponible.'));const f=e.currentTarget,email=f.elements.email.value.trim(),password=f.elements.password.value;try{let r;if(state.authMode==='recover')r=await state.db.auth.updateUser({password});else if(state.authMode==='signup')r=await state.db.auth.signUp({email,password,options:{emailRedirectTo:location.origin}});else if(state.authMode==='reset')r=await state.db.auth.resetPasswordForEmail(email,{redirectTo:location.origin});else r=await state.db.auth.signInWithPassword({email,password});if(r.error)throw r.error;authModal(false);toast(state.authMode==='signup'?'Vérifiez votre adresse e-mail pour activer le compte.':state.authMode==='reset'?'Consultez votre messagerie.':state.authMode==='recover'?'Mot de passe modifié.':'Connexion réussie.');await refresh();if(state.authMode==='signup'||state.signupForPro){tab(state.signupForPro?'professional':'settings');state.signupForPro=false;}}catch(err){showError(err);}};
 $('logout').onclick=async()=>{if(state.db)await state.db.auth.signOut();state.session=null;await refresh();toast('Déconnecté.');};
