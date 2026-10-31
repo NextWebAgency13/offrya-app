@@ -5,7 +5,7 @@ const path=require('node:path');
 const {queryBoamp}=require('./lib/boamp');
 const {verifyPremiumAccess}=require('./lib/premium');
 const {lookupCompany,verifyProfessional}=require('./lib/company');
-const {beginIdentity,processIdentityEvent,configured:identityConfigured}=require('./lib/identity');
+const {beginIdentity,processIdentityEvent,configured:identityConfigured,identityConfigChecks}=require('./lib/identity');
 const {billingEnabled,startCheckout,verifyStripeSignature,syncSubscription,portal}=require('./lib/billing');
 const {verifyToken}=require('./lib/unsubscribe');
 const staticMap=new Map([
@@ -150,5 +150,10 @@ async function handle(req,res){
   return res.end(req.method==='HEAD'?undefined:buf);
  }catch(e){console.error('OFFRYA',e.message);if(!res.headersSent)json(res,500,{error:'Erreur interne'});}
 }
-if(require.main===module){http.createServer(handle).listen(Number(process.env.PORT||3000),'0.0.0.0',()=>console.log('OFFRYA 4 prêt'));}
+if(require.main===module){http.createServer(handle).listen(Number(process.env.PORT||3000),'0.0.0.0',()=>{
+ console.log('OFFRYA 4 prêt');
+ const missing=Object.entries(identityConfigChecks()).filter(([,pass])=>!pass).map(([key])=>key);
+ if(missing.length)console.warn('Stripe Identity : configuration à vérifier (noms seulement) : '+missing.join(', '));
+ else console.log('Stripe Identity : variables reconnues. Autorisations Stripe et vérification réelle non testées.');
+});}
 module.exports={handle,csvValue,unsubscribePage};
