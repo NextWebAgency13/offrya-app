@@ -152,7 +152,7 @@ function renderPremium(){
    $('manualIdentityRequest').disabled=!canStart;
    $('manualIdentityStatus').classList.toggle('hidden',!reviewStatus);
    $('manualIdentityStatus').textContent=manualLabels[reviewStatus]||'';
-   $('manualIdentityDescription').textContent=state.identityEnabled?'Vous pouvez aussi demander un contrôle humain sécurisé au lieu du service automatique.':'La vérification automatisée n’est pas encore disponible. Vous pouvez demander un contrôle humain sans envoyer de pièce d’identité par e-mail.';
+   $('manualIdentityDescription').textContent=state.identityEnabled?'Vous pouvez demander de l’assistance si le service document + selfie pose problème. L’approbation exige toujours le rapprochement avec un dirigeant officiel.':'La vérification du document et du selfie n’est pas encore configurée. Demandez de l’assistance ; aucune approbation n’est possible tant que ces contrôles et la correspondance au registre ne sont pas établis.';
    $('proReviewNotice').textContent=state.premium.status==='rejected'?'Votre dossier a été refusé. Contactez le support pour connaître les informations à rectifier et demander un nouvel examen.':identity==='verified'&&authority!=='verified'?'Votre identité et votre selfie ont été contrôlés. OFFRYA vérifie maintenant la concordance avec le registre des dirigeants. Aucun paiement n’est demandé.':'Aucun paiement ni accès aux missions avant la validation complète de votre dossier.';
   }
  }
@@ -273,7 +273,7 @@ $('manualIdentityRequest').onclick=async()=>{
  try{
   const {error}=await state.db.from('offrya_manual_identity_requests').insert({user_id:state.session.user.id});
   if(error&&error.code!=='23505')throw error;
-  toast('Demande de vérification manuelle enregistrée.');
+  toast('Demande d’assistance enregistrée.');
   await refresh();
  }catch(err){showError(err);button.disabled=false;}
 };
