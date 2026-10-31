@@ -4,6 +4,7 @@ const fs=require('node:fs/promises');
 const path=require('node:path');
 const {queryBoamp}=require('./lib/boamp');
 const {verifyPremiumAccess}=require('./lib/premium');
+const {lookupCompany,verifyProfessional}=require('./lib/company');
 const {verifyToken}=require('./lib/unsubscribe');
 const staticMap=new Map([
  ['/index.html','text/html; charset=utf-8'],['/app.js','text/javascript; charset=utf-8'],
@@ -28,6 +29,16 @@ async function unsubscribe(id){const url=process.env.SUPABASE_URL, key=process.e
 async function handle(req,res){
  try{const u=new URL(req.url,'http://localhost'),p=u.pathname;
   if(p==='/api/health'&&req.method==='GET')return json(res,200,{ok:true,version:'4.0.0',paymentsEnabled:false,emailsConfigured:Boolean(process.env.RESEND_API_KEY)});
+  if(p==='/api/company/lookup'&&req.method==='GET'){
+   if(!rateLimit(req,12))return json(res,429,{error:'Trop de demandes de vérification.'});
+   try{
+    const verified=await verifyProfessional(req.headers.authorization,{url:process.env.SUPABASE_URL,key:process.env.SUPABASE_PUBLISHABLE_KEY});
+    if(!verified.allowed)return json(res,verified.status,{error:verified.error});
+    const result=await lookupCompany(u.searchParams.get('siret'));
+    if(!result.ok)return json(res,result.status,{error:result.reason});
+    return json(res,200,result.company);
+   }catch(err){console.error('Official company lookup:',err.message);return json(res,503,{error:'Registre national temporairement indisponible.'});}
+  }
   if(p==='/api/config'&&req.method==='GET')return json(res,200,{supabaseUrl:process.env.SUPABASE_URL||null,supabaseKey:process.env.SUPABASE_PUBLISHABLE_KEY||null,paymentsEnabled:false});
   if(p==='/api/unsubscribe'&&req.method==='GET'){
    const token=u.searchParams.get('token')||'';const valid=Boolean(verifyToken(token,process.env.UNSUBSCRIBE_SECRET));

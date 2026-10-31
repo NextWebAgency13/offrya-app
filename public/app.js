@@ -78,16 +78,38 @@ function renderPremium(){
  if(!state.session){text.textContent='Connectez-vous pour découvrir les conditions d’accès.';$('premiumLogin').classList.remove('hidden');}
  else if(!state.profile){text.textContent='Créez d’abord un profil Professionnel depuis Mon compte.';}
  else if(state.profile.role!=='pro'){text.textContent='Votre profil est un compte Client. La rubrique Premium est réservée aux professionnels.';}
- else if(!state.premium){text.textContent='Pour demander l’accès Premium bêta, renseignez l’entreprise à vérifier.';$('premiumRequestForm').classList.remove('hidden');}
+ else if(!state.premium){text.textContent='Vérifiez le SIRET officiel de votre entreprise, puis envoyez votre demande Premium.';$('premiumRequestForm').classList.remove('hidden');}
  else if(state.premium.status==='pending'){text.textContent='Demande reçue. Vérification de l’entreprise en attente : aucun paiement requis pendant la bêta.';}
  else if(state.premium.status==='rejected'){text.textContent='L’entreprise n’a pas été validée. Contactez OFFRYA pour une révision.';}
  else{text.textContent='Votre accès Premium est expiré ou suspendu. Contactez OFFRYA.';}
 }
 $('premiumLogin').onclick=()=>authModal(true);
+$('verifySiret').onclick=async()=>{
+ if(!requireRole('pro'))return;
+ const f=$('premiumRequestForm'),siret=f.elements.siret.value.trim();
+ $('companyCheck').textContent='Vérification du SIRET en cours…';
+ f.dataset.verifiedSiret='';
+ try{
+  const {data:{session}}=await state.db.auth.getSession();
+  if(!session)throw Error('Veuillez vous reconnecter.');
+  const r=await fetch('/api/company/lookup?siret='+encodeURIComponent(siret),{headers:{Authorization:'Bearer '+session.access_token}});
+  const data=await r.json();
+  if(!r.ok)throw Error(data.error||'SIRET non vérifiable');
+  f.elements.legal_name.value=data.legal_name;
+  f.dataset.verifiedSiret=siret;
+  $('companyCheck').textContent='Établissement actif confirmé : '+data.legal_name+' ('+data.establishment_city+'). Vérification du représentant à réaliser après la demande.';
+ }catch(err){$('companyCheck').textContent=err.message;showError(err);}
+};
+$('premiumRequestForm').elements.siret.addEventListener('input',()=>{
+ $('premiumRequestForm').dataset.verifiedSiret='';
+ $('companyCheck').textContent='Vérifiez le SIRET avec le registre officiel avant de déposer la demande.';
+});
 $('premiumRequestForm').onsubmit=async e=>{
  e.preventDefault();if(!requireRole('pro'))return;
  const f=e.currentTarget,legal_name=f.elements.legal_name.value.trim(),siret=f.elements.siret.value.trim();
  if(!/^[0-9]{14}$/.test(siret))return toast('Le SIRET doit comporter 14 chiffres.');
+ if(f.dataset.verifiedSiret!==siret)return toast('Vérifiez d’abord le SIRET sur le registre officiel.');
+ if(legal_name!==f.elements.legal_name.value.trim())return toast('Nom légal invalide.');
  try{
   const result=await state.db.from('offrya_premium_requests').insert({user_id:state.session.user.id,legal_name,siret});
   if(result.error)throw result.error;

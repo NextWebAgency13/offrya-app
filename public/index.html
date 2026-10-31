@@ -63,8 +63,10 @@
        <p id="premiumGateText" class="muted" role="status">Connectez-vous pour vérifier votre accès.</p>
        <button class="button primary" id="premiumLogin">Se connecter</button>
        <form id="premiumRequestForm" class="settings-form hidden" style="max-width:520px;margin-top:18px">
-        <label>Raison sociale officielle<input class="field" name="legal_name" maxlength="150" minlength="2" required placeholder="Nom de l'entreprise"></label>
         <label>SIRET (14 chiffres)<input class="field" name="siret" minlength="14" maxlength="14" pattern="[0-9]{14}" inputmode="numeric" required placeholder="12345678901234"></label>
+        <button class="button secondary" id="verifySiret" type="button">Vérifier le SIRET officiel</button>
+        <p id="companyCheck" role="status" class="tiny muted">Contrôle sur l'Annuaire des Entreprises avant demande.</p>
+        <label>Raison sociale officielle<input class="field" name="legal_name" maxlength="150" minlength="2" required readonly placeholder="Renseignée après vérification"></label>
         <p class="tiny muted">OFFRYA devra vérifier l'immatriculation et l'habilitation de votre entreprise. Un justificatif Kbis ou RNE pourra être demandé. Cette démarche ne donne pas automatiquement accès au Premium.</p>
         <button class="button primary" type="submit">Demander l'accès Premium bêta</button>
        </form>
