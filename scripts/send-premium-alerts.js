@@ -58,7 +58,7 @@ async function sendPriorityAlerts(env=process.env){
    const prefs=prefRows[0],mission=missionRows[0],p=profileRows[0],req=requestRows[0],sub=subscriptionRows[0];
    const paid=sub?.status==='active'&&Date.parse(sub.paid_through||'')>Date.now();
    const beta=Date.parse(req?.premium_until||'')>Date.now();
-   if(!permitted(prefs,mission,a,uid)||p?.role!=='pro'||req?.status!=='verified'||!(paid||beta)){skipped++;continue;}
+   if(!permitted(prefs,mission,a,uid)||!['pro','client'].includes(p?.role)||req?.status!=='verified'||!(paid||beta)){skipped++;continue;}
    const response=await fetch(base.replace(/\/$/,'')+'/auth/v1/admin/users/'+uid,{headers:{apikey:key},signal:AbortSignal.timeout(12000)});
    if(!response.ok){skipped++;continue;}
    const user=await response.json();

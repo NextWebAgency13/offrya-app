@@ -53,3 +53,8 @@ test('Badge Premium global disponible même en dehors du tableau de bord',()=>{
  assert.match(html,/id="priorityAlertBubble"/);
  assert.match(app,/state\.lastPriorityIds/);
 });
+
+test('Les alertes e-mail Premium prennent en charge un compte client devenu entreprise vérifiée',()=>{
+ const worker=fs.readFileSync(path.join(__dirname,'../scripts/send-premium-alerts.js'),'utf8');
+ assert.match(worker,/\['pro','client'\]\.includes\(p\?\.role\)/);
+});
