@@ -13,7 +13,7 @@ test('Accueil: parcours public séparés et prix professionnel exact',()=>{
  const home=html.split('<section class="tab active" id="dashboard">')[1].split('<section class="tab" id="missions">')[0];
  assert.match(home,/Déposer une mission gratuitement/);
  assert.match(home,/data-tab="missions" data-action="publish"/);
- assert.match(home,/data-tab="boamp"/);
+ assert.match(home,/data-tab="professional"/);
  assert.match(home,/34,99 €/);
  assert.match(home,/vérification obligatoire/i);
  assert.match(home,/professionnels validés par OFFRYA/);
