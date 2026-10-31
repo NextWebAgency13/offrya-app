@@ -40,9 +40,11 @@ test('Webhook Stripe valide synchronise un abonnement payé uniquement',async()=
  assert.ok(new Date(body.paid_through)>new Date());
 });
 
-test('Une clé Stripe live ne suffit pas pour activer la facturation réelle',()=>{
- const env={OFFRYA_BILLING_ENABLED:'true',STRIPE_WEBHOOK_SECRET:'whsec_test',STRIPE_PRICE_ID:'price_example',SITE_URL:'https://offrya-app.onrender.com',SUPABASE_SECRET_KEY:'secret'};
+test('La facturation accepte le mode Stripe test ou live avec activation explicite',()=>{
+ const env={STRIPE_WEBHOOK_SECRET:'whsec_test',STRIPE_PRICE_ID:'price_example',SITE_URL:'https://offrya-app.onrender.com',SUPABASE_SECRET_KEY:'secret'};
+ assert.equal(billingEnabled({...env,OFFRYA_BILLING_ENABLED:'false',STRIPE_SECRET_KEY:'sk_live_sample'}),false);
  assert.equal(billingEnabled({...env,STRIPE_SECRET_KEY:'sk_live_sample'}),false);
- assert.equal(billingEnabled({...env,STRIPE_SECRET_KEY:'sk_test_sample'}),true);
- assert.equal(billingEnabled({...env,STRIPE_SECRET_KEY:'sk_live_sample',OFFRYA_LIVE_PAYMENTS_ENABLED:'true'}),true);
+ assert.equal(billingEnabled({...env,OFFRYA_BILLING_ENABLED:'true',STRIPE_SECRET_KEY:'sk_live_sample'}),true);
+ assert.equal(billingEnabled({...env,OFFRYA_BILLING_ENABLED:'true',STRIPE_SECRET_KEY:'sk_test_sample'}),true);
+ assert.equal(billingEnabled({...env,OFFRYA_BILLING_ENABLED:'true',STRIPE_SECRET_KEY:'not_a_stripe_key'}),false);
 });
