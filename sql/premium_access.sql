@@ -14,8 +14,8 @@ revoke all on public.offrya_premium_requests from public,anon,authenticated;
 grant select (user_id,siret,legal_name,status,premium_until,requested_at,reviewed_at) on public.offrya_premium_requests to authenticated;
 grant insert (user_id,siret,legal_name) on public.offrya_premium_requests to authenticated;
 create policy premium_read_own on public.offrya_premium_requests for select to authenticated using ((select auth.uid())=user_id);
-create policy premium_request_professional on public.offrya_premium_requests for insert to authenticated
+create policy premium_request_account_holder on public.offrya_premium_requests for insert to authenticated
 with check ((select auth.uid())=user_id and status='pending' and premium_until is null and reviewed_at is null
- and exists (select 1 from public.offrya_profiles p where p.id=(select auth.uid()) and p.role='pro'));
+ and exists (select 1 from public.offrya_profiles p where p.id=(select auth.uid()) ));
 revoke update on public.offrya_profiles from authenticated;
 grant update (display_name,city,specialty) on public.offrya_profiles to authenticated;

@@ -21,7 +21,8 @@ test('JWT utilisateur obligatoire; clé publique insuffisante',async()=>{
 });
 test('Accès Premium: professionnel vérifié et période active uniquement',async()=>{
  assert.equal((await verifyPremiumAccess('Bearer '+jwt,config,fake())).allowed,true);
- for(const opts of [{role:'client'},{status:'pending'},{status:'rejected'},
+ assert.equal((await verifyPremiumAccess('Bearer '+jwt,config,fake({role:'client'}))).allowed,true);
+ for(const opts of [{status:'pending'},{status:'rejected'},
   {premium_until:new Date(Date.now()-3600000).toISOString()}]){
    const res=await verifyPremiumAccess('Bearer '+jwt,config,fake(opts));
    assert.equal(res.allowed,false);assert.equal(res.status,403);
@@ -56,4 +57,11 @@ test('Paiement Premium actif autorise l’accès même après la bêta',async()=
   throw Error(url);
  };
  assert.equal((await verifyPremiumAccess('Bearer '+jwt,config,fetcher)).allowed,true);
+});
+
+test('Un compte Client vérifié obtient Premium, mais jamais un compte en attente',async()=>{
+ const client=await verifyPremiumAccess('Bearer '+jwt,config,fake({role:'client'}));
+ assert.equal(client.allowed,true);
+ const pending=await verifyPremiumAccess('Bearer '+jwt,config,fake({role:'client',status:'pending'}));
+ assert.equal(pending.status,403);
 });

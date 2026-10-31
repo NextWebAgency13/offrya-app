@@ -10,7 +10,7 @@ function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggl
 function tab(name){if(!$(name))return;document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.id===name));document.querySelectorAll('.nav-link').forEach(el=>el.classList.toggle('active',el.dataset.tab===name));const titles={dashboard:'Vue d’ensemble',missions:'Missions privées',boamp:'Marchés publics',inbox:'Messagerie',settings:'Mon compte'};$('pageTitle').textContent=titles[name];$('breadcrumb').textContent='OFFRYA / '+titles[name].toUpperCase();location.hash=name;if(name==='boamp'&&canUsePremium()&&!state.boamp.length)loadBoamp();window.scrollTo({top:0,behavior:'smooth'});}
 for(const n of document.querySelectorAll('[data-tab]'))n.addEventListener('click',()=>{tab(n.dataset.tab);if(n.dataset.action==='publish')$('missionForm').scrollIntoView({behavior:'smooth'});});
 function requireAuth(){if(!state.db){toast('Connectez d’abord votre projet Supabase OFFRYA.');return false;}if(!state.session){$('authModal').classList.remove('hidden');toast('Inscription ou connexion nécessaire.');return false;}return true;}
-function requireRole(role){if(!requireAuth())return false;if(!state.profile){tab('settings');toast('Complétez votre profil avant de commencer.');return false;}if(state.profile.role!==role){toast(role==='client'?'Un compte Client est nécessaire pour publier.':'Un compte Professionnel est nécessaire pour répondre.');return false;}return true;}
+function requireRole(role){if(!requireAuth())return false;if(!state.profile){tab('settings');toast('Complétez votre profil avant de commencer.');return false;}if(state.profile.role!==role && !(role==='pro' && canUsePremium())){toast(role==='client'?'Un compte Client est nécessaire pour publier.':'Un compte professionnel ou un accès Premium vérifié est nécessaire pour répondre.');return false;}return true;}
 function titleForMission(id){return state.missions.find(m=>m.id===id)?.title||'Mission';}
 function profileName(id){return state.profiles.find(p=>p.id===id)?.display_name||'Utilisateur OFFRYA';}
 async function refresh(){
@@ -58,7 +58,7 @@ function renderMessages(){
 }
 function renderSettings(){
  const yes=Boolean(state.session),has=Boolean(state.profile);
- $('accountState').textContent=yes?`Compte : ${state.session.user.email}`:'Connectez-vous pour sauvegarder vos informations.';
+ $('accountState').textContent=yes?`Compte : ${state.session.user.email}${canUsePremium()?' · Entreprise Premium vérifiée':''}`:'Connectez-vous pour sauvegarder vos informations.';
  const f=$('profileForm');f.elements.display_name.value=state.profile?.display_name||'';f.elements.role.value=state.profile?.role||'client';f.elements.role.disabled=has;f.elements.city.value=state.profile?.city||'';f.elements.specialty.value=state.profile?.specialty||'';
  const p=$('preferencesForm');p.elements.missions_enabled.checked=state.prefs?.missions_enabled||false;p.elements.messages_enabled.checked=state.prefs?.messages_enabled||false;p.elements.department.value=state.prefs?.department||'';p.elements.category.value=state.prefs?.category||'';
  $('waitBtn').textContent=state.wait?'Quitter la liste d’attente':'Rejoindre la liste d’attente';$('waitState').textContent=state.wait?'Inscrit · sans paiement':'';
@@ -67,7 +67,7 @@ function renderSettings(){
 function canUsePremium(){
  const beta=Date.parse(state.premium?.premium_until||'')>Date.now();
  const paid=state.subscription?.status==='active'&&Date.parse(state.subscription?.paid_through||'')>Date.now();
- return Boolean(state.session&&state.profile?.role==='pro'&&state.premium?.status==='verified'&&(beta||paid));
+ return Boolean(state.session&&state.premium?.status==='verified'&&(beta||paid));
 }
 function renderPremium(){
  const allowed=canUsePremium();
@@ -77,23 +77,49 @@ function renderPremium(){
  $('premiumLogin').classList.add('hidden');
  $('premiumPlan').classList.add('hidden');
  $('premiumSubscribe').classList.add('hidden');
- if(allowed)return;
+ $('premiumPortal').classList.add('hidden');
+ const paid=state.subscription?.status==='active'&&Date.parse(state.subscription?.paid_through||'')>Date.now();
+ if(allowed&&paid){
+  $('premiumPortal').classList.remove('hidden');
+  return;
+ }
+ if(allowed){
+  // Beta access already granted: still let the company subscribe when Stripe is ready.
+  $('premiumGate').classList.remove('hidden');
+  $('premiumPlan').classList.remove('hidden');
+  $('premiumSubscribe').classList.remove('hidden');
+  $('premiumSubscribe').disabled=!state.billingEnabled;
+  $('premiumBillingStatus').textContent=state.billingEnabled?'Vous disposez déjà d’un accès bêta ; vous pouvez souscrire à Premium.':'Vous avez accès à la bêta. La souscription sera proposée après l’activation des paiements Stripe.';
+  $('premiumGateText').textContent='Entreprise vérifiée : votre accès Premium bêta est actif.';
+  return;
+ }
  state.boamp=[];state.boampOffset=0;state.boampTotal=0;
  const text=$('premiumGateText');
  if(!state.session){text.textContent='Connectez-vous pour découvrir les conditions d’accès.';$('premiumLogin').classList.remove('hidden');}
- else if(!state.profile){text.textContent='Créez d’abord un profil Professionnel depuis Mon compte.';}
- else if(state.profile.role!=='pro'){text.textContent='Votre profil est un compte Client. La rubrique Premium est réservée aux professionnels.';}
+ else if(!state.profile){text.textContent='Complétez votre profil dans Mon compte. Vous pourrez ensuite demander Premium avec le même compte.';}
  else if(!state.premium){text.textContent='Vérifiez le SIRET officiel de votre entreprise, puis envoyez votre demande Premium.';$('premiumRequestForm').classList.remove('hidden');}
  else if(state.premium.status==='pending'){text.textContent='Demande reçue. Vérification de l’entreprise en attente : aucun paiement requis pendant la bêta.';}
  else if(state.premium.status==='rejected'){text.textContent='L’entreprise n’a pas été validée. Contactez OFFRYA pour une révision.';}
  else if(state.premium.status==='verified'){
   text.textContent='Entreprise vérifiée. OFFRYA Premium est proposé à 19 € par mois.';
   $('premiumPlan').classList.remove('hidden');
-  $('premiumBillingStatus').textContent=state.billingEnabled?'Paiement sécurisé par Stripe.':'Paiements pas encore activés : abonnement en préparation.';
-  if(state.billingEnabled)$('premiumSubscribe').classList.remove('hidden');
+  $('premiumSubscribe').classList.remove('hidden');
+  $('premiumSubscribe').disabled=!state.billingEnabled;
+  $('premiumBillingStatus').textContent=state.billingEnabled?'Paiement de test sécurisé par Stripe, après confirmation.':'Souscription temporairement indisponible : les paiements Stripe sont encore désactivés dans Render.';
  }else{text.textContent='Accès Premium suspendu.';}
 }
 $('premiumLogin').onclick=()=>authModal(true);
+$('premiumPortal').onclick=async()=>{
+ try{
+  const {data:{session}}=await state.db.auth.getSession();
+  if(!session)throw Error('Reconnexion nécessaire.');
+  const r=await fetch('/api/billing/portal',{method:'POST',headers:{Authorization:'Bearer '+session.access_token}});
+  const data=await r.json();
+  if(!r.ok)throw Error(data.error||'Portail Stripe indisponible');
+  if(!/^https:\/\/billing\.stripe\.com\//.test(data.url))throw Error('Lien Stripe invalide');
+  location.assign(data.url);
+ }catch(err){showError(err);}
+};
 $('premiumSubscribe').onclick=async()=>{
  if(!state.billingEnabled||state.premium?.status!=='verified')return;
  if(!confirm('Souscrire OFFRYA Premium à 19 € par mois via Stripe ?'))return;
@@ -108,7 +134,8 @@ $('premiumSubscribe').onclick=async()=>{
  }catch(err){showError(err);}
 };
 $('verifySiret').onclick=async()=>{
- if(!requireRole('pro'))return;
+ if(!requireAuth())return;
+ if(!state.profile){tab('settings');return toast('Complétez votre profil avant de vérifier le SIRET.');}
  const f=$('premiumRequestForm'),siret=f.elements.siret.value.trim();
  $('companyCheck').textContent='Vérification du SIRET en cours…';
  f.dataset.verifiedSiret='';
@@ -128,7 +155,8 @@ $('premiumRequestForm').elements.siret.addEventListener('input',()=>{
  $('companyCheck').textContent='Vérifiez le SIRET avec le registre officiel avant de déposer la demande.';
 });
 $('premiumRequestForm').onsubmit=async e=>{
- e.preventDefault();if(!requireRole('pro'))return;
+ e.preventDefault();if(!requireAuth())return;
+ if(!state.profile){tab('settings');return toast('Complétez votre profil avant de demander Premium.');}
  const f=e.currentTarget,legal_name=f.elements.legal_name.value.trim(),siret=f.elements.siret.value.trim();
  if(!/^[0-9]{14}$/.test(siret))return toast('Le SIRET doit comporter 14 chiffres.');
  if(f.dataset.verifiedSiret!==siret)return toast('Vérifiez d’abord le SIRET sur le registre officiel.');

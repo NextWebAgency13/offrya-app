@@ -29,7 +29,7 @@ begin
  join public.offrya_premium_requests req on req.user_id=p.id and req.status='verified'
  left join public.offrya_premium_subscriptions sub on sub.user_id=p.id
  left join public.offrya_alert_preferences pref on pref.user_id=p.id
- where p.role='pro' and p.id<>new.owner_id
+ where p.id<>new.owner_id
   and (req.premium_until>now() or(sub.status='active' and sub.paid_through>now()))
   and(coalesce(pref.department,'')='' or pref.department=new.department)
   and(coalesce(pref.category,'')='' or pref.category=new.category)

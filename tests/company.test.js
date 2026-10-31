@@ -20,13 +20,16 @@ test('SIRET officiel exact, établissement actif et nom légal',async()=>{
  assert.equal((await lookupCompany(siret,reg({est:'F'}))).status,422);
  assert.equal((await lookupCompany('00000000000000',reg())).status,404);
 });
-test('Consultation officielle réservée aux comptes pro connectés',async()=>{
+test('Consultation officielle accessible à tous les comptes identifiés ayant un profil',async()=>{
  const fetcher=async url=>{
   if(url.includes('/auth/v1/user'))return {ok:true,json:async()=>({id:uid,email:'pro@example.com'})};
   return {ok:true,json:async()=>[{role:'pro'}]};
  };
  const yes=await verifyProfessional('Bearer aaa.bbb.ccc',{url:'https://demo.supabase.co',key:'publishable'},fetcher);
  assert.equal(yes.allowed,true);
+ const client=await verifyProfessional('Bearer aaa.bbb.ccc',{url:'https://demo.supabase.co',key:'publishable'},async u=>
+  u.includes('/auth/v1/user')?{ok:true,json:async()=>({id:uid,email:'client@example.com'})}:{ok:true,json:async()=>[{role:'client'}]});
+ assert.equal(client.allowed,true);
  assert.equal((await verifyProfessional('',{url:'https://demo.supabase.co',key:'publishable'},fetcher)).status,401);
 });
 test('API société: route protégée sans JWT',async()=>{
