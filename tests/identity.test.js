@@ -18,7 +18,7 @@ test('Identité non activée si les secrets ne sont pas présents',async()=>{
  assert.equal(officialVerificationUrl('http://verify.stripe.com/'),null);
  assert.match(officialVerificationUrl('https://verify.stripe.com/start/demo'),/^https:/);
 });
-test('Dossier en attente, MFA et SIRET requis avant création de la session',async()=>{
+test('Dossier en attente et SIRET requis avant création de la session',async()=>{
  let patched,created;
  const fake=async (url,opt={})=>{
   if(url.endsWith('/auth/v1/user'))return {ok:true,json:async()=>({id:uid,email:'pro@example.com'})};
@@ -43,8 +43,8 @@ test('Dossier en attente, MFA et SIRET requis avant création de la session',asy
  const selfie=await beginIdentity('Bearer '+token,{...env,OFFRYA_IDENTITY_SELFIE_ENABLED:'true'},fake);
  assert.equal(selfie.status,200);
  assert.equal(created.get('options[document][require_matching_selfie]'),'true');
- const weak='aaa.'+Buffer.from(JSON.stringify({aal:'aal1'})).toString('base64url')+'.ccc';
- assert.equal((await beginIdentity('Bearer '+weak,env,fake)).status,403);
+ const simple='aaa.'+Buffer.from(JSON.stringify({aal:'aal1'})).toString('base64url')+'.ccc';
+ assert.equal((await beginIdentity('Bearer '+simple,env,fake)).status,200);
 });
 test('Webhook identité: statut Stripe actuel + correspondance stricte session et dossier',async()=>{
  let patched,queries=0;
@@ -99,14 +99,19 @@ test('Signature dédiée : pas de webhook anonyme ou falsifié',async()=>{
 });
 test('L’accès pro est verrouillé en SQL, API et travailleurs d’alertes',()=>{
  const sql=fs.readFileSync(path.join(__dirname,'../sql/professional_identity_mfa.sql'),'utf8');
+ const withoutMfa=fs.readFileSync(path.join(__dirname,'../sql/professional_without_mfa.sql'),'utf8');
  const api=fs.readFileSync(path.join(__dirname,'../lib/premium.js'),'utf8');
  const client=fs.readFileSync(path.join(__dirname,'../public/app.js'),'utf8');
  const sender=fs.readFileSync(path.join(__dirname,'../scripts/send-alerts.js'),'utf8');
- assert.match(sql,/auth.jwt\(\)->>'aal'/);
+ assert.doesNotMatch(withoutMfa,/aal2|auth\.jwt\(\)->>'aal'/);
+ assert.match(withoutMfa,/is_anonymous/);
+ assert.match(withoutMfa,/v\.identity_live_verified is true/);
+ assert.match(withoutMfa,/v\.authority_status='verified'/);
+ assert.match(withoutMfa,/s\.status='active'/);
  assert.match(sql,/identity_status='verified'/);
  assert.match(sql,/authority_status='verified'/);
  assert.match(sql,/offrya_guard_professional_approval/);
- assert.match(api,/aal!=='aal2'/);
- assert.match(client,/getAuthenticatorAssuranceLevel/);
+ assert.doesNotMatch(api,/aal2|mfa/i);
+ assert.doesNotMatch(client,/mfa|totp|double authentification/i);
  assert.match(sender,/identity_status==='verified'/);
 });
