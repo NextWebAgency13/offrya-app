@@ -57,7 +57,6 @@ async function handle(req,res){
      return json(res,400,{error:'Indiquez le nom complet et la fonction du représentant de l’entreprise.'});
     const official=await lookupCompany(siret);
     if(!official.ok)return json(res,official.status,{error:official.reason});
-    if(actor.aal!=='aal2')return json(res,403,{error:'Double authentification professionnelle obligatoire avant le dépôt du dossier.'});
     const row={user_id:actor.userId,siret,legal_name:official.company.legal_name,representative_name,representative_capacity,representative_kind};
     const response=await fetch(process.env.SUPABASE_URL.replace(/\/$/,'')+'/rest/v1/offrya_premium_requests',{
      method:'POST',headers:{apikey:process.env.SUPABASE_SECRET_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
