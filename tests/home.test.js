@@ -16,7 +16,9 @@ test('Accueil: parcours public séparés et prix professionnel exact',()=>{
  assert.match(home,/data-tab="professional"/);
  assert.match(home,/34,99 €/);
  assert.match(home,/vérification obligatoire/i);
- assert.match(home,/professionnels validés par OFFRYA/);
+ assert.match(home,/professionnels dont l’entreprise et l’identité sont vérifiées/);
+ assert.match(home,/Sans créer de compte/);
+ assert.match(home,/Premium actif à 34,99 € TTC\/mois/);
  assert.doesNotMatch(home,/témoignages|avis clients|\d+\s+professionnels inscrits/i);
 });
 
