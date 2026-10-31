@@ -10,15 +10,15 @@ function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggl
 function tab(name){if(!$(name))return;document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.id===name));document.querySelectorAll('.nav-link').forEach(el=>el.classList.toggle('active',el.dataset.tab===name));const titles={dashboard:'Vue d’ensemble',missions:'Missions privées',boamp:'Marchés publics',inbox:'Messagerie',settings:'Mon compte'};$('pageTitle').textContent=titles[name];$('breadcrumb').textContent='OFFRYA / '+titles[name].toUpperCase();location.hash=name;if(name==='boamp'&&canUsePremium()&&!state.boamp.length)loadBoamp();window.scrollTo({top:0,behavior:'smooth'});}
 for(const n of document.querySelectorAll('[data-tab]'))n.addEventListener('click',()=>{tab(n.dataset.tab);if(n.dataset.action==='publish')$('missionForm').scrollIntoView({behavior:'smooth'});});
 function requireAuth(){if(!state.db){toast('Le service de connexion est momentanément indisponible.');return false;}if(!state.session){$('authModal').classList.remove('hidden');toast('Inscription ou connexion nécessaire.');return false;}return true;}
-function requireRole(role){if(!requireAuth())return false;if(!state.profile){tab('settings');toast('Complétez votre profil avant de commencer.');return false;}if(state.profile.role!==role && !(role==='pro' && canUsePremium())){toast(role==='client'?'Un compte Client est nécessaire pour publier.':'Un compte professionnel ou un accès Premium vérifié est nécessaire pour répondre.');return false;}return true;}
+function requireRole(role){if(!requireAuth())return false;if(!state.profile){tab('settings');toast('Complétez votre profil avant de commencer.');return false;}if(role==='pro'&&(state.profile.role!=='pro'||!canUsePremium())){toast('Vérification professionnelle et abonnement actif requis pour répondre aux missions.');tab('boamp');return false;}return true;}
 function titleForMission(id){return state.missions.find(m=>m.id===id)?.title||'Mission';}
 function profileName(id){return state.profiles.find(p=>p.id===id)?.display_name||'Utilisateur OFFRYA';}
 async function refresh(){
  if(!state.db){render();return;}
+ if(!state.session){state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.boamp=[];state.priorityAlerts=[];state.lastPriorityIds=null;render();return;}
  const missionResult=await state.db.from('offrya_missions').select('*').order('created_at',{ascending:false}).limit(200);
  if(missionResult.error)throw missionResult.error;
  state.missions=missionResult.data||[];
- if(!state.session){state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.boamp=[];state.priorityAlerts=[];state.lastPriorityIds=null;render();return;}
  const uid=state.session.user.id;
  const [prof,conv,prefs,profiles,favorites,premium,subscription]=await Promise.all([
   state.db.from('offrya_profiles').select('*').eq('id',uid).maybeSingle(),
@@ -38,11 +38,19 @@ async function refresh(){
 }
 function row(m,actions=''){return `<article class="data-item"><div class="item-top"><span class="tag">${esc(m.category)}</span><span class="muted tiny">${date(m.created_at)}</span></div><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.description).slice(0,270)}</div><div class="meta-row"><span>⌖ ${esc(m.city)} (${esc(m.department)})</span><span>Budget : ${m.budget_cents?euro(m.budget_cents):'À définir'}</span><span>${m.status==='open'?'Ouverte':m.status==='awarded'?'Attribuée':'Fermée'}</span></div>${actions?`<div class="item-actions">${actions}</div>`:''}</article>`;}
 function renderMissions(){
+ const uid=state.session?.user.id,canBrowse=canUsePremium();
+ const visible=state.missions.filter(m=>m.owner_id===uid||canBrowse);
  let q=$('missionQuery').value.trim().toLowerCase(),c=$('missionCategory').value,d=$('missionDept').value.trim().toUpperCase();
- const matches=state.missions.filter(m=>m.status==='open'&&(!q||(m.title+' '+m.description+' '+m.city).toLowerCase().includes(q))&&(!c||m.category===c)&&(!d||m.department===d));
+ const matches=visible.filter(m=>m.status==='open'&&(!q||(m.title+' '+m.description+' '+m.city).toLowerCase().includes(q))&&(!c||m.category===c)&&(!d||m.department===d));
  $('missionsCount').textContent=matches.length+' mission(s)';
- $('missionList').innerHTML=matches.length?matches.map(m=>row(m,`<button class="button secondary micro-button" data-favorite="${esc(m.id)}" aria-pressed="${state.favorites.includes(m.id)}">${state.favorites.includes(m.id)?'★ Enregistrée':'☆ Favori'}</button> `+(state.profile?.role==='pro'&&m.owner_id!==state.session?.user.id?`<button class="button primary micro-button" data-contact="${esc(m.id)}">Contacter le client</button>`:m.owner_id===state.session?.user.id?`<span class="tag">Votre annonce</span> <button class="button secondary micro-button" data-close-mission="${esc(m.id)}">Clôturer</button>`:'<span class="tiny muted">Connectez-vous comme professionnel pour répondre</span>'))).join(''):'<div class="empty">Aucune mission ne correspond à ces critères. Élargissez votre recherche ou publiez une demande.</div>';
- $('dashMissions').innerHTML=state.missions.filter(m=>m.status==='open').slice(0,3).map(m=>row(m)).join('')||'<div class="empty">Aucune mission publiée pour le moment.</div>';
+ $('missionAccessNotice').classList.toggle('hidden',canBrowse);
+ $('missionList').innerHTML=matches.length?matches.map(m=>{
+  const own=m.owner_id===uid;
+  const actions=own?`<span class="tag">Votre annonce</span> <button class="button secondary micro-button" data-close-mission="${esc(m.id)}">Clôturer</button>`:
+   canBrowse?`<button class="button secondary micro-button" data-favorite="${esc(m.id)}" aria-pressed="${state.favorites.includes(m.id)}">${state.favorites.includes(m.id)?'★ Enregistrée':'☆ Favori'}</button> <button class="button primary micro-button" data-contact="${esc(m.id)}">Contacter le client</button>`:'';
+  return row(m,actions);
+ }).join(''):'<div class="empty">Aucune mission accessible pour le moment. Vous pouvez publier gratuitement votre demande.</div>';
+ $('dashMissions').innerHTML=visible.filter(m=>m.status==='open').slice(0,3).map(m=>row(m)).join('')||'<div class="empty">Aucune mission accessible pour le moment.</div>';
 }
 function renderInbox(){
  const items=state.conversations;
@@ -57,8 +65,8 @@ function renderMessages(){
 }
 function renderSettings(){
  const yes=Boolean(state.session),has=Boolean(state.profile);
- $('accountState').textContent=yes?`Compte : ${state.session.user.email}${canUsePremium()?' · Entreprise Premium vérifiée':''}`:'Connectez-vous pour sauvegarder vos informations.';
- const f=$('profileForm');f.elements.display_name.value=state.profile?.display_name||'';f.elements.role.value=state.profile?.role||'client';f.elements.role.disabled=has;f.elements.city.value=state.profile?.city||'';f.elements.specialty.value=state.profile?.specialty||'';
+ $('accountState').textContent=yes?`Compte : ${state.session.user.email}${canUsePremium()?' · Professionnel vérifié et abonné':''}`:'Connectez-vous pour sauvegarder vos informations.';
+ const f=$('profileForm');f.elements.display_name.value=state.profile?.display_name||'';f.elements.role.value=state.profile?.role||'client';f.elements.role.disabled=has&&state.profile?.role==='pro';f.elements.city.value=state.profile?.city||'';f.elements.specialty.value=state.profile?.specialty||'';
  const p=$('preferencesForm');p.elements.missions_enabled.checked=state.prefs?.missions_enabled||false;p.elements.messages_enabled.checked=state.prefs?.messages_enabled||false;p.elements.department.value=state.prefs?.department||'';p.elements.category.value=state.prefs?.category||'';
  const canManage=Boolean(state.session&&state.subscription?.stripe_customer_id);
  $('accountBillingPortal').disabled=!canManage;
@@ -66,48 +74,29 @@ function renderSettings(){
 }
 
 function canUsePremium(){
- const legacyAccess=Date.parse(state.premium?.premium_until||'')>Date.now();
  const paid=state.subscription?.status==='active'&&Date.parse(state.subscription?.paid_through||'')>Date.now();
- return Boolean(state.session&&state.premium?.status==='verified'&&(legacyAccess||paid));
+ return Boolean(state.session&&state.profile?.role==='pro'&&state.premium?.status==='verified'&&paid);
 }
 function renderPremium(){
  const allowed=canUsePremium();
  $('premiumGate').classList.toggle('hidden',allowed);
  $('premiumContent').classList.toggle('hidden',!allowed);
- $('premiumRequestForm').classList.add('hidden');
- $('premiumLogin').classList.add('hidden');
- $('premiumPlan').classList.add('hidden');
- $('premiumSubscribe').classList.add('hidden');
- $('premiumPortal').classList.add('hidden');
- const paid=state.subscription?.status==='active'&&Date.parse(state.subscription?.paid_through||'')>Date.now();
- if(allowed&&paid){
-  $('premiumPortal').classList.remove('hidden');
-  return;
- }
- if(allowed){
-  // Existing complimentary access remains valid; a verified company can subscribe separately.
-  $('premiumGate').classList.remove('hidden');
-  $('premiumPlan').classList.remove('hidden');
-  $('premiumSubscribe').classList.remove('hidden');
-  $('premiumSubscribe').disabled=!state.billingEnabled;
-  $('premiumBillingStatus').textContent=state.billingEnabled?'Votre accès Premium est actif. Vous pouvez également souscrire à l’offre mensuelle.':'Votre accès Premium reste actif. La souscription est momentanément indisponible.';
-  $('premiumGateText').textContent='Entreprise vérifiée : votre accès Premium est actif.';
-  return;
- }
+ for(const id of ['premiumRequestForm','premiumLogin','premiumPlan','premiumSubscribe','premiumPortal'])$(id).classList.add('hidden');
+ if(allowed){$('premiumPortal').classList.remove('hidden');return;}
  state.boamp=[];state.boampOffset=0;state.boampTotal=0;
  const text=$('premiumGateText');
- if(!state.session){text.textContent='Connectez-vous pour découvrir les conditions d’accès.';$('premiumLogin').classList.remove('hidden');}
- else if(!state.profile){text.textContent='Complétez votre profil dans Mon compte. Vous pourrez ensuite demander Premium avec le même compte.';}
- else if(!state.premium){text.textContent='Vérifiez le SIRET officiel de votre entreprise, puis envoyez votre demande Premium.';$('premiumRequestForm').classList.remove('hidden');}
- else if(state.premium.status==='pending'){text.textContent='Demande reçue. Votre entreprise est en cours de vérification.';}
- else if(state.premium.status==='rejected'){text.textContent='L’entreprise n’a pas été validée. Contactez OFFRYA pour une révision.';}
+ if(!state.session){text.textContent='Connectez-vous pour créer votre compte professionnel.';$('premiumLogin').classList.remove('hidden');}
+ else if(!state.profile){text.textContent='Complétez votre profil dans Mon compte en sélectionnant Professionnel.';}
+ else if(state.profile.role!=='pro'){text.textContent='Passez votre compte en Professionnel dans Mon compte avant de demander une vérification.';}
+ else if(!state.premium){text.textContent='Étape 1 : vérification obligatoire de votre entreprise et de son représentant. Aucun abonnement avant validation.';$('premiumRequestForm').classList.remove('hidden');}
+ else if(state.premium.status==='pending'){text.textContent='Dossier reçu. OFFRYA vérifie votre entreprise, l’identité et l’habilitation de son représentant. Le paiement n’est pas encore accessible.';}
+ else if(state.premium.status==='rejected'){text.textContent='Votre vérification a été refusée. Contactez le support OFFRYA pour faire examiner votre dossier.';}
  else if(state.premium.status==='verified'){
-  text.textContent='Entreprise vérifiée. OFFRYA Premium est proposé à 19 € TTC par mois.';
-  $('premiumPlan').classList.remove('hidden');
-  $('premiumSubscribe').classList.remove('hidden');
+  text.textContent='Entreprise et représentant validés. Étape 2 : activez votre abonnement OFFRYA Professionnel à 34,99 € TTC par mois.';
+  $('premiumPlan').classList.remove('hidden');$('premiumSubscribe').classList.remove('hidden');
   $('premiumSubscribe').disabled=!state.billingEnabled;
-  $('premiumBillingStatus').textContent=state.billingEnabled?'Paiement sécurisé par Stripe. Renouvellement mensuel avec résiliation possible à tout moment.':'La souscription est momentanément indisponible. Veuillez réessayer ultérieurement.';
- }else{text.textContent='Accès Premium suspendu.';}
+  $('premiumBillingStatus').textContent=state.billingEnabled?'Paiement sécurisé par Stripe. L’accès est activé après confirmation du règlement.':'La souscription est momentanément indisponible.';
+ }else{text.textContent='Votre accès professionnel est suspendu.';}
 }
 $('premiumLogin').onclick=()=>authModal(true);
 async function openStripePortal(){
@@ -126,7 +115,7 @@ $('accountBillingPortal').onclick=()=>{if(!state.session){authModal(true);return
 $('premiumSubscribe').onclick=async()=>{
  if(!state.billingEnabled||state.premium?.status!=='verified')return;
  if(!$('premiumTermsAck').checked){toast('Veuillez prendre connaissance des conditions d’abonnement avant de continuer.');return;}
- if(!confirm('Souscrire OFFRYA Premium à 19 € TTC par mois, avec renouvellement automatique et résiliation possible à tout moment ?'))return;
+ if(!confirm('Souscrire OFFRYA Professionnel à 34,99 € TTC par mois, avec renouvellement automatique et résiliation possible à tout moment ?'))return;
  try{
   const {data:{session}}=await state.db.auth.getSession();
   if(!session)throw Error('Veuillez vous connecter.');
@@ -139,7 +128,7 @@ $('premiumSubscribe').onclick=async()=>{
 };
 $('verifySiret').onclick=async()=>{
  if(!requireAuth())return;
- if(!state.profile){tab('settings');return toast('Complétez votre profil avant de vérifier le SIRET.');}
+ if(!state.profile||state.profile.role!=='pro'){tab('settings');return toast('Activez votre profil professionnel avant de vérifier le SIRET.');}
  const f=$('premiumRequestForm'),siret=f.elements.siret.value.trim();
  $('companyCheck').textContent='Vérification du SIRET en cours…';
  f.dataset.verifiedSiret='';
@@ -160,16 +149,21 @@ $('premiumRequestForm').elements.siret.addEventListener('input',()=>{
 });
 $('premiumRequestForm').onsubmit=async e=>{
  e.preventDefault();if(!requireAuth())return;
- if(!state.profile){tab('settings');return toast('Complétez votre profil avant de demander Premium.');}
- const f=e.currentTarget,legal_name=f.elements.legal_name.value.trim(),siret=f.elements.siret.value.trim();
+ if(!state.profile||state.profile.role!=='pro'){tab('settings');return toast('Créez votre profil professionnel avant de demander la vérification.');}
+ const f=e.currentTarget,siret=f.elements.siret.value.trim(),representative_name=f.elements.representative_name.value.trim(),representative_capacity=f.elements.representative_capacity.value.trim();
  if(!/^[0-9]{14}$/.test(siret))return toast('Le SIRET doit comporter 14 chiffres.');
  if(f.dataset.verifiedSiret!==siret)return toast('Vérifiez d’abord le SIRET sur le registre officiel.');
- if(legal_name!==f.elements.legal_name.value.trim())return toast('Nom légal invalide.');
+ if(representative_name.length<4||representative_capacity.length<3)return toast('Indiquez le nom et la fonction du représentant.');
  try{
-  const result=await state.db.from('offrya_premium_requests').insert({user_id:state.session.user.id,legal_name,siret});
-  if(result.error)throw result.error;
-  toast('Demande envoyée. Vérification administrative nécessaire.');await refresh();
+  const {data:{session}}=await state.db.auth.getSession();if(!session)throw Error('Session expirée.');
+  const r=await fetch('/api/company/verification-request',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({siret,representative_name,representative_capacity})});
+  const response=await r.json();if(!r.ok)throw Error(response.error||'Vérification indisponible.');
+  toast('Demande enregistrée. Vérification administrative du représentant nécessaire.');await refresh();
  }catch(err){showError(err);}
+}
+};
+
+
 };
 
 
@@ -223,7 +217,7 @@ $('priorityAlertsList').onclick=async event=>{
 
 function render(){
  const yes=Boolean(state.session);$('authOpen').textContent=yes?state.session.user.email.split('@')[0]:'Se connecter';$('logout').classList.toggle('hidden',!yes);$('avatar').textContent=state.profile?.display_name?.[0]?.toUpperCase()||'V';
- $('statOpen').textContent=state.missions.filter(x=>x.status==='open').length;$('statMissions').textContent=state.missions.filter(x=>x.owner_id===state.session?.user.id).length;$('statConvos').textContent=state.conversations.length;$('statFavorites').textContent=state.favorites.length;
+ $('statOpen').textContent=state.missions.filter(x=>x.status==='open'&&(canUsePremium()||x.owner_id===state.session?.user.id)).length;$('statMissions').textContent=state.missions.filter(x=>x.owner_id===state.session?.user.id).length;$('statConvos').textContent=state.conversations.length;$('statFavorites').textContent=state.favorites.length;
  $('dashActivity').innerHTML=yes?`<div class="data-item"><div class="item-title">${esc(state.profile?.display_name||'Profil à compléter')}</div><div class="item-desc">${state.profile?.role==='client'?'Compte client':'Compte professionnel'} · ${state.conversations.length} discussion(s)</div></div><div class="data-item"><div class="item-title">Échanges directs entre utilisateurs</div><div class="item-desc">Échangez dans la messagerie, puis organisez librement votre accord, les tarifs et le règlement avec l'autre partie. OFFRYA n'intervient pas dans la transaction.</div></div>`:'<div class="empty">Connectez-vous pour voir vos contacts et vos missions.</div>';
  renderMissions();renderInbox();renderSettings();renderPremium();renderPriorityAlerts();
 }
@@ -244,7 +238,7 @@ $('missionList').onclick=async e=>{
 };
 $('conversationList').onclick=async e=>{const btn=e.target.closest('[data-thread]');if(!btn)return;state.thread=btn.dataset.thread;try{await loadMessages(state.thread);}catch(err){showError(err);}};
 $('messageForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth()||!state.thread)return;const f=e.currentTarget,body=f.elements.body.value.trim();if(!body)return;try{const r=await state.db.from('offrya_messages').insert({conversation_id:state.thread,sender_id:state.session.user.id,body});if(r.error)throw r.error;f.reset();await loadMessages(state.thread);}catch(err){showError(err);}};
-$('profileForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget,x=Object.fromEntries(new FormData(f)),id=state.session.user.id;try{const r=state.profile?await state.db.from('offrya_profiles').update({display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim()}).eq('id',id):await state.db.from('offrya_profiles').insert({id,role:x.role,display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim()});if(r.error)throw r.error;toast('Profil enregistré');await refresh();}catch(err){showError(err);}};
+$('profileForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget,x=Object.fromEntries(new FormData(f)),id=state.session.user.id;try{const r=state.profile?await state.db.from('offrya_profiles').update({display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim(),...(state.profile.role==='client'&&x.role==='pro'?{role:'pro'}:{})}).eq('id',id):await state.db.from('offrya_profiles').insert({id,role:x.role,display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim()});if(r.error)throw r.error;toast('Profil enregistré');await refresh();}catch(err){showError(err);}};
 $('preferencesForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget;const payload={user_id:state.session.user.id,missions_enabled:f.elements.missions_enabled.checked,messages_enabled:f.elements.messages_enabled.checked,department:f.elements.department.value.trim().toUpperCase(),category:f.elements.category.value};try{let r;if(state.prefs){delete payload.user_id;r=await state.db.from('offrya_alert_preferences').update(payload).eq('user_id',state.session.user.id);}else r=await state.db.from('offrya_alert_preferences').insert(payload);if(r.error)throw r.error;toast('Préférences enregistrées.');await refresh();}catch(err){showError(err);}};
 async function loadBoamp(append=false){if(!canUsePremium()){renderPremium();return;}if(!append){state.boampOffset=0;state.boamp=[];}$('boampCount').textContent='Chargement…';try{const qs=new URLSearchParams({q:$('boampKeyword').value.trim(),dept:$('boampDept').value.trim(),offset:String(state.boampOffset)});const {data:{session}}=await state.db.auth.getSession();if(!session)throw Error('Session expirée.');
 const r=await fetch('/api/annonces?'+qs,{headers:{Authorization:'Bearer '+session.access_token}});const data=await r.json();if(!r.ok)throw Error(data.error||'Source indisponible');state.boamp.push(...data.items);state.boampOffset+=data.items.length;state.boampTotal=data.total;$('boampCount').textContent=`${data.total} avis officiels`;$('boampList').innerHTML=state.boamp.map(m=>`<article class="data-item"><span class="tag">BOAMP OFFICIEL</span><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.buyer)}</div><div class="meta-row"><span>Dépt. : ${esc(m.departments)}</span><span>Publié : ${date(m.published)}</span><span>Échéance : ${date(m.deadline)}</span></div><a class="button secondary micro-button" href="${esc(m.url)}" target="_blank" rel="noopener noreferrer">Consulter l'avis officiel ↗</a></article>`).join('')||'<div class="empty">Aucune annonce correspondante.</div>';$('boampMore').classList.toggle('hidden',state.boampOffset>=data.total||!data.items.length);}catch(err){$('boampCount').textContent='Indisponible';$('boampList').innerHTML='<div class="empty">Le service officiel ne répond pas. Aucune donnée fictive n’est affichée.</div>';console.error(err);}}
