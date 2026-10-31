@@ -24,7 +24,7 @@ async function run(){
  assert.match(page.text,/<html/i);
  assert.match(page.text,/offrya/i);
  console.log('PASS: page d’accueil accessible');
- for(const [p,text] of [['/cgv.html','19,00'],['/confidentialite.html','Stripe'],['/remboursements.html','14 jours'],['/contact.html','nextwebagency.contact@gmail.com'],['/mentions-legales.html','SIREN']]){
+ for(const [p,text] of [['/cgv.html','34,99'],['/confidentialite.html','Stripe'],['/remboursements.html','14 jours'],['/contact.html','nextwebagency.contact@gmail.com'],['/mentions-legales.html','SIREN']]){
    const r=await request(p);
    assert.equal(r.status,200,'Page légale '+p);
    assert.ok(r.text.includes(text),'Texte attendu sur '+p);
@@ -37,10 +37,10 @@ async function run(){
  const cfg=await request('/api/config');
  assert.equal(cfg.status,200,'Configuration API');
  assert.equal(cfg.json?.supabaseUrl,'https://hhxtutvmvlphkutqscad.supabase.co');
- assert.equal(cfg.json?.premiumPriceEuros,19);
+ assert.equal(cfg.json?.premiumPriceEuros,34.99);
  assert.equal(typeof cfg.json?.billingEnabled,'boolean');
  assert.equal(cfg.json?.billingEnabled,health.json?.paymentsEnabled);
- console.log('PASS: configuration publique Supabase et prix Premium à 19 euros');
+ console.log('PASS: configuration publique Supabase et prix professionnel à 34,99 euros');
  const protectedApi=await request('/api/annonces');
  assert.equal(protectedApi.status,401,'BOAMP doit refuser les accès anonymes');
  console.log('PASS: recherche BOAMP protégée sans connexion');
