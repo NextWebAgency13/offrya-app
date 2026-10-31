@@ -160,12 +160,7 @@ $('premiumRequestForm').onsubmit=async e=>{
   const response=await r.json();if(!r.ok)throw Error(response.error||'Vérification indisponible.');
   toast('Demande enregistrée. Vérification administrative du représentant nécessaire.');await refresh();
  }catch(err){showError(err);}
-}
 };
-
-
-};
-
 
 async function loadPriorityAlerts(shouldRender=true){
  if(!state.db||!state.session||!canUsePremium()){
