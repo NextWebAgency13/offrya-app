@@ -35,7 +35,7 @@ async function sendDailyAlerts(){
  const missions=await rest(url,secret,'offrya_missions',`?select=id,owner_id,title,city,department,category,status,created_at&created_at=gte.${encodeURIComponent(since)}&order=created_at.desc&limit=1000`);
  const [profiles,checks,subscriptions]=await Promise.all([
   rest(url,secret,'offrya_profiles','?select=id,role&role=eq.pro&limit=5000'),
-  rest(url,secret,'offrya_premium_requests','?select=user_id,status&status=eq.verified&limit=5000'),
+  rest(url,secret,'offrya_premium_requests','?select=user_id,status,identity_status,authority_status&status=eq.verified&limit=5000'),
   rest(url,secret,'offrya_premium_subscriptions','?select=user_id,status,paid_through&status=eq.active&limit=5000')
  ]);
  const professionals=new Set(profiles.map(p=>p.id));
