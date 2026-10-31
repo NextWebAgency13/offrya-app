@@ -23,7 +23,8 @@ test('Quatre étapes sans TOTP et sans paiement prématuré',()=>{
   assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,id);
  }
  assert.match(html,/name="representative_kind"/);
- assert.match(html,/value="mandataire"/);
+ assert.match(html,/value="dirigeant"/);
+ assert.doesNotMatch(html,/value="mandataire"/);
  assert.match(js,/identity_status==='verified'/);
  assert.match(js,/authority_status==='verified'/);
  assert.doesNotMatch(html,/mfa|totp|double authentification|id="mfaQr"/i);
