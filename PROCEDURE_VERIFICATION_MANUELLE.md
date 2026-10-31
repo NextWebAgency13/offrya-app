@@ -25,7 +25,7 @@ join auth.users u on u.id=q.user_id
 order by q.requested_at asc;
 ```
 
-Le support peut utiliser l'adresse **du compte Supabase Auth** pour organiser la prise de contact. Ne pas suivre un numéro ou une adresse non vérifié fourni par le demandeur pour confirmer le mandat. Ne pas demander d'envoyer la pièce d'identité par e-mail.
+Le support peut utiliser l'adresse **du compte Supabase Auth** pour organiser la prise de contact. **La demande d'assistance ne permet plus de contourner l'étape pièce d'identité + selfie vérifiés via Stripe Identity en mode live.** Ne pas suivre un numéro ou une adresse non vérifié fourni par le demandeur pour confirmer le mandat. Ne pas demander d'envoyer la pièce d'identité par e-mail.
 
 Avant toute approbation, vérifier **indépendamment** :
 - l'authenticité du document d'identité et sa correspondance avec la personne présente, par un entretien contrôlé en direct ou en présence ;
@@ -74,6 +74,8 @@ commit;
 ```
 
 Pour un salarié/mandataire, utiliser `authority_review_method='independent_mandate'` **uniquement après confirmation authentique par l'entreprise**. Ne pas renseigner des résultats `verified` pour tester l'interface ni contourner Stripe Identity.
+
+**La procédure SQL historique de vérification manuelle ci-dessus ne doit plus être utilisée pour approuver un dossier**, car la règle `sql/legal_representative_only.sql` exige maintenant `presence_method='stripe_selfie'`, `registry_name_matched=true`, et `authority_review_method='registry_representative'`. Un contrôle humain peut examiner une ambiguïté, mais pas déclarer un salarié éligible ni remplacer le selfie exigé.
 
 Le passage en `verified` **n'active aucun abonnement** : le professionnel doit ensuite souscrire à 34,99 € TTC/mois et le paiement doit être confirmé par Stripe. La RLS interdit toujours la lecture des missions d'autrui tant que l'ensemble des conditions n'est pas satisfait.
 
