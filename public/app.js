@@ -93,7 +93,17 @@ function renderPremium(){
  $('premiumGate').classList.toggle('hidden',allowed);
  $('proDashboard').classList.toggle('hidden',!allowed);
  if(!pro)return;
+ const signedInWithoutMfa=state.aal!=='aal2';
+ const needsMfaResume=Boolean(state.premium&&signedInWithoutMfa);
+ const mfaTarget=needsMfaResume?$('proSecurityGateHost'):$('proSecurityStepHost');
+ if(mfaTarget&&!mfaTarget.contains($('mfaPanel')))mfaTarget.appendChild($('mfaPanel'));
+ $('proSecurityGateHost').classList.toggle('hidden',!needsMfaResume);
+ $('mfaEnrollStart').classList.toggle('hidden',Boolean(state.mfaFactorId)||!signedInWithoutMfa);
+ $('mfaChallengeForm').classList.toggle('hidden',!state.mfaFactorId||!signedInWithoutMfa);
+ $('proMfaReady').classList.toggle('hidden',signedInWithoutMfa);
+ const paidExisting=state.subscription?.status==='active'&&Date.parse(state.subscription?.paid_through||'')>Date.now()&&state.premium?.status==='verified'&&state.premium?.identity_status==='verified'&&state.premium?.authority_status==='verified';
  const stage=allowed?5:state.premium?.status==='verified'?5:state.premium?4:Math.min(3,Math.max(1,state.proStep||1));
+ $('proSessionLocked').classList.toggle('hidden',!paidExisting||!signedInWithoutMfa);
  $('proStatusPill').textContent=allowed?'Compte actif':stage===5?'Dossier approuvé':stage===4?(state.premium?.status==='rejected'?'Dossier à régulariser':'Vérification en cours'):'Inscription en cours';
  for(const el of document.querySelectorAll('#proSteps li')){
   const n=Number(el.dataset.step);
@@ -105,10 +115,10 @@ function renderPremium(){
   $('proSubscriptionState').textContent='Actif jusqu’au '+date(state.subscription.paid_through);
   return;
  }
- $('premiumGateText').textContent=stage<=3?'Chaque étape est sauvegardée dans votre espace privé. Vous pouvez revenir et reprendre plus tard.':'';
+ $('premiumGateText').textContent=paidExisting&&signedInWithoutMfa?'Votre abonnement est déjà payé. Une confirmation MFA suffit pour retrouver votre accès.':stage<=3?'Chaque étape est sauvegardée dans votre espace privé. Vous pouvez revenir et reprendre plus tard.':'';
  for(const id of ['proStageCompany','proStageRepresentative','proStageSecurity','proStageReview','proStageBilling'])$(id).classList.add('hidden');
  const stages={1:'proStageCompany',2:'proStageRepresentative',3:'proStageSecurity',4:'proStageReview',5:'proStageBilling'};
- $(stages[stage]).classList.remove('hidden');
+ if(!(stage===5&&paidExisting&&signedInWithoutMfa))$(stages[stage]).classList.remove('hidden');
  $('premiumRequestForm').classList.toggle('hidden',stage>2);
  if(stage<=3){
   const f=$('premiumRequestForm'),d=state.draft;
@@ -119,9 +129,6 @@ function renderPremium(){
    }
    if(f.elements.siret.value===d.siret&&d.legal_name)f.dataset.verifiedSiret=d.siret;
   }
-  $('mfaEnrollStart').classList.toggle('hidden',Boolean(state.mfaFactorId)||state.aal==='aal2');
-  $('mfaChallengeForm').classList.toggle('hidden',!state.mfaFactorId||state.aal==='aal2');
-  $('proMfaReady').classList.toggle('hidden',state.aal!=='aal2');
   $('proSubmitRequest').disabled=state.aal!=='aal2';
  }
  if(stage===4){
