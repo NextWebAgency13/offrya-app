@@ -52,12 +52,12 @@ async function sendPriorityAlerts(env=process.env){
     rest(base,key,'offrya_alert_preferences?select=missions_enabled,missions_consented_at,category,department&user_id=eq.'+uid),
     rest(base,key,'offrya_missions?select=id,owner_id,title,category,city,department,status&id=eq.'+a.mission_id),
     rest(base,key,'offrya_profiles?select=role&id=eq.'+uid),
-    rest(base,key,'offrya_premium_requests?select=status,premium_until,identity_status,authority_status&user_id=eq.'+uid),
+    rest(base,key,'offrya_premium_requests?select=status,premium_until,identity_status,authority_status,representative_kind,registry_name_matched&user_id=eq.'+uid),
     rest(base,key,'offrya_premium_subscriptions?select=status,paid_through&user_id=eq.'+uid)
    ]);
    const prefs=prefRows[0],mission=missionRows[0],p=profileRows[0],req=requestRows[0],sub=subscriptionRows[0];
    const paid=sub?.status==='active'&&Date.parse(sub.paid_through||'')>Date.now();
-   if(!permitted(prefs,mission,a,uid)||p?.role!=='pro'||req?.status!=='verified'||req?.identity_status!=='verified'||req?.authority_status!=='verified'||!paid){skipped++;continue;}
+   if(!permitted(prefs,mission,a,uid)||p?.role!=='pro'||req?.status!=='verified'||req?.identity_status!=='verified'||req?.authority_status!=='verified'||req?.representative_kind!=='dirigeant'||req?.registry_name_matched!==true||!paid){skipped++;continue;}
    const response=await fetch(base.replace(/\/$/,'')+'/auth/v1/admin/users/'+uid,{headers:{apikey:key},signal:AbortSignal.timeout(12000)});
    if(!response.ok){skipped++;continue;}
    const user=await response.json();

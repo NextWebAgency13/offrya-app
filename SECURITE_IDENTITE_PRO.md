@@ -111,3 +111,7 @@ Le résultat d'un test Stripe (`sk_test_`) n'est **pas** une vérification d'ide
 La MFA TOTP obligatoire a été retirée de tous les écrans et appels API professionnels. **Ce changement ne désinscrit pas automatiquement les facteurs qu'un utilisateur avait déjà activés auprès de Supabase Auth.** Ces facteurs existants doivent être révoqués individuellement si nécessaire, avec les mécanismes sécurisés de Supabase. Une capture contenant un QR code ou une clé TOTP d'inscription doit être traitée comme un secret divulgué : si la clé a été activée, révoquer le facteur et ne jamais réutiliser cette clé.
 
 La vérification réelle du représentant, la preuve de présence, le mandat indépendant, la validation administrative et le paiement sont toujours exigés. Le contrôle d'accès SQL dépend de `offrya_private.has_active_professional_access()` mis à jour par `sql/professional_without_mfa.sql`.
+
+## Règle obligatoire (31 octobre 2026)
+
+Tout passage en statut professionnel `verified` impose un compte de dirigeant (pas salarié/mandataire), la vérification **document et selfie** live Stripe Identity, la concordance exacte du nom vérifié avec un **dirigeant personne physique du registre officiel RNE/Sirene** et l’approbation administrative. L’ancienne procédure de contrôle purement manuel ne suffit plus. `sql/legal_representative_only.sql` est la migration faisant autorité et remplace les règles historiques plus permissives, y compris `independent_mandate` et `manual_live_check`. Le mode test Stripe ne prouve rien.

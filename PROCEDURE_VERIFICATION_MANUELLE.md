@@ -25,7 +25,7 @@ join auth.users u on u.id=q.user_id
 order by q.requested_at asc;
 ```
 
-Le support peut utiliser l'adresse **du compte Supabase Auth** pour organiser la prise de contact. Ne pas suivre un numéro ou une adresse non vérifié fourni par le demandeur pour confirmer le mandat. Ne pas demander d'envoyer la pièce d'identité par e-mail.
+Le support peut utiliser l'adresse **du compte Supabase Auth** pour organiser la prise de contact. **La demande d'assistance ne permet plus de contourner l'étape pièce d'identité + selfie vérifiés via Stripe Identity en mode live.** Ne pas suivre un numéro ou une adresse non vérifié fourni par le demandeur pour confirmer le mandat. Ne pas demander d'envoyer la pièce d'identité par e-mail.
 
 Avant toute approbation, vérifier **indépendamment** :
 - l'authenticité du document d'identité et sa correspondance avec la personne présente, par un entretien contrôlé en direct ou en présence ;
@@ -36,46 +36,11 @@ Avant toute approbation, vérifier **indépendamment** :
 
 L'opérateur peut marquer `contacting`, `scheduled`, `needs_information` ou `rejected` dans la table privée pour informer l'utilisateur, sans valider aucun privilège.
 
-### Approbation uniquement après vérification réelle
+### Décision administrative sous la nouvelle règle
 
-Un opérateur avec les droits SQL administratifs peut, **après avoir lui-même effectué et documenté les contrôles**, effectuer la mise à jour ci-dessous en remplaçant les UUIDs et la méthode du mandat. L'exemple est une procédure administrative, **pas une commande à exécuter automatiquement**.
+Une demande d'assistance n'est pas une vérification biométrique. Aucun opérateur ne doit tenter de valider un dossier via une procédure SQL de présence manuelle. **Seuls la pièce et le selfie contrôlés par Stripe Identity en mode réel, puis le rapprochement du nom avec le dirigeant officiel, peuvent fournir les preuves requises.**
 
-```sql
-begin;
-
--- Doit rester 'pending' si la preuve réelle d'identité et du mandat manque.
-update public.offrya_premium_requests
-set identity_status='verified',
-    identity_verified_at=now(),
-    identity_live_verified=true,
-    presence_method='manual_live_check',
-    presence_verified_at=now(),
-    presence_reviewed_by='REVIEWER_UUID'::uuid,
-    authority_status='verified',
-    authority_verified_at=now(),
-    authority_review_method='registry_representative',
-    authority_reviewed_by='REVIEWER_UUID'::uuid
-where user_id='USER_UUID'::uuid and status='pending';
-
--- Le déclencheur offrya_guard_professional_approval empêche toute
--- approbation sans les preuves nécessaires.
-update public.offrya_premium_requests
-set status='verified', reviewed_at=now()
-where user_id='USER_UUID'::uuid and status='pending'
-  and identity_status='verified' and identity_live_verified=true
-  and presence_method='manual_live_check' and presence_reviewed_by is not null
-  and authority_status='verified' and authority_reviewed_by is not null;
-
-update public.offrya_manual_identity_requests
-set status='completed', updated_at=now(), reviewed_at=now(),
-    reviewed_by='REVIEWER_UUID'::uuid
-where user_id='USER_UUID'::uuid;
-commit;
-```
-
-Pour un salarié/mandataire, utiliser `authority_review_method='independent_mandate'` **uniquement après confirmation authentique par l'entreprise**. Ne pas renseigner des résultats `verified` pour tester l'interface ni contourner Stripe Identity.
-
-Le passage en `verified` **n'active aucun abonnement** : le professionnel doit ensuite souscrire à 34,99 € TTC/mois et le paiement doit être confirmé par Stripe. La RLS interdit toujours la lecture des missions d'autrui tant que l'ensemble des conditions n'est pas satisfait.
+Une fois ces preuves collectées et rapprochées (`registry_name_matched=true` depuis la source gouvernementale), un opérateur autorisé peut examiner le dossier et l'approuver par une procédure administrative contrôlée. La base rejette toute approbation si le demandeur est salarié ou mandataire non inscrit, si le selfie n'a pas été vérifié ou si la concordance officielle manque. L'abonnement à 34,99 € TTC/mois n'est proposé qu'après approbation réelle.
 
 ## Mise en service
 

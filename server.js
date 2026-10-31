@@ -39,7 +39,8 @@ async function handle(req,res){
     if(!verified.allowed)return json(res,verified.status,{error:verified.error});
     const result=await lookupCompany(u.searchParams.get('siret'));
     if(!result.ok)return json(res,result.status,{error:result.reason});
-    return json(res,200,result.company);
+    const {registry_representatives,...publicCompany}=result.company;
+    return json(res,200,publicCompany);
    }catch(err){console.error('Official company lookup:',err.message);return json(res,503,{error:'Registre national temporairement indisponible.'});}
   }
   if(p==='/api/company/verification-request'&&req.method==='POST'){
@@ -53,10 +54,14 @@ async function handle(req,res){
     const representative_name=String(data.representative_name||'').trim();
     const representative_capacity=String(data.representative_capacity||'').trim();
     const representative_kind=String(data.representative_kind||'').trim();
-    if(representative_name.length<4||representative_name.length>120||representative_capacity.length<3||representative_capacity.length>100||!['dirigeant','mandataire'].includes(representative_kind))
+    if(representative_name.length<4||representative_name.length>120||representative_capacity.length<3||representative_capacity.length>100||representative_kind!=='dirigeant')
      return json(res,400,{error:'Indiquez le nom complet et la fonction du représentant de l’entreprise.'});
     const official=await lookupCompany(siret);
     if(!official.ok)return json(res,official.status,{error:official.reason});
+    const {norm}=require('./lib/representatives');
+    const directors=official.company.registry_representatives||[];
+    if(directors.length&&!directors.some(d=>[norm(d.first+' '+d.last),norm(d.last+' '+d.first)].includes(norm(representative_name))))
+      return json(res,422,{error:'Le nom déclaré ne correspond pas aux dirigeants officiels de cette entreprise. Les salariés ne peuvent pas souscrire à OFFRYA Pro.'});
     const row={user_id:actor.userId,siret,legal_name:official.company.legal_name,representative_name,representative_capacity,representative_kind};
     const response=await fetch(process.env.SUPABASE_URL.replace(/\/$/,'')+'/rest/v1/offrya_premium_requests',{
      method:'POST',headers:{apikey:process.env.SUPABASE_SECRET_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},

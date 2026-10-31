@@ -7,7 +7,7 @@ const sql=read('sql/manual_identity_review_requests.sql'),identitySql=read('sql/
 test('OFFRYA propose une vraie solution manuelle quand Stripe Identity est indisponible',()=>{
  for(const id of ['identityPanel','identityAutomatic','identityManual','manualIdentityRequest','manualIdentityDescription','manualIdentityStatus'])
   assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,id);
- assert.match(html,/Demander une vérification manuelle/);
+ assert.match(html,/Demander une assistance sécurisée/);
  assert.match(html,/Ne transmettez aucune pièce d’identité par e-mail/);
  assert.match(js,/\$\('identityAutomatic'\)\.classList\.toggle\('hidden',!state.identityEnabled\)/);
  assert.match(js,/\$\('identityPanel'\)\.classList\.toggle\('hidden',!canStart\)/);

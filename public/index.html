@@ -174,13 +174,13 @@
       </div>
       <div id="proStageRepresentative" class="hidden">
        <span class="pro-stage-label">ÉTAPE 2 SUR 4</span><h3>Qui représente cette entreprise ?</h3>
-       <p class="pro-stage-desc">Votre identité et votre fonction permettront à OFFRYA de contrôler votre autorisation de représenter l'entreprise.</p>
+       <p class="pro-stage-desc">Votre nom devra correspondre à celui figurant sur votre pièce d'identité et dans le registre officiel des dirigeants. Les salariés ne peuvent pas souscrire.</p>
        <div class="pro-form">
         <label>Nom et prénom complets<input class="field" name="representative_name" minlength="4" maxlength="120" required autocomplete="name" placeholder="Identiques à votre pièce d'identité"></label>
-        <label>Votre situation<select class="field" name="representative_kind" required><option value="">Sélectionner</option><option value="dirigeant">Dirigeant ou représentant légal</option><option value="mandataire">Salarié ou mandataire autorisé</option></select></label>
+        <label>Votre qualité<select class="field" name="representative_kind" required><option value="">Confirmer ma qualité</option><option value="dirigeant">Je suis dirigeant ou représentant légal inscrit au registre officiel</option></select></label>
         <label>Votre fonction<input class="field" name="representative_capacity" minlength="3" maxlength="100" placeholder="Ex. Gérant, président, responsable commercial" required></label>
        </div>
-       <p class="pro-note">Si vous n'êtes pas représentant légal, une autorisation devra être confirmée auprès de l'entreprise par un canal indépendant.</p>
+       <p class="pro-note">Seul un dirigeant ou représentant légal inscrit au registre officiel peut ouvrir un compte professionnel. Un salarié ou mandataire non inscrit n'est pas éligible.</p>
        <div class="pro-actions"><button type="button" class="button outline" id="proBackRepresentative">← Retour</button><button type="button" class="button primary" id="proNextRepresentative">Enregistrer et continuer →</button></div>
       </div>
      </form>
@@ -196,20 +196,20 @@
       <div class="pro-checklist">
        <div><span>Entreprise identifiée</span><strong>Validée au dépôt</strong></div>
        <div><span>Identité de la personne</span><strong id="proIdentityStatus">En attente</strong></div>
-       <div><span>Autorisation de représenter l'entreprise</span><strong id="proAuthorityStatus">En attente</strong></div>
+       <div><span>Correspondance avec un dirigeant inscrit au registre</span><strong id="proAuthorityStatus">En attente</strong></div>
       </div>
       <div class="hidden" id="identityPanel">
        <div id="identityAutomatic" class="hidden">
         <p class="pro-stage-desc" id="identityPanelText">Vérifiez votre identité auprès du prestataire sécurisé.</p>
         <button class="button primary" type="button" id="identityStart">Vérifier mon identité en ligne</button>
-        <p class="pro-note">Le document est traité directement par Stripe Identity, sans téléchargement dans OFFRYA. Le mandat est contrôlé séparément. <a href="/confidentialite.html">Protection des données</a>.</p>
+        <p class="pro-note">La pièce d'identité et le selfie sont traités directement par Stripe Identity, sans téléchargement dans OFFRYA. Le mandat est contrôlé séparément. <a href="/confidentialite.html">Protection des données</a>.</p>
        </div>
        <div id="identityManual" class="pro-manual-verification">
-        <h4>Faire vérifier mon identité par OFFRYA</h4>
-        <p class="pro-stage-desc" id="manualIdentityDescription">Notre équipe peut organiser un contrôle d’identité sécurisé lorsque la vérification automatique est indisponible ou inadaptée.</p>
-        <button class="button primary" type="button" id="manualIdentityRequest">Demander une vérification manuelle →</button>
+        <h4>Assistance pour mon contrôle d’identité</h4>
+        <p class="pro-stage-desc" id="manualIdentityDescription">Si le contrôle document + selfie n’est pas accessible, le support peut vous aider à débloquer la procédure. Une demande d’assistance ne vaut jamais approbation.</p>
+        <button class="button primary" type="button" id="manualIdentityRequest">Demander une assistance sécurisée →</button>
         <p id="manualIdentityStatus" class="pro-note hidden" role="status" aria-live="polite"></p>
-        <p class="pro-note">Votre demande sera enregistrée. OFFRYA pourra vous contacter à l’adresse e-mail liée au compte pour organiser le contrôle de présence et confirmer votre habilitation. <strong>Ne transmettez aucune pièce d’identité par e-mail.</strong> Aucun abonnement n’est demandé avant la validation du dossier.</p>
+        <p class="pro-note">Votre demande d’assistance sera enregistrée. OFFRYA pourra vous contacter à l’adresse e-mail du compte pour vous aider à réaliser le contrôle officiel du document, du selfie et de votre qualité de dirigeant. <strong>Ne transmettez aucune pièce d’identité par e-mail.</strong> Aucun abonnement n’est demandé avant la validation du dossier.</p>
        </div>
       </div>
       <p id="proReviewNotice" class="pro-note" role="status">Votre dossier est en cours d'examen.</p>

@@ -35,11 +35,11 @@ async function sendDailyAlerts(){
  const missions=await rest(url,secret,'offrya_missions',`?select=id,owner_id,title,city,department,category,status,created_at&created_at=gte.${encodeURIComponent(since)}&order=created_at.desc&limit=1000`);
  const [profiles,checks,subscriptions]=await Promise.all([
   rest(url,secret,'offrya_profiles','?select=id,role&role=eq.pro&limit=5000'),
-  rest(url,secret,'offrya_premium_requests','?select=user_id,status,identity_status,authority_status&status=eq.verified&limit=5000'),
+  rest(url,secret,'offrya_premium_requests','?select=user_id,status,identity_status,authority_status,representative_kind,registry_name_matched&status=eq.verified&limit=5000'),
   rest(url,secret,'offrya_premium_subscriptions','?select=user_id,status,paid_through&status=eq.active&limit=5000')
  ]);
  const professionals=new Set(profiles.map(p=>p.id));
- const verified=new Set(checks.filter(p=>p.identity_status==='verified'&&p.authority_status==='verified').map(p=>p.user_id));
+ const verified=new Set(checks.filter(p=>p.identity_status==='verified'&&p.authority_status==='verified'&&p.representative_kind==='dirigeant'&&p.registry_name_matched===true).map(p=>p.user_id));
  const active=new Set(subscriptions.filter(s=>Date.parse(s.paid_through||'')>Date.now()).map(s=>s.user_id));
  const entitled=id=>professionals.has(id)&&verified.has(id)&&active.has(id);
  const messages=await rest(url,secret,'offrya_messages',`?select=id,conversation_id,sender_id,created_at&created_at=gte.${encodeURIComponent(since)}&order=created_at.desc&limit=1000`);
@@ -62,10 +62,10 @@ async function sendDailyAlerts(){
   if(!nowPrefs[0]||(!nowPrefs[0].missions_enabled&&!nowPrefs[0].messages_enabled)){skipped++;continue;}
   const checkNow=await Promise.all([
    rest(url,secret,'offrya_profiles','?select=role&id=eq.'+uid),
-   rest(url,secret,'offrya_premium_requests','?select=status,identity_status,authority_status&user_id=eq.'+uid),
+   rest(url,secret,'offrya_premium_requests','?select=status,identity_status,authority_status,representative_kind,registry_name_matched&user_id=eq.'+uid),
    rest(url,secret,'offrya_premium_subscriptions','?select=status,paid_through&user_id=eq.'+uid)
   ]);
-  const authorized=checkNow[0][0]?.role==='pro'&&checkNow[1][0]?.status==='verified'&&checkNow[1][0]?.identity_status==='verified'&&checkNow[1][0]?.authority_status==='verified'&&checkNow[2][0]?.status==='active'&&Date.parse(checkNow[2][0]?.paid_through||'')>Date.now();
+  const authorized=checkNow[0][0]?.role==='pro'&&checkNow[1][0]?.status==='verified'&&checkNow[1][0]?.identity_status==='verified'&&checkNow[1][0]?.authority_status==='verified'&&checkNow[1][0]?.representative_kind==='dirigeant'&&checkNow[1][0]?.registry_name_matched===true&&checkNow[2][0]?.status==='active'&&Date.parse(checkNow[2][0]?.paid_through||'')>Date.now();
   const actualMissions=authorized?subset.filter(m=>matchMission(nowPrefs[0],m,uid)):[];
   const actualMessages=nowPrefs[0].messages_enabled?unread:[];
   if(!actualMissions.length&&!actualMessages.length){skipped++;continue;}
