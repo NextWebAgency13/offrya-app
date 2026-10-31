@@ -51,7 +51,7 @@ test('Webhook identité: statut Stripe actuel + correspondance stricte session e
  const fake=async (url,opt={})=>{
   if(url.includes('/v1/identity/verification_sessions/'))return {ok:true,json:async()=>({
    id:'vs_demo123',type:'document',client_reference_id:uid,metadata:{offrya_siret:siret},
-   status:'verified',livemode:false
+   status:'verified',livemode:true,options:{document:{require_matching_selfie:true}}
   })};
   if(url.includes('/rest/v1/offrya_premium_requests')){
    if(opt.method==='PATCH'){patched=JSON.parse(opt.body);queries++;return {ok:true};}
@@ -60,11 +60,31 @@ test('Webhook identité: statut Stripe actuel + correspondance stricte session e
   throw Error('Unexpected '+url);
  };
  const event={type:'identity.verification_session.verified',data:{object:{id:'vs_demo123'}}};
- assert.equal((await processIdentityEvent(event,env,fake)).identity_status,'verified');
+ const liveEnv={...env,STRIPE_SECRET_KEY:'sk_live_mock'};
+ assert.equal((await processIdentityEvent(event,liveEnv,fake)).identity_status,'verified');
  assert.equal(patched.identity_status,'verified');
+ assert.equal(patched.identity_live_verified,true);
+ assert.equal(patched.presence_method,'stripe_selfie');
  assert.ok(patched.identity_verified_at);
  assert.equal(queries,1);
- assert.equal((await processIdentityEvent({type:'invoice.paid',data:{object:{id:'vs_demo123'}}},env,fake)).ignored,true);
+ assert.equal((await processIdentityEvent({type:'invoice.paid',data:{object:{id:'vs_demo123'}}},liveEnv,fake)).ignored,true);
+});
+test('Stripe test ne valide jamais une identité réelle',async()=>{
+ let record;
+ const f=async(url,opt={})=>{
+  if(url.includes('/v1/identity/verification_sessions/'))return {ok:true,json:async()=>({
+   id:'vs_demo123',type:'document',status:'verified',livemode:false,
+   client_reference_id:uid,metadata:{offrya_siret:siret},options:{document:{require_matching_selfie:true}}
+  })};
+  if(url.includes('/rest/v1/offrya_premium_requests')&&opt.method==='PATCH'){record=JSON.parse(opt.body);return {ok:true};}
+  if(url.includes('/rest/v1/offrya_premium_requests'))return {ok:true,json:async()=>[{siret,status:'pending',stripe_identity_session_id:'vs_demo123'}]};
+  throw Error('Unexpected '+url);
+ };
+ const outcome=await processIdentityEvent({type:'identity.verification_session.verified',data:{object:{id:'vs_demo123'}}},env,f);
+ assert.equal(outcome.identity_status,'requires_input');
+ assert.equal(record.identity_live_verified,false);
+ assert.equal(record.identity_verified_at,null);
+ assert.equal(record.presence_method,null);
 });
 test('Signature dédiée : pas de webhook anonyme ou falsifié',async()=>{
  const raw=Buffer.from('{"type":"identity.verification_session.verified"}'),t=Math.floor(Date.now()/1000);
