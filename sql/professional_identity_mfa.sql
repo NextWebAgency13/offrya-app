@@ -15,7 +15,7 @@ alter table public.offrya_premium_requests
  add constraint offrya_authority_status_valid check (authority_status in ('pending','verified','rejected')),
  add constraint offrya_authority_verification_evidence check (
    authority_status <> 'verified' or
-   (authority_verified_at is not null and authority_review_method in ('registry_representative','independent_mandate') and authority_reviewed_by is not null)
+   (authority_verified_at is not null and coalesce(authority_review_method in ('registry_representative','independent_mandate'),false) and authority_reviewed_by is not null)
  );
 
 -- Client sees only a minimal status; never expose Stripe session IDs or internal reviewer data.
@@ -30,11 +30,11 @@ create or replace function offrya_private.guard_professional_approval()
 returns trigger language plpgsql set search_path=''
 as $$
 begin
- if new.status='verified' and (
-   new.identity_status <> 'verified' or new.identity_verified_at is null or
-   new.authority_status <> 'verified' or new.authority_verified_at is null or
-   new.authority_review_method not in ('registry_representative','independent_mandate') or
-   new.authority_reviewed_by is null
+ if new.status='verified' and not (
+   coalesce(new.identity_status='verified',false) and new.identity_verified_at is not null and
+   coalesce(new.authority_status='verified',false) and new.authority_verified_at is not null and
+   coalesce(new.authority_review_method in ('registry_representative','independent_mandate'),false) and
+   new.authority_reviewed_by is not null
  ) then
    raise exception 'Identity and independently documented authority required before verification';
  end if;
@@ -86,5 +86,24 @@ begin
  return new;
 end;$$;
 revoke all on function offrya_private.queue_priority_mission_alerts() from public,anon,authenticated;
+
+-- Existing conversations are still readable by their author, but the professional
+-- cannot use a conversation to bypass the subscription and identity controls.
+drop policy if exists conversation_read on public.offrya_conversations;
+create policy conversation_read on public.offrya_conversations for select to authenticated
+ using(client_id=(select auth.uid()) or
+  (professional_id=(select auth.uid()) and (select offrya_private.has_active_professional_access())));
+drop policy if exists messages_read on public.offrya_messages;
+create policy messages_read on public.offrya_messages for select to authenticated
+ using(exists(select 1 from public.offrya_conversations c
+  where c.id=conversation_id and
+   (c.client_id=(select auth.uid()) or
+    (c.professional_id=(select auth.uid()) and (select offrya_private.has_active_professional_access())))));
+drop policy if exists messages_write on public.offrya_messages;
+create policy messages_write on public.offrya_messages for insert to authenticated
+ with check(sender_id=(select auth.uid()) and exists(
+  select 1 from public.offrya_conversations c where c.id=conversation_id and
+   (c.client_id=(select auth.uid()) or
+    (c.professional_id=(select auth.uid()) and (select offrya_private.has_active_professional_access())))));
 
 -- Any existing priority alert is also hidden by the updated has_active_professional_access().
