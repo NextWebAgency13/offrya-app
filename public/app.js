@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,billingEnabled:false,identityEnabled:false,guestCaptchaSiteKey:null,guestCaptchaToken:null,guestCaptchaWidget:null,draft:null,proStep:1,proStepUserId:null,signupForPro:false,aal:'aal1',mfaFactorId:null,mfaPendingId:null,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,billingEnabled:false,identityEnabled:false,guestCaptchaSiteKey:null,guestCaptchaToken:null,guestCaptchaWidget:null,draft:null,proStep:1,proStepUserId:null,signupForPro:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
@@ -16,10 +16,7 @@ function titleForMission(id){return state.missions.find(m=>m.id===id)?.title||'M
 function profileName(id){return state.profiles.find(p=>p.id===id)?.display_name||'Utilisateur OFFRYA';}
 async function refresh(){
  if(!state.db){render();return;}
- if(!state.session){state.aal='aal1';state.draft=null;state.proStep=1;state.proStepUserId=null;state.mfaFactorId=null;state.mfaPendingId=null;state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.boamp=[];state.priorityAlerts=[];state.lastPriorityIds=null;render();return;}
- const [aal,factors]=await Promise.all([state.db.auth.mfa.getAuthenticatorAssuranceLevel(),state.db.auth.mfa.listFactors()]);
- state.aal=aal.error?'aal1':(aal.data?.currentLevel||'aal1');
- state.mfaFactorId=factors.error?null:(factors.data?.totp||[]).find(f=>f.status==='verified')?.id||null;
+ if(!state.session){state.draft=null;state.proStep=1;state.proStepUserId=null;state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.boamp=[];state.priorityAlerts=[];state.lastPriorityIds=null;render();return;}
  const missionResult=await state.db.from('offrya_missions').select('*').order('created_at',{ascending:false}).limit(200);
  if(missionResult.error)throw missionResult.error;
  state.missions=missionResult.data||[];
@@ -82,31 +79,21 @@ function renderSettings(){
 
 function canUsePremium(){
  const paid=state.subscription?.status==='active'&&Date.parse(state.subscription?.paid_through||'')>Date.now();
- return Boolean(state.session&&state.profile?.role==='pro'&&state.premium?.status==='verified'&&state.premium?.identity_status==='verified'&&state.premium?.authority_status==='verified'&&state.aal==='aal2'&&paid);
+ return Boolean(state.session&&state.profile?.role==='pro'&&state.premium?.status==='verified'&&state.premium?.identity_status==='verified'&&state.premium?.authority_status==='verified'&&paid);
 }
 function renderPremium(){
- const allowed=canUsePremium(),yes=Boolean(state.session),pro=yes&&state.profile?.role==='pro';
+ const allowed=canUsePremium(),pro=Boolean(state.session&&state.profile?.role==='pro');
  $('boampGate').classList.toggle('hidden',allowed);
  $('premiumContent').classList.toggle('hidden',!allowed);
  $('proLanding').classList.toggle('hidden',pro);
  $('proWorkspace').classList.toggle('hidden',!pro);
- $('premiumLogin').classList.toggle('hidden',yes);
- $('proBegin').textContent=yes?'Démarrer mon inscription professionnelle →':'Créer mon compte professionnel →';
+ $('premiumLogin').classList.toggle('hidden',Boolean(state.session));
+ $('proBegin').textContent=state.session?'Démarrer mon inscription professionnelle →':'Créer mon compte professionnel →';
  $('premiumGate').classList.toggle('hidden',allowed);
  $('proDashboard').classList.toggle('hidden',!allowed);
  if(!pro)return;
- const signedInWithoutMfa=state.aal!=='aal2';
- const needsMfaResume=Boolean(state.premium&&signedInWithoutMfa);
- const mfaTarget=needsMfaResume?$('proSecurityGateHost'):$('proSecurityStepHost');
- if(mfaTarget&&!mfaTarget.contains($('mfaPanel')))mfaTarget.appendChild($('mfaPanel'));
- $('proSecurityGateHost').classList.toggle('hidden',!needsMfaResume);
- $('mfaEnrollStart').classList.toggle('hidden',Boolean(state.mfaFactorId)||!signedInWithoutMfa);
- $('mfaChallengeForm').classList.toggle('hidden',!state.mfaFactorId||!signedInWithoutMfa);
- $('proMfaReady').classList.toggle('hidden',signedInWithoutMfa);
- const paidExisting=state.subscription?.status==='active'&&Date.parse(state.subscription?.paid_through||'')>Date.now()&&state.premium?.status==='verified'&&state.premium?.identity_status==='verified'&&state.premium?.authority_status==='verified';
- const stage=allowed?5:state.premium?.status==='verified'?5:state.premium?4:Math.min(3,Math.max(1,state.proStep||1));
- $('proSessionLocked').classList.toggle('hidden',!paidExisting||!signedInWithoutMfa);
- $('proStatusPill').textContent=allowed?'Compte actif':stage===5?'Dossier approuvé':stage===4?(state.premium?.status==='rejected'?'Dossier à régulariser':'Vérification en cours'):'Inscription en cours';
+ const stage=allowed||state.premium?.status==='verified'?4:state.premium?3:Math.min(3,Math.max(1,state.proStep||1));
+ $('proStatusPill').textContent=allowed?'Compte actif':stage===4?'Dossier approuvé':state.premium?(state.premium.status==='rejected'?'Dossier à régulariser':'Vérification en cours'):'Inscription en cours';
  for(const el of document.querySelectorAll('#proSteps li')){
   const n=Number(el.dataset.step);
   el.classList.toggle('active',n===stage&&!allowed);
@@ -117,35 +104,44 @@ function renderPremium(){
   $('proSubscriptionState').textContent='Actif jusqu’au '+date(state.subscription.paid_through);
   return;
  }
- $('premiumGateText').textContent=paidExisting&&signedInWithoutMfa?'Votre abonnement est déjà payé. Une confirmation MFA suffit pour retrouver votre accès.':stage<=3?'Chaque étape est sauvegardée dans votre espace privé. Vous pouvez revenir et reprendre plus tard.':'';
- for(const id of ['proStageCompany','proStageRepresentative','proStageSecurity','proStageReview','proStageBilling'])$(id).classList.add('hidden');
- const stages={1:'proStageCompany',2:'proStageRepresentative',3:'proStageSecurity',4:'proStageReview',5:'proStageBilling'};
- if(!(stage===5&&paidExisting&&signedInWithoutMfa))$(stages[stage]).classList.remove('hidden');
+ $('premiumGateText').textContent=stage<=3&&!state.premium?'Votre progression est sauvegardée dans votre espace privé. Vous pourrez reprendre votre demande plus tard.':'';
+ for(const id of ['proStageCompany','proStageRepresentative','proStageReview','proStageBilling'])$(id).classList.add('hidden');
+ const stages={1:'proStageCompany',2:'proStageRepresentative',3:'proStageReview',4:'proStageBilling'};
+ $(stages[stage]).classList.remove('hidden');
  $('premiumRequestForm').classList.toggle('hidden',stage>2);
- if(stage<=3){
+ if(stage<=3&&!state.premium){
   const f=$('premiumRequestForm'),d=state.draft;
-  // Restore only when fields are empty; never erase values being typed mid-step.
   if(d){
-   for(const name of ['siret','legal_name','representative_name','representative_capacity','representative_kind']){
+   for(const name of ['siret','legal_name','representative_name','representative_capacity','representative_kind'])
     if(f.elements[name]&&!f.elements[name].value)f.elements[name].value=d[name]||'';
+   if(f.elements.siret.value===d.siret&&d.legal_name){
+    f.dataset.verifiedSiret=d.siret;
+    $('companyCheck').textContent='Entreprise identifiée : '+d.legal_name+'. Vous pouvez continuer.';
    }
-   if(f.elements.siret.value===d.siret&&d.legal_name){f.dataset.verifiedSiret=d.siret;$('companyCheck').textContent='Entreprise identifiée : '+d.legal_name+'. Vous pouvez continuer.';}
   }
-  $('proSubmitRequest').disabled=state.aal!=='aal2';
+ }
+ if(stage===3){
+  const submitted=Boolean(state.premium),identity=state.premium?.identity_status,authority=state.premium?.authority_status;
+  $('proSubmitPanel').classList.toggle('hidden',submitted);
+  $('proReviewPending').classList.toggle('hidden',!submitted);
+  $('proReviewTitle').textContent=!submitted?'Confirmez votre dossier':state.premium?.status==='rejected'?'Votre dossier nécessite une régularisation':'Suivi des vérifications';
+  $('proReviewDescription').textContent=submitted?'OFFRYA confirme votre identité et votre droit de représenter l’entreprise.':'Vérifiez les informations avant de transmettre votre demande. Aucun abonnement ne sera demandé avant approbation.';
+  if(!submitted){
+   const f=$('premiumRequestForm');
+   $('proReviewCompany').textContent=f.elements.legal_name.value||state.draft?.legal_name||'Entreprise à vérifier';
+   $('proReviewRepresentative').textContent=f.elements.representative_name.value||state.draft?.representative_name||'Représentant à renseigner';
+  }else{
+   $('proIdentityStatus').textContent=identity==='verified'?'Identité validée':identity==='processing'?'Contrôle en cours':identity==='requires_input'?'Informations supplémentaires nécessaires':identity==='redacted'?'Vérification à renouveler':'À réaliser';
+   $('proAuthorityStatus').textContent=authority==='verified'?'Habilitation validée':authority==='rejected'?'Habilitation refusée':'Examen en attente';
+   const canStart=state.premium.status==='pending'&&identity!=='verified';
+   $('identityPanel').classList.toggle('hidden',!canStart);
+   $('identityStart').disabled=!state.identityEnabled;
+   $('identityPanelText').textContent=!state.identityEnabled?'La vérification automatisée n’est pas encore disponible. Contactez le support pour la procédure alternative sécurisée.':identity==='processing'?'Votre contrôle est en cours ; vous pouvez rouvrir ou reprendre votre session Stripe.':'Vous serez dirigé vers le prestataire pour vérifier votre document officiel.';
+   $('proReviewNotice').textContent=state.premium.status==='rejected'?'Votre dossier a été refusé. Contactez le support pour connaître les informations à rectifier et demander un nouvel examen.':identity==='verified'&&authority!=='verified'?'Votre identité a été contrôlée. OFFRYA vérifie maintenant votre droit de représenter l’entreprise, de manière indépendante. Aucun paiement n’est demandé.':'Aucun paiement ni accès aux missions avant la validation complète de votre dossier.';
+  }
  }
  if(stage===4){
-  const identity=state.premium?.identity_status,authority=state.premium?.authority_status;
-  $('proReviewTitle').textContent=state.premium?.status==='rejected'?'Votre dossier nécessite une régularisation':'Suivi de vos vérifications';
-  $('proIdentityStatus').textContent=identity==='verified'?'Identité validée':identity==='processing'?'Contrôle en cours':identity==='requires_input'?'Informations supplémentaires nécessaires':identity==='redacted'?'Vérification à renouveler':'À réaliser';
-  $('proAuthorityStatus').textContent=authority==='verified'?'Habilitation validée':authority==='rejected'?'Habilitation refusée':'Examen en attente';
-  const canStart=state.premium?.status==='pending'&&identity!=='verified';
-  $('identityPanel').classList.toggle('hidden',!canStart);
-  $('identityStart').disabled=!state.identityEnabled||state.aal!=='aal2';
-  $('identityPanelText').textContent=!state.identityEnabled?'La vérification automatisée n’est pas encore disponible. Contactez le support pour la procédure alternative sécurisée.':identity==='processing'?'Votre contrôle est en cours ; vous pouvez rouvrir ou reprendre votre session Stripe.':'Vous serez dirigé vers le prestataire pour vérifier votre document officiel.';
-  $('proReviewNotice').textContent=state.premium?.status==='rejected'?'Votre dossier a été refusé. Contactez le support pour connaître les informations à rectifier et demander un nouvel examen.':identity==='verified'&&authority!=='verified'?'Votre identité a été contrôlée. OFFRYA vérifie maintenant votre droit de représenter l’entreprise, de manière indépendante. Aucun paiement n’est demandé.':'Aucun paiement ni accès aux missions avant la validation complète de votre dossier.';
- }
- if(stage===5){
-  $('premiumSubscribe').disabled=!state.billingEnabled||state.aal!=='aal2';
+  $('premiumSubscribe').disabled=!state.billingEnabled;
   $('premiumBillingStatus').textContent=state.billingEnabled?'Paiement sécurisé sur Stripe. L’accès s’active après confirmation du règlement.':'La souscription est momentanément indisponible. Le support peut vous renseigner.';
  }
 }
@@ -221,10 +217,13 @@ $('proNextRepresentative').onclick=async()=>{
   return toast('Complétez votre nom, votre fonction et votre situation.');
  try{await saveProfessionalDraft(3);}catch(err){showError(err);}
 };
-$('proBackSecurity').onclick=()=>{state.proStep=2;renderPremium();};
+$('proBackReview').onclick=()=>{state.proStep=2;renderPremium();};
 $('proSubmitRequest').onclick=()=>{
- if(state.aal!=='aal2')return toast('Validez votre double authentification.');
- $('premiumRequestForm').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+ const f=$('premiumRequestForm');
+ if(f.dataset.verifiedSiret!==f.elements.siret.value.trim())return toast('Vérifiez le SIRET pour déposer votre demande.');
+ if(!f.elements.representative_name.value.trim()||!['dirigeant','mandataire'].includes(f.elements.representative_kind.value)||!f.elements.representative_capacity.value.trim())
+  return toast('Complétez votre nom, votre situation et votre fonction.');
+ f.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
 };
 $('proRefreshStatus').onclick=async()=>{try{await refresh();toast('Statut actualisé.');}catch(err){showError(err);}};
 
@@ -249,39 +248,8 @@ $('premiumRequestForm').elements.siret.addEventListener('input',()=>{
  $('premiumRequestForm').dataset.verifiedSiret='';
  $('companyCheck').textContent='Vérifiez le SIRET avec le registre officiel avant de déposer la demande.';
 });
-$('mfaEnrollStart').onclick=async()=>{
- if(!requireAuth())return;
- try{
-  const result=await state.db.auth.mfa.enroll({factorType:'totp',friendlyName:'OFFRYA Professionnel'});
-  if(result.error)throw result.error;
-  state.mfaPendingId=result.data?.id;
-  const qr=String(result.data?.totp?.qr_code||'');
-  if(!qr.startsWith('data:image/svg+xml;')&&!qr.startsWith('data:image/png;'))throw Error('QR code MFA indisponible.');
-  $('mfaQr').src=qr;
-  $('mfaSecret').textContent='Clé de configuration (ne la partagez pas) : '+String(result.data?.totp?.secret||'');
-  $('mfaEnrollFlow').classList.remove('hidden');
- }catch(err){showError(err);}
-};
-async function verifyTotp(code,factorId){
- const result=await state.db.auth.mfa.challengeAndVerify({factorId,code});
- if(result.error)throw result.error;
- $('mfaSecret').textContent='';$('mfaQr').removeAttribute('src');$('mfaEnrollFlow').classList.add('hidden');
- state.mfaPendingId=null;
- toast('Double authentification validée.');await refresh();
-}
-$('mfaEnrollForm').onsubmit=async e=>{
- e.preventDefault();
- if(!state.mfaPendingId)return;
- try{await verifyTotp(e.currentTarget.elements.code.value,state.mfaPendingId);}catch(err){showError(err);}
-};
-$('mfaChallengeForm').onsubmit=async e=>{
- e.preventDefault();
- if(!state.mfaFactorId)return;
- try{await verifyTotp(e.currentTarget.elements.code.value,state.mfaFactorId);}catch(err){showError(err);}
-};
 $('identityStart').onclick=async()=>{
  if(!requireAuth())return;
- if(state.aal!=='aal2')return toast('Validez votre double authentification.');
  try{
   const {data:{session}}=await state.db.auth.getSession();
   if(!session)throw Error('Session expirée.');
@@ -306,7 +274,7 @@ $('premiumRequestForm').onsubmit=async e=>{
   const response=await r.json();if(!r.ok)throw Error(response.error||'Vérification indisponible.');
   const {error:draftError}=await state.db.from('offrya_professional_drafts').delete().eq('user_id',state.session.user.id);
   if(draftError)console.warn('Draft cleanup:',draftError.message);
-  state.draft=null;state.proStep=4;
+  state.draft=null;state.proStep=3;
   toast('Votre dossier est enregistré. Suivez les vérifications dans cet espace.');await refresh();
  }catch(err){showError(err);}
 };

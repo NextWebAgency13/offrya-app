@@ -5,9 +5,9 @@ const {parseBearer,verifyPremiumAccess}=require('../lib/premium');
 const uid='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const config={url:'https://demo.supabase.co',key:'sb_publishable_test'};
 const jwt='aaa.'+Buffer.from(JSON.stringify({aal:'aal2'})).toString('base64url')+'.ccc';
-function fake({role='pro',status='verified',identity_status='verified',authority_status='verified',subStatus='active',paid_through=new Date(Date.now()+3600000).toISOString(),unauth=false}={}){
+function fake({role='pro',status='verified',identity_status='verified',authority_status='verified',subStatus='active',paid_through=new Date(Date.now()+3600000).toISOString(),unauth=false,guest=false}={}){
  return async url=>{
-  if(url.includes('/auth/v1/user'))return {ok:!unauth,json:async()=>({id:uid})};
+  if(url.includes('/auth/v1/user'))return {ok:!unauth,json:async()=>({id:uid,is_anonymous:guest})};
   if(url.includes('offrya_profiles'))return {ok:true,json:async()=>[{role}]};
   if(url.includes('offrya_premium_requests'))return {ok:true,json:async()=>[{status,identity_status,authority_status,premium_until:new Date(Date.now()+86400000).toISOString()}]};
   if(url.includes('offrya_premium_subscriptions'))return {ok:true,json:async()=>[{status:subStatus,paid_through}]};
@@ -23,9 +23,10 @@ test('JWT requis, rôle pro et entreprise vérifiée',async()=>{
   const res=await verifyPremiumAccess('Bearer '+jwt,config,fake(opts));assert.equal(res.status,403);
  }
 });
-test('MFA obligatoire même avec identité et paiement validés',async()=>{
- const weak='aaa.'+Buffer.from(JSON.stringify({aal:'aal1'})).toString('base64url')+'.ccc';
- assert.equal((await verifyPremiumAccess('Bearer '+weak,config,fake())).status,403);
+test('L’accès pro fonctionne sans TOTP si identité, habilitation et abonnement sont validés',async()=>{
+ const passwordOnly='aaa.'+Buffer.from(JSON.stringify({aal:'aal1'})).toString('base64url')+'.ccc';
+ assert.equal((await verifyPremiumAccess('Bearer '+passwordOnly,config,fake())).allowed,true);
+ assert.equal((await verifyPremiumAccess('Bearer '+passwordOnly,config,fake({guest:true}))).status,403);
 });
 test('Aucune ancienne période gratuite ne remplace le paiement',async()=>{
  const res=await verifyPremiumAccess('Bearer '+jwt,config,fake({subStatus:'inactive'}));assert.equal(res.allowed,false);

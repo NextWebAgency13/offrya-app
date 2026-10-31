@@ -47,4 +47,8 @@ OFFRYA propose la publication gratuite via `supabase.auth.signInAnonymously()`. 
 
 Migration de sécurité à appliquer : `sql/guest_mission_publishing.sql`. Elle protège les profils invités (rôle client uniquement), ajoute une RLS restrictive en lecture des missions et limite chaque session invitée à 3 missions par 24 heures. **Cette limite n'est pas une protection IP** et ne dispense pas d'un CAPTCHA pour empêcher la création répétée de sessions invitées.
 
-Pour consulter les missions publiées par d'autres, l'autorisation RLS continue d'exiger simultanément le rôle professionnel, une identité et une habilitation vérifiées, une MFA active et un abonnement payé à **34,99 € TTC/mois**. Le dépôt gratuit est indépendant du Premium.
+Pour consulter les missions publiées par d'autres, l'autorisation RLS continue d'exiger simultanément le rôle professionnel, une identité et une habilitation vérifiées, un compte identifié (jamais invité) et un abonnement payé à **34,99 € TTC/mois**. Le dépôt gratuit est indépendant du Premium.
+
+## Validation professionnelle sans TOTP
+
+La procédure d'activation comporte désormais **4 étapes** : SIRET, informations du représentant, dépôt et vérification de la personne et de son mandat, abonnement. Aucun QR code ou code à six chiffres n'est requis. Après les migrations de création de schéma, appliquer `sql/professional_without_mfa.sql` (déjà appliquée à la base OFFRYA). Les comptes invités restent interdits d'accès Premium ; identité, présence, mandat et facturation demeurent obligatoires. Les anciens facteurs TOTP éventuellement enregistrés dans Supabase Auth ne sont pas supprimés automatiquement.
