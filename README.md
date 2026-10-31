@@ -52,3 +52,7 @@ Pour consulter les missions publiées par d'autres, l'autorisation RLS continue 
 ## Validation professionnelle sans TOTP
 
 La procédure d'activation comporte désormais **4 étapes** : SIRET, informations du représentant, dépôt et vérification de la personne et de son mandat, abonnement. Aucun QR code ou code à six chiffres n'est requis. Après les migrations de création de schéma, appliquer `sql/professional_without_mfa.sql` (déjà appliquée à la base OFFRYA). Les comptes invités restent interdits d'accès Premium ; identité, présence, mandat et facturation demeurent obligatoires. Les anciens facteurs TOTP éventuellement enregistrés dans Supabase Auth ne sont pas supprimés automatiquement.
+
+## Vérification d'identité manuelle lorsque Stripe est indisponible
+
+Migration : `sql/manual_identity_review_requests.sql` (appliquée à Supabase OFFRYA). À l'étape 3, un professionnel dont le dossier est `pending` peut demander un contrôle manuel sans transmettre de document au site ou par e-mail. La demande est enregistrée dans une file RLS privée ; **elle ne valide aucune identité, aucune habilitation ni aucun abonnement**. Un opérateur doit consulter la file Supabase, contacter le titulaire du compte, vérifier réellement la pièce/présence et le mandat, puis décider. Voir `PROCEDURE_VERIFICATION_MANUELLE.md`.
