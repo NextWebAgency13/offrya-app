@@ -132,7 +132,7 @@ function renderPremium(){
    $('proReviewCompany').textContent=f.elements.legal_name.value||state.draft?.legal_name||'Entreprise à vérifier';
    $('proReviewRepresentative').textContent=f.elements.representative_name.value||state.draft?.representative_name||'Représentant à renseigner';
   }else{
-   $('proIdentityStatus').textContent=identity==='verified'?'Identité validée':identity==='processing'?'Contrôle en cours':identity==='requires_input'?'Informations supplémentaires nécessaires':identity==='redacted'?'Vérification à renouveler':'À réaliser';
+   $('proIdentityStatus').textContent=identity==='verified'?'Identité validée':state.manualIdentity?.status==='requested'?'Contrôle manuel demandé':state.manualIdentity?.status==='scheduled'?'Contrôle manuel planifié':state.manualIdentity?.status==='contacting'?'Prise de contact en cours':identity==='processing'?'Contrôle en ligne en cours':identity==='requires_input'?'Informations supplémentaires nécessaires':identity==='redacted'?'Vérification à renouveler':'À réaliser';
    $('proAuthorityStatus').textContent=authority==='verified'?'Habilitation validée':authority==='rejected'?'Habilitation refusée':'Examen en attente';
    const canStart=state.premium.status==='pending'&&identity!=='verified';
    $('identityPanel').classList.toggle('hidden',!canStart);
