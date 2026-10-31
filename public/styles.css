@@ -36,3 +36,6 @@
 #priorityAlertsList .data-item{border-left:3px solid #6941D7}
 #priorityAlertsList .item-actions{display:flex;gap:8px;flex-wrap:wrap}
 #priorityAlertCount{font-variant-numeric:tabular-nums}
+
+.priority-shortcut{position:relative;display:inline-flex;align-items:center;justify-content:center;color:#6941D7;font-size:20px}
+.priority-bubble{position:absolute;right:-5px;top:-5px;min-width:16px;height:16px;padding:0 4px;border-radius:20px;background:#6941D7;color:white;font-size:10px;font-weight:800;line-height:16px;box-shadow:0 0 0 2px white}

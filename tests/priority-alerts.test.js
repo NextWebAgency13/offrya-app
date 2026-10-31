@@ -45,3 +45,11 @@ test('Le digest quotidien exclut les missions prioritaires déjà envoyées',()=
  const src=fs.readFileSync(path.join(__dirname,'../scripts/send-alerts.js'),'utf8');
  assert.match(src,/prioritySent/);assert.match(src,/!delivered\.has\(uid\+':'\+m\.id\)/);
 });
+
+test('Badge Premium global disponible même en dehors du tableau de bord',()=>{
+ const html=fs.readFileSync(path.join(__dirname,'../public/index.html'),'utf8');
+ const app=fs.readFileSync(path.join(__dirname,'../public/app.js'),'utf8');
+ assert.match(html,/id="priorityAlertShortcut"/);
+ assert.match(html,/id="priorityAlertBubble"/);
+ assert.match(app,/state\.lastPriorityIds/);
+});

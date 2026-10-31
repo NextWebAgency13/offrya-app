@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,wait:false,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,billingEnabled:false,priorityAlerts:[],authMode:'login'};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,wait:false,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,billingEnabled:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
@@ -18,7 +18,7 @@ async function refresh(){
  const missionResult=await state.db.from('offrya_missions').select('*').order('created_at',{ascending:false}).limit(200);
  if(missionResult.error)throw missionResult.error;
  state.missions=missionResult.data||[];
- if(!state.session){state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.wait=false;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.boamp=[];state.priorityAlerts=[];render();return;}
+ if(!state.session){state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.wait=false;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.boamp=[];state.priorityAlerts=[];state.lastPriorityIds=null;render();return;}
  const uid=state.session.user.id;
  const [prof,conv,prefs,wait,profiles,favorites,premium,subscription]=await Promise.all([
   state.db.from('offrya_profiles').select('*').eq('id',uid).maybeSingle(),
@@ -150,15 +150,22 @@ async function loadPriorityAlerts(shouldRender=true){
   .order('created_at',{ascending:false}).limit(30);
  if(r.error)throw r.error;
  state.priorityAlerts=(r.data||[]).filter(a=>a.mission?.status==='open');
+ const currentIds=new Set(state.priorityAlerts.map(a=>a.id));
+ if(state.lastPriorityIds&&state.priorityAlerts.some(a=>!a.seen_at&&!state.lastPriorityIds.has(a.id)))
+   toast('Nouvelle mission prioritaire OFFRYA Premium disponible.');
+ state.lastPriorityIds=currentIds;
  if(shouldRender)renderPriorityAlerts();
 }
 function renderPriorityAlerts(){
  const visible=canUsePremium();
  $('priorityAlertsPanel').classList.toggle('hidden',!visible);
+ $('priorityAlertShortcut').classList.toggle('hidden',!visible);
  if(!visible)return;
  const alerts=state.priorityAlerts||[];
  const unread=alerts.filter(a=>!a.seen_at).length;
  $('priorityAlertCount').textContent=unread+' nouvelle(s)';
+ $('priorityAlertBubble').textContent=String(unread);
+ $('priorityAlertShortcut').setAttribute('aria-label',unread+' opportunité(s) prioritaires non consultée(s)');
  $('priorityAlertsList').innerHTML=alerts.length?alerts.map(a=>
   `<article class="data-item">
     <div class="item-top"><span class="tag">${a.seen_at?'Consultée':'NOUVELLE · PRIORITÉ PREMIUM'}</span><span class="muted tiny">${date(a.created_at)}</span></div>
