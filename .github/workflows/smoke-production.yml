@@ -1,0 +1,20 @@
+name: OFFRYA — contrôle HTTP production
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Contrôler Render, la sécurité BOAMP et les routes Stripe sans paiement
+        run: node scripts/smoke-production.js
