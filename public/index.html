@@ -152,19 +152,17 @@
     <ol id="proSteps">
      <li data-step="1"><span>01</span><div><strong>Entreprise</strong><small>Informations officielles</small></div></li>
      <li data-step="2"><span>02</span><div><strong>Représentant</strong><small>Identité et fonction</small></div></li>
-     <li data-step="3"><span>03</span><div><strong>Sécurité</strong><small>Double authentification</small></div></li>
-     <li data-step="4"><span>04</span><div><strong>Vérifications</strong><small>Identité et mandat</small></div></li>
-     <li data-step="5"><span>05</span><div><strong>Activation</strong><small>Abonnement professionnel</small></div></li>
+     <li data-step="3"><span>03</span><div><strong>Vérifications</strong><small>Identité et mandat</small></div></li>
+     <li data-step="4"><span>04</span><div><strong>Activation</strong><small>Abonnement professionnel</small></div></li>
     </ol>
     <div class="pro-rail-foot"><svg class="nav-icon" aria-hidden="true"><use href="#ic-shield"/></svg><p>Vos informations sont privées. Les missions d'autrui restent protégées jusqu'à l'activation.</p></div>
    </aside>
    <div class="pro-stage-card">
-    <div id="proSecurityGateHost" class="hidden pro-billing" aria-live="polite"><span class="pro-stage-label">CONNEXION SÉCURISÉE</span><h3>Confirmez votre identité de connexion</h3><p class="pro-stage-desc">Votre compte dispose déjà d’un dossier. Confirmez le code de votre application pour reprendre votre suivi ou votre accès sans recommencer l’inscription.</p></div>
     <div id="premiumGate">
      <p class="pro-stage-message" id="premiumGateText" role="status"></p>
      <form id="premiumRequestForm" class="pro-form">
       <div id="proStageCompany" class="hidden">
-       <span class="pro-stage-label">ÉTAPE 1 SUR 5</span><h3>Identifions votre entreprise</h3>
+       <span class="pro-stage-label">ÉTAPE 1 SUR 4</span><h3>Identifions votre entreprise</h3>
        <p class="pro-stage-desc">Le numéro SIRET permet de retrouver votre société sur le registre officiel, sans saisir à nouveau ses informations.</p>
        <div class="pro-form">
         <label>Numéro SIRET (14 chiffres)<input class="field" name="siret" minlength="14" maxlength="14" pattern="[0-9]{14}" inputmode="numeric" autocomplete="off" placeholder="Ex. 12345678901234" required></label>
@@ -175,7 +173,7 @@
        <div class="pro-actions"><button type="button" class="button primary" id="proNextCompany">Continuer →</button></div>
       </div>
       <div id="proStageRepresentative" class="hidden">
-       <span class="pro-stage-label">ÉTAPE 2 SUR 5</span><h3>Qui représente cette entreprise ?</h3>
+       <span class="pro-stage-label">ÉTAPE 2 SUR 4</span><h3>Qui représente cette entreprise ?</h3>
        <p class="pro-stage-desc">Votre identité et votre fonction permettront à OFFRYA de contrôler votre autorisation de représenter l'entreprise.</p>
        <div class="pro-form">
         <label>Nom et prénom complets<input class="field" name="representative_name" minlength="4" maxlength="120" required autocomplete="name" placeholder="Identiques à votre pièce d'identité"></label>
@@ -186,27 +184,15 @@
        <div class="pro-actions"><button type="button" class="button outline" id="proBackRepresentative">← Retour</button><button type="button" class="button primary" id="proNextRepresentative">Enregistrer et continuer →</button></div>
       </div>
      </form>
-     <div id="proStageSecurity" class="hidden">
-      <span class="pro-stage-label">ÉTAPE 3 SUR 5</span><h3>Sécurisez votre accès</h3>
-      <p class="pro-stage-desc">Une application de double authentification protège votre compte et les missions qui vous seront confiées.</p>
-      <div id="proSecurityStepHost"></div>
-      <div id="mfaPanel">
-       <button class="button secondary" id="mfaEnrollStart" type="button">Configurer mon application d'authentification</button>
-       <div id="mfaEnrollFlow" class="hidden">
-        <p class="pro-stage-desc">Scannez ce code avec votre application TOTP puis saisissez le code à six chiffres. Ne communiquez jamais la clé au support.</p>
-        <img id="mfaQr" width="180" height="180" alt="QR code de configuration TOTP">
-        <p id="mfaSecret" class="pro-mfa-secret"></p>
-        <form id="mfaEnrollForm" class="settings-form"><label>Code à six chiffres<input class="field" name="code" pattern="[0-9]{6}" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required></label><button class="button primary" type="submit">Activer la double authentification</button></form>
-       </div>
-       <form id="mfaChallengeForm" class="settings-form hidden"><label>Code de votre application<input class="field" name="code" pattern="[0-9]{6}" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required></label><button class="button primary" type="submit">Confirmer mon second facteur</button></form>
-       <p id="proMfaReady" class="pro-success hidden">Compte sécurisé pour cette session.</p>
-      </div>
-      <div class="pro-actions"><button type="button" class="button outline" id="proBackSecurity">← Retour</button><button type="button" class="button primary" id="proSubmitRequest">Déposer mon dossier →</button></div>
-      <p class="pro-note">Le dossier est examiné avant la souscription. Aucun accès aux missions n'est accordé à ce stade.</p>
-     </div>
      <div id="proStageReview" class="hidden">
-      <span class="pro-stage-label">ÉTAPE 4 SUR 5</span><h3 id="proReviewTitle">Suivi des vérifications</h3>
-      <p class="pro-stage-desc">OFFRYA confirme votre identité et votre habilitation. Consultez le statut de chaque contrôle.</p>
+      <span class="pro-stage-label">ÉTAPE 3 SUR 4</span><h3 id="proReviewTitle">Vérification de votre dossier</h3>
+      <p class="pro-stage-desc" id="proReviewDescription">OFFRYA confirme votre identité et votre habilitation. Consultez le statut de chaque contrôle.</p>
+      <div id="proSubmitPanel" class="hidden">
+       <div class="pro-checklist"><div><span>Entreprise</span><strong id="proReviewCompany">À confirmer</strong></div><div><span>Représentant</span><strong id="proReviewRepresentative">À confirmer</strong></div></div>
+       <p class="pro-note">Demandez la vérification de votre entreprise et de votre qualité de représentant. Aucun paiement ni accès aux missions des autres avant approbation.</p>
+       <div class="pro-actions"><button type="button" class="button outline" id="proBackReview">← Modifier mon dossier</button><button type="button" class="button primary" id="proSubmitRequest">Déposer mon dossier →</button></div>
+      </div>
+      <div id="proReviewPending" class="hidden">
       <div class="pro-checklist">
        <div><span>Entreprise identifiée</span><strong>Validée au dépôt</strong></div>
        <div><span>Identité de la personne</span><strong id="proIdentityStatus">En attente</strong></div>
@@ -219,9 +205,10 @@
       </div>
       <p id="proReviewNotice" class="pro-note" role="status">Votre dossier est en cours d'examen.</p>
       <div class="pro-actions"><button type="button" class="button secondary" id="proRefreshStatus">Actualiser mon suivi</button><a class="button outline" href="/contact.html">Contacter le support</a></div>
+      </div>
      </div>
      <div id="proStageBilling" class="hidden">
-      <span class="pro-stage-label">ÉTAPE 5 SUR 5</span><h3>Votre dossier est approuvé</h3>
+      <span class="pro-stage-label">ÉTAPE 4 SUR 4</span><h3>Votre dossier est approuvé</h3>
       <p class="pro-stage-desc">Votre entreprise, votre identité et votre droit de représentation sont validés. Activez maintenant votre abonnement.</p>
       <div id="premiumPlan" class="pro-billing">
        <div class="pro-billing-price">34,99 € <small>TTC / mois</small></div>
@@ -233,7 +220,6 @@
       </div>
      </div>
     </div>
-    <div id="proSessionLocked" class="hidden"><span class="pro-stage-label">ABONNEMENT EXISTANT</span><h3>Votre abonnement est déjà actif</h3><p class="pro-stage-desc">Aucun nouveau paiement nécessaire. Confirmez simplement votre double authentification ci-dessus pour retrouver l’accès à vos missions.</p></div>
     <div id="proDashboard" class="hidden">
      <span class="pro-stage-label">COMPTE PROFESSIONNEL ACTIF</span><h3>Votre activité sur OFFRYA</h3>
      <p class="pro-stage-desc">Entreprise et identité vérifiées, habilitation contrôlée et abonnement actif.</p>
