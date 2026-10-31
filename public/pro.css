@@ -1,0 +1,66 @@
+/* OFFRYA Pro — onboarding guidé et veille séparée */
+.pro-hero{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(270px,.65fr);gap:22px;align-items:stretch;margin-bottom:25px}
+.pro-hero-main{padding:43px 42px;border-radius:25px;background:linear-gradient(130deg,#eee8ff 0%,#faf8ff 58%,#fff7f2 100%);border:1px solid #e8dff7;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.pro-hero-main:after{content:'';position:absolute;width:210px;height:210px;border:1px solid #d0c0f8;border-radius:50%;right:-85px;top:-85px;box-shadow:0 0 0 29px #f6f1ff,0 0 0 60px #eee6ff80;pointer-events:none}
+.pro-kicker{font-size:10px;letter-spacing:1.7px;font-weight:850;color:#6941d7;text-transform:uppercase}
+.pro-hero h2{font:800 clamp(28px,3.1vw,42px)/1.13 'Plus Jakarta Sans',sans-serif;letter-spacing:-1.5px;margin:16px 0}
+.pro-hero h2 span{color:#6941d7}
+.pro-hero p{color:#586277;font-size:13px;line-height:1.8;max-width:560px}
+.pro-benefits{display:flex;gap:9px;flex-wrap:wrap;margin:21px 0}
+.pro-benefits span{font-size:11px;color:#473968;background:#ffffffb8;border:1px solid #e5ddf6;border-radius:20px;padding:6px 11px;font-weight:750}
+.pro-hero-actions{display:flex;gap:10px;flex-wrap:wrap;position:relative;z-index:1}
+.pro-offer{padding:30px;border-radius:25px;background:#302449;color:white;box-shadow:0 16px 30px #3024491c}
+.pro-offer .pro-kicker{color:#cdbbff}.pro-offer strong{font:800 37px/1.2 'Plus Jakarta Sans',sans-serif;letter-spacing:-1px;display:block;margin:14px 0 9px}
+.pro-offer strong small{font-size:12px;font-weight:600;letter-spacing:0}
+.pro-offer p,.pro-offer small{color:#e1d8f5;font-size:11px}
+.pro-offer ul{padding-left:19px;color:#fff;font-size:12px;line-height:2.2;margin:20px 0}
+.pro-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:28px 0 20px}
+.pro-head h2{font:800 25px/1.3 'Plus Jakarta Sans',sans-serif;letter-spacing:-.8px;margin:7px 0}
+.pro-head p{color:var(--muted);font-size:12px;margin:0}
+.pro-status{padding:7px 13px;background:#f0eaff;color:#5633b3;border:1px solid #ddd1f6;border-radius:50px;font-size:11px;font-weight:850;white-space:nowrap}
+.pro-layout{display:grid;grid-template-columns:minmax(220px,.34fr) minmax(0,1fr);gap:17px;align-items:start}
+.pro-rail,.pro-stage-card{background:white;border:1px solid #e7e0f1;border-radius:22px;box-shadow:var(--shadow)}
+.pro-rail{padding:21px 13px}
+.pro-rail ol{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.pro-rail li{display:flex;gap:12px;align-items:center;padding:13px 12px;border-radius:13px;color:#9aa2b1}
+.pro-rail li>span{width:33px;height:33px;flex:none;border:1px solid #e5e1ed;border-radius:10px;display:grid;place-items:center;font-size:11px;font-weight:850}
+.pro-rail li strong{display:block;font-size:12px;color:#7b8395}.pro-rail li small{display:block;font-size:10px;line-height:1.4;margin-top:3px}
+.pro-rail li.active{background:#f4efff;color:#6941d7}.pro-rail li.active>span{color:white;background:#6941d7;border-color:#6941d7}.pro-rail li.active strong{color:#4d2d9c}
+.pro-rail li.complete>span{color:#127353;border-color:#9bdbc4;background:#e9f8f0}.pro-rail li.complete strong{color:#314c4c}
+.pro-rail-foot{padding:18px 15px 3px;color:#6a7185;font-size:10px;border-top:1px solid #f0eaf7;margin-top:14px;display:flex;gap:10px;align-items:flex-start}
+.pro-rail-foot svg{color:#6941d7}
+.pro-rail-foot p{margin:0;line-height:1.6}
+.pro-stage-card{padding:32px;min-height:390px}
+.pro-stage-card h3{font:800 clamp(21px,2vw,27px)/1.25 'Plus Jakarta Sans',sans-serif;letter-spacing:-.6px;margin:8px 0 12px}
+.pro-stage-label{display:inline-block;color:#734fbf;font-size:10px;font-weight:850;letter-spacing:1.3px}
+.pro-stage-desc{font-size:12px;color:#6c7387;line-height:1.8;max-width:670px;margin:0 0 25px}
+.pro-stage-message{font-size:12px;color:#6c7387;line-height:1.65;margin:0 0 16px}
+.pro-form{display:grid;gap:15px;max-width:640px}
+.pro-form label{display:grid;gap:7px;font-weight:750;font-size:12px;color:#3a3652}
+.pro-form .field{background:#fff}
+.pro-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px;align-items:center}
+.pro-note{border-radius:13px;background:#f6f3fc;border:1px solid #e7dff4;color:#5d5672;font-size:11px;line-height:1.75;padding:13px 15px;margin-top:15px}
+.pro-success{border-radius:12px;background:#eaf8f1;border:1px solid #bfe8d5;padding:12px 15px;font-size:12px;color:#126e4c}
+.pro-stage-card .settings-form{max-width:570px}
+.pro-stage-card .settings-form label{font-size:12px}
+.pro-stage-card .settings-form p{color:#6b778e;font-size:11px;line-height:1.65}
+.pro-stage-card img#mfaQr{display:block;max-width:100%;height:auto}
+.pro-mfa-secret{word-break:break-all;font-size:11px;color:#5c6171}
+.pro-checklist{display:grid;gap:10px;margin:24px 0}
+.pro-checklist>div{border:1px solid #e8e3ee;border-radius:13px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:14px}
+.pro-checklist span{font-size:12px;color:#4e566b}.pro-checklist strong{font-size:11px;color:#5432a5;text-align:right}
+.pro-billing{border:1px solid #e9e1f6;border-radius:17px;padding:23px;background:#fbfaff;margin-top:20px}
+.pro-billing-price{font:800 33px/1.2 'Plus Jakarta Sans',sans-serif;color:#31204c}.pro-billing-price small{font-size:12px;font-weight:600;color:#716b7c}
+.pro-billing>p{color:#566178;font-size:12px;line-height:1.8}
+.pro-billing .premium-terms{display:flex;align-items:flex-start;gap:10px;font-size:11px;margin:20px 0}
+.pro-billing .premium-terms input{flex:none;margin-top:4px}
+.pro-billing .premium-terms a{text-decoration:underline;color:#5e34ce}
+.pro-market-gate{background:linear-gradient(125deg,#eee7ff,#fff);border:1px solid #e4dbf6;border-radius:23px;padding:38px;display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:30px;align-items:center}
+.pro-market-gate h3{font:800 clamp(23px,2.7vw,32px)/1.3 'Plus Jakarta Sans',sans-serif;letter-spacing:-.8px;margin:12px 0}
+.pro-market-gate p{font-size:12px;color:#657086;line-height:1.8;max-width:600px;margin-bottom:20px}
+.pro-market-seal{background:#fff;border:1px solid #e9e3f4;border-radius:17px;padding:24px;display:grid;gap:10px;text-align:center;justify-items:center;color:#5737a0}
+.pro-market-seal svg{height:36px;width:36px}.pro-market-seal strong{font-size:12px}.pro-market-seal small{font-size:10px;color:#71798a;line-height:1.65}
+.pro-gateway{color:#5d6172;font-size:12px}
+@media(max-width:1100px){.pro-hero{grid-template-columns:1fr}.pro-hero-main{padding:33px}.pro-layout{grid-template-columns:210px 1fr}.pro-stage-card{padding:24px}}
+@media(max-width:750px){.pro-layout{grid-template-columns:1fr}.pro-rail{padding:12px;overflow-x:auto}.pro-rail ol{display:flex;min-width:650px;gap:2px}.pro-rail li{min-width:125px;padding:9px;flex:1;gap:6px}.pro-rail li small{display:none}.pro-rail-foot{display:none}.pro-market-gate{grid-template-columns:1fr}.pro-market-seal{display:none}}
+@media(max-width:620px){.sidebar nav{grid-template-columns:repeat(5,minmax(0,1fr))}.nav-link span{font-size:8px!important;letter-spacing:-.45px}.pro-hero-main{padding:26px 21px}.pro-hero h2{font-size:28px}.pro-offer{padding:24px}.pro-hero-actions .button{width:100%}.pro-stage-card{padding:23px 18px}.pro-head{align-items:flex-start;flex-direction:column}.pro-actions .button{flex:1 1 100%}.pro-market-gate{padding:25px 20px}.pro-checklist>div{align-items:flex-start;flex-direction:column;gap:5px}}
