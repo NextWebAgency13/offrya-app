@@ -134,7 +134,9 @@ function renderPremium(){
   }else{
    $('proIdentityStatus').textContent=identity==='verified'?'Identité validée':state.manualIdentity?.status==='requested'?'Contrôle manuel demandé':state.manualIdentity?.status==='scheduled'?'Contrôle manuel planifié':state.manualIdentity?.status==='contacting'?'Prise de contact en cours':identity==='processing'?'Contrôle en ligne en cours':identity==='requires_input'?'Informations supplémentaires nécessaires':identity==='redacted'?'Vérification à renouveler':'À réaliser';
    $('proAuthorityStatus').textContent=authority==='verified'?'Dirigeant confirmé':authority==='rejected'?'Nom non concordant avec le registre':'Comparaison avec les dirigeants en attente';
-   const canStart=state.premium.status==='pending'&&identity!=='verified';
+   const legacyIneligible=state.premium.representative_kind!=='dirigeant';
+   if(legacyIneligible){$('proReviewTitle').textContent='Compte professionnel réservé aux dirigeants';$('proReviewDescription').textContent='Seuls les dirigeants ou représentants légaux inscrits au registre peuvent souscrire. Un dossier salarié ou mandataire n’est pas éligible.';}
+   const canStart=state.premium.status==='pending'&&identity!=='verified'&&!legacyIneligible;
    $('identityPanel').classList.toggle('hidden',!canStart);
    $('identityAutomatic').classList.toggle('hidden',!state.identityEnabled);
    $('identityStart').disabled=!state.identityEnabled;
@@ -153,7 +155,7 @@ function renderPremium(){
    $('manualIdentityStatus').classList.toggle('hidden',!reviewStatus);
    $('manualIdentityStatus').textContent=manualLabels[reviewStatus]||'';
    $('manualIdentityDescription').textContent=state.identityEnabled?'Vous pouvez demander de l’assistance si le service document + selfie pose problème. L’approbation exige toujours le rapprochement avec un dirigeant officiel.':'La vérification du document et du selfie n’est pas encore configurée. Demandez de l’assistance ; aucune approbation n’est possible tant que ces contrôles et la correspondance au registre ne sont pas établis.';
-   $('proReviewNotice').textContent=state.premium.status==='rejected'?'Votre dossier a été refusé. Contactez le support pour connaître les informations à rectifier et demander un nouvel examen.':identity==='verified'&&authority!=='verified'?'Votre identité et votre selfie ont été contrôlés. OFFRYA vérifie maintenant la concordance avec le registre des dirigeants. Aucun paiement n’est demandé.':'Aucun paiement ni accès aux missions avant la validation complète de votre dossier.';
+   $('proReviewNotice').textContent=legacyIneligible?'Ce dossier ne peut pas accéder à OFFRYA Pro. Si votre qualité a été déclarée par erreur, contactez le support pour corriger le dossier.':state.premium.status==='rejected'?'Votre dossier a été refusé. Contactez le support pour connaître les informations à rectifier et demander un nouvel examen.':identity==='verified'&&authority!=='verified'?'Votre identité et votre selfie ont été contrôlés. OFFRYA vérifie maintenant la concordance avec le registre des dirigeants. Aucun paiement n’est demandé.':'Aucun paiement ni accès aux missions avant la validation complète de votre dossier.';
   }
  }
  if(stage===4){
