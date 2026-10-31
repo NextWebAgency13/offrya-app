@@ -99,6 +99,6 @@ revoke all on function offrya_private.queue_priority_mission_alerts() from publi
 -- seulement un statut utilisateur via l'interface existante.
 revoke select on public.offrya_premium_requests from authenticated;
 grant select(user_id,siret,legal_name,status,premium_until,requested_at,reviewed_at,
- representative_name,representative_capacity,representative_kind,identity_status,authority_status)
+ representative_name,representative_capacity,representative_kind,identity_status,authority_status,registry_name_matched)
 on public.offrya_premium_requests to authenticated;
 revoke insert,update,delete on public.offrya_premium_requests from authenticated;
