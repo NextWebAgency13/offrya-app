@@ -159,6 +159,7 @@
     <div class="pro-rail-foot"><svg class="nav-icon" aria-hidden="true"><use href="#ic-shield"/></svg><p>Vos informations sont privées. Les missions d'autrui restent protégées jusqu'à l'activation.</p></div>
    </aside>
    <div class="pro-stage-card">
+    <div id="proSecurityGateHost" class="hidden pro-billing" aria-live="polite"><span class="pro-stage-label">CONNEXION SÉCURISÉE</span><h3>Confirmez votre identité de connexion</h3><p class="pro-stage-desc">Votre compte dispose déjà d’un dossier. Confirmez le code de votre application pour reprendre votre suivi ou votre accès sans recommencer l’inscription.</p></div>
     <div id="premiumGate">
      <p class="pro-stage-message" id="premiumGateText" role="status"></p>
      <form id="premiumRequestForm" class="pro-form">
@@ -188,6 +189,7 @@
      <div id="proStageSecurity" class="hidden">
       <span class="pro-stage-label">ÉTAPE 3 SUR 5</span><h3>Sécurisez votre accès</h3>
       <p class="pro-stage-desc">Une application de double authentification protège votre compte et les missions qui vous seront confiées.</p>
+      <div id="proSecurityStepHost"></div>
       <div id="mfaPanel">
        <button class="button secondary" id="mfaEnrollStart" type="button">Configurer mon application d'authentification</button>
        <div id="mfaEnrollFlow" class="hidden">
@@ -236,6 +238,7 @@
      <p class="pro-stage-desc">Entreprise et identité vérifiées, habilitation contrôlée et abonnement actif.</p>
      <div class="pro-checklist"><div><span>Identité et mandat</span><strong>Validés</strong></div><div><span>Abonnement</span><strong id="proSubscriptionState">Actif</strong></div></div>
      <div class="pro-actions"><button class="button primary" type="button" data-tab="missions">Consulter les missions</button><button class="button secondary" type="button" data-tab="boamp">Marchés publics</button><button class="button outline" type="button" id="premiumPortal">Gérer / résilier mon abonnement</button></div>
+    <div id="proSessionLocked" class="hidden"><span class="pro-stage-label">ABONNEMENT EXISTANT</span><h3>Votre abonnement est déjà actif</h3><p class="pro-stage-desc">Aucun nouveau paiement nécessaire. Confirmez simplement votre double authentification ci-dessus pour retrouver l’accès à vos missions.</p></div>
     </div>
    </div>
   </div>
