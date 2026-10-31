@@ -13,6 +13,9 @@ const env={SITE_URL:'https://offrya-app.onrender.com',SUPABASE_URL:'https://demo
  STRIPE_SECRET_KEY:'sk_test_mock',STRIPE_IDENTITY_WEBHOOK_SECRET:'whsec_identity_test',OFFRYA_IDENTITY_SELFIE_ENABLED:'true'};
 test('Identité non activée si les secrets ne sont pas présents',async()=>{
  assert.equal(configured({}),false);
+ assert.equal(configured({...env,STRIPE_SECRET_KEY:'rk_live_permissions_scoped'}),true);
+ assert.equal(configured({...env,STRIPE_SECRET_KEY:'rk_test_permissions_scoped'}),true);
+ assert.equal(configured({...env,STRIPE_SECRET_KEY:'pk_live_invalid'}),false);
  assert.equal((await beginIdentity('Bearer '+token,{},()=>{throw Error('never called')})).status,503);
  assert.equal(officialVerificationUrl('https://evil.example/steal'),null);
  assert.equal(officialVerificationUrl('http://verify.stripe.com/'),null);
@@ -60,7 +63,7 @@ test('Webhook identité: statut Stripe actuel + correspondance stricte session e
   throw Error('Unexpected '+url);
  };
  const event={type:'identity.verification_session.verified',data:{object:{id:'vs_demo123'}}};
- const liveEnv={...env,STRIPE_SECRET_KEY:'sk_live_mock'};
+ const liveEnv={...env,STRIPE_SECRET_KEY:'rk_live_mock'};
  assert.equal((await processIdentityEvent(event,liveEnv,fake)).identity_status,'verified');
  assert.equal(patched.identity_status,'verified');
  assert.equal(patched.identity_live_verified,true);
