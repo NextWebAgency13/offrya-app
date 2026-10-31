@@ -71,7 +71,7 @@ function renderMessages(){
 }
 function renderSettings(){
  const yes=Boolean(state.session),has=Boolean(state.profile);
- $('accountState').textContent=yes?`Compte : ${state.session.user.email}${canUsePremium()?' · Professionnel vérifié et abonné':''}`:'Connectez-vous pour sauvegarder vos informations.';
+ $('accountState').textContent=!yes?'Vous pouvez déposer une mission sans inscription.':isGuest()?'Session invitée : le suivi reste accessible uniquement depuis ce navigateur.':`Compte : ${state.session.user.email}${canUsePremium()?' · Professionnel vérifié et abonné':''}`;
  const f=$('profileForm');f.elements.display_name.value=state.profile?.display_name||'';f.elements.role.value=state.profile?.role||'client';f.elements.role.disabled=isGuest()||(has&&state.profile?.role==='pro');f.elements.city.value=state.profile?.city||'';f.elements.specialty.value=state.profile?.specialty||'';
  const p=$('preferencesForm');p.elements.missions_enabled.checked=state.prefs?.missions_enabled||false;p.elements.messages_enabled.checked=state.prefs?.messages_enabled||false;p.elements.department.value=state.prefs?.department||'';p.elements.category.value=state.prefs?.category||'';
  const canManage=Boolean(state.session&&!isGuest()&&state.subscription?.stripe_customer_id);
