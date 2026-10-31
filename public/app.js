@@ -127,7 +127,7 @@ function renderPremium(){
    for(const name of ['siret','legal_name','representative_name','representative_capacity','representative_kind']){
     if(f.elements[name]&&!f.elements[name].value)f.elements[name].value=d[name]||'';
    }
-   if(f.elements.siret.value===d.siret&&d.legal_name)f.dataset.verifiedSiret=d.siret;
+   if(f.elements.siret.value===d.siret&&d.legal_name){f.dataset.verifiedSiret=d.siret;$('companyCheck').textContent='Entreprise identifiée : '+d.legal_name+'. Vous pouvez continuer.';}
   }
   $('proSubmitRequest').disabled=state.aal!=='aal2';
  }
