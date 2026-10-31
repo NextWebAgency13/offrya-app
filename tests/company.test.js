@@ -8,7 +8,8 @@ function reg({etat='A',est='A',matching=true}={}){
  return async()=>({ok:true,json:async()=>({results:[{
   siren:'306138900',nom_raison_sociale:'DECATHLON',etat_administratif:etat,
   siege:{siret,etat_administratif:est,activite_principale:'70.10Z',libelle_commune:"VILLENEUVE-D'ASCQ"},
-  matching_etablissements:matching?[{siret,etat_administratif:est}]:[]
+  matching_etablissements:matching?[{siret,etat_administratif:est}]:[],
+  dirigeants:[{nom:'Martin',prenoms:'Alice',qualite:'Présidente'}]
  }]})});
 }
 test('SIRET officiel exact, établissement actif et nom légal',async()=>{
@@ -17,6 +18,7 @@ test('SIRET officiel exact, établissement actif et nom légal',async()=>{
  assert.equal(res.ok,true);
  assert.equal(res.company.siret,siret);
  assert.equal(res.company.legal_name,'DECATHLON');
+ assert.equal(res.company.registry_representatives[0].last,'Martin');
  assert.equal((await lookupCompany(siret,reg({etat:'F'}))).status,422);
  assert.equal((await lookupCompany(siret,reg({est:'F'}))).status,422);
  assert.equal((await lookupCompany('00000000000000',reg())).status,404);
