@@ -1,0 +1,52 @@
+name: OFFRYA — alertes opt-in
+on:
+  schedule:
+    # GitHub Actions peut exécuter avec quelques minutes de retard.
+    - cron: '*/5 * * * *'
+    - cron: '17 7 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: offrya-email-alerts
+  cancel-in-progress: false
+jobs:
+  premium:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '*/5 * * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      SUPABASE_URL: ${{ secrets.OFFRYA_SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.OFFRYA_SUPABASE_SECRET_KEY }}
+      RESEND_API_KEY: ${{ secrets.OFFRYA_RESEND_API_KEY }}
+      EMAIL_FROM: ${{ secrets.OFFRYA_EMAIL_FROM }}
+      SITE_URL: https://offrya-app.onrender.com
+      UNSUBSCRIBE_SECRET: ${{ secrets.OFFRYA_UNSUBSCRIBE_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/send-premium-alerts.js
+  daily:
+    if: github.event.schedule == '17 7 * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      SUPABASE_URL: ${{ secrets.OFFRYA_SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.OFFRYA_SUPABASE_SECRET_KEY }}
+      RESEND_API_KEY: ${{ secrets.OFFRYA_RESEND_API_KEY }}
+      EMAIL_FROM: ${{ secrets.OFFRYA_EMAIL_FROM }}
+      SITE_URL: https://offrya-app.onrender.com
+      UNSUBSCRIBE_SECRET: ${{ secrets.OFFRYA_UNSUBSCRIBE_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          if [[ -z "$SUPABASE_URL" || -z "$SUPABASE_SECRET_KEY" || -z "$RESEND_API_KEY" || -z "$EMAIL_FROM" || -z "$UNSUBSCRIBE_SECRET" ]]; then
+            echo "Alertes quotidiennes désactivées : secrets absents."
+            exit 0
+          fi
+          node scripts/send-alerts.js

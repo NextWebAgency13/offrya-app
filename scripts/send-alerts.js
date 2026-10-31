@@ -35,10 +35,14 @@ async function sendDailyAlerts(){
  const missions=await rest(url,secret,'offrya_missions',`?select=id,owner_id,title,city,department,category,status,created_at&created_at=gte.${encodeURIComponent(since)}&order=created_at.desc&limit=1000`);
  const messages=await rest(url,secret,'offrya_messages',`?select=id,conversation_id,sender_id,created_at&created_at=gte.${encodeURIComponent(since)}&order=created_at.desc&limit=1000`);
  const convs=await rest(url,secret,'offrya_conversations','?select=id,client_id,professional_id&limit=2000');
+ // Évite le doublon : une mission annoncée en priorité ne repart pas dans le digest quotidien.
+ const prioritySent=await rest(url,secret,'offrya_priority_alerts',
+  '?select=recipient_id,mission_id&emailed_at=not.is.null&created_at=gte.'+encodeURIComponent(since)+'&limit=5000');
+ const delivered=new Set(prioritySent.map(a=>a.recipient_id+':'+a.mission_id));
  const day=new Date().toISOString().slice(0,10);let sent=0,skipped=0;
  for(const pref of prefs){
   const uid=pref.user_id;
-  const subset=missions.filter(m=>matchMission(pref,m,uid)),unread=inboxMessages(uid,pref,convs,messages);
+  const subset=missions.filter(m=>matchMission(pref,m,uid)&&!delivered.has(uid+':'+m.id)),unread=inboxMessages(uid,pref,convs,messages);
   if(!subset.length&&!unread.length){skipped++;continue;}
   // Create daily unique lock. Only retry an old pending attempt; Resend idempotency key prevents doubles.
   const query=`?user_id=eq.${uid}&digest_day=eq.${day}&select=status,created_at`;
