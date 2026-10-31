@@ -4,6 +4,10 @@
 alter table public.offrya_premium_requests
  add column if not exists identity_status text not null default 'not_started',
  add column if not exists identity_verified_at timestamptz,
+ add column if not exists identity_live_verified boolean not null default false,
+ add column if not exists presence_method text,
+ add column if not exists presence_verified_at timestamptz,
+ add column if not exists presence_reviewed_by uuid,
  add column if not exists stripe_identity_session_id text,
  add column if not exists authority_status text not null default 'pending',
  add column if not exists authority_verified_at timestamptz,
@@ -13,6 +17,8 @@ alter table public.offrya_premium_requests
 alter table public.offrya_premium_requests
  add constraint offrya_identity_status_valid check (identity_status in ('not_started','processing','verified','requires_input','redacted')),
  add constraint offrya_authority_status_valid check (authority_status in ('pending','verified','rejected')),
+ add constraint offrya_presence_method_valid check (presence_method is null or presence_method in ('stripe_selfie','manual_live_check')),
+ add constraint offrya_manual_presence_review check (presence_method <> 'manual_live_check' or (presence_verified_at is not null and presence_reviewed_by is not null)),
  add constraint offrya_authority_verification_evidence check (
    authority_status <> 'verified' or
    (authority_verified_at is not null and coalesce(authority_review_method in ('registry_representative','independent_mandate'),false) and authority_reviewed_by is not null)
@@ -32,6 +38,9 @@ as $$
 begin
  if new.status='verified' and not (
    coalesce(new.identity_status='verified',false) and new.identity_verified_at is not null and
+   new.identity_live_verified is true and new.presence_verified_at is not null and
+   coalesce(new.presence_method in ('stripe_selfie','manual_live_check'),false) and
+   (new.presence_method<>'manual_live_check' or new.presence_reviewed_by is not null) and
    coalesce(new.authority_status='verified',false) and new.authority_verified_at is not null and
    coalesce(new.authority_review_method in ('registry_representative','independent_mandate'),false) and
    new.authority_reviewed_by is not null
@@ -55,6 +64,8 @@ as $$
   join public.offrya_premium_subscriptions s on s.user_id=p.id
   where p.id=(select auth.uid()) and p.role='pro'
     and v.status='verified'
+    and v.identity_live_verified is true and v.presence_verified_at is not null
+    and v.presence_method in ('stripe_selfie','manual_live_check')
     and v.identity_status='verified' and v.identity_verified_at is not null
     and v.authority_status='verified' and v.authority_verified_at is not null
     and v.authority_review_method in ('registry_representative','independent_mandate')
@@ -74,7 +85,9 @@ begin
  select p.id,new.id,coalesce(pref.missions_enabled,false) and pref.missions_consented_at is not null
  from public.offrya_profiles p
  join public.offrya_premium_requests v on v.user_id=p.id
-  and v.status='verified' and v.identity_status='verified' and v.identity_verified_at is not null
+  and v.status='verified' and v.identity_live_verified is true
+  and v.presence_verified_at is not null and v.presence_method in ('stripe_selfie','manual_live_check')
+  and v.identity_status='verified' and v.identity_verified_at is not null
   and v.authority_status='verified' and v.authority_verified_at is not null
   and v.authority_review_method in ('registry_representative','independent_mandate')
  join public.offrya_premium_subscriptions s on s.user_id=p.id and s.status='active' and s.paid_through>now()
