@@ -3,11 +3,11 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,wait:false,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,authMode:'login'};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,wait:false,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,authMode:'login'};
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
-function tab(name){if(!$(name))return;document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.id===name));document.querySelectorAll('.nav-link').forEach(el=>el.classList.toggle('active',el.dataset.tab===name));const titles={dashboard:'Vue d’ensemble',missions:'Missions privées',boamp:'Marchés publics',inbox:'Messagerie',settings:'Mon compte'};$('pageTitle').textContent=titles[name];$('breadcrumb').textContent='OFFRYA / '+titles[name].toUpperCase();location.hash=name;window.scrollTo({top:0,behavior:'smooth'});}
+function tab(name){if(!$(name))return;document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.id===name));document.querySelectorAll('.nav-link').forEach(el=>el.classList.toggle('active',el.dataset.tab===name));const titles={dashboard:'Vue d’ensemble',missions:'Missions privées',boamp:'Marchés publics',inbox:'Messagerie',settings:'Mon compte'};$('pageTitle').textContent=titles[name];$('breadcrumb').textContent='OFFRYA / '+titles[name].toUpperCase();location.hash=name;if(name==='boamp'&&canUsePremium()&&!state.boamp.length)loadBoamp();window.scrollTo({top:0,behavior:'smooth'});}
 for(const n of document.querySelectorAll('[data-tab]'))n.addEventListener('click',()=>{tab(n.dataset.tab);if(n.dataset.action==='publish')$('missionForm').scrollIntoView({behavior:'smooth'});});
 function requireAuth(){if(!state.db){toast('Connectez d’abord votre projet Supabase OFFRYA.');return false;}if(!state.session){$('authModal').classList.remove('hidden');toast('Inscription ou connexion nécessaire.');return false;}return true;}
 function requireRole(role){if(!requireAuth())return false;if(!state.profile){tab('settings');toast('Complétez votre profil avant de commencer.');return false;}if(state.profile.role!==role){toast(role==='client'?'Un compte Client est nécessaire pour publier.':'Un compte Professionnel est nécessaire pour répondre.');return false;}return true;}
@@ -18,18 +18,19 @@ async function refresh(){
  const missionResult=await state.db.from('offrya_missions').select('*').order('created_at',{ascending:false}).limit(200);
  if(missionResult.error)throw missionResult.error;
  state.missions=missionResult.data||[];
- if(!state.session){state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.wait=false;state.profiles=[];state.favorites=[];render();return;}
+ if(!state.session){state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.wait=false;state.profiles=[];state.favorites=[];state.premium=null;state.boamp=[];render();return;}
  const uid=state.session.user.id;
- const [prof,conv,prefs,wait,profiles,favorites]=await Promise.all([
+ const [prof,conv,prefs,wait,profiles,favorites,premium]=await Promise.all([
   state.db.from('offrya_profiles').select('*').eq('id',uid).maybeSingle(),
   state.db.from('offrya_conversations').select('*').order('created_at',{ascending:false}).limit(100),
   state.db.from('offrya_alert_preferences').select('*').eq('user_id',uid).maybeSingle(),
   state.db.from('offrya_waitlist').select('user_id').eq('user_id',uid).maybeSingle(),
   state.db.from('offrya_profiles').select('id,display_name,role,city,specialty').limit(300),
-  state.db.from('offrya_favorites').select('mission_id')
+  state.db.from('offrya_favorites').select('mission_id'),
+  state.db.from('offrya_premium_requests').select('user_id,siret,legal_name,status,premium_until').eq('user_id',uid).maybeSingle()
  ]);
- for(const res of [prof,conv,prefs,wait,profiles,favorites])if(res.error)throw res.error;
- state.profile=prof.data;state.conversations=conv.data||[];state.prefs=prefs.data;state.wait=Boolean(wait.data);state.profiles=profiles.data||[];state.favorites=(favorites.data||[]).map(x=>x.mission_id);
+ for(const res of [prof,conv,prefs,wait,profiles,favorites,premium])if(res.error)throw res.error;
+ state.profile=prof.data;state.premium=premium.data;state.conversations=conv.data||[];state.prefs=prefs.data;state.wait=Boolean(wait.data);state.profiles=profiles.data||[];state.favorites=(favorites.data||[]).map(x=>x.mission_id);
  if(state.thread&&!state.conversations.find(x=>x.id===state.thread))state.thread=null;
  if(state.thread)await loadMessages(state.thread,false);
  render();
@@ -60,11 +61,45 @@ function renderSettings(){
  const p=$('preferencesForm');p.elements.missions_enabled.checked=state.prefs?.missions_enabled||false;p.elements.messages_enabled.checked=state.prefs?.messages_enabled||false;p.elements.department.value=state.prefs?.department||'';p.elements.category.value=state.prefs?.category||'';
  $('waitBtn').textContent=state.wait?'Quitter la liste d’attente':'Rejoindre la liste d’attente';$('waitState').textContent=state.wait?'Inscrit · sans paiement':'';
 }
+
+function canUsePremium(){
+ return Boolean(state.session&&state.profile?.role==='pro'&&state.premium?.status==='verified'
+ &&state.premium.premium_until&&Date.parse(state.premium.premium_until)>Date.now());
+}
+function renderPremium(){
+ const allowed=canUsePremium();
+ $('premiumGate').classList.toggle('hidden',allowed);
+ $('premiumContent').classList.toggle('hidden',!allowed);
+ $('premiumRequestForm').classList.add('hidden');
+ $('premiumLogin').classList.add('hidden');
+ if(allowed)return;
+ state.boamp=[];state.boampOffset=0;state.boampTotal=0;
+ const text=$('premiumGateText');
+ if(!state.session){text.textContent='Connectez-vous pour découvrir les conditions d’accès.';$('premiumLogin').classList.remove('hidden');}
+ else if(!state.profile){text.textContent='Créez d’abord un profil Professionnel depuis Mon compte.';}
+ else if(state.profile.role!=='pro'){text.textContent='Votre profil est un compte Client. La rubrique Premium est réservée aux professionnels.';}
+ else if(!state.premium){text.textContent='Pour demander l’accès Premium bêta, renseignez l’entreprise à vérifier.';$('premiumRequestForm').classList.remove('hidden');}
+ else if(state.premium.status==='pending'){text.textContent='Demande reçue. Vérification de l’entreprise en attente : aucun paiement requis pendant la bêta.';}
+ else if(state.premium.status==='rejected'){text.textContent='L’entreprise n’a pas été validée. Contactez OFFRYA pour une révision.';}
+ else{text.textContent='Votre accès Premium est expiré ou suspendu. Contactez OFFRYA.';}
+}
+$('premiumLogin').onclick=()=>authModal(true);
+$('premiumRequestForm').onsubmit=async e=>{
+ e.preventDefault();if(!requireRole('pro'))return;
+ const f=e.currentTarget,legal_name=f.elements.legal_name.value.trim(),siret=f.elements.siret.value.trim();
+ if(!/^[0-9]{14}$/.test(siret))return toast('Le SIRET doit comporter 14 chiffres.');
+ try{
+  const result=await state.db.from('offrya_premium_requests').insert({user_id:state.session.user.id,legal_name,siret});
+  if(result.error)throw result.error;
+  toast('Demande envoyée. Vérification administrative nécessaire.');await refresh();
+ }catch(err){showError(err);}
+};
+
 function render(){
  const yes=Boolean(state.session);$('authOpen').textContent=yes?state.session.user.email.split('@')[0]:'Se connecter';$('logout').classList.toggle('hidden',!yes);$('avatar').textContent=state.profile?.display_name?.[0]?.toUpperCase()||'V';
  $('statOpen').textContent=state.missions.filter(x=>x.status==='open').length;$('statMissions').textContent=state.missions.filter(x=>x.owner_id===state.session?.user.id).length;$('statConvos').textContent=state.conversations.length;$('statFavorites').textContent=state.favorites.length;
  $('dashActivity').innerHTML=yes?`<div class="data-item"><div class="item-title">${esc(state.profile?.display_name||'Profil à compléter')}</div><div class="item-desc">${state.profile?.role==='client'?'Compte client':'Compte professionnel'} · ${state.conversations.length} discussion(s)</div></div><div class="data-item"><div class="item-title">Contact direct et gratuit</div><div class="item-desc">Échangez dans la messagerie, puis organisez librement votre accord, les tarifs et le règlement avec l'autre partie. OFFRYA n'intervient pas dans la transaction.</div></div>`:'<div class="empty">Connectez-vous pour voir vos contacts et vos missions.</div>';
- renderMissions();renderInbox();renderSettings();
+ renderMissions();renderInbox();renderSettings();renderPremium();
 }
 async function loadMessages(id,doRender=true){
  const r=await state.db.from('offrya_messages').select('*').eq('conversation_id',id).order('created_at',{ascending:true}).limit(200);
@@ -86,8 +121,19 @@ $('messageForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth()||!state
 $('profileForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget,x=Object.fromEntries(new FormData(f)),id=state.session.user.id;try{const r=state.profile?await state.db.from('offrya_profiles').update({display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim()}).eq('id',id):await state.db.from('offrya_profiles').insert({id,role:x.role,display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim()});if(r.error)throw r.error;toast('Profil enregistré');await refresh();}catch(err){showError(err);}};
 $('preferencesForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget;const payload={user_id:state.session.user.id,missions_enabled:f.elements.missions_enabled.checked,messages_enabled:f.elements.messages_enabled.checked,department:f.elements.department.value.trim().toUpperCase(),category:f.elements.category.value};try{let r;if(state.prefs){delete payload.user_id;r=await state.db.from('offrya_alert_preferences').update(payload).eq('user_id',state.session.user.id);}else r=await state.db.from('offrya_alert_preferences').insert(payload);if(r.error)throw r.error;toast('Préférences enregistrées.');await refresh();}catch(err){showError(err);}};
 $('waitBtn').onclick=async()=>{if(!requireAuth())return;try{const r=state.wait?await state.db.from('offrya_waitlist').delete().eq('user_id',state.session.user.id):await state.db.from('offrya_waitlist').insert({user_id:state.session.user.id});if(r.error)throw r.error;toast(state.wait?'Liste d’attente quittée.':'Inscription gratuite enregistrée.');await refresh();}catch(err){showError(err);}};
-async function loadBoamp(append=false){if(!append){state.boampOffset=0;state.boamp=[];}$('boampCount').textContent='Chargement…';try{const qs=new URLSearchParams({q:$('boampKeyword').value.trim(),dept:$('boampDept').value.trim(),offset:String(state.boampOffset)});const r=await fetch('/api/annonces?'+qs);const data=await r.json();if(!r.ok)throw Error(data.error||'Source indisponible');state.boamp.push(...data.items);state.boampOffset+=data.items.length;state.boampTotal=data.total;$('boampCount').textContent=`${data.total} avis officiels`;$('boampList').innerHTML=state.boamp.map(m=>`<article class="data-item"><span class="tag">BOAMP OFFICIEL</span><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.buyer)}</div><div class="meta-row"><span>Dépt. : ${esc(m.departments)}</span><span>Publié : ${date(m.published)}</span><span>Échéance : ${date(m.deadline)}</span></div><a class="button secondary micro-button" href="${esc(m.url)}" target="_blank" rel="noopener noreferrer">Consulter l'avis officiel ↗</a></article>`).join('')||'<div class="empty">Aucune annonce correspondante.</div>';$('boampMore').classList.toggle('hidden',state.boampOffset>=data.total||!data.items.length);}catch(err){$('boampCount').textContent='Indisponible';$('boampList').innerHTML='<div class="empty">Le service officiel ne répond pas. Aucune donnée fictive n’est affichée.</div>';console.error(err);}}
-$('boampSearch').onclick=()=>loadBoamp();$('boampMore').onclick=()=>loadBoamp(true);$('exportBoamp').onclick=()=>{const q=new URLSearchParams({q:$('boampKeyword').value,dept:$('boampDept').value});location.href='/api/export?'+q;};
+async function loadBoamp(append=false){if(!canUsePremium()){renderPremium();return;}if(!append){state.boampOffset=0;state.boamp=[];}$('boampCount').textContent='Chargement…';try{const qs=new URLSearchParams({q:$('boampKeyword').value.trim(),dept:$('boampDept').value.trim(),offset:String(state.boampOffset)});const {data:{session}}=await state.db.auth.getSession();if(!session)throw Error('Session expirée.');
+const r=await fetch('/api/annonces?'+qs,{headers:{Authorization:'Bearer '+session.access_token}});const data=await r.json();if(!r.ok)throw Error(data.error||'Source indisponible');state.boamp.push(...data.items);state.boampOffset+=data.items.length;state.boampTotal=data.total;$('boampCount').textContent=`${data.total} avis officiels`;$('boampList').innerHTML=state.boamp.map(m=>`<article class="data-item"><span class="tag">BOAMP OFFICIEL</span><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.buyer)}</div><div class="meta-row"><span>Dépt. : ${esc(m.departments)}</span><span>Publié : ${date(m.published)}</span><span>Échéance : ${date(m.deadline)}</span></div><a class="button secondary micro-button" href="${esc(m.url)}" target="_blank" rel="noopener noreferrer">Consulter l'avis officiel ↗</a></article>`).join('')||'<div class="empty">Aucune annonce correspondante.</div>';$('boampMore').classList.toggle('hidden',state.boampOffset>=data.total||!data.items.length);}catch(err){$('boampCount').textContent='Indisponible';$('boampList').innerHTML='<div class="empty">Le service officiel ne répond pas. Aucune donnée fictive n’est affichée.</div>';console.error(err);}}
+$('boampSearch').onclick=()=>loadBoamp();$('boampMore').onclick=()=>loadBoamp(true);$('exportBoamp').onclick=async()=>{
+ if(!canUsePremium())return renderPremium();
+ try{
+  const {data:{session}}=await state.db.auth.getSession();if(!session)throw Error('Connexion requise.');
+  const q=new URLSearchParams({q:$('boampKeyword').value,dept:$('boampDept').value});
+  const r=await fetch('/api/export?'+q,{headers:{Authorization:'Bearer '+session.access_token}});
+  if(!r.ok){const data=await r.json();throw Error(data.error||'Export impossible');}
+  const url=URL.createObjectURL(await r.blob()),a=document.createElement('a');
+  a.href=url;a.download='offrya-boamp.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ }catch(err){showError(err);}
+};
 function authModal(show){$('authModal').classList.toggle('hidden',!show);}
 $('authOpen').onclick=()=>{if(state.session){tab('settings');return;}authModal(true);};$('authClose').onclick=()=>authModal(false);$('authModal').onclick=e=>{if(e.target===$('authModal'))authModal(false);};
 for(const b of document.querySelectorAll('[data-auth]'))b.onclick=()=>{state.authMode=b.dataset.auth;document.querySelectorAll('[data-auth]').forEach(x=>x.classList.toggle('active',x===b));$('authTitle').textContent=state.authMode==='signup'?'Créer un compte gratuit':state.authMode==='reset'?'Réinitialiser le mot de passe':'Se connecter';$('authSubmit').textContent=state.authMode==='signup'?'Créer le compte':state.authMode==='reset'?'Envoyer le lien':'Se connecter';$('authPasswordRow').classList.toggle('hidden',state.authMode==='reset');};
@@ -99,8 +145,8 @@ async function init(){
   state.db=createClient(cfg.supabaseUrl,cfg.supabaseKey);const {data}=await state.db.auth.getSession();state.session=data?.session||null;
   state.db.auth.onAuthStateChange((event,session)=>{state.session=session;if(event==='PASSWORD_RECOVERY'){state.authMode='recover';$('authTitle').textContent='Choisissez un nouveau mot de passe';$('authSubmit').textContent='Enregistrer le mot de passe';$('authPasswordRow').classList.remove('hidden');authModal(true);}setTimeout(()=>refresh().catch(showError),0);});
   try{await refresh();}catch(err){info('Supabase nécessite une configuration complète et les tables SQL. '+err.message,true);render();}
- }else{info('Mode installation : connectez un projet Supabase OFFRYA pour activer les comptes, les missions et les échanges. Le BOAMP reste accessible.',true);render();}
- await loadBoamp();
+ }else{info('Mode installation : connectez un projet Supabase OFFRYA pour activer les comptes, les missions et les échanges. Le BOAMP est réservé aux professionnels Premium vérifiés.',true);render();}
+ if(canUsePremium())await loadBoamp();
  const hash=location.hash.slice(1);if(['missions','boamp','inbox','settings'].includes(hash))tab(hash);
 }
 init().catch(showError);

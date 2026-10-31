@@ -27,3 +27,14 @@ npm run dev
 L’interface OFFRYA est centrée sur la publication, les filtres, la messagerie privée, les favoris et les alertes opt-in. Les prix, devis éventuels, accords et paiements se gèrent directement entre les parties **hors de la plateforme**. Aucune commission ni facturation ne sont actives.
 
 La migration `sql/disable_quotes_contracts.sql` bloque les anciennes routes de devis/contrats au niveau des permissions Supabase. Les tables existantes sont conservées pour éviter toute suppression irréversible de données.
+
+## OFFRYA Premium — beta with manual verification
+Public BOAMP notices remain available on the official BOAMP website; only OFFRYA's specialized `/api/annonces` and `/api/export` are restricted. Both routes require a **verified user JWT**, role `pro`, an admin-approved `offrya_premium_requests` row, and a future `premium_until`. No client can grant its own access. Apply `sql/premium_access.sql` to OFFRYA Supabase only.
+
+Professionals request access with SIRET and declared legal name. A human administrator must verify registration and representative authority using official sources (Kbis or RNE evidence appropriate) **before** approving. Example admin-only SQL after verification:
+```sql
+update public.offrya_premium_requests
+set status='verified', reviewed_at=now(), premium_until=now()+interval '30 days'
+where user_id='<UUID réellement vérifié>';
+```
+No payment, Stripe integration or automatic document checks are active in this beta.
