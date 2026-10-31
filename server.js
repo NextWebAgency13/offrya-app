@@ -9,7 +9,7 @@ const {billingEnabled,startCheckout,verifyStripeSignature,syncSubscription,porta
 const {verifyToken}=require('./lib/unsubscribe');
 const staticMap=new Map([
  ['/index.html','text/html; charset=utf-8'],['/app.js','text/javascript; charset=utf-8'],
- ['/styles.css','text/css; charset=utf-8'],['/favicon.svg','image/svg+xml'],
+ ['/styles.css','text/css; charset=utf-8'],['/home.css','text/css; charset=utf-8'],['/favicon.svg','image/svg+xml'],
  ['/confidentialite.html','text/html; charset=utf-8'],['/mentions-legales.html','text/html; charset=utf-8'],
  ['/cgv.html','text/html; charset=utf-8'],['/remboursements.html','text/html; charset=utf-8'],['/contact.html','text/html; charset=utf-8']]);
 const buckets=new Map();

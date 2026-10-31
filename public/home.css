@@ -1,0 +1,70 @@
+/* OFFRYA — page d'accueil publique et espace personnel, 31/10/2026. */
+#dashboard{--home-ink:#211b34;--home-muted:#786f86;--home-purple:#6941d7;--home-plum:#3b244e;--home-coral:#fb9e85}
+#dashboard .home-hero{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(285px,.8fr);gap:26px;align-items:center;min-height:465px;padding:clamp(27px,4vw,58px);border-radius:29px;background:linear-gradient(117deg,#f9f6ff 0%,#fff 55%,#fff8f6 100%);border:1px solid #eae3f5;box-shadow:0 20px 55px #45246b0a}
+#dashboard .home-hero:before{content:'';position:absolute;right:-140px;top:-220px;width:510px;height:510px;background:radial-gradient(circle,#e5d8ff 0%,#e5d8ff55 45%,transparent 70%);z-index:-1}
+#dashboard .home-eyebrow{display:inline-flex;align-items:center;gap:9px;padding:8px 13px;border-radius:40px;font:800 10px/1.5 'Plus Jakarta Sans',sans-serif;letter-spacing:1.05px;color:#7049a5;background:#f1eafe;border:1px solid #e5d8fc}
+#dashboard .home-eyebrow:before{content:'';width:7px;height:7px;border-radius:50%;background:#ed9d8a;flex:none}
+#dashboard .home-hero h2{max-width:730px;margin:24px 0 18px;font:800 clamp(32px,3.45vw,56px)/1.14 'Plus Jakarta Sans',sans-serif;letter-spacing:-2.4px;color:var(--home-plum)}
+#dashboard .home-hero h2 em{color:var(--home-purple);font-style:normal}
+#dashboard .home-lead{max-width:630px;color:#6f677b;line-height:1.9;font-size:14px;margin:0 0 25px}
+#dashboard .home-actions{display:flex;gap:11px;align-items:center;flex-wrap:wrap}
+#dashboard .home-actions .button{min-height:49px;border-radius:13px;padding:13px 19px}
+#dashboard .home-actions .button.primary{background:var(--home-purple);border-color:var(--home-purple)}
+#dashboard .home-proof{display:flex;gap:11px 22px;flex-wrap:wrap;color:#766c87;font-weight:700;font-size:11px;margin-top:22px}
+#dashboard .home-proof span{display:inline-flex;align-items:center;gap:7px}
+#dashboard .home-proof svg{width:15px;height:15px;color:#6a48b1}
+#dashboard .home-visual{position:relative;padding:22px 0 29px 21px;min-width:0}
+#dashboard .home-visual:before{content:'';position:absolute;inset:9% -3% 5% 10%;background:linear-gradient(145deg,#ece4ff,#fce4de);border-radius:37px;transform:rotate(5deg)}
+#dashboard .home-preview{position:relative;background:#fff;max-width:390px;margin:0 auto;border:1px solid #eee8f6;border-radius:22px;box-shadow:0 25px 60px #44306b28;padding:23px}
+#dashboard .home-preview-top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-bottom:19px;border-bottom:1px solid #f0ebf4}
+#dashboard .home-preview-brand{font:800 17px/1 'Plus Jakarta Sans',sans-serif;letter-spacing:-.6px;color:#3c2856}
+#dashboard .home-preview-brand span{color:#e18d79}
+#dashboard .home-preview-chip{font-size:9px;font-weight:800;padding:6px 9px;background:#edf9f4;color:#277863;border-radius:30px}
+#dashboard .home-preview-heading{margin:20px 0 18px;font:800 18px/1.35 'Plus Jakarta Sans',sans-serif;color:var(--home-plum);letter-spacing:-.5px}
+#dashboard .home-preview-stage{display:flex;gap:12px;align-items:center;position:relative;margin:0 0 16px}
+#dashboard .home-preview-stage:last-child{margin-bottom:0}
+#dashboard .home-preview-icon{display:grid;place-items:center;flex:none;width:41px;height:41px;border-radius:13px;background:#efe8fd;color:#7044d0}
+#dashboard .home-preview-stage:nth-of-type(3) .home-preview-icon{background:#fff1ed;color:#d5775c}
+#dashboard .home-preview-stage:nth-of-type(4) .home-preview-icon{background:#e9f6f2;color:#318e74}
+#dashboard .home-preview-icon svg{width:19px;height:19px}
+#dashboard .home-preview-stage strong{display:block;color:#342a46;font-size:12px;font-weight:800}
+#dashboard .home-preview-stage small{display:block;color:#8b8393;font-size:10px;line-height:1.5}
+#dashboard .home-preview-num{margin-left:auto;color:#b3a7c3;font:800 11px 'Plus Jakarta Sans',sans-serif}
+#dashboard .home-visual-caption{position:relative;max-width:360px;margin:16px auto 0;color:#7e7188;font-size:10px;text-align:center}
+#dashboard .home-section{margin-top:44px}
+#dashboard .home-section-head{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:18px}
+#dashboard .home-kicker{display:block;font:800 10px/1.45 'Plus Jakarta Sans',sans-serif;color:#7f55b7;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:9px}
+#dashboard .home-section-head h3,#dashboard .home-pro h3{font:800 clamp(22px,2.25vw,31px)/1.25 'Plus Jakarta Sans',sans-serif;letter-spacing:-1px;color:var(--home-plum);margin:0}
+#dashboard .home-section-head p{max-width:430px;color:var(--home-muted);font-size:12px;line-height:1.75;margin:0}
+#dashboard .home-audiences{display:grid;grid-template-columns:1fr 1fr;gap:17px}
+#dashboard .home-audience{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;min-height:241px;padding:29px 30px;background:#fff;border:1px solid #ece6f1;border-radius:21px;box-shadow:0 10px 26px #2e204d09}
+#dashboard .home-audience.pro{background:linear-gradient(135deg,#432751,#2d1f46);border-color:#432751;color:white}
+#dashboard .home-audience-label{display:inline-flex;align-items:center;gap:8px;font-weight:800;letter-spacing:.6px;font-size:10px;color:#855aad;text-transform:uppercase}
+#dashboard .home-audience.pro .home-audience-label{color:#f2bba8}
+#dashboard .home-audience h4{margin:15px 0 9px;font:800 21px/1.32 'Plus Jakarta Sans',sans-serif;letter-spacing:-.6px}
+#dashboard .home-audience p{max-width:500px;color:#7b7486;font-size:12px;line-height:1.85;margin:0 0 23px}
+#dashboard .home-audience.pro p{color:#e2d5e9}
+#dashboard .home-audience .button{margin-top:auto}
+#dashboard .home-audience.pro .button{background:#fff;color:#412b55;border-color:#fff}
+#dashboard .home-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}
+#dashboard .home-step{background:#fff;border:1px solid #ede8f2;border-radius:20px;padding:25px 24px 29px}
+#dashboard .home-step-number{display:inline-grid;place-items:center;width:42px;height:42px;background:#f0e9fe;border-radius:12px;color:#7146ca;font:800 13px 'Plus Jakarta Sans',sans-serif}
+#dashboard .home-step h4{font:800 15px/1.4 'Plus Jakarta Sans',sans-serif;color:#3d304d;letter-spacing:-.25px;margin:20px 0 9px}
+#dashboard .home-step p{color:#80798a;font-size:12px;line-height:1.8;margin:0}
+#dashboard .home-categories{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+#dashboard .home-category{background:#fff;border:1px solid #e8e0f1;padding:10px 15px;border-radius:100px;font-weight:700;color:#655972;font-size:11px}
+#dashboard .home-pro{margin-top:43px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:26px;background:linear-gradient(120deg,#f1eafe,#fff4ef);padding:33px 37px;border:1px solid #e6daf2;border-radius:22px}
+#dashboard .home-pro p{max-width:670px;font-size:12px;line-height:1.9;color:#756b84;margin:14px 0 0}
+#dashboard .home-pro-price{min-width:240px;text-align:right}
+#dashboard .home-pro-price strong{font:800 34px 'Plus Jakarta Sans',sans-serif;color:#4d2c72;letter-spacing:-1.4px}
+#dashboard .home-pro-price small{font-weight:700;font-size:11px;color:#796b87}
+#dashboard .home-pro-price .button{margin-top:14px;width:100%}
+#dashboard .home-private{margin-top:46px;border-top:1px solid #e6e0ee;padding-top:29px}
+#dashboard .home-private-head{display:flex;justify-content:space-between;gap:18px;align-items:center}
+#dashboard .home-private-head h3{font:800 22px 'Plus Jakarta Sans',sans-serif;margin:0;color:#342747}
+#dashboard .home-private .stats{margin-top:20px}
+#dashboard .home-private .two-col{margin-top:20px}
+@media(max-width:1150px){#dashboard .home-hero{grid-template-columns:1fr;padding:35px}#dashboard .home-visual{display:none}#dashboard .home-hero h2{max-width:760px}#dashboard .home-section-head{align-items:start;flex-direction:column;gap:7px}}
+@media(max-width:720px){#dashboard .home-audiences{grid-template-columns:1fr}#dashboard .home-steps{grid-template-columns:1fr}#dashboard .home-pro{grid-template-columns:1fr;padding:27px}#dashboard .home-pro-price{text-align:left}#dashboard .home-pro-price .button{max-width:290px}#dashboard .home-section{margin-top:32px}}
+@media(max-width:620px){#dashboard .home-hero{padding:27px 21px 29px;min-height:0;border-radius:21px}#dashboard .home-eyebrow{font-size:8px;letter-spacing:.5px;padding:7px 10px}#dashboard .home-hero h2{font-size:clamp(29px,8vw,42px);letter-spacing:-1.5px;margin:17px 0 13px}#dashboard .home-lead{font-size:12px;line-height:1.85}#dashboard .home-actions{align-items:stretch;flex-direction:column}#dashboard .home-actions .button{white-space:normal;text-align:center;width:100%}#dashboard .home-proof{margin-top:17px;gap:10px;font-size:10px}#dashboard .home-section-head h3,#dashboard .home-pro h3{font-size:23px}#dashboard .home-audience{min-height:0;padding:25px 23px}#dashboard .home-audience h4{font-size:19px}#dashboard .home-step{padding:22px}#dashboard .home-pro{margin-top:32px}#dashboard .home-pro-price strong{font-size:30px}#dashboard .home-private-head{align-items:start;flex-direction:column}#dashboard .home-private .stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){#dashboard *{scroll-behavior:auto}}
