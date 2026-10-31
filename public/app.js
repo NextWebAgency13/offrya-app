@@ -27,7 +27,7 @@ async function refresh(){
   state.db.from('offrya_alert_preferences').select('*').eq('user_id',uid).maybeSingle(),
   state.db.from('offrya_profiles').select('id,display_name,role,city,specialty').limit(300),
   state.db.from('offrya_favorites').select('mission_id'),
-  state.db.from('offrya_premium_requests').select('user_id,siret,legal_name,status,premium_until,identity_status,authority_status').eq('user_id',uid).maybeSingle(),
+  state.db.from('offrya_premium_requests').select('user_id,siret,legal_name,status,premium_until,identity_status,authority_status,representative_kind,registry_name_matched').eq('user_id',uid).maybeSingle(),
   state.db.from('offrya_premium_subscriptions').select('status,paid_through,stripe_customer_id').eq('user_id',uid).maybeSingle(),
    state.db.from('offrya_professional_drafts').select('step,siret,legal_name,representative_name,representative_capacity,representative_kind').eq('user_id',uid).maybeSingle(),
    state.db.from('offrya_manual_identity_requests').select('status,requested_at,updated_at').eq('user_id',uid).maybeSingle()
@@ -80,7 +80,7 @@ function renderSettings(){
 
 function canUsePremium(){
  const paid=state.subscription?.status==='active'&&Date.parse(state.subscription?.paid_through||'')>Date.now();
- return Boolean(state.session&&state.profile?.role==='pro'&&state.premium?.status==='verified'&&state.premium?.identity_status==='verified'&&state.premium?.authority_status==='verified'&&paid);
+ return Boolean(state.session&&state.profile?.role==='pro'&&state.premium?.status==='verified'&&state.premium?.identity_status==='verified'&&state.premium?.authority_status==='verified'&&state.premium?.representative_kind==='dirigeant'&&state.premium?.registry_name_matched===true&&paid);
 }
 function renderPremium(){
  const allowed=canUsePremium(),pro=Boolean(state.session&&state.profile?.role==='pro');
@@ -133,7 +133,7 @@ function renderPremium(){
    $('proReviewRepresentative').textContent=f.elements.representative_name.value||state.draft?.representative_name||'Représentant à renseigner';
   }else{
    $('proIdentityStatus').textContent=identity==='verified'?'Identité validée':state.manualIdentity?.status==='requested'?'Contrôle manuel demandé':state.manualIdentity?.status==='scheduled'?'Contrôle manuel planifié':state.manualIdentity?.status==='contacting'?'Prise de contact en cours':identity==='processing'?'Contrôle en ligne en cours':identity==='requires_input'?'Informations supplémentaires nécessaires':identity==='redacted'?'Vérification à renouveler':'À réaliser';
-   $('proAuthorityStatus').textContent=authority==='verified'?'Habilitation validée':authority==='rejected'?'Habilitation refusée':'Examen en attente';
+   $('proAuthorityStatus').textContent=authority==='verified'?'Dirigeant confirmé':authority==='rejected'?'Nom non concordant avec le registre':'Comparaison avec les dirigeants en attente';
    const canStart=state.premium.status==='pending'&&identity!=='verified';
    $('identityPanel').classList.toggle('hidden',!canStart);
    $('identityAutomatic').classList.toggle('hidden',!state.identityEnabled);
@@ -153,7 +153,7 @@ function renderPremium(){
    $('manualIdentityStatus').classList.toggle('hidden',!reviewStatus);
    $('manualIdentityStatus').textContent=manualLabels[reviewStatus]||'';
    $('manualIdentityDescription').textContent=state.identityEnabled?'Vous pouvez aussi demander un contrôle humain sécurisé au lieu du service automatique.':'La vérification automatisée n’est pas encore disponible. Vous pouvez demander un contrôle humain sans envoyer de pièce d’identité par e-mail.';
-   $('proReviewNotice').textContent=state.premium.status==='rejected'?'Votre dossier a été refusé. Contactez le support pour connaître les informations à rectifier et demander un nouvel examen.':identity==='verified'&&authority!=='verified'?'Votre identité a été contrôlée. OFFRYA vérifie maintenant votre droit de représenter l’entreprise, de manière indépendante. Aucun paiement n’est demandé.':'Aucun paiement ni accès aux missions avant la validation complète de votre dossier.';
+   $('proReviewNotice').textContent=state.premium.status==='rejected'?'Votre dossier a été refusé. Contactez le support pour connaître les informations à rectifier et demander un nouvel examen.':identity==='verified'&&authority!=='verified'?'Votre identité et votre selfie ont été contrôlés. OFFRYA vérifie maintenant la concordance avec le registre des dirigeants. Aucun paiement n’est demandé.':'Aucun paiement ni accès aux missions avant la validation complète de votre dossier.';
   }
  }
  if(stage===4){
@@ -229,7 +229,7 @@ $('proBackRepresentative').onclick=()=>{state.proStep=1;renderPremium();};
 $('proNextRepresentative').onclick=async()=>{
  const f=$('premiumRequestForm'),name=f.elements.representative_name.value.trim(),capacity=f.elements.representative_capacity.value.trim(),kind=f.elements.representative_kind.value;
  if(f.dataset.verifiedSiret!==f.elements.siret.value.trim())return toast('Reprenez la vérification du SIRET.');
- if(name.length<4||name.length>120||capacity.length<3||capacity.length>100||!['dirigeant','mandataire'].includes(kind))
+ if(name.length<4||name.length>120||capacity.length<3||capacity.length>100||!kind==='dirigeant')
   return toast('Complétez votre nom, votre fonction et votre situation.');
  try{await saveProfessionalDraft(3);}catch(err){showError(err);}
 };
@@ -237,7 +237,7 @@ $('proBackReview').onclick=()=>{state.proStep=2;renderPremium();};
 $('proSubmitRequest').onclick=()=>{
  const f=$('premiumRequestForm');
  if(f.dataset.verifiedSiret!==f.elements.siret.value.trim())return toast('Vérifiez le SIRET pour déposer votre demande.');
- if(!f.elements.representative_name.value.trim()||!['dirigeant','mandataire'].includes(f.elements.representative_kind.value)||!f.elements.representative_capacity.value.trim())
+ if(!f.elements.representative_name.value.trim()||!f.elements.representative_kind.value==='dirigeant'||!f.elements.representative_capacity.value.trim())
   return toast('Complétez votre nom, votre situation et votre fonction.');
  f.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
 };
@@ -296,7 +296,7 @@ $('premiumRequestForm').onsubmit=async e=>{
  const f=e.currentTarget,siret=f.elements.siret.value.trim(),representative_name=f.elements.representative_name.value.trim(),representative_capacity=f.elements.representative_capacity.value.trim(),representative_kind=f.elements.representative_kind.value;
  if(!/^[0-9]{14}$/.test(siret))return toast('Le SIRET doit comporter 14 chiffres.');
  if(f.dataset.verifiedSiret!==siret)return toast('Vérifiez d’abord le SIRET sur le registre officiel.');
- if(representative_name.length<4||representative_capacity.length<3||!['dirigeant','mandataire'].includes(representative_kind))return toast('Indiquez votre identité, situation et fonction.');
+ if(representative_name.length<4||representative_capacity.length<3||!representative_kind==='dirigeant')return toast('Indiquez votre identité, situation et fonction.');
  try{
   const {data:{session}}=await state.db.auth.getSession();if(!session)throw Error('Session expirée.');
   const r=await fetch('/api/company/verification-request',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({siret,representative_name,representative_capacity,representative_kind})});
