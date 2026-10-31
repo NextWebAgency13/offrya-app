@@ -53,6 +53,13 @@ async function run(){
  const webhook=await request('/api/billing/webhook',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
  assert.equal(webhook.status,cfg.json.billingEnabled?400:503,'Webhook doit rejeter une requête non signée');
  console.log('PASS: webhook rejette une requête non signée ('+webhook.status+')');
+ const identityStart=await request('/api/identity/start',{method:'POST'});
+ assert.equal(identityStart.status,cfg.json.identityEnabled?401:503,'Démarrage de vérification d’identité sans authentification');
+ console.log('PASS: début de vérification d’identité protégé ('+identityStart.status+')');
+ const identityWebhook=await request('/api/identity/webhook',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+ assert.equal(identityWebhook.status,cfg.json.identityEnabled?400:503,'Webhook Identity refuse toute requête sans signature');
+ console.log('PASS: webhook Identity rejette une requête non signée ('+identityWebhook.status+')');
+ console.log('ETAT STRIPE IDENTITY RENDER: '+(cfg.json.identityEnabled?'ACTIVE (configuration reconnue, pièce et selfie réels non testés)':'DESACTIVEE (au moins un paramètre de configuration absent)'));
  console.log('ETAT FACTURATION RENDER: '+(cfg.json.billingEnabled?'ACTIVE (vérification production réelle non prouvée)':'DESACTIVEE'));
 }
 run().catch(err=>{console.error('FAIL: '+err.message);process.exitCode=1;});
