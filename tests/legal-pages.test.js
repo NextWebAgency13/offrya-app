@@ -12,7 +12,7 @@ test('Les cinq documents contractuels et support répondent HTTP 200',async()=>{
  try{
   const base='http://127.0.0.1:'+server.address().port;
   for(const [pathname,required] of [
-   ['/cgv.html',['19,00 €','renouvelé','résilier']],
+   ['/cgv.html',['34,99 €','renouvelé','résilier']],
    ['/remboursements.html',['14 jours','rétractation']],
    ['/confidentialite.html',['Stripe','Supabase','consentement']],
    ['/contact.html',['nextwebagency.contact@gmail.com','résilier']],

@@ -13,9 +13,9 @@ test('OFFRYA ne présente plus de bêta ni de commission promotionnelle',()=>{
  assert.match(html,/Publication gratuite/);
  assert.match(html,/Échanges directs/);
  assert.match(html,/accessible partout en France/);
- assert.match(html,/OFFRYA Premium/);
- assert.match(html,/19 € TTC par mois/);
- assert.match(html,/19 € TTC \/ mois/);
+ assert.match(html,/OFFRYA Professionnel/);
+ assert.match(html,/34,99 € TTC par mois/);
+ assert.match(html,/34,99 € TTC \/ mois/);
 });
 test('La liste d’attente a disparu de l’interface, les données historiques sont conservées',()=>{
  for(const s of [html,js]){
@@ -24,7 +24,7 @@ test('La liste d’attente a disparu de l’interface, les données historiques 
  assert.match(schema,/offrya_waitlist/);
  assert.match(html,/href="\/cgv\.html"/);
 });
-test('Tous les messages du parcours Premium restent professionnels et les accès inchangés',()=>{
+test('Tous les messages du parcours Professionnel restent professionnels et les accès inchangés',()=>{
  assert.doesNotMatch(js,/Paiement de test|dans Render|Mode installation|Supabase nécessite/i);
  assert.match(js,/premium_until/);
  assert.match(js,/stripe_customer_id/);
@@ -38,10 +38,10 @@ test('Tous les messages du parcours Premium restent professionnels et les accès
  assert.match(html,/Demander la vérification de mon entreprise/);
 });
 
-test('Le montant TTC est cohérent dans les CGV, les messages Premium et le formulaire',()=>{
+test('Le montant TTC est cohérent dans les CGV, les messages Professionnel et le formulaire',()=>{
  const cgv=fs.readFileSync(path.join(__dirname,'../public/cgv.html'),'utf8');
- assert.match(cgv,/19,00 € TTC par mois/);
+ assert.match(cgv,/34,99 € TTC par mois/);
  assert.match(cgv,/Aucun supplément de TVA/);
- assert.match(js,/19 € TTC par mois/);
+ assert.match(js,/34,99 € TTC par mois/);
  assert.doesNotMatch(html,/19 € \/ mois|19 € par mois/);
 });

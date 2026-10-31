@@ -1,3 +1,13 @@
+## OFFRYA Professionnel — configuration en vigueur au 31 octobre 2026
+
+OFFRYA propose **une seule offre professionnelle à 34,99 € TTC par mois**. La publication et la gestion de ses propres missions restent gratuites pour tout profil inscrit. La consultation des missions d'autrui, la mise en relation commerciale, les alertes et les outils BOAMP intégrés demandent un **profil pro, une entreprise et un représentant validés par OFFRYA, et un abonnement Stripe actif et payé**.
+
+Appliquer la migration **sql/professional_launch.sql** après les migrations initiales et d'abonnements. Elle interdit la lecture anonyme des missions, protège la messagerie commerciale et les alertes, autorise la publication par tous les profils et ajoute les informations du représentant. Le site vérifie le SIRET en direct sur le registre national avant d'enregistrer un dossier à statut **pending**, soumis à revue humaine. **Le contrôle de l'identité et de l'habilitation du représentant n'est pas automatisé** : l'opérateur doit réaliser et enregistrer cette vérification avant de définir le statut **verified**. Ne pas activer de dossiers sans preuves et ne pas collecter de pièces d'identité en clair dans l'application.
+
+Tarif Stripe production : `price_1UWeKZ7WaxKMxAUvnyIgzOLy` (**3 499 centimes, mensuel, taxes incluses**). Mettre aussi `STRIPE_PRICE_ID` à cet identifiant dans Render pour maintenir une configuration cohérente ; le code Live accepte le nouveau prix de lancement tant que cette variable n'est pas actualisée. Aucune migration automatique des abonnements existants. Les anciennes sections du README ci-dessous sont conservées pour l'historique ; les règles ci-dessus prévalent.
+
+---
+
 undefined
 ## Vérification officielle du SIRET
 Un compte Professionnel peut contrôler un SIRET via `/api/company/lookup` (JWT obligatoire). La source ouverte utilisée est l'API officielle Recherche d'Entreprises (DINUM, Sirene/RNE), avec comparaison exacte du SIRET et état actif. La raison sociale est fournie au formulaire. L'identité du représentant et son autorisation ne sont **pas** attestées par la seule API; le statut Premium reste soumis à examen humain avant activation. La saisie et la vérification ne sont pas un KYC automatisé complet.

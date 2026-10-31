@@ -4,11 +4,13 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const {ready,permitted,emailTemplate}=require('../scripts/send-premium-alerts');
 const sql=fs.readFileSync(path.join(__dirname,'../sql/premium_priority_alerts.sql'),'utf8');
+const migration=fs.readFileSync(path.join(__dirname,'../sql/professional_launch.sql'),'utf8');
 const frontend=fs.readFileSync(path.join(__dirname,'../public/app.js'),'utf8');
 test('La nouvelle mission enfile une notification privée seulement pour Premium vérifié',()=>{
  assert.match(sql,/after insert on public\.offrya_missions/);
  assert.match(sql,/req\.status='verified'/);
- assert.match(sql,/req\.premium_until>now\(\)/);
+ assert.doesNotMatch(migration,/req\.premium_until>now\(\)/);
+ assert.match(migration,/s\.status='active' and s\.paid_through>now\(\)/);
  assert.match(sql,/sub\.status='active' and sub\.paid_through>now\(\)/);
  assert.match(sql,/recipient_id=\(select auth\.uid\(\)\)/);
  assert.match(sql,/email_eligible/);
@@ -56,5 +58,5 @@ test('Badge Premium global disponible même en dehors du tableau de bord',()=>{
 
 test('Les alertes e-mail Premium prennent en charge un compte client devenu entreprise vérifiée',()=>{
  const worker=fs.readFileSync(path.join(__dirname,'../scripts/send-premium-alerts.js'),'utf8');
- assert.match(worker,/\['pro','client'\]\.includes\(p\?\.role\)/);
+ assert.match(worker,/p\?\.role!=='pro'/);
 });

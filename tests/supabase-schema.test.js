@@ -20,3 +20,15 @@ test('La couche SQL retire les permissions de devis sans effacer les données',(
  assert.match(revokes,/revoke execute on function public\.offrya_decide_quote/);
  assert.doesNotMatch(revokes,/drop table/i);
 });
+
+test('La migration sécurise les missions et impose représentant et paiement',()=>{
+ const migration=fs.readFileSync(path.join(__dirname,'../sql/professional_launch.sql'),'utf8');
+ assert.match(migration,/revoke select on public\.offrya_missions from anon/);
+ assert.match(migration,/drop policy if exists missions_read_public/);
+ assert.match(migration,/has_active_professional_access/);
+ assert.match(migration,/s\.status='active' and s\.paid_through>now\(\)/);
+ assert.match(migration,/representative_name/);
+ assert.match(migration,/revoke insert on public\.offrya_premium_requests from authenticated/);
+ assert.match(app,/missionAccessNotice/);
+ assert.match(app,/verification-request/);
+});
