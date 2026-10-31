@@ -3,6 +3,7 @@ const {test}=require('node:test'),assert=require('node:assert/strict');
 const {lookupCompany,validSiret,verifyProfessional}=require('../lib/company');
 const uid='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const siret='30613890001294';
+const jwt='aaa.'+Buffer.from(JSON.stringify({aal:'aal2'})).toString('base64url')+'.ccc';
 function reg({etat='A',est='A',matching=true}={}){
  return async()=>({ok:true,json:async()=>({results:[{
   siren:'306138900',nom_raison_sociale:'DECATHLON',etat_administratif:etat,
@@ -25,9 +26,9 @@ test('Consultation officielle réservée au profil professionnel',async()=>{
   if(url.includes('/auth/v1/user'))return {ok:true,json:async()=>({id:uid,email:'pro@example.com'})};
   return {ok:true,json:async()=>[{role:'pro'}]};
  };
- const yes=await verifyProfessional('Bearer aaa.bbb.ccc',{url:'https://demo.supabase.co',key:'publishable'},fetcher);
+ const yes=await verifyProfessional('Bearer '+jwt,{url:'https://demo.supabase.co',key:'publishable'},fetcher);
  assert.equal(yes.allowed,true);
- const client=await verifyProfessional('Bearer aaa.bbb.ccc',{url:'https://demo.supabase.co',key:'publishable'},async u=>
+ const client=await verifyProfessional('Bearer '+jwt,{url:'https://demo.supabase.co',key:'publishable'},async u=>
   u.includes('/auth/v1/user')?{ok:true,json:async()=>({id:uid,email:'client@example.com'})}:{ok:true,json:async()=>[{role:'client'}]});
  assert.equal(client.allowed,false);
  assert.equal(client.status,403);
