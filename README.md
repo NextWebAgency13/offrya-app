@@ -49,6 +49,14 @@ Migration de sécurité à appliquer : `sql/guest_mission_publishing.sql`. Elle 
 
 Pour consulter les missions publiées par d'autres, l'autorisation RLS continue d'exiger simultanément le rôle professionnel, une identité et une habilitation vérifiées, un compte identifié (jamais invité) et un abonnement payé à **34,99 € TTC/mois**. Le dépôt gratuit est indépendant du Premium.
 
+## Compte professionnel réservé aux dirigeants officiels
+
+Les salariés et les mandataires non inscrits comme représentants légaux ne sont pas éligibles au compte professionnel, même s’ils disposent d’un mandat privé. OFFRYA contrôle le SIRET, la qualité de dirigeant officiel dans les données RNE, la pièce d’identité et le selfie via Stripe Identity en mode réel. Le serveur compare les noms extraits par Stripe avec les dirigeants du registre. Un nom différent, un selfie absent, ou des informations officielles manquantes bloquent toute approbation. Un dossier créé avant cette règle peut demander une régularisation, mais ne bénéficie d’aucun droit acquis.
+
+Migration à appliquer après les précédentes : `sql/legal_representative_only.sql`. La source officielle actuelle est API Recherche d’Entreprises (RNE/Sirene), dont les données de dirigeants peuvent être incomplètes ou non diffusibles : dans ce cas, OFFRYA doit rester bloqué jusqu’à un rapprochement manuel fondé sur une source officielle RNE vérifiable. Le contrôle administratif final reste indépendant du webhook.
+
+La vérification par selfie biométrique doit faire l’objet d’un examen RGPD et de la configuration expresse `OFFRYA_IDENTITY_SELFIE_ENABLED=true`, avec `STRIPE_IDENTITY_WEBHOOK_SECRET` et une clé Stripe Identity en production. Tant que ces prérequis manquent, le système est volontairement fermé aux nouveaux comptes professionnels.
+
 ## Validation professionnelle sans TOTP
 
 La procédure d'activation comporte désormais **4 étapes** : SIRET, informations du représentant, dépôt et vérification de la personne et de son mandat, abonnement. Aucun QR code ou code à six chiffres n'est requis. Après les migrations de création de schéma, appliquer `sql/professional_without_mfa.sql` (déjà appliquée à la base OFFRYA). Les comptes invités restent interdits d'accès Premium ; identité, présence, mandat et facturation demeurent obligatoires. Les anciens facteurs TOTP éventuellement enregistrés dans Supabase Auth ne sont pas supprimés automatiquement.
