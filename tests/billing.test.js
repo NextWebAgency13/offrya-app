@@ -45,6 +45,10 @@ test('La facturation accepte le mode Stripe test ou live avec activation explici
  assert.equal(billingEnabled({...env,OFFRYA_BILLING_ENABLED:'false',STRIPE_SECRET_KEY:'sk_live_sample'}),false);
  assert.equal(billingEnabled({...env,STRIPE_SECRET_KEY:'sk_live_sample'}),false);
  assert.equal(billingEnabled({...env,OFFRYA_BILLING_ENABLED:'true',STRIPE_SECRET_KEY:'sk_live_sample'}),true);
+ assert.equal(billingEnabled({...env,OFFRYA_BILLING_ENABLED:'false',STRIPE_SECRET_KEY:'rk_live_restricted'}),false);
+ assert.equal(billingEnabled({...env,OFFRYA_BILLING_ENABLED:'true',STRIPE_SECRET_KEY:'rk_live_restricted'}),true);
+ assert.equal(billingEnabled({...env,OFFRYA_BILLING_ENABLED:'true',STRIPE_SECRET_KEY:'rk_test_restricted'}),true);
+ assert.equal(billingEnabled({...env,OFFRYA_BILLING_ENABLED:'true',STRIPE_SECRET_KEY:'pk_live_public'}),false);
  assert.equal(billingEnabled({...env,OFFRYA_BILLING_ENABLED:'true',STRIPE_SECRET_KEY:'sk_test_sample'}),true);
  assert.equal(billingEnabled({...env,OFFRYA_BILLING_ENABLED:'true',STRIPE_SECRET_KEY:'not_a_stripe_key'}),false);
 });
