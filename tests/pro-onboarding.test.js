@@ -18,16 +18,17 @@ test('Navigation : Espace pro et Marchés publics sont deux onglets différents'
  assert.match(js,/professional:'Espace professionnel'/);
  assert.match(js,/tab\('professional'\)/);
 });
-test('Cinq étapes avec contrôles séparés et sans paiement prématuré',()=>{
- for(const id of ['proStageCompany','proStageRepresentative','proStageSecurity','proStageReview','proStageBilling','identityPanel','mfaPanel','premiumPlan','premiumSubscribe']){
+test('Quatre étapes sans TOTP et sans paiement prématuré',()=>{
+ for(const id of ['proStageCompany','proStageRepresentative','proStageReview','proStageBilling','identityPanel','premiumPlan','premiumSubscribe','proSubmitPanel']){
   assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,id);
  }
  assert.match(html,/name="representative_kind"/);
  assert.match(html,/value="mandataire"/);
  assert.match(js,/identity_status==='verified'/);
  assert.match(js,/authority_status==='verified'/);
- assert.match(js,/state\.aal==='aal2'/);
- assert.match(js,/state\.premium\?\.status==='verified'\?5/);
+ assert.doesNotMatch(html,/mfa|totp|double authentification|id="mfaQr"/i);
+ assert.doesNotMatch(js,/mfa|aal2|totp/i);
+ assert.match(js,/state\.premium\?\.status==='verified'\?4/);
  assert.match(js,/state\.billingEnabled/);
 });
 test('Brouillons isolés et RLS empêchent de s’attribuer un accès',()=>{
