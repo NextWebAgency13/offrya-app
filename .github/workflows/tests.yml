@@ -21,3 +21,5 @@ jobs:
       - run: npm test
       - name: Verify BOAMP source and Premium production access control
         run: node scripts/diagnose-boamp.js
+      - name: Check official company API response schema
+        run: node scripts/check-company-api.js
