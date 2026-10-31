@@ -26,9 +26,9 @@ function emailTemplate({mission,siteUrl,token}){
  const destination=siteUrl.replace(/\/$/,'')+'/#missions';
  const stop=siteUrl.replace(/\/$/,'')+'/api/unsubscribe?token='+encodeURIComponent(token);
  return {
-  subject:'OFFRYA Premium — nouvelle mission : '+clean(mission.category)+' · '+clean(mission.department),
+  subject:'OFFRYA Professionnel — nouvelle mission : '+clean(mission.category)+' · '+clean(mission.department),
   html:`<div style="font:15px Arial,sans-serif;max-width:610px;color:#26304a">
-   <h1>OFFRYA Premium</h1><p>Une nouvelle mission correspondant à vos critères vient d'être publiée.</p>
+   <h1>OFFRYA Professionnel</h1><p>Une nouvelle mission correspondant à vos critères vient d'être publiée.</p>
    <h2>${html(mission.title)}</h2>
    <p>${html(mission.category)} · ${html(mission.city)} (${html(mission.department)})</p>
    <p><a href="${html(destination)}">Consulter les missions sur OFFRYA</a></p>
@@ -57,8 +57,7 @@ async function sendPriorityAlerts(env=process.env){
    ]);
    const prefs=prefRows[0],mission=missionRows[0],p=profileRows[0],req=requestRows[0],sub=subscriptionRows[0];
    const paid=sub?.status==='active'&&Date.parse(sub.paid_through||'')>Date.now();
-   const beta=Date.parse(req?.premium_until||'')>Date.now();
-   if(!permitted(prefs,mission,a,uid)||!['pro','client'].includes(p?.role)||req?.status!=='verified'||!(paid||beta)){skipped++;continue;}
+   if(!permitted(prefs,mission,a,uid)||p?.role!=='pro'||req?.status!=='verified'||!paid){skipped++;continue;}
    const response=await fetch(base.replace(/\/$/,'')+'/auth/v1/admin/users/'+uid,{headers:{apikey:key},signal:AbortSignal.timeout(12000)});
    if(!response.ok){skipped++;continue;}
    const user=await response.json();

@@ -41,7 +41,31 @@ async function handle(req,res){
     return json(res,200,result.company);
    }catch(err){console.error('Official company lookup:',err.message);return json(res,503,{error:'Registre national temporairement indisponible.'});}
   }
-  if(p==='/api/config'&&req.method==='GET')return json(res,200,{supabaseUrl:process.env.SUPABASE_URL||null,supabaseKey:process.env.SUPABASE_PUBLISHABLE_KEY||null,paymentsEnabled:billingEnabled(),billingEnabled:billingEnabled(),premiumPriceEuros:19});
+  if(p==='/api/company/verification-request'&&req.method==='POST'){
+   if(!rateLimit(req,5))return json(res,429,{error:'Trop de tentatives. Réessayez plus tard.'});
+   try{
+    const actor=await verifyProfessional(req.headers.authorization,{url:process.env.SUPABASE_URL,key:process.env.SUPABASE_PUBLISHABLE_KEY});
+    if(!actor.allowed)return json(res,actor.status,{error:actor.error});
+    if(!process.env.SUPABASE_SECRET_KEY)return json(res,503,{error:'Vérification indisponible.'});
+    const data=JSON.parse(await readBody(req,1600));
+    const siret=String(data.siret||'').trim();
+    const representative_name=String(data.representative_name||'').trim();
+    const representative_capacity=String(data.representative_capacity||'').trim();
+    if(representative_name.length<4||representative_name.length>120||representative_capacity.length<3||representative_capacity.length>100)
+     return json(res,400,{error:'Indiquez le nom complet et la fonction du représentant de l’entreprise.'});
+    const official=await lookupCompany(siret);
+    if(!official.ok)return json(res,official.status,{error:official.reason});
+    const row={user_id:actor.userId,siret,legal_name:official.company.legal_name,representative_name,representative_capacity};
+    const response=await fetch(process.env.SUPABASE_URL.replace(/\/$/,'')+'/rest/v1/offrya_premium_requests',{
+     method:'POST',headers:{apikey:process.env.SUPABASE_SECRET_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
+     body:JSON.stringify(row),signal:AbortSignal.timeout(10000)
+    });
+    if(response.status===409)return json(res,409,{error:'Un dossier de vérification existe déjà pour ce compte.'});
+    if(!response.ok)throw Error('Supabase verification request HTTP '+response.status);
+    return json(res,202,{status:'pending',legal_name:official.company.legal_name});
+   }catch(err){console.error('Professional verification request:',err.message);return json(res,503,{error:'Le dossier de vérification ne peut pas être enregistré actuellement.'});}
+  }
+  if(p==='/api/config'&&req.method==='GET')return json(res,200,{supabaseUrl:process.env.SUPABASE_URL||null,supabaseKey:process.env.SUPABASE_PUBLISHABLE_KEY||null,paymentsEnabled:billingEnabled(),billingEnabled:billingEnabled(),premiumPriceEuros:34.99});
   if(p==='/api/billing/checkout'&&req.method==='POST'){
    if(!rateLimit(req,5))return json(res,429,{error:'Trop de tentatives.'});
    if(!billingEnabled())return json(res,503,{error:'Paiements OFFRYA non configurés.'});

@@ -33,6 +33,15 @@ async function sendDailyAlerts(){
  const since=new Date(Date.now()-36*3600*1000).toISOString();
  const prefs=await rest(url,secret,'offrya_alert_preferences','?select=*&or=(missions_enabled.eq.true,messages_enabled.eq.true)&limit=500');
  const missions=await rest(url,secret,'offrya_missions',`?select=id,owner_id,title,city,department,category,status,created_at&created_at=gte.${encodeURIComponent(since)}&order=created_at.desc&limit=1000`);
+ const [profiles,checks,subscriptions]=await Promise.all([
+  rest(url,secret,'offrya_profiles','?select=id,role&role=eq.pro&limit=5000'),
+  rest(url,secret,'offrya_premium_requests','?select=user_id,status&status=eq.verified&limit=5000'),
+  rest(url,secret,'offrya_premium_subscriptions','?select=user_id,status,paid_through&status=eq.active&limit=5000')
+ ]);
+ const professionals=new Set(profiles.map(p=>p.id));
+ const verified=new Set(checks.map(p=>p.user_id));
+ const active=new Set(subscriptions.filter(s=>Date.parse(s.paid_through||'')>Date.now()).map(s=>s.user_id));
+ const entitled=id=>professionals.has(id)&&verified.has(id)&&active.has(id);
  const messages=await rest(url,secret,'offrya_messages',`?select=id,conversation_id,sender_id,created_at&created_at=gte.${encodeURIComponent(since)}&order=created_at.desc&limit=1000`);
  const convs=await rest(url,secret,'offrya_conversations','?select=id,client_id,professional_id&limit=2000');
  // Évite le doublon : une mission annoncée en priorité ne repart pas dans le digest quotidien.
@@ -42,7 +51,7 @@ async function sendDailyAlerts(){
  const day=new Date().toISOString().slice(0,10);let sent=0,skipped=0;
  for(const pref of prefs){
   const uid=pref.user_id;
-  const subset=missions.filter(m=>matchMission(pref,m,uid)&&!delivered.has(uid+':'+m.id)),unread=inboxMessages(uid,pref,convs,messages);
+  const subset=entitled(uid)?missions.filter(m=>matchMission(pref,m,uid)&&!delivered.has(uid+':'+m.id)):[],unread=inboxMessages(uid,pref,convs,messages);
   if(!subset.length&&!unread.length){skipped++;continue;}
   // Create daily unique lock. Only retry an old pending attempt; Resend idempotency key prevents doubles.
   const query=`?user_id=eq.${uid}&digest_day=eq.${day}&select=status,created_at`;
@@ -51,7 +60,13 @@ async function sendDailyAlerts(){
   if(!existing.length){try{await rest(url,secret,'offrya_digest_runs','','POST',{user_id:uid,digest_day:day,status:'pending'},{Prefer:'return=minimal'});}catch(e){if(!e.message.includes('23505'))throw e;skipped++;continue;}}
   const nowPrefs=await rest(url,secret,'offrya_alert_preferences',`?user_id=eq.${uid}&select=missions_enabled,messages_enabled,department,category`);
   if(!nowPrefs[0]||(!nowPrefs[0].missions_enabled&&!nowPrefs[0].messages_enabled)){skipped++;continue;}
-  const actualMissions=subset.filter(m=>matchMission(nowPrefs[0],m,uid));
+  const checkNow=await Promise.all([
+   rest(url,secret,'offrya_profiles','?select=role&id=eq.'+uid),
+   rest(url,secret,'offrya_premium_requests','?select=status&user_id=eq.'+uid),
+   rest(url,secret,'offrya_premium_subscriptions','?select=status,paid_through&user_id=eq.'+uid)
+  ]);
+  const authorized=checkNow[0][0]?.role==='pro'&&checkNow[1][0]?.status==='verified'&&checkNow[2][0]?.status==='active'&&Date.parse(checkNow[2][0]?.paid_through||'')>Date.now();
+  const actualMissions=authorized?subset.filter(m=>matchMission(nowPrefs[0],m,uid)):[];
   const actualMessages=nowPrefs[0].messages_enabled?unread:[];
   if(!actualMissions.length&&!actualMessages.length){skipped++;continue;}
   const userRes=await fetch(`${url.replace(/\/$/,'')}/auth/v1/admin/users/${uid}`,{headers:restHeaders(secret)});
