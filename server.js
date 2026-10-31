@@ -5,6 +5,7 @@ const path=require('node:path');
 const {queryBoamp}=require('./lib/boamp');
 const {verifyPremiumAccess}=require('./lib/premium');
 const {lookupCompany,verifyProfessional}=require('./lib/company');
+const {billingEnabled,startCheckout,verifyStripeSignature,syncSubscription,portal}=require('./lib/billing');
 const {verifyToken}=require('./lib/unsubscribe');
 const staticMap=new Map([
  ['/index.html','text/html; charset=utf-8'],['/app.js','text/javascript; charset=utf-8'],
@@ -28,7 +29,7 @@ async function unsubscribe(id){const url=process.env.SUPABASE_URL, key=process.e
  return await resp.json();}
 async function handle(req,res){
  try{const u=new URL(req.url,'http://localhost'),p=u.pathname;
-  if(p==='/api/health'&&req.method==='GET')return json(res,200,{ok:true,version:'4.0.0',paymentsEnabled:false,emailsConfigured:Boolean(process.env.RESEND_API_KEY)});
+  if(p==='/api/health'&&req.method==='GET')return json(res,200,{ok:true,version:'4.0.0',paymentsEnabled:billingEnabled(),emailsConfigured:Boolean(process.env.RESEND_API_KEY)});
   if(p==='/api/company/lookup'&&req.method==='GET'){
    if(!rateLimit(req,12))return json(res,429,{error:'Trop de demandes de vérification.'});
    try{
@@ -39,7 +40,31 @@ async function handle(req,res){
     return json(res,200,result.company);
    }catch(err){console.error('Official company lookup:',err.message);return json(res,503,{error:'Registre national temporairement indisponible.'});}
   }
-  if(p==='/api/config'&&req.method==='GET')return json(res,200,{supabaseUrl:process.env.SUPABASE_URL||null,supabaseKey:process.env.SUPABASE_PUBLISHABLE_KEY||null,paymentsEnabled:false});
+  if(p==='/api/config'&&req.method==='GET')return json(res,200,{supabaseUrl:process.env.SUPABASE_URL||null,supabaseKey:process.env.SUPABASE_PUBLISHABLE_KEY||null,paymentsEnabled:billingEnabled(),billingEnabled:billingEnabled(),premiumPriceEuros:19});
+  if(p==='/api/billing/checkout'&&req.method==='POST'){
+   if(!rateLimit(req,5))return json(res,429,{error:'Trop de tentatives.'});
+   if(!billingEnabled())return json(res,503,{error:'Paiements OFFRYA non configurés.'});
+   try{const d=await startCheckout(req.headers.authorization);return json(res,d.status,d.error?{error:d.error}:{url:d.url});}
+   catch(e){console.error('Stripe Checkout:',e.message);return json(res,503,{error:'Checkout indisponible.'});}
+  }
+  if(p==='/api/billing/portal'&&req.method==='POST'){
+   if(!rateLimit(req,6))return json(res,429,{error:'Trop de tentatives.'});
+   if(!billingEnabled())return json(res,503,{error:'Paiements OFFRYA non configurés.'});
+   try{const d=await portal(req.headers.authorization);return json(res,d.status,d.error?{error:d.error}:{url:d.url});}
+   catch(e){console.error('Stripe Portal:',e.message);return json(res,503,{error:'Portail indisponible.'});}
+  }
+  if(p==='/api/billing/webhook'&&req.method==='POST'){
+   if(!billingEnabled())return json(res,503,{error:'Paiements OFFRYA non configurés.'});
+   try{
+    const chunks=[];let bytes=0;
+    for await(const chunk of req){bytes+=chunk.length;if(bytes>256000)return json(res,413,{error:'Taille excessive'});chunks.push(chunk);}
+    const raw=Buffer.concat(chunks);
+    if(!verifyStripeSignature(raw,req.headers['stripe-signature'],process.env.STRIPE_WEBHOOK_SECRET))
+     return json(res,400,{error:'Signature Stripe invalide.'});
+    await syncSubscription(JSON.parse(raw.toString('utf8')));
+    return json(res,200,{received:true});
+   }catch(e){console.error('Stripe Webhook:',e.message);return json(res,503,{error:'Échec de traitement du webhook.'});}
+  }
   if(p==='/api/unsubscribe'&&req.method==='GET'){
    const token=u.searchParams.get('token')||'';const valid=Boolean(verifyToken(token,process.env.UNSUBSCRIBE_SECRET));
    res.writeHead(valid?200:400,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY'});return res.end(unsubscribePage(token,valid));}

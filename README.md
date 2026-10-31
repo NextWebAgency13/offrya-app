@@ -1,3 +1,10 @@
 undefined
 ## Vérification officielle du SIRET
 Un compte Professionnel peut contrôler un SIRET via `/api/company/lookup` (JWT obligatoire). La source ouverte utilisée est l'API officielle Recherche d'Entreprises (DINUM, Sirene/RNE), avec comparaison exacte du SIRET et état actif. La raison sociale est fournie au formulaire. L'identité du représentant et son autorisation ne sont **pas** attestées par la seule API; le statut Premium reste soumis à examen humain avant activation. La saisie et la vérification ne sont pas un KYC automatisé complet.
+
+## OFFRYA Premium — Préparation du paiement Stripe
+Schéma à appliquer: `sql/subscriptions.sql` (table en lecture seule par les utilisateurs). `OFFRYA_BILLING_ENABLED=false` tant que le compte Stripe marchand, la fiscalité et les CGV ne sont pas prêts.
+
+Créer dans Stripe un produit `OFFRYA Premium` avec un tarif récurrent **19 EUR / mois** (pas 19 centimes) et activer le portail de facturation/résiliation. Le serveur valide le montant, la devise et la périodicité du tarif avant Checkout. Configurer dans Render les secrets `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID`, `SUPABASE_SECRET_KEY` et `SITE_URL=https://offrya-app.onrender.com`. Ne jamais les saisir dans une conversation publique ou les commiter dans Git. Webhook Stripe : `https://offrya-app.onrender.com/api/billing/webhook`, événements Checkout, invoice et customer.subscription. Les notifications signées synchronisent les abonnements; retour de page Checkout seul ne donne aucun droit. D'abord tester avec les clés Stripe test, puis activer volontairement via `OFFRYA_BILLING_ENABLED=true`. Prévoir la résiliation depuis le portail Stripe.
+
+Le statut vérifié entreprise reste une condition indépendante de la facture. Les 19 € sont une proposition de prix à confirmer (HT ou TTC selon le régime fiscal avant ouverture). Ne pas activer en réel tant que la présentation des tarifs, les conditions contractuelles et les mentions obligatoires ne sont pas finalisées.
