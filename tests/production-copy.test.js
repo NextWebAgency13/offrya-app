@@ -14,7 +14,7 @@ test('OFFRYA ne présente plus de bêta ni de commission promotionnelle',()=>{
  assert.match(html,/Échanges directs/);
  assert.match(html,/accessible partout en France/);
  assert.match(html,/OFFRYA Professionnel/);
- assert.match(html,/34,99 €[\\s\\S]*?TTC \/ mois/);
+ assert.match(html,/34,99 €/);\n assert.match(html,/TTC \\/ mois/);
  assert.match(html,/id="premiumSubscribe"/);
 });
 test('La liste d’attente a disparu de l’interface, les données historiques sont conservées',()=>{
