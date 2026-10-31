@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,wait:false,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,authMode:'login'};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,wait:false,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,billingEnabled:false,authMode:'login'};
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
@@ -18,19 +18,20 @@ async function refresh(){
  const missionResult=await state.db.from('offrya_missions').select('*').order('created_at',{ascending:false}).limit(200);
  if(missionResult.error)throw missionResult.error;
  state.missions=missionResult.data||[];
- if(!state.session){state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.wait=false;state.profiles=[];state.favorites=[];state.premium=null;state.boamp=[];render();return;}
+ if(!state.session){state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.wait=false;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.boamp=[];render();return;}
  const uid=state.session.user.id;
- const [prof,conv,prefs,wait,profiles,favorites,premium]=await Promise.all([
+ const [prof,conv,prefs,wait,profiles,favorites,premium,subscription]=await Promise.all([
   state.db.from('offrya_profiles').select('*').eq('id',uid).maybeSingle(),
   state.db.from('offrya_conversations').select('*').order('created_at',{ascending:false}).limit(100),
   state.db.from('offrya_alert_preferences').select('*').eq('user_id',uid).maybeSingle(),
   state.db.from('offrya_waitlist').select('user_id').eq('user_id',uid).maybeSingle(),
   state.db.from('offrya_profiles').select('id,display_name,role,city,specialty').limit(300),
   state.db.from('offrya_favorites').select('mission_id'),
-  state.db.from('offrya_premium_requests').select('user_id,siret,legal_name,status,premium_until').eq('user_id',uid).maybeSingle()
+  state.db.from('offrya_premium_requests').select('user_id,siret,legal_name,status,premium_until').eq('user_id',uid).maybeSingle(),
+  state.db.from('offrya_premium_subscriptions').select('status,paid_through').eq('user_id',uid).maybeSingle()
  ]);
- for(const res of [prof,conv,prefs,wait,profiles,favorites,premium])if(res.error)throw res.error;
- state.profile=prof.data;state.premium=premium.data;state.conversations=conv.data||[];state.prefs=prefs.data;state.wait=Boolean(wait.data);state.profiles=profiles.data||[];state.favorites=(favorites.data||[]).map(x=>x.mission_id);
+ for(const res of [prof,conv,prefs,wait,profiles,favorites,premium,subscription])if(res.error)throw res.error;
+ state.profile=prof.data;state.premium=premium.data;state.subscription=subscription.data;state.conversations=conv.data||[];state.prefs=prefs.data;state.wait=Boolean(wait.data);state.profiles=profiles.data||[];state.favorites=(favorites.data||[]).map(x=>x.mission_id);
  if(state.thread&&!state.conversations.find(x=>x.id===state.thread))state.thread=null;
  if(state.thread)await loadMessages(state.thread,false);
  render();
@@ -63,8 +64,9 @@ function renderSettings(){
 }
 
 function canUsePremium(){
- return Boolean(state.session&&state.profile?.role==='pro'&&state.premium?.status==='verified'
- &&state.premium.premium_until&&Date.parse(state.premium.premium_until)>Date.now());
+ const beta=Date.parse(state.premium?.premium_until||'')>Date.now();
+ const paid=state.subscription?.status==='active'&&Date.parse(state.subscription?.paid_through||'')>Date.now();
+ return Boolean(state.session&&state.profile?.role==='pro'&&state.premium?.status==='verified'&&(beta||paid));
 }
 function renderPremium(){
  const allowed=canUsePremium();
@@ -72,6 +74,8 @@ function renderPremium(){
  $('premiumContent').classList.toggle('hidden',!allowed);
  $('premiumRequestForm').classList.add('hidden');
  $('premiumLogin').classList.add('hidden');
+ $('premiumPlan').classList.add('hidden');
+ $('premiumSubscribe').classList.add('hidden');
  if(allowed)return;
  state.boamp=[];state.boampOffset=0;state.boampTotal=0;
  const text=$('premiumGateText');
@@ -81,9 +85,27 @@ function renderPremium(){
  else if(!state.premium){text.textContent='Vérifiez le SIRET officiel de votre entreprise, puis envoyez votre demande Premium.';$('premiumRequestForm').classList.remove('hidden');}
  else if(state.premium.status==='pending'){text.textContent='Demande reçue. Vérification de l’entreprise en attente : aucun paiement requis pendant la bêta.';}
  else if(state.premium.status==='rejected'){text.textContent='L’entreprise n’a pas été validée. Contactez OFFRYA pour une révision.';}
- else{text.textContent='Votre accès Premium est expiré ou suspendu. Contactez OFFRYA.';}
+ else if(state.premium.status==='verified'){
+  text.textContent='Entreprise vérifiée. OFFRYA Premium est proposé à 19 € par mois.';
+  $('premiumPlan').classList.remove('hidden');
+  $('premiumBillingStatus').textContent=state.billingEnabled?'Paiement sécurisé par Stripe.':'Paiements pas encore activés : abonnement en préparation.';
+  if(state.billingEnabled)$('premiumSubscribe').classList.remove('hidden');
+ }else{text.textContent='Accès Premium suspendu.';}
 }
 $('premiumLogin').onclick=()=>authModal(true);
+$('premiumSubscribe').onclick=async()=>{
+ if(!state.billingEnabled||state.premium?.status!=='verified')return;
+ if(!confirm('Souscrire OFFRYA Premium à 19 € par mois via Stripe ?'))return;
+ try{
+  const {data:{session}}=await state.db.auth.getSession();
+  if(!session)throw Error('Veuillez vous connecter.');
+  const r=await fetch('/api/billing/checkout',{method:'POST',headers:{Authorization:'Bearer '+session.access_token}});
+  const data=await r.json();
+  if(!r.ok)throw Error(data.error||'Paiement indisponible');
+  if(!/^https:\/\/checkout\.stripe\.com\//.test(data.url))throw Error('Lien Stripe invalide');
+  location.assign(data.url);
+ }catch(err){showError(err);}
+};
 $('verifySiret').onclick=async()=>{
  if(!requireRole('pro'))return;
  const f=$('premiumRequestForm'),siret=f.elements.siret.value.trim();
@@ -162,7 +184,7 @@ for(const b of document.querySelectorAll('[data-auth]'))b.onclick=()=>{state.aut
 $('authForm').onsubmit=async e=>{e.preventDefault();if(!state.db)return showError(new Error('Supabase non configuré.'));const f=e.currentTarget,email=f.elements.email.value.trim(),password=f.elements.password.value;try{let r;if(state.authMode==='recover')r=await state.db.auth.updateUser({password});else if(state.authMode==='signup')r=await state.db.auth.signUp({email,password,options:{emailRedirectTo:location.origin}});else if(state.authMode==='reset')r=await state.db.auth.resetPasswordForEmail(email,{redirectTo:location.origin});else r=await state.db.auth.signInWithPassword({email,password});if(r.error)throw r.error;authModal(false);toast(state.authMode==='signup'?'Vérifiez votre adresse e-mail pour activer le compte.':state.authMode==='reset'?'Consultez votre messagerie.':state.authMode==='recover'?'Mot de passe modifié.':'Connexion réussie.');await refresh();if(state.authMode==='signup')tab('settings');}catch(err){showError(err);}};
 $('logout').onclick=async()=>{if(state.db)await state.db.auth.signOut();state.session=null;await refresh();toast('Déconnecté.');};
 async function init(){
- const cfg=await fetch('/api/config').then(r=>r.json());
+ const cfg=await fetch('/api/config').then(r=>r.json());state.billingEnabled=Boolean(cfg.billingEnabled);
  if(cfg.supabaseUrl&&cfg.supabaseKey&&!cfg.supabaseUrl.includes('VOTRE')){
   state.db=createClient(cfg.supabaseUrl,cfg.supabaseKey);const {data}=await state.db.auth.getSession();state.session=data?.session||null;
   state.db.auth.onAuthStateChange((event,session)=>{state.session=session;if(event==='PASSWORD_RECOVERY'){state.authMode='recover';$('authTitle').textContent='Choisissez un nouveau mot de passe';$('authSubmit').textContent='Enregistrer le mot de passe';$('authPasswordRow').classList.remove('hidden');authModal(true);}setTimeout(()=>refresh().catch(showError),0);});

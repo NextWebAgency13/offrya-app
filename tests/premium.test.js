@@ -10,6 +10,7 @@ function fake({role='pro',status='verified',premium_until=new Date(Date.now()+36
   if(url.includes('/auth/v1/user'))return {ok:!unauth,json:async()=>({id:uid})};
   if(url.includes('offrya_profiles'))return {ok:true,json:async()=>[{role}]};
   if(url.includes('offrya_premium_requests'))return {ok:true,json:async()=>[{status,premium_until}]};
+  if(url.includes('offrya_premium_subscriptions'))return {ok:true,json:async()=>[]};
   throw Error('URL inattendue: '+url);
  };
 }
@@ -44,4 +45,15 @@ test('Frontend: premium caché et API via Authorization Bearer',()=>{
  assert.match(html,/id="premiumContent" class="hidden"/);
  assert.match(app,/canUsePremium\(\)/);
  assert.match(app,/Authorization:'Bearer '\+session.access_token/);
+});
+
+test('Paiement Premium actif autorise l’accès même après la bêta',async()=>{
+ const fetcher=async url=>{
+  if(url.includes('/auth/v1/user'))return {ok:true,json:async()=>({id:uid})};
+  if(url.includes('offrya_profiles'))return {ok:true,json:async()=>[{role:'pro'}]};
+  if(url.includes('offrya_premium_requests'))return {ok:true,json:async()=>[{status:'verified',premium_until:null}]};
+  if(url.includes('offrya_premium_subscriptions'))return {ok:true,json:async()=>[{status:'active',paid_through:new Date(Date.now()+86400000).toISOString()}]};
+  throw Error(url);
+ };
+ assert.equal((await verifyPremiumAccess('Bearer '+jwt,config,fetcher)).allowed,true);
 });

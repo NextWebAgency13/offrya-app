@@ -61,6 +61,12 @@
        <h2>Appels d'offres réservés aux professionnels vérifiés</h2>
        <p>Cette rubrique et ses exports exigent un compte professionnel vérifié avec un accès Premium actif. Aucun prélèvement n'est effectué pendant la bêta.</p>
        <p id="premiumGateText" class="muted" role="status">Connectez-vous pour vérifier votre accès.</p>
+       <div id="premiumPlan" class="hidden" style="margin:14px 0">
+        <h3>OFFRYA Premium · 19 € / mois</h3>
+        <p>Recherche et export d'appels d'offres, pour les entreprises vérifiées. Aucune commission sur les missions privées.</p>
+        <p class="tiny muted" id="premiumBillingStatus">L'abonnement sera ouvert après activation des paiements sécurisés.</p>
+        <button class="button primary hidden" id="premiumSubscribe" type="button">Souscrire à OFFRYA Premium</button>
+       </div>
        <button class="button primary" id="premiumLogin">Se connecter</button>
        <form id="premiumRequestForm" class="settings-form hidden" style="max-width:520px;margin-top:18px">
         <label>SIRET (14 chiffres)<input class="field" name="siret" minlength="14" maxlength="14" pattern="[0-9]{14}" inputmode="numeric" required placeholder="12345678901234"></label>
