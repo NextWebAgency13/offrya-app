@@ -168,11 +168,62 @@ $('premiumSubscribe').onclick=async()=>{
   location.assign(data.url);
  }catch(err){showError(err);}
 };
+// Private onboarding draft; never use it as authorization data.
+async function saveProfessionalDraft(step){
+ const f=$('premiumRequestForm');
+ if(!state.session||state.profile?.role!=='pro')throw Error('Profil professionnel requis.');
+ const record={user_id:state.session.user.id,step,siret:f.elements.siret.value.trim()||null,
+ legal_name:f.elements.legal_name.value.trim()||null,
+ representative_name:f.elements.representative_name.value.trim()||null,
+ representative_kind:f.elements.representative_kind.value||null,
+ representative_capacity:f.elements.representative_capacity.value.trim()||null,
+ updated_at:new Date().toISOString()};
+ const {error}=await state.db.from('offrya_professional_drafts').upsert(record,{onConflict:'user_id'});
+ if(error)throw error;
+ state.draft=record;state.proStep=step;renderPremium();
+}
+$('proBegin').onclick=async()=>{
+ if(!state.db)return toast('Inscription momentanément indisponible.');
+ if(!state.session){state.signupForPro=true;document.querySelector('[data-auth="signup"]').click();authModal(true);return;}
+ try{
+  if(!state.profile){
+   const display=state.session.user.email?.split('@')[0]?.slice(0,100)||'Professionnel';
+   const {error}=await state.db.from('offrya_profiles').insert({id:state.session.user.id,role:'pro',display_name:display,city:'',specialty:''});
+   if(error)throw error;
+  }else if(state.profile.role==='client'){
+   const {error}=await state.db.from('offrya_profiles').update({role:'pro'}).eq('id',state.session.user.id);
+   if(error)throw error;
+  }
+  state.proStep=1;state.proStepUserId=state.session.user.id;
+  await refresh();tab('professional');
+ }catch(err){showError(err);}
+};
+$('proNextCompany').onclick=async()=>{
+ const f=$('premiumRequestForm'),siret=f.elements.siret.value.trim();
+ if(!/^[0-9]{14}$/.test(siret)||f.dataset.verifiedSiret!==siret||!f.elements.legal_name.value.trim())
+  return toast('Vérifiez votre SIRET dans le registre officiel avant de continuer.');
+ try{await saveProfessionalDraft(2);}catch(err){showError(err);}
+};
+$('proBackRepresentative').onclick=()=>{state.proStep=1;renderPremium();};
+$('proNextRepresentative').onclick=async()=>{
+ const f=$('premiumRequestForm'),name=f.elements.representative_name.value.trim(),capacity=f.elements.representative_capacity.value.trim(),kind=f.elements.representative_kind.value;
+ if(f.dataset.verifiedSiret!==f.elements.siret.value.trim())return toast('Reprenez la vérification du SIRET.');
+ if(name.length<4||name.length>120||capacity.length<3||capacity.length>100||!['dirigeant','mandataire'].includes(kind))
+  return toast('Complétez votre nom, votre fonction et votre situation.');
+ try{await saveProfessionalDraft(3);}catch(err){showError(err);}
+};
+$('proBackSecurity').onclick=()=>{state.proStep=2;renderPremium();};
+$('proSubmitRequest').onclick=()=>{
+ if(state.aal!=='aal2')return toast('Validez votre double authentification.');
+ $('premiumRequestForm').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+};
+$('proRefreshStatus').onclick=async()=>{try{await refresh();toast('Statut actualisé.');}catch(err){showError(err);}};
+
 $('verifySiret').onclick=async()=>{
  if(!requireAuth())return;
  if(!state.profile||state.profile.role!=='pro'){tab('settings');return toast('Activez votre profil professionnel avant de vérifier le SIRET.');}
  const f=$('premiumRequestForm'),siret=f.elements.siret.value.trim();
- $('companyCheck').textContent='Vérification du SIRET en cours…';
+ $('companyCheck').textContent='Recherche dans le registre officiel…';
  f.dataset.verifiedSiret='';
  try{
   const {data:{session}}=await state.db.auth.getSession();
@@ -236,15 +287,18 @@ $('identityStart').onclick=async()=>{
 $('premiumRequestForm').onsubmit=async e=>{
  e.preventDefault();if(!requireAuth())return;
  if(!state.profile||state.profile.role!=='pro'){tab('settings');return toast('Créez votre profil professionnel avant de demander la vérification.');}
- const f=e.currentTarget,siret=f.elements.siret.value.trim(),representative_name=f.elements.representative_name.value.trim(),representative_capacity=f.elements.representative_capacity.value.trim();
+ const f=e.currentTarget,siret=f.elements.siret.value.trim(),representative_name=f.elements.representative_name.value.trim(),representative_capacity=f.elements.representative_capacity.value.trim(),representative_kind=f.elements.representative_kind.value;
  if(!/^[0-9]{14}$/.test(siret))return toast('Le SIRET doit comporter 14 chiffres.');
  if(f.dataset.verifiedSiret!==siret)return toast('Vérifiez d’abord le SIRET sur le registre officiel.');
- if(representative_name.length<4||representative_capacity.length<3)return toast('Indiquez le nom et la fonction du représentant.');
+ if(representative_name.length<4||representative_capacity.length<3||!['dirigeant','mandataire'].includes(representative_kind))return toast('Indiquez votre identité, situation et fonction.');
  try{
   const {data:{session}}=await state.db.auth.getSession();if(!session)throw Error('Session expirée.');
-  const r=await fetch('/api/company/verification-request',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({siret,representative_name,representative_capacity})});
+  const r=await fetch('/api/company/verification-request',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({siret,representative_name,representative_capacity,representative_kind})});
   const response=await r.json();if(!r.ok)throw Error(response.error||'Vérification indisponible.');
-  toast('Demande enregistrée. Vérification administrative du représentant nécessaire.');await refresh();
+  const {error:draftError}=await state.db.from('offrya_professional_drafts').delete().eq('user_id',state.session.user.id);
+  if(draftError)console.warn('Draft cleanup:',draftError.message);
+  state.draft=null;state.proStep=4;
+  toast('Votre dossier est enregistré. Suivez les vérifications dans cet espace.');await refresh();
  }catch(err){showError(err);}
 };
 
@@ -337,7 +391,7 @@ $('boampSearch').onclick=()=>loadBoamp();$('boampMore').onclick=()=>loadBoamp(tr
 function authModal(show){$('authModal').classList.toggle('hidden',!show);}
 $('authOpen').onclick=()=>{if(state.session){tab('settings');return;}authModal(true);};$('authClose').onclick=()=>authModal(false);$('authModal').onclick=e=>{if(e.target===$('authModal'))authModal(false);};
 for(const b of document.querySelectorAll('[data-auth]'))b.onclick=()=>{state.authMode=b.dataset.auth;document.querySelectorAll('[data-auth]').forEach(x=>x.classList.toggle('active',x===b));$('authTitle').textContent=state.authMode==='signup'?'Créer un compte':state.authMode==='reset'?'Réinitialiser le mot de passe':'Se connecter';$('authSubmit').textContent=state.authMode==='signup'?'Créer le compte':state.authMode==='reset'?'Envoyer le lien':'Se connecter';$('authPasswordRow').classList.toggle('hidden',state.authMode==='reset');};
-$('authForm').onsubmit=async e=>{e.preventDefault();if(!state.db)return showError(new Error('Le service de connexion est momentanément indisponible.'));const f=e.currentTarget,email=f.elements.email.value.trim(),password=f.elements.password.value;try{let r;if(state.authMode==='recover')r=await state.db.auth.updateUser({password});else if(state.authMode==='signup')r=await state.db.auth.signUp({email,password,options:{emailRedirectTo:location.origin}});else if(state.authMode==='reset')r=await state.db.auth.resetPasswordForEmail(email,{redirectTo:location.origin});else r=await state.db.auth.signInWithPassword({email,password});if(r.error)throw r.error;authModal(false);toast(state.authMode==='signup'?'Vérifiez votre adresse e-mail pour activer le compte.':state.authMode==='reset'?'Consultez votre messagerie.':state.authMode==='recover'?'Mot de passe modifié.':'Connexion réussie.');await refresh();if(state.authMode==='signup')tab('settings');}catch(err){showError(err);}};
+$('authForm').onsubmit=async e=>{e.preventDefault();if(!state.db)return showError(new Error('Le service de connexion est momentanément indisponible.'));const f=e.currentTarget,email=f.elements.email.value.trim(),password=f.elements.password.value;try{let r;if(state.authMode==='recover')r=await state.db.auth.updateUser({password});else if(state.authMode==='signup')r=await state.db.auth.signUp({email,password,options:{emailRedirectTo:location.origin}});else if(state.authMode==='reset')r=await state.db.auth.resetPasswordForEmail(email,{redirectTo:location.origin});else r=await state.db.auth.signInWithPassword({email,password});if(r.error)throw r.error;authModal(false);toast(state.authMode==='signup'?'Vérifiez votre adresse e-mail pour activer le compte.':state.authMode==='reset'?'Consultez votre messagerie.':state.authMode==='recover'?'Mot de passe modifié.':'Connexion réussie.');await refresh();if(state.authMode==='signup'||state.signupForPro){tab(state.signupForPro?'professional':'settings');state.signupForPro=false;}}catch(err){showError(err);}};
 $('logout').onclick=async()=>{if(state.db)await state.db.auth.signOut();state.session=null;await refresh();toast('Déconnecté.');};
 async function init(){
  const cfg=await fetch('/api/config').then(r=>r.json());state.billingEnabled=Boolean(cfg.billingEnabled);state.identityEnabled=Boolean(cfg.identityEnabled);
@@ -349,6 +403,6 @@ async function init(){
  if(canUsePremium())await loadBoamp();
  // La file est créée dans Supabase dès la publication; le navigateur vérifie les nouvelles alertes.
  setInterval(()=>{if(state.session&&canUsePremium()&&!document.hidden)loadPriorityAlerts().catch(console.error);},60000);
- const hash=location.hash.slice(1);if(['missions','boamp','inbox','settings'].includes(hash))tab(hash);
+ const hash=location.hash.slice(1);if(['missions','professional','boamp','inbox','settings'].includes(hash))tab(hash);
 }
 init().catch(showError);
