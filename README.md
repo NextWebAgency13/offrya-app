@@ -64,3 +64,11 @@ La procédure d'activation comporte désormais **4 étapes** : SIRET, informatio
 ## Vérification d'identité manuelle lorsque Stripe est indisponible
 
 Migration : `sql/manual_identity_review_requests.sql` (appliquée à Supabase OFFRYA). À l'étape 3, un professionnel dont le dossier est `pending` peut demander un contrôle manuel sans transmettre de document au site ou par e-mail. La demande est enregistrée dans une file RLS privée ; **elle ne valide aucune identité, aucune habilitation ni aucun abonnement**. Un opérateur doit consulter la file Supabase, contacter le titulaire du compte, vérifier réellement la pièce/présence et le mandat, puis décider. Voir `PROCEDURE_VERIFICATION_MANUELLE.md`.
+
+## Compatibilité des clés restreintes pour Stripe Identity
+
+Le serveur accepte les clés Stripe secrètes (`sk_live_`/`sk_test_`) et **restreintes** (`rk_live_`/`rk_test_`) pour les opérations Identity. Cela n'accorde aucune permission supplémentaire : la clé restreinte présente dans Render doit posséder les autorisations Stripe Identity nécessaires pour **créer** et **consulter** les sessions de vérification. Une clé sans les permissions suffisantes recevra une erreur HTTP 403 de Stripe lors d'un appel authentifié. Préférer les permissions minimales à une clé secrète globale.
+
+Le statut `identityEnabled` sur `GET /api/config` confirme uniquement que les **variables requises sont configurées** ; il ne teste pas l'accès API Stripe ni le parcours document + selfie réel. Une fois la configuration Render enregistrée et déployée, le contrôle GitHub `OFFRYA — contrôle HTTP production` doit afficher `ETAT STRIPE IDENTITY RENDER: ACTIVE`, `401` pour un démarrage sans authentification et `400` pour un webhook Identity non signé.
+
+Les paramètres biométriques et les obligations RGPD doivent être validés avant l'utilisation réelle. Ne jamais afficher ou copier les valeurs des clés dans les captures d'écran.
