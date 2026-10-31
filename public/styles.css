@@ -51,3 +51,6 @@
 .account-billing{margin-bottom:17px}
 .account-billing .button{max-width:100%}
 @media(max-width:640px){.offrya-global-footer{padding:22px 17px 110px;gap:9px 17px}}
+
+/* Indication facultative du budget d’une mission, sans distinction HT/TTC. */
+.field-hint{display:block;font-size:12px;line-height:1.5;color:var(--muted);font-weight:400;margin-top:7px}
