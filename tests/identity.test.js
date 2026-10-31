@@ -2,7 +2,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {createServer}=require('node:http');
 const {handle}=require('../server');
-const {configured,officialVerificationUrl,beginIdentity,processIdentityEvent}=require('../lib/identity');
+const {configured,identityConfigChecks,officialVerificationUrl,beginIdentity,processIdentityEvent}=require('../lib/identity');
 const {createHmac}=require('node:crypto');
 const {verifyStripeSignature}=require('../lib/billing');
 const fs=require('node:fs'),path=require('node:path');
@@ -13,6 +13,9 @@ const env={SITE_URL:'https://offrya-app.onrender.com',SUPABASE_URL:'https://demo
  STRIPE_SECRET_KEY:'sk_test_mock',STRIPE_IDENTITY_WEBHOOK_SECRET:'whsec_identity_test',OFFRYA_IDENTITY_SELFIE_ENABLED:'true'};
 test('Identité non activée si les secrets ne sont pas présents',async()=>{
  assert.equal(configured({}),false);
+ assert.equal(configured({...env,SUPABASE_URL:'https://demo.supabase.co/'}),true);
+ assert.deepEqual(Object.entries(identityConfigChecks({...env,OFFRYA_IDENTITY_SELFIE_ENABLED:'false'})).filter(([,pass])=>!pass).map(([key])=>key),['OFFRYA_IDENTITY_SELFIE_ENABLED']);
+ assert.equal(configured({...env,SUPABASE_URL:'https://evil.example/'}),false);
  assert.equal(configured({...env,STRIPE_SECRET_KEY:'rk_live_permissions_scoped'}),true);
  assert.equal(configured({...env,STRIPE_SECRET_KEY:'rk_test_permissions_scoped'}),true);
  assert.equal(configured({...env,STRIPE_SECRET_KEY:'pk_live_invalid'}),false);
