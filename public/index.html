@@ -128,7 +128,7 @@
       <div id="premiumGate" class="panel" style="padding:28px">
        <div class="hero-label">OFFRYA PROFESSIONNEL · ACCÈS PROFESSIONNEL</div>
        <h2>Missions et marchés publics réservés aux professionnels vérifiés et abonnés</h2>
-       <p>Inscription professionnelle, contrôle obligatoire du SIRET et du représentant, validation par OFFRYA, puis abonnement unique à 34,99 € TTC par mois. Seuls les professionnels vérifiés et abonnés peuvent consulter les missions d’autrui et accéder aux outils de veille.</p>
+       <p>Inscription professionnelle, double authentification, contrôle du SIRET, vérification d’identité par un prestataire spécialisé, contrôle indépendant du mandat et validation par OFFRYA, puis abonnement unique à 34,99 € TTC par mois. Seuls les professionnels vérifiés et abonnés peuvent consulter les missions d’autrui et accéder aux outils de veille.</p>
        <p id="premiumGateText" class="muted" role="status">Connectez-vous pour vérifier votre accès.</p>
        <div id="premiumPlan" class="hidden" style="margin:14px 0">
         <h3>OFFRYA Professionnel · 34,99 € TTC / mois</h3>
@@ -139,12 +139,30 @@
         <button class="button primary hidden" id="premiumSubscribe" type="button" disabled>Souscrire à OFFRYA Professionnel · 34,99 € TTC / mois</button>
        </div>
        <button class="button primary" id="premiumLogin">Se connecter</button>
+        <div class="panel hidden" id="mfaPanel" style="margin-top:16px;padding:20px;border-color:#ddd4f2">
+         <h3>Sécurisez votre compte professionnel</h3>
+         <p class="muted tiny">La double authentification par application (TOTP) est obligatoire pour consulter les missions, déposer votre dossier et gérer les contrôles d’identité. Aucun code secret ne doit être communiqué au support OFFRYA.</p>
+         <button class="button secondary" type="button" id="mfaEnrollStart">Configurer mon application d’authentification</button>
+         <div id="mfaEnrollFlow" class="hidden">
+           <p class="tiny muted">Scannez ce QR code dans une application d’authentification, puis confirmez avec le code à 6 chiffres.</p>
+           <img id="mfaQr" alt="QR code TOTP à scanner" style="width:180px;max-width:100%">
+           <p id="mfaSecret" class="tiny muted"></p>
+           <form id="mfaEnrollForm" class="settings-form"><label>Code de confirmation<input name="code" class="field" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label><button class="button primary" type="submit">Activer la double authentification</button></form>
+         </div>
+         <form id="mfaChallengeForm" class="settings-form hidden"><label>Code de votre application d’authentification<input name="code" class="field" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label><button class="button primary" type="submit">Valider le second facteur</button></form>
+        </div>
+        <div class="panel hidden" id="identityPanel" style="margin-top:16px;padding:20px;border-color:#ddd4f2">
+          <h3>Vérification d’identité du représentant</h3>
+          <p class="muted tiny" id="identityPanelText">Votre entreprise a été identifiée. La vérification de votre identité est la prochaine étape obligatoire.</p>
+          <button class="button primary" type="button" id="identityStart">Vérifier mon identité avec Stripe</button>
+          <p class="tiny muted">Pièce d’identité collectée par Stripe Identity sur son site sécurisé, sans téléchargement de document sur OFFRYA. Si vous ne pouvez pas utiliser ce service, contactez le support pour une solution alternative. La comparaison avec le représentant déclaré et le mandat est examinée séparément par OFFRYA. <a href="/confidentialite.html">Confidentialité</a>.</p>
+        </div>
        <form id="premiumRequestForm" class="settings-form hidden" style="max-width:520px;margin-top:18px">
         <label>SIRET (14 chiffres)<input class="field" name="siret" minlength="14" maxlength="14" pattern="[0-9]{14}" inputmode="numeric" required placeholder="12345678901234"></label>
         <button class="button secondary" id="verifySiret" type="button">Vérifier le SIRET officiel</button>
         <p id="companyCheck" role="status" class="tiny muted">Contrôle sur l'Annuaire des Entreprises avant demande.</p>
         <label>Raison sociale officielle<input class="field" name="legal_name" maxlength="150" minlength="2" required readonly placeholder="Renseignée après vérification"></label><label>Nom complet du représentant<input class="field" name="representative_name" minlength="4" maxlength="120" required autocomplete="name" placeholder="Nom et prénom"></label><label>Fonction du représentant<input class="field" name="representative_capacity" minlength="3" maxlength="100" required placeholder="Gérant, président, mandataire…"></label>
-        <p class="tiny muted">Après le contrôle du SIRET, votre dossier reste en attente de vérification de l’identité et de l’habilitation du représentant. Un justificatif pourra être demandé par un canal sécurisé. Aucune mission d’autrui ni souscription avant validation.</p>
+        <p class="tiny muted">Après le contrôle du SIRET et l’activation de la double authentification, la vérification de l’identité via un prestataire et le contrôle indépendant de l’habilitation restent obligatoires. Un justificatif pourra être demandé par un canal sécurisé. Aucune mission d’autrui ni souscription avant validation.</p>
         <button class="button primary" type="submit">Demander la vérification de mon entreprise</button>
        </form>
       </div>

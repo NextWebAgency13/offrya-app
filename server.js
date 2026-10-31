@@ -5,6 +5,7 @@ const path=require('node:path');
 const {queryBoamp}=require('./lib/boamp');
 const {verifyPremiumAccess}=require('./lib/premium');
 const {lookupCompany,verifyProfessional}=require('./lib/company');
+const {beginIdentity,processIdentityEvent,configured:identityConfigured}=require('./lib/identity');
 const {billingEnabled,startCheckout,verifyStripeSignature,syncSubscription,portal}=require('./lib/billing');
 const {verifyToken}=require('./lib/unsubscribe');
 const staticMap=new Map([
@@ -55,6 +56,7 @@ async function handle(req,res){
      return json(res,400,{error:'Indiquez le nom complet et la fonction du représentant de l’entreprise.'});
     const official=await lookupCompany(siret);
     if(!official.ok)return json(res,official.status,{error:official.reason});
+    if(actor.aal!=='aal2')return json(res,403,{error:'Double authentification professionnelle obligatoire avant le dépôt du dossier.'});
     const row={user_id:actor.userId,siret,legal_name:official.company.legal_name,representative_name,representative_capacity};
     const response=await fetch(process.env.SUPABASE_URL.replace(/\/$/,'')+'/rest/v1/offrya_premium_requests',{
      method:'POST',headers:{apikey:process.env.SUPABASE_SECRET_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
@@ -65,7 +67,25 @@ async function handle(req,res){
     return json(res,202,{status:'pending',legal_name:official.company.legal_name});
    }catch(err){console.error('Professional verification request:',err.message);return json(res,503,{error:'Le dossier de vérification ne peut pas être enregistré actuellement.'});}
   }
-  if(p==='/api/config'&&req.method==='GET')return json(res,200,{supabaseUrl:process.env.SUPABASE_URL||null,supabaseKey:process.env.SUPABASE_PUBLISHABLE_KEY||null,paymentsEnabled:billingEnabled(),billingEnabled:billingEnabled(),premiumPriceEuros:34.99});
+  if(p==='/api/identity/start'&&req.method==='POST'){
+   if(!rateLimit(req,3))return json(res,429,{error:'Trop de vérifications. Réessayez plus tard.'});
+   try{const result=await beginIdentity(req.headers.authorization);return json(res,result.status,result.error?{error:result.error}:{url:result.url});}
+   catch(e){console.error('Identity verification start:',e.message);return json(res,503,{error:'Le contrôle d’identité est momentanément indisponible.'});}
+  }
+  if(p==='/api/identity/webhook'&&req.method==='POST'){
+   if(!identityConfigured())return json(res,503,{error:'Service de vérification non configuré.'});
+   try{
+    const chunks=[];let bytes=0;
+    for await(const chunk of req){bytes+=chunk.length;if(bytes>256000)return json(res,413,{error:'Taille excessive'});chunks.push(chunk);}
+    const raw=Buffer.concat(chunks);
+    const {verifyStripeSignature}=require('./lib/billing');
+    if(!verifyStripeSignature(raw,req.headers['stripe-signature'],process.env.STRIPE_IDENTITY_WEBHOOK_SECRET))
+     return json(res,400,{error:'Signature de vérification invalide.'});
+    await processIdentityEvent(JSON.parse(raw.toString('utf8')));
+    return json(res,200,{received:true});
+   }catch(e){console.error('Identity webhook:',e.message);return json(res,503,{error:'Traitement de vérification indisponible.'});}
+  }
+  if(p==='/api/config'&&req.method==='GET')return json(res,200,{identityEnabled:identityConfigured(),supabaseUrl:process.env.SUPABASE_URL||null,supabaseKey:process.env.SUPABASE_PUBLISHABLE_KEY||null,paymentsEnabled:billingEnabled(),billingEnabled:billingEnabled(),premiumPriceEuros:34.99});
   if(p==='/api/billing/checkout'&&req.method==='POST'){
    if(!rateLimit(req,5))return json(res,429,{error:'Trop de tentatives.'});
    if(!billingEnabled())return json(res,503,{error:'Paiements OFFRYA non configurés.'});
