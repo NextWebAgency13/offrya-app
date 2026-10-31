@@ -1,5 +1,18 @@
 # OFFRYA — validation de l'identité et du mandat professionnel
 
+
+## Nouveau parcours et reprise du dossier (octobre 2026)
+
+L'onglet **Espace professionnel** comporte cinq étapes : (1) identification de l'entreprise, (2) représentant et qualité de dirigeant ou mandataire, (3) MFA TOTP, (4) contrôle de l'identité et du mandat, (5) abonnement. L'onglet **Marchés publics** est séparé et reste contrôlé par les autorisations RLS et côté serveur.
+
+Les informations des deux premières étapes sont enregistrées uniquement au clic sur **Continuer** dans la table `offrya_professional_drafts`, avec une politique RLS limitée au propriétaire, et peuvent être reprises après connexion. Ces brouillons n'accordent aucun droit de consultation d'autres missions, de messagerie professionnelle ou d'abonnement. Après le dépôt réussi du dossier dans `offrya_premium_requests`, le brouillon est supprimé.
+
+La reprise du second facteur MFA d'un professionnel ayant un dossier en cours ou un abonnement déjà payé ne redéclenche **ni inscription ni paiement**. Ne pas approuver un dossier avant la validation indépendante de la qualité du représentant.
+
+Le champ `representative_kind` permet de distinguer la déclaration d'un **dirigeant** ou d'un **mandataire** ; c'est une information déclarative à confirmer hors application par un opérateur. Aucune de ces déclarations ne prouve une autorisation.
+
+Migration additionnelle à appliquer sur le projet OFFRYA : `sql/professional_onboarding_drafts.sql`.
+
 ## Prérequis (à ne pas confondre avec Stripe Billing)
 
 Le SIRET est contrôlé au dépôt. Un SIRET valide ne prouve pas l'identité ni la qualité de représentant de la personne connectée. Un compte pro ne devient éligible **que si** :

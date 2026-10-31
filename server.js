@@ -10,7 +10,7 @@ const {billingEnabled,startCheckout,verifyStripeSignature,syncSubscription,porta
 const {verifyToken}=require('./lib/unsubscribe');
 const staticMap=new Map([
  ['/index.html','text/html; charset=utf-8'],['/app.js','text/javascript; charset=utf-8'],
- ['/styles.css','text/css; charset=utf-8'],['/home.css','text/css; charset=utf-8'],['/favicon.svg','image/svg+xml'],
+ ['/styles.css','text/css; charset=utf-8'],['/home.css','text/css; charset=utf-8'],['/pro.css','text/css; charset=utf-8'],['/favicon.svg','image/svg+xml'],
  ['/confidentialite.html','text/html; charset=utf-8'],['/mentions-legales.html','text/html; charset=utf-8'],
  ['/cgv.html','text/html; charset=utf-8'],['/remboursements.html','text/html; charset=utf-8'],['/contact.html','text/html; charset=utf-8']]);
 const buckets=new Map();
@@ -52,12 +52,13 @@ async function handle(req,res){
     const siret=String(data.siret||'').trim();
     const representative_name=String(data.representative_name||'').trim();
     const representative_capacity=String(data.representative_capacity||'').trim();
-    if(representative_name.length<4||representative_name.length>120||representative_capacity.length<3||representative_capacity.length>100)
+    const representative_kind=String(data.representative_kind||'').trim();
+    if(representative_name.length<4||representative_name.length>120||representative_capacity.length<3||representative_capacity.length>100||!['dirigeant','mandataire'].includes(representative_kind))
      return json(res,400,{error:'Indiquez le nom complet et la fonction du représentant de l’entreprise.'});
     const official=await lookupCompany(siret);
     if(!official.ok)return json(res,official.status,{error:official.reason});
     if(actor.aal!=='aal2')return json(res,403,{error:'Double authentification professionnelle obligatoire avant le dépôt du dossier.'});
-    const row={user_id:actor.userId,siret,legal_name:official.company.legal_name,representative_name,representative_capacity};
+    const row={user_id:actor.userId,siret,legal_name:official.company.legal_name,representative_name,representative_capacity,representative_kind};
     const response=await fetch(process.env.SUPABASE_URL.replace(/\/$/,'')+'/rest/v1/offrya_premium_requests',{
      method:'POST',headers:{apikey:process.env.SUPABASE_SECRET_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
      body:JSON.stringify(row),signal:AbortSignal.timeout(10000)
