@@ -6,8 +6,9 @@ Le SIRET est contrôlé au dépôt. Un SIRET valide ne prouve pas l'identité ni
 
 1. l'utilisateur a activé et validé un second facteur TOTP (niveau Supabase AAL2) ;
 2. Stripe Identity a confirmé le contrôle du document de la personne (le selfie est une option à évaluer juridiquement, désactivée par défaut) ;
-3. un opérateur OFFRYA a comparé l'identité déclarée avec celle vue chez le prestataire, confirmé la présence de l'entreprise au registre, puis contrôlé **indépendamment** le mandat du représentant ;
-4. le dossier porte le statut `verified` **et** l'abonnement Stripe est actif et payé.
+3. une présence réelle a été confirmée par la comparaison selfie de Stripe Identity **en mode live**, ou par un entretien sécurisé et documenté avec un opérateur ;
+4. un opérateur OFFRYA a comparé l'identité déclarée avec celle vue chez le prestataire, confirmé la présence de l'entreprise au registre, puis contrôlé **indépendamment** le mandat du représentant ;
+5. le dossier porte le statut `verified` **et** l'abonnement Stripe est actif et payé.
 
 Les règles RLS et les API BOAMP/Stripe protègent ces étapes côté serveur. Les clients conservent le droit de publier gratuitement des missions.
 
@@ -32,6 +33,7 @@ Pour chaque demande en attente :
 - lire le SIRET, la raison sociale, le nom complet déclaré et la fonction ;
 - contrôler le résultat **Stripe Identity** en affichant le dossier correspondant à `stripe_identity_session_id` dans le tableau de bord Stripe, sans télécharger de copie dans OFFRYA ; comparer **l'identité réellement vérifiée** au nom déclaré ;
 - comparer le représentant au registre INPI/RNE lorsque disponible ; sinon, obtenir un mandat via un canal sécurisé et confirmer son authenticité **auprès de l'entreprise par un canal indépendant du demandeur** ;
+- si le contrôle selfie n'a pas été activé, conduire un entretien permettant de vérifier que le porteur du document correspond bien au demandeur ; dater le contrôle et saisir la méthode `manual_live_check`, la date et l'identifiant de l'opérateur ;
 - dater l'examen, conserver la méthode et l'identifiant de l'opérateur ; décider du dossier `verified` ou `rejected`.
 
 Le propriétaire du projet doit créer le canal opérationnel de vérification. À défaut, **ne pas approuver**. La vérification du document par Stripe ne valide jamais automatiquement l'habilitation.
@@ -45,19 +47,25 @@ Le propriétaire du projet doit créer le canal opérationnel de vérification. 
 -- Si mandat confirmé indépendamment : independent_mandate
 begin;
 update public.offrya_premium_requests
-set authority_status='verified',
+set presence_method='manual_live_check',
+    presence_verified_at=now(),
+    presence_reviewed_by='REVIEWER_UUID'::uuid,
+    authority_status='verified',
     authority_verified_at=now(),
     authority_review_method='registry_representative',
     authority_reviewed_by='REVIEWER_UUID'::uuid
 where user_id='USER_UUID'::uuid
   and status='pending'
   and identity_status='verified'
+  and identity_live_verified is true
   and identity_verified_at is not null;
 update public.offrya_premium_requests
 set status='verified', reviewed_at=now()
 where user_id='USER_UUID'::uuid
   and status='pending'
   and identity_status='verified'
+  and identity_live_verified is true
+  and presence_verified_at is not null
   and authority_status='verified'
   and authority_verified_at is not null;
 commit;
