@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,wait:false,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,billingEnabled:false,authMode:'login'};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,wait:false,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,billingEnabled:false,priorityAlerts:[],authMode:'login'};
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
@@ -18,7 +18,7 @@ async function refresh(){
  const missionResult=await state.db.from('offrya_missions').select('*').order('created_at',{ascending:false}).limit(200);
  if(missionResult.error)throw missionResult.error;
  state.missions=missionResult.data||[];
- if(!state.session){state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.wait=false;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.boamp=[];render();return;}
+ if(!state.session){state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.wait=false;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.boamp=[];state.priorityAlerts=[];render();return;}
  const uid=state.session.user.id;
  const [prof,conv,prefs,wait,profiles,favorites,premium,subscription]=await Promise.all([
   state.db.from('offrya_profiles').select('*').eq('id',uid).maybeSingle(),
@@ -34,6 +34,7 @@ async function refresh(){
  state.profile=prof.data;state.premium=premium.data;state.subscription=subscription.data;state.conversations=conv.data||[];state.prefs=prefs.data;state.wait=Boolean(wait.data);state.profiles=profiles.data||[];state.favorites=(favorites.data||[]).map(x=>x.mission_id);
  if(state.thread&&!state.conversations.find(x=>x.id===state.thread))state.thread=null;
  if(state.thread)await loadMessages(state.thread,false);
+ await loadPriorityAlerts(false);
  render();
 }
 function row(m,actions=''){return `<article class="data-item"><div class="item-top"><span class="tag">${esc(m.category)}</span><span class="muted tiny">${date(m.created_at)}</span></div><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.description).slice(0,270)}</div><div class="meta-row"><span>⌖ ${esc(m.city)} (${esc(m.department)})</span><span>Budget : ${m.budget_cents?euro(m.budget_cents):'À définir'}</span><span>${m.status==='open'?'Ouverte':m.status==='awarded'?'Attribuée':'Fermée'}</span></div>${actions?`<div class="item-actions">${actions}</div>`:''}</article>`;}
@@ -139,11 +140,53 @@ $('premiumRequestForm').onsubmit=async e=>{
  }catch(err){showError(err);}
 };
 
+
+async function loadPriorityAlerts(shouldRender=true){
+ if(!state.db||!state.session||!canUsePremium()){
+  state.priorityAlerts=[];if(shouldRender)renderPriorityAlerts();return;
+ }
+ const r=await state.db.from('offrya_priority_alerts')
+  .select('id,mission_id,created_at,seen_at,mission:offrya_missions(id,title,city,department,category,status)')
+  .order('created_at',{ascending:false}).limit(30);
+ if(r.error)throw r.error;
+ state.priorityAlerts=(r.data||[]).filter(a=>a.mission?.status==='open');
+ if(shouldRender)renderPriorityAlerts();
+}
+function renderPriorityAlerts(){
+ const visible=canUsePremium();
+ $('priorityAlertsPanel').classList.toggle('hidden',!visible);
+ if(!visible)return;
+ const alerts=state.priorityAlerts||[];
+ const unread=alerts.filter(a=>!a.seen_at).length;
+ $('priorityAlertCount').textContent=unread+' nouvelle(s)';
+ $('priorityAlertsList').innerHTML=alerts.length?alerts.map(a=>
+  `<article class="data-item">
+    <div class="item-top"><span class="tag">${a.seen_at?'Consultée':'NOUVELLE · PRIORITÉ PREMIUM'}</span><span class="muted tiny">${date(a.created_at)}</span></div>
+    <div class="item-title">${esc(a.mission.title)}</div>
+    <div class="meta-row"><span>${esc(a.mission.category)}</span><span>${esc(a.mission.city)} (${esc(a.mission.department)})</span></div>
+    <div class="item-actions"><button class="button secondary micro-button" data-priority-open="${esc(a.id)}">Consulter cette mission</button></div>
+  </article>`).join(''):'<div class="empty">Aucune mission correspondant à vos critères depuis votre activation Premium.</div>';
+}
+$('priorityAlertsList').onclick=async event=>{
+ const button=event.target.closest('[data-priority-open]');if(!button||!canUsePremium())return;
+ const alert=state.priorityAlerts.find(x=>x.id===button.dataset.priorityOpen);if(!alert)return;
+ try{
+  if(!alert.seen_at){
+   const r=await state.db.from('offrya_priority_alerts').update({seen_at:new Date().toISOString()}).eq('id',alert.id);
+   if(r.error)throw r.error;alert.seen_at=new Date().toISOString();
+  }
+  $('missionQuery').value=alert.mission.title;
+  $('missionCategory').value='';
+  $('missionDept').value='';
+  renderMissions();renderPriorityAlerts();tab('missions');
+ }catch(err){showError(err);}
+};
+
 function render(){
  const yes=Boolean(state.session);$('authOpen').textContent=yes?state.session.user.email.split('@')[0]:'Se connecter';$('logout').classList.toggle('hidden',!yes);$('avatar').textContent=state.profile?.display_name?.[0]?.toUpperCase()||'V';
  $('statOpen').textContent=state.missions.filter(x=>x.status==='open').length;$('statMissions').textContent=state.missions.filter(x=>x.owner_id===state.session?.user.id).length;$('statConvos').textContent=state.conversations.length;$('statFavorites').textContent=state.favorites.length;
  $('dashActivity').innerHTML=yes?`<div class="data-item"><div class="item-title">${esc(state.profile?.display_name||'Profil à compléter')}</div><div class="item-desc">${state.profile?.role==='client'?'Compte client':'Compte professionnel'} · ${state.conversations.length} discussion(s)</div></div><div class="data-item"><div class="item-title">Contact direct et gratuit</div><div class="item-desc">Échangez dans la messagerie, puis organisez librement votre accord, les tarifs et le règlement avec l'autre partie. OFFRYA n'intervient pas dans la transaction.</div></div>`:'<div class="empty">Connectez-vous pour voir vos contacts et vos missions.</div>';
- renderMissions();renderInbox();renderSettings();renderPremium();
+ renderMissions();renderInbox();renderSettings();renderPremium();renderPriorityAlerts();
 }
 async function loadMessages(id,doRender=true){
  const r=await state.db.from('offrya_messages').select('*').eq('conversation_id',id).order('created_at',{ascending:true}).limit(200);
@@ -191,6 +234,8 @@ async function init(){
   try{await refresh();}catch(err){info('Supabase nécessite une configuration complète et les tables SQL. '+err.message,true);render();}
  }else{info('Mode installation : connectez un projet Supabase OFFRYA pour activer les comptes, les missions et les échanges. Le BOAMP est réservé aux professionnels Premium vérifiés.',true);render();}
  if(canUsePremium())await loadBoamp();
+ // La file est créée dans Supabase dès la publication; le navigateur vérifie les nouvelles alertes.
+ setInterval(()=>{if(state.session&&canUsePremium()&&!document.hidden)loadPriorityAlerts().catch(console.error);},60000);
  const hash=location.hash.slice(1);if(['missions','boamp','inbox','settings'].includes(hash))tab(hash);
 }
 init().catch(showError);

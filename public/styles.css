@@ -29,3 +29,10 @@
 .scene-glow{background:radial-gradient(circle,#BCA4F155,transparent 65%)}
 .welcome h2 span{color:#6941D7}
 @media(max-width:620px){.mobile-brand .brand-symbol svg{width:22px;height:22px}.nav-link.active{background:#F1EBFF;color:#6941D7}}
+
+/* OFFRYA Priority: distinction uniquement visuelle, annonces publiques ouvertes à tous. */
+#priorityAlertsPanel{margin:0 0 20px;border-color:#d8cbff;background:linear-gradient(145deg,#fbfaff,#fff)}
+.priority-icon{color:#6941D7;margin-right:5px}
+#priorityAlertsList .data-item{border-left:3px solid #6941D7}
+#priorityAlertsList .item-actions{display:flex;gap:8px;flex-wrap:wrap}
+#priorityAlertCount{font-variant-numeric:tabular-nums}
