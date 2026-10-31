@@ -28,7 +28,7 @@ async function refresh(){
   state.db.from('offrya_profiles').select('id,display_name,role,city,specialty').limit(300),
   state.db.from('offrya_favorites').select('mission_id'),
   state.db.from('offrya_premium_requests').select('user_id,siret,legal_name,status,premium_until').eq('user_id',uid).maybeSingle(),
-  state.db.from('offrya_premium_subscriptions').select('status,paid_through').eq('user_id',uid).maybeSingle()
+  state.db.from('offrya_premium_subscriptions').select('status,paid_through,stripe_customer_id').eq('user_id',uid).maybeSingle()
  ]);
  for(const res of [prof,conv,prefs,wait,profiles,favorites,premium,subscription])if(res.error)throw res.error;
  state.profile=prof.data;state.premium=premium.data;state.subscription=subscription.data;state.conversations=conv.data||[];state.prefs=prefs.data;state.wait=Boolean(wait.data);state.profiles=profiles.data||[];state.favorites=(favorites.data||[]).map(x=>x.mission_id);
@@ -62,6 +62,9 @@ function renderSettings(){
  const f=$('profileForm');f.elements.display_name.value=state.profile?.display_name||'';f.elements.role.value=state.profile?.role||'client';f.elements.role.disabled=has;f.elements.city.value=state.profile?.city||'';f.elements.specialty.value=state.profile?.specialty||'';
  const p=$('preferencesForm');p.elements.missions_enabled.checked=state.prefs?.missions_enabled||false;p.elements.messages_enabled.checked=state.prefs?.messages_enabled||false;p.elements.department.value=state.prefs?.department||'';p.elements.category.value=state.prefs?.category||'';
  $('waitBtn').textContent=state.wait?'Quitter la liste d’attente':'Rejoindre la liste d’attente';$('waitState').textContent=state.wait?'Inscrit · sans paiement':'';
+ const canManage=Boolean(state.session&&state.subscription?.stripe_customer_id);
+ $('accountBillingPortal').disabled=!canManage;
+ $('accountBillingInfo').textContent=!state.session?'Connectez-vous pour gérer votre abonnement.':canManage?'Votre abonnement est associé à un compte Stripe.':'Aucun abonnement Stripe associé à ce compte. En cas de difficulté, contactez le support.';
 }
 
 function canUsePremium(){
@@ -109,7 +112,7 @@ function renderPremium(){
  }else{text.textContent='Accès Premium suspendu.';}
 }
 $('premiumLogin').onclick=()=>authModal(true);
-$('premiumPortal').onclick=async()=>{
+async function openStripePortal(){
  try{
   const {data:{session}}=await state.db.auth.getSession();
   if(!session)throw Error('Reconnexion nécessaire.');
@@ -119,10 +122,13 @@ $('premiumPortal').onclick=async()=>{
   if(!/^https:\/\/billing\.stripe\.com\//.test(data.url))throw Error('Lien Stripe invalide');
   location.assign(data.url);
  }catch(err){showError(err);}
-};
+}
+$('premiumPortal').onclick=openStripePortal;
+$('accountBillingPortal').onclick=()=>{if(!state.session){authModal(true);return;}return openStripePortal();};
 $('premiumSubscribe').onclick=async()=>{
  if(!state.billingEnabled||state.premium?.status!=='verified')return;
- if(!confirm('Souscrire OFFRYA Premium à 19 € par mois via Stripe ?'))return;
+ if(!$('premiumTermsAck').checked){toast('Veuillez prendre connaissance des conditions d’abonnement avant de continuer.');return;}
+ if(!confirm('Souscrire OFFRYA Premium à 19 € par mois, avec renouvellement automatique et résiliation possible à tout moment ?'))return;
  try{
   const {data:{session}}=await state.db.auth.getSession();
   if(!session)throw Error('Veuillez vous connecter.');

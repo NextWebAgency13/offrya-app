@@ -39,3 +39,15 @@
 
 .priority-shortcut{position:relative;display:inline-flex;align-items:center;justify-content:center;color:#6941D7;font-size:20px}
 .priority-bubble{position:absolute;right:-5px;top:-5px;min-width:16px;height:16px;padding:0 4px;border-radius:20px;background:#6941D7;color:white;font-size:10px;font-weight:800;line-height:16px;box-shadow:0 0 0 2px white}
+
+/* Pages légales, notice avant souscription et accès à la résiliation */
+.offrya-global-footer{display:flex;flex-wrap:wrap;gap:11px 21px;border-top:1px solid var(--line);padding:23px 30px 34px;margin-top:24px;font-size:12px;background:#fff}
+.offrya-global-footer a,.legal-links a{color:#4f4080;text-decoration:underline;text-underline-offset:2px}
+.legal-links{display:flex;flex-wrap:wrap;gap:6px 12px}
+.premium-precontract{background:#f6f2ff;border:1px solid #e4d8ff;border-radius:10px;padding:12px 14px}
+.premium-terms{display:flex;align-items:flex-start;gap:10px;margin:13px 0 17px;color:var(--text);cursor:pointer}
+.premium-terms input{flex:none;width:18px;height:18px;margin-top:3px;accent-color:var(--blue)}
+.premium-terms a,.account-billing a{text-decoration:underline;color:var(--blue)}
+.account-billing{margin-bottom:17px}
+.account-billing .button{max-width:100%}
+@media(max-width:640px){.offrya-global-footer{padding:22px 17px 110px;gap:9px 17px}}

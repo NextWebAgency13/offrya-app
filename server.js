@@ -10,7 +10,8 @@ const {verifyToken}=require('./lib/unsubscribe');
 const staticMap=new Map([
  ['/index.html','text/html; charset=utf-8'],['/app.js','text/javascript; charset=utf-8'],
  ['/styles.css','text/css; charset=utf-8'],['/favicon.svg','image/svg+xml'],
- ['/confidentialite.html','text/html; charset=utf-8'],['/mentions-legales.html','text/html; charset=utf-8']]);
+ ['/confidentialite.html','text/html; charset=utf-8'],['/mentions-legales.html','text/html; charset=utf-8'],
+ ['/cgv.html','text/html; charset=utf-8'],['/remboursements.html','text/html; charset=utf-8'],['/contact.html','text/html; charset=utf-8']]);
 const buckets=new Map();
 function json(res,status,data,extra={}){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...extra});res.end(JSON.stringify(data));}
 function rateLimit(req,max=50){const ip=req.socket.remoteAddress||'unknown',key=ip+':'+req.url.split('?')[0],now=Date.now();

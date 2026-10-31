@@ -24,6 +24,12 @@ async function run(){
  assert.match(page.text,/<html/i);
  assert.match(page.text,/offrya/i);
  console.log('PASS: page d’accueil accessible');
+ for(const [p,text] of [['/cgv.html','19,00'],['/confidentialite.html','Stripe'],['/remboursements.html','14 jours'],['/contact.html','nextwebagency.contact@gmail.com'],['/mentions-legales.html','SIREN']]){
+   const r=await request(p);
+   assert.equal(r.status,200,'Page légale '+p);
+   assert.ok(r.text.includes(text),'Texte attendu sur '+p);
+ }
+ console.log('PASS: CGV, confidentialité, remboursements, support et mentions légales accessibles');
  const app=await request('/app.js');
  assert.equal(app.status,200,'Code client disponible');
  assert.match(app.text,/premium/i);
