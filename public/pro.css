@@ -64,3 +64,11 @@
 @media(max-width:1100px){.pro-hero{grid-template-columns:1fr}.pro-hero-main{padding:33px}.pro-layout{grid-template-columns:210px 1fr}.pro-stage-card{padding:24px}}
 @media(max-width:750px){.pro-layout{grid-template-columns:1fr}.pro-rail{padding:12px;overflow-x:auto}.pro-rail ol{display:flex;min-width:650px;gap:2px}.pro-rail li{min-width:125px;padding:9px;flex:1;gap:6px}.pro-rail li small{display:none}.pro-rail-foot{display:none}.pro-market-gate{grid-template-columns:1fr}.pro-market-seal{display:none}}
 @media(max-width:620px){.sidebar nav{grid-template-columns:repeat(5,minmax(0,1fr))}.nav-link span{font-size:8px!important;letter-spacing:-.45px}.pro-hero-main{padding:26px 21px}.pro-hero h2{font-size:28px}.pro-offer{padding:24px}.pro-hero-actions .button{width:100%}.pro-stage-card{padding:23px 18px}.pro-head{align-items:flex-start;flex-direction:column}.pro-actions .button{flex:1 1 100%}.pro-market-gate{padding:25px 20px}.pro-checklist>div{align-items:flex-start;flex-direction:column;gap:5px}}
+
+/* Vérification humaine : aucune pièce d'identité n'est téléversée dans OFFRYA. */
+.pro-manual-verification{border:1px solid #ddd4f2;background:#f8f6fd;border-radius:17px;padding:22px;margin:20px 0;display:grid;justify-items:start;gap:12px}
+.pro-manual-verification h4{font:800 17px/1.35 'Plus Jakarta Sans',sans-serif;color:#38245b;letter-spacing:-.3px;margin:0}
+.pro-manual-verification .pro-stage-desc{margin:0}
+.pro-manual-verification .pro-note{margin:0;width:100%}
+.pro-manual-verification .button{max-width:100%;white-space:normal;text-align:center}
+@media(max-width:620px){.pro-manual-verification{padding:19px 16px}.pro-manual-verification .button{width:100%}}
