@@ -23,7 +23,9 @@ test('Formulaire : aucune connexion imposée avant de publier',()=>{
  assert.match(missions,/session invitée privée/);
  assert.match(missions,/id="missionStatus"/);
  assert.match(app,/async function ensureMissionPublisher\(\)/);
- assert.match(app,/auth\.signInAnonymously\(\)/);
+ assert.match(app,/auth\.signInAnonymously/);
+ assert.match(app,/captchaToken/);
+ assert.match(app,/setupGuestCaptcha/);
  assert.match(app,/from\('offrya_profiles'\)\.insert/);
  assert.match(app,/state\.db\.from\('offrya_missions'\)\.insert/);
  assert.doesNotMatch(app,/\$\('missionForm'\)\.onsubmit=async e=>\{e\.preventDefault\(\);if\(!requireRole\('client'\)\)/);
