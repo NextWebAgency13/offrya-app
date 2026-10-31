@@ -3,11 +3,11 @@
 
 ## Nouveau parcours et reprise du dossier (octobre 2026)
 
-L'onglet **Espace professionnel** comporte cinq étapes : (1) identification de l'entreprise, (2) représentant et qualité de dirigeant ou mandataire, (3) MFA TOTP, (4) contrôle de l'identité et du mandat, (5) abonnement. L'onglet **Marchés publics** est séparé et reste contrôlé par les autorisations RLS et côté serveur.
+L'onglet **Espace professionnel** comporte quatre étapes : (1) identification de l'entreprise, (2) représentant et qualité de dirigeant ou mandataire, (3) dépôt du dossier et contrôles de l'identité et du mandat, (4) abonnement. Aucun code TOTP, QR code ni facteur MFA n'est exigé pour déposer le dossier. L'onglet **Marchés publics** est séparé et reste contrôlé par les autorisations RLS et côté serveur.
 
 Les informations des deux premières étapes sont enregistrées uniquement au clic sur **Continuer** dans la table `offrya_professional_drafts`, avec une politique RLS limitée au propriétaire, et peuvent être reprises après connexion. Ces brouillons n'accordent aucun droit de consultation d'autres missions, de messagerie professionnelle ou d'abonnement. Après le dépôt réussi du dossier dans `offrya_premium_requests`, le brouillon est supprimé.
 
-La reprise du second facteur MFA d'un professionnel ayant un dossier en cours ou un abonnement déjà payé ne redéclenche **ni inscription ni paiement**. Ne pas approuver un dossier avant la validation indépendante de la qualité du représentant.
+La reprise d'un dossier existant après connexion ne redéclenche **ni inscription ni paiement**. Les anciennes demandes dont le brouillon indique l'étape 3 continuent directement à la vérification du dossier. Ne pas approuver un dossier avant la validation indépendante de la qualité du représentant.
 
 Le champ `representative_kind` permet de distinguer la déclaration d'un **dirigeant** ou d'un **mandataire** ; c'est une information déclarative à confirmer hors application par un opérateur. Aucune de ces déclarations ne prouve une autorisation.
 
@@ -17,7 +17,7 @@ Migration additionnelle à appliquer sur le projet OFFRYA : `sql/professional_on
 
 Le SIRET est contrôlé au dépôt. Un SIRET valide ne prouve pas l'identité ni la qualité de représentant de la personne connectée. Un compte pro ne devient éligible **que si** :
 
-1. l'utilisateur a activé et validé un second facteur TOTP (niveau Supabase AAL2) ;
+1. la personne utilise un compte identifié (les sessions invitées sont explicitement exclues) ;
 2. Stripe Identity a confirmé le contrôle du document de la personne (le selfie est une option à évaluer juridiquement, désactivée par défaut) ;
 3. une présence réelle a été confirmée par la comparaison selfie de Stripe Identity **en mode live**, ou par un entretien sécurisé et documenté avec un opérateur ;
 4. un opérateur OFFRYA a comparé l'identité déclarée avec celle vue chez le prestataire, confirmé la présence de l'entreprise au registre, puis contrôlé **indépendamment** le mandat du représentant ;
@@ -27,7 +27,7 @@ Les règles RLS et les API BOAMP/Stripe protègent ces étapes côté serveur. L
 
 ## Configuration indispensable
 
-1. Exécuter `sql/professional_identity_mfa.sql` **sur le projet Supabase OFFRYA**, jamais sur celui de NextWeb.
+1. Exécuter la migration historique `sql/professional_identity_mfa.sql` puis **sa mise à jour** `sql/professional_without_mfa.sql` sur le projet Supabase OFFRYA (jamais NextWeb). La seconde remplace la condition AAL2 par le refus des comptes invités, sans affaiblir les contrôles d'identité, de présence, d'habilitation et de paiement.
 2. Vérifier que la clé secrète Stripe a les droits sur Stripe Identity. Les clés de paiement restreintes ne disposent pas nécessairement de ces permissions ; la configuration Identity requiert actuellement une clé `sk_test_` ou `sk_live_`.
 3. Ajouter `STRIPE_IDENTITY_WEBHOOK_SECRET=whsec_...` dans les variables **secrètes Render**, à partir d'un **nouvel endpoint Stripe Identity** `https://offrya-app.onrender.com/api/identity/webhook`.
 4. Souscrire cet endpoint aux événements :
@@ -90,8 +90,9 @@ Le déclencheur SQL empêche une approbation tant que les preuves ne sont pas re
 
 - Visiteur : pas de lecture des missions d'autrui.
 - Client : publication gratuite, accès à ses propres missions.
-- Pro sans AAL2 : aucun accès aux missions/BOAMP et aucun abonnement.
-- Pro AAL2, SIRET valide, identité non vérifiée : aucun accès.
+- Pro identifié avec une session classique AAL1, identité, mandat, entreprise vérifiés et abonnement payé : accès aux missions/BOAMP.
+- Pro avec SIRET valide mais identité non vérifiée : aucun accès.
+- Session invitée ou non authentifiée : aucun accès aux missions d'autrui, quel que soit le reste du dossier.
 - Pro avec Stripe Identity `verified`, sans mandat approuvé : aucun accès.
 - Pro avec mandat approuvé, sans abonnement actif : aucun accès.
 - Pro remplissant toutes les conditions : accès.
@@ -102,6 +103,11 @@ Le résultat d'un test Stripe (`sk_test_`) n'est **pas** une vérification d'ide
 
 ## Documentation
 
-- Supabase MFA : https://supabase.com/docs/guides/auth/auth-mfa
 - Stripe Identity : https://docs.stripe.com/identity
 - CNIL : https://www.cnil.fr
+
+## Simplification de l'authentification (31 octobre 2026)
+
+La MFA TOTP obligatoire a été retirée de tous les écrans et appels API professionnels. **Ce changement ne désinscrit pas automatiquement les facteurs qu'un utilisateur avait déjà activés auprès de Supabase Auth.** Ces facteurs existants doivent être révoqués individuellement si nécessaire, avec les mécanismes sécurisés de Supabase. Une capture contenant un QR code ou une clé TOTP d'inscription doit être traitée comme un secret divulgué : si la clé a été activée, révoquer le facteur et ne jamais réutiliser cette clé.
+
+La vérification réelle du représentant, la preuve de présence, le mandat indépendant, la validation administrative et le paiement sont toujours exigés. Le contrôle d'accès SQL dépend de `offrya_private.has_active_professional_access()` mis à jour par `sql/professional_without_mfa.sql`.
