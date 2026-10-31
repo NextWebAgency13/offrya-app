@@ -14,8 +14,8 @@ test('OFFRYA ne présente plus de bêta ni de commission promotionnelle',()=>{
  assert.match(html,/Échanges directs/);
  assert.match(html,/accessible partout en France/);
  assert.match(html,/OFFRYA Professionnel/);
- assert.match(html,/34,99 € TTC par mois/);
- assert.match(html,/34,99 € TTC \/ mois/);
+ assert.match(html,/34,99 €[\\s\\S]*?TTC \/ mois/);
+ assert.match(html,/id="premiumSubscribe"/);
 });
 test('La liste d’attente a disparu de l’interface, les données historiques sont conservées',()=>{
  for(const s of [html,js]){
@@ -35,7 +35,7 @@ test('Tous les messages du parcours Professionnel restent professionnels et les 
  assert.match(js,/loadPriorityAlerts/);
  assert.match(html,/id="missionForm"/);
  assert.match(html,/id="premiumTermsAck"/);
- assert.match(html,/Demander la vérification de mon entreprise/);
+ assert.match(html,/id="proSubmitRequest"[^>]*>Déposer mon dossier/);
 });
 
 test('Le montant TTC est cohérent dans les CGV, les messages Professionnel et le formulaire',()=>{
