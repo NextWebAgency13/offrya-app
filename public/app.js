@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,billingEnabled:false,identityEnabled:false,guestCaptchaSiteKey:null,guestCaptchaToken:null,guestCaptchaWidget:null,draft:null,proStep:1,proStepUserId:null,signupForPro:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,guestCaptchaSiteKey:null,guestCaptchaToken:null,guestCaptchaWidget:null,draft:null,proStep:1,proStepUserId:null,signupForPro:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
@@ -16,12 +16,12 @@ function titleForMission(id){return state.missions.find(m=>m.id===id)?.title||'M
 function profileName(id){return state.profiles.find(p=>p.id===id)?.display_name||'Utilisateur OFFRYA';}
 async function refresh(){
  if(!state.db){render();return;}
- if(!state.session){state.draft=null;state.proStep=1;state.proStepUserId=null;state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.boamp=[];state.priorityAlerts=[];state.lastPriorityIds=null;render();return;}
+ if(!state.session){state.draft=null;state.proStep=1;state.proStepUserId=null;state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.manualIdentity=null;state.boamp=[];state.priorityAlerts=[];state.lastPriorityIds=null;render();return;}
  const missionResult=await state.db.from('offrya_missions').select('*').order('created_at',{ascending:false}).limit(200);
  if(missionResult.error)throw missionResult.error;
  state.missions=missionResult.data||[];
  const uid=state.session.user.id;
- const [prof,conv,prefs,profiles,favorites,premium,subscription,draft]=await Promise.all([
+ const [prof,conv,prefs,profiles,favorites,premium,subscription,draft,manualReview]=await Promise.all([
   state.db.from('offrya_profiles').select('*').eq('id',uid).maybeSingle(),
   state.db.from('offrya_conversations').select('*').order('created_at',{ascending:false}).limit(100),
   state.db.from('offrya_alert_preferences').select('*').eq('user_id',uid).maybeSingle(),
@@ -29,10 +29,11 @@ async function refresh(){
   state.db.from('offrya_favorites').select('mission_id'),
   state.db.from('offrya_premium_requests').select('user_id,siret,legal_name,status,premium_until,identity_status,authority_status').eq('user_id',uid).maybeSingle(),
   state.db.from('offrya_premium_subscriptions').select('status,paid_through,stripe_customer_id').eq('user_id',uid).maybeSingle(),
-   state.db.from('offrya_professional_drafts').select('step,siret,legal_name,representative_name,representative_capacity,representative_kind').eq('user_id',uid).maybeSingle()
+   state.db.from('offrya_professional_drafts').select('step,siret,legal_name,representative_name,representative_capacity,representative_kind').eq('user_id',uid).maybeSingle(),
+   state.db.from('offrya_manual_identity_requests').select('status,requested_at,updated_at').eq('user_id',uid).maybeSingle()
  ]);
- for(const res of [prof,conv,prefs,profiles,favorites,premium,subscription,draft])if(res.error)throw res.error;
- state.profile=prof.data;state.premium=premium.data;state.subscription=subscription.data;state.draft=draft.data;state.conversations=conv.data||[];state.prefs=prefs.data;state.profiles=profiles.data||[];state.favorites=(favorites.data||[]).map(x=>x.mission_id);
+ for(const res of [prof,conv,prefs,profiles,favorites,premium,subscription,draft,manualReview])if(res.error)throw res.error;
+ state.profile=prof.data;state.premium=premium.data;state.subscription=subscription.data;state.draft=draft.data;state.manualIdentity=manualReview.data;state.conversations=conv.data||[];state.prefs=prefs.data;state.profiles=profiles.data||[];state.favorites=(favorites.data||[]).map(x=>x.mission_id);
  if(state.proStepUserId!==uid){state.proStepUserId=uid;state.proStep=Math.max(1,Math.min(3,Number(state.draft?.step||1)));}
  if(state.thread&&!state.conversations.find(x=>x.id===state.thread))state.thread=null;
  if(state.thread)await loadMessages(state.thread,false);
@@ -131,12 +132,27 @@ function renderPremium(){
    $('proReviewCompany').textContent=f.elements.legal_name.value||state.draft?.legal_name||'Entreprise à vérifier';
    $('proReviewRepresentative').textContent=f.elements.representative_name.value||state.draft?.representative_name||'Représentant à renseigner';
   }else{
-   $('proIdentityStatus').textContent=identity==='verified'?'Identité validée':identity==='processing'?'Contrôle en cours':identity==='requires_input'?'Informations supplémentaires nécessaires':identity==='redacted'?'Vérification à renouveler':'À réaliser';
+   $('proIdentityStatus').textContent=identity==='verified'?'Identité validée':state.manualIdentity?.status==='requested'?'Contrôle manuel demandé':state.manualIdentity?.status==='scheduled'?'Contrôle manuel planifié':state.manualIdentity?.status==='contacting'?'Prise de contact en cours':identity==='processing'?'Contrôle en ligne en cours':identity==='requires_input'?'Informations supplémentaires nécessaires':identity==='redacted'?'Vérification à renouveler':'À réaliser';
    $('proAuthorityStatus').textContent=authority==='verified'?'Habilitation validée':authority==='rejected'?'Habilitation refusée':'Examen en attente';
    const canStart=state.premium.status==='pending'&&identity!=='verified';
    $('identityPanel').classList.toggle('hidden',!canStart);
+   $('identityAutomatic').classList.toggle('hidden',!state.identityEnabled);
    $('identityStart').disabled=!state.identityEnabled;
-   $('identityPanelText').textContent=!state.identityEnabled?'La vérification automatisée n’est pas encore disponible. Contactez le support pour la procédure alternative sécurisée.':identity==='processing'?'Votre contrôle est en cours ; vous pouvez rouvrir ou reprendre votre session Stripe.':'Vous serez dirigé vers le prestataire pour vérifier votre document officiel.';
+   $('identityPanelText').textContent=identity==='processing'?'Votre contrôle en ligne est en cours ; vous pouvez rouvrir ou reprendre la session Stripe.':'Vous serez dirigé vers Stripe Identity pour vérifier votre document officiel.';
+   const reviewStatus=state.manualIdentity?.status||null;
+   const manualLabels={
+    requested:'Demande reçue. OFFRYA doit vous contacter pour organiser le contrôle.',
+    contacting:'Prise de contact en cours par OFFRYA.',
+    scheduled:'Contrôle manuel planifié avec OFFRYA.',
+    needs_information:'Des précisions sont nécessaires. Contactez le support OFFRYA.',
+    completed:'Contrôle manuel réalisé. Votre dossier doit encore être validé selon les résultats.',
+    rejected:'Demande non retenue. Contactez le support pour connaître les suites possibles.'
+   };
+   $('manualIdentityRequest').classList.toggle('hidden',Boolean(reviewStatus));
+   $('manualIdentityRequest').disabled=!canStart;
+   $('manualIdentityStatus').classList.toggle('hidden',!reviewStatus);
+   $('manualIdentityStatus').textContent=manualLabels[reviewStatus]||'';
+   $('manualIdentityDescription').textContent=state.identityEnabled?'Vous pouvez aussi demander un contrôle humain sécurisé au lieu du service automatique.':'La vérification automatisée n’est pas encore disponible. Vous pouvez demander un contrôle humain sans envoyer de pièce d’identité par e-mail.';
    $('proReviewNotice').textContent=state.premium.status==='rejected'?'Votre dossier a été refusé. Contactez le support pour connaître les informations à rectifier et demander un nouvel examen.':identity==='verified'&&authority!=='verified'?'Votre identité a été contrôlée. OFFRYA vérifie maintenant votre droit de représenter l’entreprise, de manière indépendante. Aucun paiement n’est demandé.':'Aucun paiement ni accès aux missions avant la validation complète de votre dossier.';
   }
  }
@@ -248,6 +264,19 @@ $('premiumRequestForm').elements.siret.addEventListener('input',()=>{
  $('premiumRequestForm').dataset.verifiedSiret='';
  $('companyCheck').textContent='Vérifiez le SIRET avec le registre officiel avant de déposer la demande.';
 });
+$('manualIdentityRequest').onclick=async()=>{
+ if(!requireAuth())return;
+ if(!state.session||isGuest()||state.profile?.role!=='pro'||state.premium?.status!=='pending')
+  return toast('Un dossier professionnel en cours est nécessaire.');
+ const button=$('manualIdentityRequest');
+ button.disabled=true;
+ try{
+  const {error}=await state.db.from('offrya_manual_identity_requests').insert({user_id:state.session.user.id});
+  if(error&&error.code!=='23505')throw error;
+  toast('Demande de vérification manuelle enregistrée.');
+  await refresh();
+ }catch(err){showError(err);button.disabled=false;}
+};
 $('identityStart').onclick=async()=>{
  if(!requireAuth())return;
  try{
