@@ -14,7 +14,8 @@ test('OFFRYA ne présente plus de bêta ni de commission promotionnelle',()=>{
  assert.match(html,/Échanges directs/);
  assert.match(html,/accessible partout en France/);
  assert.match(html,/OFFRYA Premium/);
- assert.match(html,/19 € \/ mois/);
+ assert.match(html,/19 € TTC par mois/);
+ assert.match(html,/19 € TTC \/ mois/);
 });
 test('La liste d’attente a disparu de l’interface, les données historiques sont conservées',()=>{
  for(const s of [html,js]){
@@ -35,4 +36,12 @@ test('Tous les messages du parcours Premium restent professionnels et les accès
  assert.match(html,/id="missionForm"/);
  assert.match(html,/id="premiumTermsAck"/);
  assert.match(html,/Demander la vérification de mon entreprise/);
+});
+
+test('Le montant TTC est cohérent dans les CGV, les messages Premium et le formulaire',()=>{
+ const cgv=fs.readFileSync(path.join(__dirname,'../public/cgv.html'),'utf8');
+ assert.match(cgv,/19,00 € TTC par mois/);
+ assert.match(cgv,/Aucun supplément de TVA/);
+ assert.match(js,/19 € TTC par mois/);
+ assert.doesNotMatch(html,/19 € \/ mois|19 € par mois/);
 });

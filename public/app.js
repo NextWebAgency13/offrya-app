@@ -102,7 +102,7 @@ function renderPremium(){
  else if(state.premium.status==='pending'){text.textContent='Demande reçue. Votre entreprise est en cours de vérification.';}
  else if(state.premium.status==='rejected'){text.textContent='L’entreprise n’a pas été validée. Contactez OFFRYA pour une révision.';}
  else if(state.premium.status==='verified'){
-  text.textContent='Entreprise vérifiée. OFFRYA Premium est proposé à 19 € par mois.';
+  text.textContent='Entreprise vérifiée. OFFRYA Premium est proposé à 19 € TTC par mois.';
   $('premiumPlan').classList.remove('hidden');
   $('premiumSubscribe').classList.remove('hidden');
   $('premiumSubscribe').disabled=!state.billingEnabled;
@@ -126,7 +126,7 @@ $('accountBillingPortal').onclick=()=>{if(!state.session){authModal(true);return
 $('premiumSubscribe').onclick=async()=>{
  if(!state.billingEnabled||state.premium?.status!=='verified')return;
  if(!$('premiumTermsAck').checked){toast('Veuillez prendre connaissance des conditions d’abonnement avant de continuer.');return;}
- if(!confirm('Souscrire OFFRYA Premium à 19 € par mois, avec renouvellement automatique et résiliation possible à tout moment ?'))return;
+ if(!confirm('Souscrire OFFRYA Premium à 19 € TTC par mois, avec renouvellement automatique et résiliation possible à tout moment ?'))return;
  try{
   const {data:{session}}=await state.db.auth.getSession();
   if(!session)throw Error('Veuillez vous connecter.');
