@@ -36,6 +36,7 @@ test('Vraie 404 et aucune fuite d’API ou de fichier',async()=>{
  assert.equal((await fetch(base+'/app.js')).status,200);
  assert.equal((await fetch(base+'/public.css')).status,200);
  assert.equal((await fetch(base+'/connexion.js')).status,200);
+ assert.equal((await fetch(base+'/legacy-redirect.js')).status,200);
  assert.equal((await fetch(base+'/deposer.js')).status,200);
 });
 test('Robots et sitemap : seules les pages publiques sont listées, noindex atteignable',async()=>{
@@ -49,9 +50,10 @@ test('Robots et sitemap : seules les pages publiques sont listées, noindex atte
  assert.doesNotMatch(xml,/<loc>[^<]*\/espace(?:\/|<)/);
 });
 test('Anciens fragments, lien de connexion et retour profond sur page autorisée',()=>{
- const home=read('public/index.html'),app=read('public/app.js'),login=read('public/connexion.js');
+ const home=read('public/index.html'),legacy=read('public/legacy-redirect.js'),app=read('public/app.js'),login=read('public/connexion.js');
+ assert.match(home,/src="\/legacy-redirect\.js"/);
  for(const [hash,to] of [['dashboard','/espace'],['missions','/espace/missions'],['professional','/professionnels'],['professional-space','/espace/professionnel'],['tenders','/espace/marches-publics'],['messages','/espace/messagerie'],['settings','/espace/reglages'],['boamp','/espace/marches-publics'],['inbox','/espace/messagerie']]){
-  assert.ok(home.includes((hash==='professional-space'?"'"+hash+"'":hash)+':\''+to+'\''),hash);
+  assert.ok(legacy.includes((hash==='professional-space'?"'"+hash+"'":hash)+':\''+to+'\''),hash);
  }
  assert.match(app,/location\.replace\('\/connexion\?next='/);
  assert.match(app,/pathsReverse\[location.pathname\]/);
@@ -72,4 +74,12 @@ test('Accueil rapide : aucun module Supabase ni consultation de mission privée'
  const home=read('public/index.html');
  assert.doesNotMatch(home,/src="\/app.js"|src="\/deposer.js"|from\('offrya_missions'\)|<script type="module"/);
  assert.match(home,/Votre projet mérite le bon professionnel/);
+});
+
+test('Tous les modules frontend passent l’analyse syntaxique Node sans exécution',()=>{
+ const {spawnSync}=require('node:child_process');
+ for(const filename of ['public/app.js','public/deposer.js','public/connexion.js']){
+  const check=spawnSync(process.execPath,['--input-type=module','--check'],{input:read(filename),encoding:'utf8'});
+  assert.equal(check.status,0,filename+': '+check.stderr);
+ }
 });
