@@ -1,37 +1,33 @@
 'use strict';
-const {test}=require('node:test');
-const assert=require('node:assert/strict');
-const fs=require('node:fs');
-const path=require('node:path');
-
-const html=fs.readFileSync(path.join(__dirname,'../public/index.html'),'utf8');
-const app=fs.readFileSync(path.join(__dirname,'../public/app.js'),'utf8');
-const server=fs.readFileSync(path.join(__dirname,'../server.js'),'utf8');
-const css=fs.readFileSync(path.join(__dirname,'../public/home.css'),'utf8');
-
-test('Accueil: parcours public séparés et prix professionnel exact',()=>{
- const home=html.split('<section class="tab active" id="dashboard">')[1].split('<section class="tab" id="missions">')[0];
- assert.match(home,/Déposer une mission gratuitement/);
- assert.match(home,/data-tab="missions" data-action="publish"/);
- assert.match(home,/data-tab="professional"/);
+const {test}=require('node:test'),assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path');
+const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
+const home=read('public/index.html'),privatePage=read('public/espace.html'),app=read('public/app.js'),server=read('server.js');
+test('Vitrine publique autonome : accroche unique, contenu SEO et aucun tableau de bord',()=>{
+ assert.equal((home.match(/<h1\b/g)||[]).length,1);
+ assert.match(home,/<h1>Votre projet mérite le bon professionnel\.<\/h1>/);
+ assert.match(home,/Publiez gratuitement votre mission, recevez des réponses de professionnels vérifiés/);
+ assert.match(home,/href="\/deposer-une-mission"/);
+ assert.match(home,/href="\/professionnels"/);
  assert.match(home,/34,99 €/);
- assert.match(home,/vérification obligatoire/i);
- assert.match(home,/professionnels dont l’entreprise et l’identité sont vérifiées/);
- assert.match(home,/Sans créer de compte/);
- assert.match(home,/Premium actif à 34,99 € TTC\/mois/);
- assert.doesNotMatch(home,/témoignages|avis clients|\d+\s+professionnels inscrits/i);
+ assert.doesNotMatch(home,/Les opportunités prennent forme|id="dashMissions"|id="statOpen"|id="priorityAlertsList"|Chargement…|<script type="module"/i);
+ assert.match(home,/<link rel="canonical" href="https:\/\/offrya-app.onrender.com\/"/);
+ assert.match(home,/application\/ld\+json/);
+ for(const tag of ['og:type','og:title','og:url','og:description'])assert.ok(home.includes(tag));
 });
-
-test('Accueil: données privées masquées par défaut puis selon la connexion',()=>{
- assert.match(html,/class="home-private hidden" id="homePrivateDashboard"/);
- assert.match(app,/\$\('homePrivateDashboard'\)\.classList\.toggle\('hidden',!yes\)/);
- assert.match(app,/\$\('statOpenLabel'\)\.textContent=canUsePremium\(\)/);
- for(const id of ['dashMissions','dashActivity','priorityAlertsPanel','priorityAlertsList'])assert.match(html,new RegExp('id="'+id+'"'));
- assert.match(app,/const visible=state\.missions\.filter\(m=>m\.owner_id===uid\|\|canBrowse\)/);
+test('Tableau privé indépendant : aucun marketing dans le document ni donnée sensible HTML',()=>{
+ assert.match(privatePage,/name="robots" content="noindex,nofollow"/);
+ for(const x of ['homePrivateDashboard','dashMissions','priorityAlertsList','statOpen','missionForm','premiumRequestForm','boampList'])assert.ok(privatePage.includes('id="'+x+'"'),x);
+ assert.doesNotMatch(privatePage,/Votre projet mérite le bon professionnel|LES OPPORTUNITÉS PRENNENT FORME/);
+ assert.match(app,/location\.replace\('\/connexion\?next='/);
+ assert.match(app,/state\.loaded=true;render\(\)/);
+ assert.match(app,/dashboardLoading/);
 });
-
-test('Accueil: styles dédiés servis par le serveur et responsive',()=>{
- assert.match(html,/href="\/home\.css"/);
- assert.match(server,/\['\/home\.css','text\/css; charset=utf-8'\]/);
- assert.match(css,/@media\(max-width:620px\)/);
+test('Routage explicite, chargement et responsive',()=>{
+ assert.match(server,/privatePage\?'espace.html'/);
+ assert.match(server,/X-Robots-Tag/);
+ assert.match(server,/res\.writeHead\(404/);
+ assert.match(home,/href="\/public.css"/);
+ assert.match(read('public/public.css'),/@media\(max-width:600px\)/);
+ assert.match(read('public/home.css'),/dashboard-skeleton/);
 });

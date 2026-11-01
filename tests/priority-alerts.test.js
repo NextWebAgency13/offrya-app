@@ -49,7 +49,7 @@ test('Le digest quotidien exclut les missions prioritaires déjà envoyées',()=
 });
 
 test('Badge Premium global disponible même en dehors du tableau de bord',()=>{
- const html=fs.readFileSync(path.join(__dirname,'../public/index.html'),'utf8');
+ const html=fs.readFileSync(path.join(__dirname,'../public/espace.html'),'utf8');
  const app=fs.readFileSync(path.join(__dirname,'../public/app.js'),'utf8');
  assert.match(html,/id="priorityAlertShortcut"/);
  assert.match(html,/id="priorityAlertBubble"/);

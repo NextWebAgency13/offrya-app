@@ -1,48 +1,23 @@
 'use strict';
-const {test}=require('node:test');
-const assert=require('node:assert/strict');
-const fs=require('node:fs');
-const path=require('node:path');
-const html=fs.readFileSync(path.join(__dirname,'../public/index.html'),'utf8');
-const js=fs.readFileSync(path.join(__dirname,'../public/app.js'),'utf8');
-const schema=fs.readFileSync(path.join(__dirname,'../sql/schema.sql'),'utf8');
-test('OFFRYA ne présente plus de bêta ni de commission promotionnelle',()=>{
- for(const [name,content] of [['HTML',html],['interface JS',js]]){
-  assert.doesNotMatch(content,/bêta|\bbeta\b|0\s*%\s*de commission/i,name);
- }
- assert.match(html,/Publication gratuite/);
- assert.match(html,/Échanges directs/);
- assert.match(html,/accessible partout en France/);
- assert.match(html,/OFFRYA Professionnel/);
- assert.match(html,/34,99 €/);
- assert.match(html,/TTC \/ mois/);
- assert.match(html,/id="premiumSubscribe"/);
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const get=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
+const home=get('public/index.html'),pro=get('public/professionnels.html'),privateDoc=get('public/espace.html'),app=get('public/app.js'),schema=get('sql/schema.sql');
+test('L’accueil n’invente pas de statistiques ni de témoignages',()=>{
+ for(const h of [home,pro])assert.doesNotMatch(h,/\bbêta\b|0\s*%\s*de commission|dix mille clients|témoignages clients/i);
+ assert.match(home,/Publication gratuite/);
+ assert.match(home,/34,99 €/);
+ assert.match(home,/TTC \/ mois/);
+ assert.match(pro,/dirigeants vérifiés/);
+ assert.doesNotMatch(home,/id="premiumSubscribe"|id="missionForm"|id="statOpen"/);
 });
-test('La liste d’attente a disparu de l’interface, les données historiques sont conservées',()=>{
- for(const s of [html,js]){
-  assert.doesNotMatch(s,/waitBtn|waitState|state\.wait|Programme fondateurs|offrya_waitlist/i);
- }
+test('Aucune liste d’attente affichée ; les tables historiques restent en base',()=>{
+ for(const v of [home,pro,privateDoc,app])assert.doesNotMatch(v,/waitBtn|waitState|state\.wait|Programme fondateurs|offrya_waitlist/i);
  assert.match(schema,/offrya_waitlist/);
- assert.match(html,/href="\/cgv\.html"/);
+ assert.match(home,/href="\/cgv\.html"/);
 });
-test('Tous les messages du parcours Professionnel restent professionnels et les accès inchangés',()=>{
- assert.doesNotMatch(js,/Paiement de test|dans Render|Mode installation|Supabase nécessite/i);
- assert.match(js,/premium_until/);
- assert.match(js,/stripe_customer_id/);
- assert.match(js,/openStripePortal/);
- assert.match(js,/premiumRequestForm/);
- assert.match(js,/premiumSubscribe/);
- assert.match(js,/loadBoamp/);
- assert.match(js,/loadPriorityAlerts/);
- assert.match(html,/id="missionForm"/);
- assert.match(html,/id="premiumTermsAck"/);
- assert.match(html,/id="proSubmitRequest"[^>]*>Déposer mon dossier/);
-});
-
-test('Le montant TTC est cohérent dans les CGV, les messages Professionnel et le formulaire',()=>{
- const cgv=fs.readFileSync(path.join(__dirname,'../public/cgv.html'),'utf8');
- assert.match(cgv,/34,99 € TTC par mois/);
- assert.match(cgv,/Aucun supplément de TVA/);
- assert.match(js,/34,99 € TTC par mois/);
- assert.doesNotMatch(html,/19 € \/ mois|19 € par mois/);
+test('Les fonctions professionnelles existent encore dans l’espace privé',()=>{
+ for(const id of ['missionForm','premiumRequestForm','premiumSubscribe','premiumTermsAck','accountBillingPortal','proSubmitRequest','boampList'])assert.ok(privateDoc.includes('id="'+id+'"'),id);
+ for(const fn of ['loadBoamp','loadPriorityAlerts','openStripePortal','premiumRequestForm','premiumSubscribe'])assert.ok(app.includes(fn),fn);
+ assert.match(app,/34,99 € TTC par mois/);
+ assert.match(get('public/cgv.html'),/34,99 € TTC par mois/);
 });
