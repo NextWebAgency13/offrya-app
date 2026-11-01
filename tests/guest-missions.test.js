@@ -15,7 +15,7 @@ test('Publication publique séparée et gratuite sans compte',()=>{
  assert.doesNotMatch(form,/Création de compte obligatoire/);
 });
 test('Suivi e-mail strictement facultatif, explicite, sans marketing',()=>{
- assert.match(submit,/auth\.updateUser\(\{email\}/);
+ assert.match(submit,/auth\.updateUser\(\{email:/);
  assert.match(submit,/followupForm'\)\.addEventListener\('submit'/);
  assert.match(form,/Aucun e-mail commercial ni alerte automatique/);
  assert.match(submit,/is_anonymous/);
