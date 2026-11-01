@@ -59,3 +59,15 @@ test('Secteurs, accessibilité et CSS limité à la vitrine',()=>{
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
  assert.match(css,/\.sector span\{font-size:14px/);
 });
+
+test('Design validé : photo métier, statistiques agrégées et parcours clairs sans nouvelles promesses techniques',()=>{
+ const server=read('server.js');
+ assert.match(home,/class="home-hero-portrait"/);
+ assert.match(home,/Photographie d’illustration/);
+ assert.match(css,/\.home-landing \.home-hero-portrait\{/);
+ assert.match(css,/background-image:url\("https:\/\/images\.pexels\.com\/photos\/34670926\//);
+ assert.match(server,/img-src 'self' data: https:\/\/images\.pexels\.com;/);
+ assert.ok(home.indexOf('id="activite"')<home.indexOf('id="choisir-compte"'));
+ for(const key of ['#fonctionnement','#secteurs','#activite'])assert.ok(home.includes('href="/'+key+'"'));
+ assert.doesNotMatch(home,/qualification RGE vérifiée|décennale contrôlée|avis clients vérifiés|100 % des demandes aboutissent/i);
+});
