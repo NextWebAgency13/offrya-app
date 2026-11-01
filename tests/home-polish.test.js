@@ -20,8 +20,8 @@ test('Accueil : connexion et inscription visibles ; autres pages gardent Mon esp
 test('Accueil : hiérarchie commerciale claire, double parcours et aucune fausse preuve',()=>{
  assert.match(home,/<h1 id="heroHeading">Votre projet mérite <span>le bon professionnel\.<\/span><\/h1>/);
  assert.equal((home.match(/<h1\b/g)||[]).length,1);
- assert.match(home,/class="home-hero-showcase"/);
- assert.match(home,/Illustration du parcours · Aucune annonce privée affichée/);
+ assert.match(home,/class="home-hero-portrait"/);
+ assert.match(home,/Photographie d’illustration/);
  assert.match(home,/class="btn outline" href="\/professionnels">Je suis professionnel/);
  assert.match(home,/class="home-path-card home-path-client"/);
  assert.match(home,/class="home-path-card home-path-business"/);
