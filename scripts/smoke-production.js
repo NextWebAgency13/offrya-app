@@ -49,8 +49,9 @@ async function run(){
   designVisible=landing.status===200&&styles.status===200
    &&landing.text.includes('class="mock-hero"')
    &&landing.text.includes('Votre projet mérite<br>le bon <span>professionnel.</span>')
-   &&landing.text.includes('class="mock-activity-title"')
-   &&landing.text.includes('id="publicActivity"')
+   &&!landing.text.includes('class="mock-activity-title"')
+   &&!landing.text.includes('id="publicActivity"')
+   &&!landing.text.includes('src="/activity.js"')
    &&landing.text.includes('class="mock-choice-grid"')
    &&landing.text.includes('class="mock-sector-grid"')
    &&landing.text.includes('class="mock-end"')
