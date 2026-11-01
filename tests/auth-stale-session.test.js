@@ -100,7 +100,7 @@ test('Après la suppression du compte, un clic Créer mon compte gratuit fonctio
  assert.equal(page.signupCalls.length,1);
  assert.equal(page.signupCalls[0].email,'new@example.test');
  assert.equal(page.signupCalls[0].options.emailRedirectTo,
-  'https://offrya-app.onrender.com/connexion?confirmation=1');
+  'https://offrya-app.onrender.com/connexion?confirmation=1&next=%2Fdeposer-une-mission');
  assert.match(page.dom.loginStatus.textContent,/Consultez votre boîte e-mail/);
  assert.deepEqual(page.redirects,[]);
 });
@@ -183,4 +183,19 @@ test('Interface de connexion : trois onglets, aucun lien magique de connexion',(
  assert.match(source,/signUp\(/);
  assert.match(source,/signInWithPassword\(/);
  assert.match(source,/resetPasswordForEmail\(/);
+});
+
+test('Inscription professionnelle : le lien e-mail permet de revenir sur le parcours pro',async()=>{
+ const page=await loadAuthPage({url:'?mode=signup&next=%2Fespace%2Fprofessionnel'});
+ await page.submit();
+ assert.equal(page.signupCalls.length,1);
+ assert.equal(page.signupCalls[0].options.emailRedirectTo,'https://offrya-app.onrender.com/connexion?confirmation=1&next=%2Fespace%2Fprofessionnel');
+});
+test('Confirmation e-mail : le parcours professionnel est conservé',async()=>{
+ const page=await loadAuthPage({session:{user:validUser},user:validUser,url:'?confirmation=1&next=%2Fespace%2Fprofessionnel'});
+ assert.deepEqual(page.redirects,['/espace/professionnel']);
+});
+test('Confirmation e-mail : le parcours de dépôt est conservé',async()=>{
+ const page=await loadAuthPage({session:{user:validUser},user:validUser,url:'?confirmation=1&next=%2Fdeposer-une-mission'});
+ assert.deepEqual(page.redirects,['/deposer-une-mission']);
 });
