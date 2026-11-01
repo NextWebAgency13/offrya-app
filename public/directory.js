@@ -34,7 +34,19 @@ async function load(){
      $('directoryReportStatus').textContent='';$('directoryReportDialog').showModal();
     }catch{status.textContent='Connexion nécessaire pour signaler un profil.';}
    });card.append(el('p')).append(button);
+   const reviewsSection=el('div');reviewsSection.className='directory-reviews';
+   reviewsSection.append(el('p','Chargement des avis clients…'));card.append(reviewsSection);
    root.append(card);
+   fetch('/api/professionnels-verifies/'+encodeURIComponent(pro.id)+'/avis')
+    .then(async r=>{if(!r.ok)throw Error('indisponible');return r.json();})
+    .then(data=>{
+     reviewsSection.replaceChildren();
+     const reviews=data.reviews||[];
+     if(!reviews.length){reviewsSection.append(el('p','Aucun avis pour le moment.'));return;}
+     const average=reviews.reduce((sum,v)=>sum+v.rating,0)/reviews.length;
+     reviewsSection.append(el('strong',average.toFixed(1).replace('.',',')+'/5 · '+reviews.length+' avis clients'));
+     for(const review of reviews.slice(0,4))reviewsSection.append(el('p',review.rating+'/5 · '+review.comment));
+    }).catch(()=>{reviewsSection.textContent='Avis temporairement indisponibles.';});
   }
  }catch{status.textContent='Annuaire temporairement indisponible. Aucun profil fictif n’est affiché.';}
 }
