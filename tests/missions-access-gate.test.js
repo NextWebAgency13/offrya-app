@@ -24,10 +24,11 @@ async function refreshed(role){
    const q={
     select(){return q},
     eq(field,value){filters.push([field,value]);return q},
+    gt(field,value){filters.push(['gt:'+field,value]);return q},
     order(){return q},
     limit(){
      calls.push({table,filters:[...filters]});
-     let data=table==='offrya_missions'?rows.filter(m=>filters.every(([field,value])=>m[field]===value)):
+     let data=table==='offrya_missions'?rows.filter(m=>filters.every(([field,value])=>field.startsWith('gt:')?true:m[field]===value)):
       table==='offrya_profiles'?[]:[];
      return Promise.resolve({data,error:null});
     },
@@ -61,7 +62,9 @@ test('Compte Premium : second chargement limité aux annonces ouvertes, avec ann
  assert.deepEqual(Array.from(state.missions,m=>m.id).sort(),['other-open','own-closed','own-open']);
  const missionQueries=calls.filter(c=>c.table==='offrya_missions');
  assert.equal(missionQueries.length,2);
- assert.deepEqual(Array.from(missionQueries[1].filters,x=>Array.from(x)),[['status','open']]);
+ assert.equal(missionQueries[1].filters[0][0],'status');
+ assert.equal(missionQueries[1].filters[0][1],'open');
+ assert.equal(missionQueries[1].filters[1][0],'gt:expires_at');
 });
 test('Recherche générale masquée avant certification, sans masquer les annonces personnelles',()=>{
  const elements=new Map();
@@ -72,9 +75,11 @@ test('Recherche générale masquée avant certification, sans masquer les annonc
   });
   return elements.get(id);
  };
- const state={session:{user:{id:uid,email_confirmed_at:'2026-11-01T10:00:00Z'}},missions:rows,favorites:[]};
+ const state={session:{user:{id:uid,email_confirmed_at:'2026-11-01T10:00:00Z'}},missions:rows,favorites:[],conversations:[]};
  const ctx={state,$,canUsePremium:()=>false,isGuest:()=>false,
-   row:m=>'<article>'+m.id+'</article>',esc:String};
+   row:m=>'<article>'+m.id+'</article>',esc:String,
+   missionEffectiveStatus:m=>m.status,
+   profileName:()=> 'Professionnel fictif'};
  vm.runInNewContext(renderSource,ctx);
  ctx.renderMissions();
  assert.equal($('missionSearchFilters').classList.states.get('hidden'),true);
