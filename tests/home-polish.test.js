@@ -4,10 +4,14 @@ const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 const home=read('public/index.html'),css=read('public/public.css'),pro=read('public/professionnels.html');
 const otherPages=['public/professionnels.html','public/deposer-une-mission.html','public/connexion.html',
  ...['batiment','nettoyage','espaces-verts','transport','informatique','autres-prestations'].map(x=>'public/secteurs/'+x+'.html')];
-test('Navigation : les accès Connexion et Inscription restent inchangés',()=>{
- assert.match(home,/class="header-signin" href="\/connexion\?next=%2Fespace"/);
- assert.match(home,/class="header-signup" href="\/connexion\?mode=signup&amp;next=%2Fdeposer-une-mission"/);
- assert.match(home,/class="home-nav-links mock-nav-links"/);
+test('Navigation : en-tête minimal avec logo et seul bouton Se connecter',()=>{
+ const header=home.match(/<header class="top home-top mock-top">([\s\S]*?)<\/header>/)?.[1];
+ assert.ok(header,'En-tête accueil présent');
+ assert.match(header,/class="brand" href="\/" aria-label="OFFRYA, accueil"/);
+ assert.match(header,/class="header-signin" href="\/connexion\?next=%2Fespace">Se connecter<\/a>/);
+ assert.equal((header.match(/<a /g)||[]).length,2,'Seulement le logo et la connexion sont cliquables');
+ assert.doesNotMatch(header,/header-signup|home-nav-links|mock-nav-links|mock-brand-tagline|S’inscrire|<button/);
+ assert.match(home,/href="\/connexion\?mode=signup&amp;next=%2Fdeposer-une-mission"/,'Inscription gratuite conservée dans la carte Demandeur');
  for(const p of otherPages)assert.match(read(p),/class="account-link" href="\/espace"/,p);
 });
 test('Maquette : huit blocs dans le bon ordre et un seul H1',()=>{
