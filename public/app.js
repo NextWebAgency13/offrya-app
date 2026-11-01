@@ -68,7 +68,7 @@ function renderMissions(){
  const uid=state.session?.user.id,canBrowse=canUsePremium();
  const visible=state.missions.filter(m=>m.owner_id===uid||canBrowse);
  let q=$('missionQuery').value.trim().toLowerCase(),c=$('missionCategory').value,d=$('missionDept').value.trim().toUpperCase();
- const matches=visible.filter(m=>m.status==='open'&&(!q||(m.title+' '+m.description+' '+m.city).toLowerCase().includes(q))&&(!c||m.category===c)&&(!d||m.department===d));
+ const matches=visible.filter(m=>(m.owner_id===uid||m.status==='open')&&(!q||(m.title+' '+m.description+' '+m.city).toLowerCase().includes(q))&&(!c||m.category===c)&&(!d||m.department===d));
  $('missionsCount').textContent=matches.length+(canBrowse?' mission(s) accessible(s)':' annonce(s) personnelle(s)');
  $('missionsListHeading').textContent=canBrowse?'Missions accessibles à mon compte Pro':'Mes annonces publiées';
  $('missionSearchFilters').classList.toggle('hidden',!canBrowse);
@@ -78,7 +78,7 @@ function renderMissions(){
  $('missionAccountNotice').classList.toggle('hidden',publisherReady);
  $('missionList').innerHTML=matches.length?matches.map(m=>{
   const own=m.owner_id===uid;
-  const actions=own?`<span class="tag">Votre annonce</span> <button class="button secondary micro-button" data-close-mission="${esc(m.id)}">Clôturer</button>`:
+  const actions=own?`<span class="tag">Votre annonce</span> ${m.status==='open'?`<button class="button secondary micro-button" data-close-mission="${esc(m.id)}">Clôturer</button>`:''}`:
    canBrowse?`<button class="button secondary micro-button" data-favorite="${esc(m.id)}" aria-pressed="${state.favorites.includes(m.id)}">${state.favorites.includes(m.id)?'★ Enregistrée':'☆ Favori'}</button> <button class="button primary micro-button" data-contact="${esc(m.id)}">Contacter le client</button>`:'';
   return row(m,actions);
  }).join(''):'<div class="empty">Vous n’avez pas encore publié de mission, ou aucun résultat ne correspond à vos critères. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
