@@ -15,7 +15,7 @@ function buildDigest({missions,messages,siteUrl,token}){
  const messageText=messages.length?`<p>Vous avez ${messages.length} nouveau(x) message(s) dans votre espace OFFRYA.</p>`:'';
  return {
   subject:`OFFRYA — ${missions.length} nouvelle(s) mission(s), ${messages.length} message(s)`,
-  html:`<div style="font-family:Arial,sans-serif;max-width:650px;color:#153027"><h1>OFFRYA • Votre récapitulatif</h1>${missions.length?`<h2>Nouvelles missions correspondantes</h2><ul>${mLines}</ul>`:''}${messageText}<p><a href="${esc(siteUrl)}">Voir mon espace OFFRYA</a></p><hr><p style="font-size:12px;color:#52685f">Vous recevez cet e-mail parce que vous avez activé les alertes dans votre compte OFFRYA. Ce message ne contient aucune offre promotionnelle.</p><p><a href="${esc(link)}">Me désabonner de toutes les alertes</a> · <a href="${esc(siteUrl)}/#settings">Préférences</a></p></div>`,
+  html:`<div style="font-family:Arial,sans-serif;max-width:650px;color:#153027"><h1>OFFRYA • Votre récapitulatif</h1>${missions.length?`<h2>Nouvelles missions correspondantes</h2><ul>${mLines}</ul>`:''}${messageText}<p><a href="${esc(siteUrl.replace(/\/$/,'')+'/espace')}">Voir mon espace OFFRYA</a></p><hr><p style="font-size:12px;color:#52685f">Vous recevez cet e-mail parce que vous avez activé les alertes dans votre compte OFFRYA. Ce message ne contient aucune offre promotionnelle.</p><p><a href="${esc(link)}">Me désabonner de toutes les alertes</a> · <a href="${esc(siteUrl.replace(/\/$/,'')+'/espace/reglages')}">Préférences</a></p></div>`,
   link
  };
 }
