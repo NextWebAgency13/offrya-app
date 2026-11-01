@@ -13,9 +13,9 @@
 - **Notifications** : alertes opt-in et récapitulatifs (Resend, GitHub Actions). Les modèles d'envoi vérifient les préférences et droits Premium.
 - **Déploiement** : Render Node en plan gratuit déclaré dans `render.yaml`, GitHub Actions pour tests et contrôles HTTP.
 
-## 2. Divergences métier à trancher avant développement
+## 2. Règles métier définitivement arrêtées et divergences documentaires
 
-1. Le nouveau cahier des charges exige « dépôt sans compte », mais `public/deposer.js`, `public/app.js` et la politique RLS **restrictive** de `sql/confirmed_mission_authors.sql` exigent un compte confirmé. Le rétablissement du dépôt invité nécessite accord explicite et migration RLS.
+1. **Décision définitive du 1er novembre 2026 :** toute nouvelle mission nécessite un **compte gratuit avec adresse e-mail confirmée avant publication**. Le dépôt anonyme est abandonné. Ne pas réactiver les sessions invitées pour publier, ni affaiblir `sql/confirmed_mission_authors.sql`. Les anciens invités gardent uniquement les droits déjà acquis sur leurs propres missions, sans suppression ni réattribution automatique. Cette règle prime toute mention historique de « dépôt sans compte ».
 2. Le cahier exige le CTA « Devenir professionnel », alors que la vitrine et les derniers choix éditoriaux utilisent « Devenir Premium ». Décision de vocabulaire requise avant harmonisation.
 3. Certains documents historiques du dépôt décrivent 19 € et une consultation publique des missions ; ils sont désormais faux, contrairement aux contrôles actifs à 34,99 €. Mettre à jour ces documents **sans changer les textes juridiques**.
 
@@ -64,7 +64,7 @@
 | Ordre | Travail | Effort | Accord préalable ? |
 | --- | --- | --- | --- |
 | P0 | Sécuriser les messages d'auth, erreurs réseau, états d'inscription et tests négatifs | 0,5–1 j | Non, comportement identique |
-| P0 | Arbitrer dépôt invité versus compte confirmé, puis adapter sécurité et parcours | 1–3 j | **Oui : règle métier + RLS** |
+| P0 — **décision close** | Compte gratuit + e-mail confirmé avant publication ; RLS restrictive déjà appliquée. Compléter les tests négatifs et vérifier le parcours réel d'e-mail (Confirm email, redirections et capacité SMTP) | 1–2 j pour la validation, hors déploiement | **Non** pour tests et vérifications en lecture seule ; **oui** pour tout réglage Auth/SMTP payant ou modification RLS |
 | P0 | Protection des demandeurs : téléphone OTP, CAPTCHA, anti-spam et contrôle distribué | 3–6 j | **Oui** si service, coût ou schéma ; interface/tests préparables |
 | P0 | Signalement + modération des missions et messages | 3–5 j | **Oui : tables et RLS** |
 | P0 | Back-office : validation, suspension, journal d'audit et contrôle d'accès administrateur | 5–9 j | **Oui : schéma et RLS** |
@@ -82,3 +82,11 @@
 ## 7. Première amélioration autorisée
 
 Branche `fix/auth-erreurs-francais-20261101` : mapper les codes d'erreur d'authentification en messages français sûrs, afficher « adresse déjà associée » **uniquement si Supabase confirme explicitement le doublon**, sans recherche publique des utilisateurs et sans modifier les droits. Tester syntaxe et fonctions localement, puis CI GitHub et PR. Aucun service, secret, tarif, politique RLS ou texte juridique modifié.
+
+## 8. Mise à jour de décision — 1er novembre 2026
+
+- **Demandeurs :** compte personnel gratuit obligatoire avant publication et confirmation effective de l'adresse e-mail. Aucun abonnement nécessaire pour publier ou consulter ses propres missions.
+- **Professionnels :** lecture des missions d'autrui uniquement après vérification de l'entreprise, de l'identité et de la qualité de dirigeant officiel, puis abonnement payé à 34,99 € TTC/mois.
+- **Déjà en place au moment de cette mise à jour :** migration `20261101105133 offrya_confirmed_account_required_for_mission_posts`, politique restrictive `missions_confirmed_email_insert`, contrôle réel de `auth.users.email_confirmed_at` et `is_anonymous=false` par `offrya_private.has_confirmed_mission_account()`, contrôle client `getUser()` sur `/deposer-une-mission`.
+- **À vérifier avant généralisation des inscriptions :** option Supabase Auth « Confirm email », URL de retour, délivrance effective des e-mails aux adresses externes (quotas/SMTP), scénario de confirmation sur Android, tests de publication refusée sans confirmation, audit de permissions sur accès professionnel. Ne pas considérer la seule présence de la migration comme un test utilisateur de bout en bout.
+- **Scope du changement documentaire :** aucune modification de prix, règles RLS, schéma Supabase, Stripe, secrets, textes juridiques ou environnement de production.
