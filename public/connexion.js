@@ -8,14 +8,14 @@ const linkHash=new URLSearchParams((location.hash||'').replace(/^#/,''));
 const confirmationReturn=query.get('confirmation')==='1'||query.get('type')==='signup'||linkHash.get('type')==='signup';
 let db,mode='login',redirected=false,verificationQueue=Promise.resolve();
 const invalidatedSessionIds=new Set();
-const labels={login:'Se connecter',signup:'Créer un compte',magic:'Envoyer un lien',reset:'Envoyer la réinitialisation',recover:'Enregistrer le mot de passe'};
-const titles={login:'Connexion à votre espace',signup:'Créer mon compte gratuit',magic:'Recevoir un lien de connexion',reset:'Réinitialiser mon mot de passe',recover:'Choisir un nouveau mot de passe'};
+const labels={login:'Se connecter',signup:'Créer un compte',reset:'Envoyer la réinitialisation',recover:'Enregistrer le mot de passe'};
+const titles={login:'Connexion à votre espace',signup:'Créer mon compte gratuit',reset:'Réinitialiser mon mot de passe',recover:'Choisir un nouveau mot de passe'};
 function say(s,error=false){$('loginStatus').textContent=s;$('loginStatus').style.color=error?'#ab294d':'#4e318a';}
 function change(v){
  mode=v;for(const b of document.querySelectorAll('[data-mode]'))b.setAttribute('aria-pressed',String(b.dataset.mode===v));
  $('loginSubmit').textContent=labels[v];$('authHeading').textContent=titles[v];
  const ps=$('passwordRow'),em=$('emailRow');
- ps.hidden=['magic','reset'].includes(v);ps.querySelector('input').required=!ps.hidden;ps.querySelector('input').autocomplete=v==='login'?'current-password':'new-password';
+ ps.hidden=v==='reset';ps.querySelector('input').required=!ps.hidden;ps.querySelector('input').autocomplete=v==='login'?'current-password':'new-password';
  em.hidden=v==='recover';em.querySelector('input').required=!em.hidden;
 }
 for(const b of document.querySelectorAll('[data-mode]'))b.addEventListener('click',()=>change(b.dataset.mode));
@@ -95,13 +95,12 @@ $('loginForm').addEventListener('submit',async e=>{
  const f=e.currentTarget,email=f.elements.email.value.trim(),password=f.elements.password.value,b=$('loginSubmit');b.disabled=true;
  try{
   let r;if(mode==='signup')r=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/connexion?confirmation=1'}});
-  else if(mode==='magic')r=await db.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:location.origin+'/connexion?next='+encodeURIComponent(next)}});
   else if(mode==='reset')r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/connexion?mode=reset-password&next='+encodeURIComponent(next)});
   else if(mode==='recover')r=await db.auth.updateUser({password});
   else r=await db.auth.signInWithPassword({email,password});
   if(r.error)throw r.error;
   if(mode==='signup')say('Consultez votre boîte e-mail et confirmez votre inscription. Vous serez ensuite redirigé vers l’accueil OFFRYA.');
-  else if(['magic','reset'].includes(mode))say('Consultez votre boîte e-mail et ouvrez le lien sécurisé. Aucun abonnement ni alerte n’est activé.');
+  else if(mode==='reset')say('Consultez votre boîte e-mail et ouvrez le lien sécurisé de réinitialisation. Aucun abonnement ni alerte n’est activé.');
   else if(mode==='recover'){say('Mot de passe modifié');location.replace(next);}
   else await resume(r.data?.session);
  }catch(err){say(err.message||'Erreur de connexion',true);}finally{b.disabled=false;}
