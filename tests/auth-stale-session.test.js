@@ -75,7 +75,7 @@ async function loadAuthPage({
  await new Promise(resolve=>setTimeout(resolve,45));
  return{
   redirects,signOutCalls,signupCalls,loginCalls,dom,
-  submit:()=>handlers.submit({preventDefault(){}})
+  submit:()=>handlers.submit({preventDefault(){},currentTarget:form})
  };
 }
 test('Une session d’un utilisateur supprimé n’ouvre pas le formulaire de publication',async()=>{
