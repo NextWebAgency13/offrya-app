@@ -25,7 +25,7 @@ async function loadAuthPage({
   elements:fields,
   addEventListener(type,listener){handlers[type]=listener;}
  };
- const tabButtons=['login','signup','magic','reset'].map(mode=>({
+ const tabButtons=['login','signup','reset'].map(mode=>({
   dataset:{mode},
   attributes:{},
   setAttribute(name,value){this.attributes[name]=value;},
@@ -164,10 +164,22 @@ test('Un lien de confirmation sans session vérifiée ne simule pas de connexion
  assert.deepEqual(page.redirects,[]);
  assert.equal(page.signOutCalls.length,0);
 });
-test('Lien magique : la destination demandée reste la page privée',async()=>{
+test('Connexion classique : la destination demandée reste la page privée',async()=>{
  const page=await loadAuthPage({
   session:{user:validUser},user:validUser,
   url:'?next=%2Fespace%2Fmissions'
  });
  assert.deepEqual(page.redirects,['/espace/missions']);
+});
+
+test('Interface de connexion : trois onglets, aucun lien magique de connexion',()=>{
+ const html=fs.readFileSync(path.join(__dirname,'../public/connexion.html'),'utf8');
+ const tabs=[...html.matchAll(/<button type="button" data-mode="([^"]+)"[^>]*>([^<]+)<\/button>/g)];
+ assert.deepEqual(tabs.map(t=>t[1]),['login','signup','reset']);
+ assert.deepEqual(tabs.map(t=>t[2]),['Connexion','Inscription','Mot de passe oublié']);
+ assert.doesNotMatch(html,/Lien e-mail|data-mode="magic"/);
+ assert.doesNotMatch(source,/signInWithOtp|mode==='magic'|magic:'Envoyer un lien'/);
+ assert.match(source,/signUp\(/);
+ assert.match(source,/signInWithPassword\(/);
+ assert.match(source,/resetPasswordForEmail\(/);
 });
