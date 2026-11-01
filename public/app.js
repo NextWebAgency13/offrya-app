@@ -398,7 +398,7 @@ function renderPriorityAlerts(){
  $('priorityAlertShortcut').setAttribute('aria-label',unread+' opportunité(s) prioritaires non consultée(s)');
  $('priorityAlertsList').innerHTML=alerts.length?alerts.map(a=>
   `<article class="data-item">
-    <div class="item-top"><span class="tag">${a.seen_at?'Consultée':'NOUVELLE · PRIORITÉ PREMIUM'}</span><span class="muted tiny">${date(a.created_at)}</span></div>
+    <div class="item-top"><span class="tag">${a.seen_at?'Consultée':'NOUVELLE · OFFRYA PROFESSIONNEL'}</span><span class="muted tiny">${date(a.created_at)}</span></div>
     <div class="item-title">${esc(a.mission.title)}</div>
     <div class="meta-row"><span>${esc(a.mission.category)}</span><span>${esc(a.mission.city)} (${esc(a.mission.department)})</span></div>
     <div class="item-actions"><button class="button secondary micro-button" data-priority-open="${esc(a.id)}">Consulter cette mission</button></div>
