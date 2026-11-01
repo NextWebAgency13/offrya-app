@@ -171,3 +171,15 @@ test('Connexion classique : la destination demandée reste la page privée',asyn
  });
  assert.deepEqual(page.redirects,['/espace/missions']);
 });
+
+test('Interface de connexion : trois onglets, aucun lien magique de connexion',()=>{
+ const html=fs.readFileSync(path.join(__dirname,'../public/connexion.html'),'utf8');
+ const tabs=[...html.matchAll(/<button type="button" data-mode="([^"]+)"[^>]*>([^<]+)<\/button>/g)];
+ assert.deepEqual(tabs.map(t=>t[1]),['login','signup','reset']);
+ assert.deepEqual(tabs.map(t=>t[2]),['Connexion','Inscription','Mot de passe oublié']);
+ assert.doesNotMatch(html,/Lien e-mail|data-mode="magic"/);
+ assert.doesNotMatch(source,/signInWithOtp|mode==='magic'|magic:'Envoyer un lien'/);
+ assert.match(source,/signUp\(/);
+ assert.match(source,/signInWithPassword\(/);
+ assert.match(source,/resetPasswordForEmail\(/);
+});
