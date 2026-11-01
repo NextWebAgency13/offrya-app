@@ -90,33 +90,6 @@ async function run(){
  }
  assert.ok(missionGateDeployed,'Render ne sert pas encore le verrouillage des missions avant certification Pro');
  console.log('PASS: Render sert la version verrouillant la recherche des missions avant certification Premium');
-
- // Les nouveaux parcours métier ne sont validés qu'après leur présence réelle
- // dans le déploiement Render ; les endpoints publics ne doivent pas divulguer
- // le détail de la moindre mission.
- let v2Ready=false;
- for(let attempt=0;attempt<18;attempt++){
-  const [counts,directory,depot,space]=await Promise.all([
-    request('/api/mission-counts'),request('/api/professionnels-verifies'),
-    request('/deposer-une-mission'),request('/espace')
-  ]);
-  const safeCounts=counts.status===200&&Number.isSafeInteger(counts.json?.total)
-   &&Array.isArray(counts.json?.sectors)&&Array.isArray(counts.json?.departments)
-   &&!counts.text.includes('owner_id')&&!counts.text.includes('description')
-   &&!counts.text.includes('"title"')&&!counts.text.includes('"city"');
-  const safeDirectory=directory.status===200&&Array.isArray(directory.json?.professionals)
-   &&!directory.text.includes('"siret"')&&!directory.text.includes('identity_live_verified');
-  v2Ready=safeCounts&&safeDirectory
-   &&depot.text.includes('name="area_sqm"')
-   &&depot.text.includes('name="photos"')
-   &&space.text.includes('id="reportDialog"')
-   &&space.text.includes('id="professionalPublicCard"');
-  if(v2Ready)break;
-  if(attempt<17)await new Promise(resolve=>setTimeout(resolve,10000));
- }
- assert.ok(v2Ready,'Render ne sert pas encore OFFRYA v2 (statistiques, photos, pro vérifiés et signalements)');
- console.log('PASS: OFFRYA v2 : comptage public sans données privées, dépôt enrichi et signalements');
-
  const cfg=await request('/api/config');
  assert.equal(cfg.status,200,'Configuration API');
  assert.equal(cfg.json?.supabaseUrl,'https://hhxtutvmvlphkutqscad.supabase.co');

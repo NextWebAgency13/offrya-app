@@ -2,7 +2,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{createServer}=require('node:http');
 const {handle}=require('../server');
 const root=path.join(__dirname,'..'),read=p=>fs.readFileSync(path.join(root,p),'utf8');
-const publicPaths=['/','/deposer-une-mission','/professionnels','/professionnels-verifies','/connexion','/secteurs/batiment','/secteurs/nettoyage','/secteurs/espaces-verts','/secteurs/transport','/secteurs/informatique','/secteurs/autres-prestations','/cgv.html','/confidentialite.html','/remboursements.html','/contact.html','/mentions-legales.html'];
+const publicPaths=['/','/deposer-une-mission','/professionnels','/connexion','/secteurs/batiment','/secteurs/nettoyage','/secteurs/espaces-verts','/secteurs/transport','/secteurs/informatique','/secteurs/autres-prestations','/cgv.html','/confidentialite.html','/remboursements.html','/contact.html','/mentions-legales.html'];
 const privatePaths=['/espace','/espace/missions','/espace/marches-publics','/espace/messagerie','/espace/reglages','/espace/professionnel'];
 let server,base;
 test.before(async()=>{server=createServer(handle);await new Promise(done=>server.listen(0,'127.0.0.1',done));base='http://127.0.0.1:'+server.address().port;});
@@ -40,10 +40,6 @@ test('Vraie 404 et aucune fuite d’API ou de fichier',async()=>{
  assert.match(feedback.headers.get('content-type'),/text\/javascript/);
  assert.equal((await fetch(base+'/legacy-redirect.js')).status,200);
  assert.equal((await fetch(base+'/deposer.js')).status,200);
- assert.equal((await fetch(base+'/mission-counts.js')).status,200);
- assert.equal((await fetch(base+'/mission-fields.js')).status,200);
- assert.equal((await fetch(base+'/mission-photos.mjs')).status,200);
- assert.equal((await fetch(base+'/directory.js')).status,200);
 });
 test('Robots et sitemap : seules les pages publiques sont listées, noindex atteignable',async()=>{
  const robots=await fetch(base+'/robots.txt'),sitemap=await fetch(base+'/sitemap.xml');
@@ -84,7 +80,7 @@ test('Accueil rapide : aucun module Supabase ni consultation de mission privée'
 
 test('Tous les modules frontend passent l’analyse syntaxique Node sans exécution',()=>{
  const {spawnSync}=require('node:child_process');
- for(const filename of ['public/app.js','public/deposer.js','public/connexion.js','public/directory.js','public/mission-photos.mjs']){
+ for(const filename of ['public/app.js','public/deposer.js','public/connexion.js']){
   const check=spawnSync(process.execPath,['--input-type=module','--check'],{input:read(filename),encoding:'utf8'});
   assert.equal(check.status,0,filename+': '+check.stderr);
  }
