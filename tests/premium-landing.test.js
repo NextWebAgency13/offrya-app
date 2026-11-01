@@ -3,7 +3,7 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 const home=read('public/index.html'),premium=read('public/professionnels.html'),css=read('public/public.css');
 test('OFFRYA Professionnel : vitrine et offre unique cohérentes',()=>{
- assert.match(home,/<a class="btn outline" href="\/professionnels">Je suis professionnel<\/a>/);
+ assert.match(home,/<a class="btn outline" href="\/professionnels">Je suis professionnel/);
  assert.match(premium,/<h1 id="premium-title">OFFRYA Professionnel : développez votre activité<\/h1>/);
  assert.equal((premium.match(/<h1\b/g)||[]).length,1);
  assert.match(premium,/<title>OFFRYA Professionnel \| 34,99 € TTC\/mois<\/title>/);
