@@ -61,7 +61,7 @@ test('Protection SQL : mission INSERT restreint sans altérer les droits Premium
  assert.match(premiumSql,/s\.status='active'/);
 });
 test('Accueil : communication cohérente et FAQ HTML / JSON-LD identiques',()=>{
- assert.match(home,/Publication gratuite avec compte confirmé/);
+ assert.match(home,/Publication après confirmation de l’e-mail/);
  assert.doesNotMatch(home,/sans inscription|sans compte|session invitée|Aucun compte n.est imposé/i);
  const faqs=[...home.matchAll(/<details><summary>([^<]+)<\/summary><p>([^<]+)<\/p><\/details>/g)];
  const schema=[...home.matchAll(/<script type="application\/ld\+json">([^<]+)<\/script>/g)].map(v=>JSON.parse(v[1])).find(s=>s['@type']==='FAQPage');
