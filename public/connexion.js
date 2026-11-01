@@ -15,6 +15,15 @@ function say(s,error=false){$('loginStatus').textContent=s;$('loginStatus').styl
 function change(v){
  mode=v;for(const b of document.querySelectorAll('[data-mode]'))b.setAttribute('aria-pressed',String(b.dataset.mode===v));
  $('loginSubmit').textContent=labels[v];$('authHeading').textContent=titles[v];
+ const choice=$('accountTypeChoice');
+ if(choice){
+  choice.hidden=v!=='signup';
+  for(const option of choice.querySelectorAll('[data-signup-type]')){
+   const selected=option.dataset.signupType===(next==='/espace/professionnel'?'pro':'client');
+   option.classList.toggle('chosen',selected);
+   if(selected)option.setAttribute('aria-current','true');else option.removeAttribute('aria-current');
+  }
+ }
  const ps=$('passwordRow'),em=$('emailRow');
  ps.hidden=v==='reset';ps.querySelector('input').required=!ps.hidden;ps.querySelector('input').autocomplete=v==='login'?'current-password':'new-password';
  em.hidden=v==='recover';em.querySelector('input').required=!em.hidden;
@@ -42,7 +51,10 @@ function resume(session){
     return;
    }
    redirected=true;
-   location.replace(confirmationReturn?'/':next);
+   // Une confirmation moderne conserve la destination sélectionnée.
+   // Les anciens liens sans destination gardent le retour historique.
+   if(confirmationReturn&&(!query.has('next')||linkHash.get('type')==='signup'))location.replace('/');
+   else location.replace(next);
    return;
   }
   // L'authentification a changé pendant la vérification : ne pas
@@ -95,12 +107,12 @@ $('loginForm').addEventListener('submit',async e=>{
  e.preventDefault();if(!db)return say('Connexion indisponible',true);
  const f=e.currentTarget,email=f.elements.email.value.trim(),password=f.elements.password.value,b=$('loginSubmit');b.disabled=true;
  try{
-  let r;if(mode==='signup')r=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/connexion?confirmation=1'}});
+  let r;if(mode==='signup')r=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/connexion?confirmation=1&next='+encodeURIComponent(next)}});
   else if(mode==='reset')r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/connexion?mode=reset-password&next='+encodeURIComponent(next)});
   else if(mode==='recover')r=await db.auth.updateUser({password});
   else r=await db.auth.signInWithPassword({email,password});
   if(r.error)throw r.error;
-  if(mode==='signup')say('Consultez votre boîte e-mail et confirmez votre inscription. Vous serez ensuite redirigé vers l’accueil OFFRYA.');
+  if(mode==='signup')say('Consultez votre boîte e-mail et confirmez votre inscription. Vous pourrez ensuite poursuivre le parcours choisi.');
   else if(mode==='reset')say('Consultez votre boîte e-mail et ouvrez le lien sécurisé de réinitialisation. Aucun abonnement ni alerte n’est activé.');
   else if(mode==='recover'){say('Mot de passe modifié');location.replace(next);}
   else await resume(r.data?.session);
