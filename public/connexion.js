@@ -53,7 +53,11 @@ function resume(session){
    redirected=true;
    // Une confirmation moderne conserve la destination sélectionnée.
    // Les anciens liens sans destination gardent le retour historique.
-   if(confirmationReturn&&(!query.has('next')||linkHash.get('type')==='signup'))location.replace('/');
+   if(confirmationReturn&&!query.has('next')){
+    // Simple indication de parcours, jamais un droit d'accès.
+    const intent=user.user_metadata?.offrya_signup_intent;
+    location.replace(intent==='pro'?'/espace/professionnel':intent==='client'?'/deposer-une-mission':'/');
+   }else if(confirmationReturn&&linkHash.get('type')==='signup')location.replace('/');
    else location.replace(next);
    return;
   }
@@ -107,7 +111,7 @@ $('loginForm').addEventListener('submit',async e=>{
  e.preventDefault();if(!db)return say('Connexion indisponible',true);
  const f=e.currentTarget,email=f.elements.email.value.trim(),password=f.elements.password.value,b=$('loginSubmit');b.disabled=true;
  try{
-  let r;if(mode==='signup')r=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/connexion?confirmation=1&next='+encodeURIComponent(next)}});
+  let r;if(mode==='signup')r=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/connexion?confirmation=1',data:{offrya_signup_intent:next==='/espace/professionnel'?'pro':'client'}}});
   else if(mode==='reset')r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/connexion?mode=reset-password&next='+encodeURIComponent(next)});
   else if(mode==='recover')r=await db.auth.updateUser({password});
   else r=await db.auth.signInWithPassword({email,password});
