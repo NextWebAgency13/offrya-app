@@ -12,26 +12,30 @@ test('Accueil : connexion et inscription visibles ; autres pages gardent Mon esp
    assert.match(nav,/class="header-signin" href="\/connexion\?next=%2Fespace"/);
    assert.match(nav,/class="header-signup" href="\/connexion\?mode=signup&amp;next=%2Fdeposer-une-mission"/);
   } else assert.match(nav,/class="account-link" href="\/espace"/);
-  assert.doesNotMatch(nav,/href="\/professionnels"|href="\/deposer-une-mission"|href="\/#fonctionnement"/);
+  if(p==='public/index.html')assert.match(nav,/class="home-nav-links"/);
+  else assert.doesNotMatch(nav,/class="home-nav-links"/);
  }
  assert.match(home,/class="btn primary" href="\/deposer-une-mission"/);
 });
-test('Accueil : texte revu, offre claire, aucun portrait chargé et CTAs uniformes',()=>{
- assert.match(home,/<h1>Publiez gratuitement votre mission\. Des professionnels vérifiés vous répondent\.<\/h1>/);
+test('Accueil : hiérarchie commerciale claire, double parcours et aucune fausse preuve',()=>{
+ assert.match(home,/<h1 id="heroHeading">Votre projet mérite <span>le bon professionnel\.<\/span><\/h1>/);
  assert.equal((home.match(/<h1\b/g)||[]).length,1);
- assert.match(home,/Vous êtes demandeur ou professionnel \?/);
- assert.doesNotMatch(home,/Nouvel professionnel \?|Les opportunités prennent forme|Des entreprises contrôlées et abonnées/);
+ assert.match(home,/class="home-hero-showcase"/);
+ assert.match(home,/Illustration du parcours · Aucune annonce privée affichée/);
+ assert.match(home,/class="btn outline" href="\/professionnels">Je suis professionnel/);
+ assert.match(home,/class="home-path-card home-path-client"/);
+ assert.match(home,/class="home-path-card home-path-business"/);
+ assert.match(home,/Compte demandeur gratuit/);
  assert.match(home,/Entreprise et dirigeant vérifiés/);
- assert.match(home,/Je suis professionnel/);
- assert.match(home,/<a class="btn outline" href="\/professionnels">Je suis professionnel<\/a>/);
- assert.match(home,/<article class="card tinted account-card">[\s\S]*?<h3>Je souhaite consulter les missions<\/h3>[\s\S]*?<a class="btn outline" href="\/professionnels">Découvrir le compte professionnel<\/a><\/article>/);
- assert.equal((home.match(/href="\/professionnels">Découvrir OFFRYA Professionnel<\/a>/g)||[]).length,1);
- assert.match(home,/Accédez aux missions privées et aux outils de veille des marchés publics \(BOAMP\)/);
+ assert.match(home,/OFFRYA PROFESSIONNEL/);
+ assert.match(home,/34,99 € TTC\/mois/);
  assert.match(home,/Sans engagement, résiliable à tout moment\./);
  assert.match(pro,/Sans engagement, résiliable à tout moment\./);
  assert.match(home,/id="choisir-compte"/);
- assert.match(home,/class="hero-illustration"/);
- assert.match(home,/<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox="0 0 460 380"/);
+ assert.match(home,/id="activite"/);
+ assert.match(home,/id="publicActivity"/);
+ assert.match(home,/src="\/activity\.js" defer/);
+ assert.doesNotMatch(home,/\b10 ?000 clients\b|\b4,9\/5\b|Avis clients vérifiés|statistiques simulées/);
  assert.doesNotMatch(home,/<img\b|\.jpe?g|\.png|\.webp/);
 });
 test('FAQ : chaque réponse est livrée en HTML dans details, JSON-LD identique',()=>{
@@ -42,12 +46,16 @@ test('FAQ : chaque réponse est livrée en HTML dans details, JSON-LD identique'
  assert.ok(faq);assert.equal(faq.mainEntity.length,3);
  for(let i=0;i<3;i++){assert.equal(faq.mainEntity[i].name,faqs[i][1]);assert.equal(faq.mainEntity[i].acceptedAnswer.text,faqs[i][2]);}
 });
-test('Liens de secteur, texte minimum 14px et contrastes explicites',()=>{
+test('Secteurs, accessibilité et CSS limité à la vitrine',()=>{
  const paths=['batiment','nettoyage','espaces-verts','transport','informatique','autres-prestations'];
  for(const slug of paths)assert.match(home,new RegExp('class="sector" href="/secteurs/'+slug+'"'));
+ for(const anchor of ['#fonctionnement','#secteurs','#activite'])assert.ok(home.includes('href="/'+anchor+'"'));
+ assert.match(home,/class="home-skip" href="#contenu"/);
+ assert.match(home,/class="home-trustbar"/);
+ assert.match(home,/class="home-faq-questions"/);
+ assert.match(css,/--muted:#51455f/);
+ assert.match(css,/\.home-landing \.home-hero-layout\{/);
+ assert.match(css,/@media\(max-width:600px\)\{/);
+ assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
  assert.match(css,/\.sector span\{font-size:14px/);
- assert.match(css,/\.home-benefits li\{font-size:14px/);
- assert.match(css,/\.cancel-note\{font-size:14px/);
- assert.match(css, /--muted:#51455f/);
- assert.match(css, /\.hero-illustration svg\{display:block;width:100%;height:auto/);
 });
