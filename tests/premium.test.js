@@ -38,6 +38,6 @@ test('Routes BOAMP et export refusées sans session JWT',async()=>{
  }}finally{await new Promise(resolve=>server.close(resolve));}
 });
 test('Frontend : accès conditionné et API via JWT',()=>{
- const fs=require('node:fs'),path=require('node:path');const app=fs.readFileSync(path.join(__dirname,'../public/app.js'),'utf8');const html=fs.readFileSync(path.join(__dirname,'../public/index.html'),'utf8');
+ const fs=require('node:fs'),path=require('node:path');const app=fs.readFileSync(path.join(__dirname,'../public/app.js'),'utf8');const html=fs.readFileSync(path.join(__dirname,'../public/espace.html'),'utf8');
  assert.match(html,/id="premiumContent" class="hidden"/);assert.match(app,/canUsePremium\(\)/);assert.match(app,/Authorization:'Bearer '\+session.access_token/);
 });

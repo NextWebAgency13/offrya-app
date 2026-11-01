@@ -1,0 +1,1 @@
+(function(){const map={dashboard:'/espace',missions:'/espace/missions',professional:'/professionnels','professional-space':'/espace/professionnel',boamp:'/espace/marches-publics',tenders:'/espace/marches-publics',inbox:'/espace/messagerie',messages:'/espace/messagerie',settings:'/espace/reglages'};let h=location.hash.slice(1);if(map[h])location.replace(map[h]);})();

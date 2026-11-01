@@ -28,10 +28,12 @@ test('Les cinq documents contractuels et support répondent HTTP 200',async()=>{
  }finally{await new Promise(resolve=>server.close(resolve));}
 });
 test('Le site expose les liens légaux et la gestion de résiliation depuis Mon compte',()=>{
- const markup=fs.readFileSync(path.join(__dirname,'../public/index.html'),'utf8');
+ const markup=fs.readFileSync(path.join(__dirname,'../public/espace.html'),'utf8');
+ const publicHome=fs.readFileSync(path.join(__dirname,'../public/index.html'),'utf8');
  const app=fs.readFileSync(path.join(__dirname,'../public/app.js'),'utf8');
  for(const href of ['/cgv.html','/confidentialite.html','/remboursements.html','/contact.html','/mentions-legales.html']){
   assert.ok(markup.includes('href="'+href+'"'),href);
+  assert.ok(publicHome.includes('href="'+href+'"'),href+' accueil');
  }
  assert.match(markup,/id="premiumTermsAck"/);
  assert.match(app,/premiumTermsAck'\)\.checked/);

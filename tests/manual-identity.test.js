@@ -2,7 +2,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
-const html=read('public/index.html'),js=read('public/app.js');
+const html=read('public/espace.html'),js=read('public/app.js');
 const sql=read('sql/manual_identity_review_requests.sql'),identitySql=read('sql/professional_identity_mfa.sql');
 test('OFFRYA propose une vraie solution manuelle quand Stripe Identity est indisponible',()=>{
  for(const id of ['identityPanel','identityAutomatic','identityManual','manualIdentityRequest','manualIdentityDescription','manualIdentityStatus'])

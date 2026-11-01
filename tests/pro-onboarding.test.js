@@ -3,7 +3,7 @@ const {test}=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const {createServer}=require('node:http'),{handle}=require('../server');
 const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
-const html=read('public/index.html'),js=read('public/app.js'),css=read('public/pro.css'),sql=read('sql/professional_onboarding_drafts.sql'),server=read('server.js');
+const html=read('public/espace.html'),js=read('public/app.js'),css=read('public/pro.css'),sql=read('sql/professional_onboarding_drafts.sql'),server=read('server.js');
 test('Navigation : Espace pro et Marchés publics sont deux onglets différents',()=>{
  const nav=html.split('<nav id="nav"')[1].split('</nav>')[0];
  assert.match(nav,/data-tab="professional"/);
@@ -48,7 +48,7 @@ test('L’interface mobile dispose de cinq entrées et le nouveau style est serv
  const app=createServer(handle);await new Promise(done=>app.listen(0,'127.0.0.1',done));
  try{
   const url='http://127.0.0.1:'+app.address().port;
-  const [style,doc]=await Promise.all([fetch(url+'/pro.css'),fetch(url+'/')]);
+  const [style,doc]=await Promise.all([fetch(url+'/pro.css'),fetch(url+'/espace/professionnel')]);
   assert.equal(style.status,200);assert.match(style.headers.get('content-type'),/text\/css/);
   assert.equal(doc.status,200);assert.match(await doc.text(),/id="professional"/);
  }finally{await new Promise(done=>app.close(done));}
