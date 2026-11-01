@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,guestCaptchaSiteKey:null,guestCaptchaToken:null,guestCaptchaWidget:null,draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
@@ -60,7 +60,9 @@ function renderMissions(){
  const matches=visible.filter(m=>m.status==='open'&&(!q||(m.title+' '+m.description+' '+m.city).toLowerCase().includes(q))&&(!c||m.category===c)&&(!d||m.department===d));
  $('missionsCount').textContent=matches.length+' mission(s)';
  $('missionAccessNotice').classList.toggle('hidden',canBrowse);
- $('guestCaptcha').classList.toggle('hidden',Boolean(state.session)||!state.guestCaptchaSiteKey);
+ const publisherReady=Boolean(state.session&&!isGuest()&&state.session.user.email_confirmed_at);
+ $('missionForm').classList.toggle('hidden',!publisherReady);
+ $('missionAccountNotice').classList.toggle('hidden',publisherReady);
  $('missionList').innerHTML=matches.length?matches.map(m=>{
   const own=m.owner_id===uid;
   const actions=own?`<span class="tag">Votre annonce</span> <button class="button secondary micro-button" data-close-mission="${esc(m.id)}">Clôturer</button>`:
@@ -82,7 +84,7 @@ function renderMessages(){
 }
 function renderSettings(){
  const yes=Boolean(state.session),has=Boolean(state.profile);
- $('accountState').textContent=!yes?'Vous pouvez déposer une mission sans inscription.':isGuest()?'Session invitée : le suivi reste accessible uniquement depuis ce navigateur.':`Compte : ${state.session.user.email}${canUsePremium()?' · Professionnel vérifié et abonné':''}`;
+ $('accountState').textContent=!yes?'Un compte gratuit avec adresse e-mail confirmée est requis pour publier.':isGuest()?'Ancien suivi invité : vos missions publiées restent consultables sur cet appareil. Créez un compte gratuit pour publier de nouvelles missions.':`Compte : ${state.session.user.email}${canUsePremium()?' · Professionnel vérifié et abonné':''}`;
  const f=$('profileForm');f.elements.display_name.value=state.profile?.display_name||'';f.elements.role.value=state.profile?.role||'client';f.elements.role.disabled=isGuest()||(has&&state.profile?.role==='pro');f.elements.city.value=state.profile?.city||'';f.elements.specialty.value=state.profile?.specialty||'';
  $('filterStatus').textContent=state.prefs?.department||state.prefs?.category?'Filtres enregistrés.':'Aucun filtre défini. Sélectionnez un secteur ou un département.';
  const p=$('preferencesForm');p.elements.missions_enabled.checked=state.prefs?.missions_enabled||false;p.elements.messages_enabled.checked=state.prefs?.messages_enabled||false;p.elements.department.value=state.prefs?.department||'';p.elements.category.value=state.prefs?.category||'';
@@ -390,40 +392,13 @@ async function loadMessages(id,doRender=true){
 }
 $('missionSearch').onclick=renderMissions;
 $('newMissionBtn').onclick=()=>location.assign('/deposer-une-mission');
-// Une session invitée est créée en coulisse uniquement au premier dépôt.
-// Elle ne demande ni e-mail ni mot de passe ; elle conserve l'accès privé sur cet appareil.
-function setupGuestCaptcha(){
- if(!state.guestCaptchaSiteKey)return;
- const script=document.createElement('script');
- script.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
- script.async=true;
- script.onload=()=>{
-  if(!window.turnstile)return;
-  state.guestCaptchaWidget=window.turnstile.render($('guestCaptchaWidget'),{
-   sitekey:state.guestCaptchaSiteKey,theme:'light',
-   callback:token=>{state.guestCaptchaToken=token;},
-   'expired-callback':()=>{state.guestCaptchaToken=null;},
-   'error-callback':()=>{state.guestCaptchaToken=null;}
-  });
- };
- script.onerror=()=>{state.guestCaptchaToken=null;};
- document.head.appendChild(script);
-}
 async function ensureMissionPublisher(){
  if(!state.db)throw Error('Publication momentanément indisponible.');
- let {data:{session},error}=await state.db.auth.getSession();
- if(error)throw error;
- if(!session){
-  if(state.guestCaptchaSiteKey&&!state.guestCaptchaToken)throw Error('Veuillez compléter la vérification anti-robot avant de publier.');
-  const token=state.guestCaptchaToken;
-  const guest=await state.db.auth.signInAnonymously(state.guestCaptchaSiteKey?{options:{captchaToken:token}}:undefined);
-  state.guestCaptchaToken=null;
-  if(window.turnstile&&state.guestCaptchaWidget!==null)window.turnstile.reset(state.guestCaptchaWidget);
-  if(guest.error)throw Error('Publication sans compte actuellement indisponible. Vérifiez la configuration de l’inscription invitée ou contactez le support.');
-  session=guest.data?.session;
- }
- if(!session?.user?.id)throw Error('Impossible de sécuriser la session de publication.');
- const uid=session.user.id;
+ const {data,error}=await state.db.auth.getUser();
+ const user=data?.user;
+ if(error||!user||user.is_anonymous||!user.email||!user.email_confirmed_at)
+  throw Error('Créez un compte gratuit et confirmez votre adresse e-mail avant de publier une mission.');
+ const uid=user.id;
  const profile=await state.db.from('offrya_profiles').select('id').eq('id',uid).maybeSingle();
  if(profile.error)throw profile.error;
  if(!profile.data){
@@ -432,7 +407,6 @@ async function ensureMissionPublisher(){
   });
   if(inserted.error&&inserted.error.code!=='23505')throw inserted.error;
  }
- state.session=session;
  return uid;
 }
 $('missionForm').onsubmit=async e=>{
@@ -452,8 +426,8 @@ $('missionForm').onsubmit=async e=>{
   });
   if(r.error)throw r.error;
   f.reset();await refresh();
-  toast(isGuest()?'Mission publiée sans compte. Gardez ce navigateur pour suivre les réponses.':'Mission publiée gratuitement.');
-  $('missionStatus').textContent=isGuest()?'Mission publiée. Votre suivi reste disponible dans ce navigateur tant que vous ne supprimez pas ses données.':'Mission publiée. Retrouvez-la dans Mes missions.';
+  toast('Mission publiée gratuitement.');
+  $('missionStatus').textContent='Mission publiée. Retrouvez-la dans Mes missions.';
   $('missionStatus').classList.remove('hidden');
  }catch(err){showError(err);}
  finally{delete f.dataset.sending;button.disabled=false;}
@@ -488,7 +462,7 @@ for(const b of document.querySelectorAll('[data-auth]'))b.onclick=()=>{state.aut
 $('authForm').onsubmit=async e=>{e.preventDefault();if(!state.db)return showError(new Error('Le service de connexion est momentanément indisponible.'));const f=e.currentTarget,email=f.elements.email.value.trim(),password=f.elements.password.value;try{let r;if(state.authMode==='recover')r=await state.db.auth.updateUser({password});else if(state.authMode==='signup')r=await state.db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/connexion?next='+encodeURIComponent(location.pathname)}});else if(state.authMode==='reset')r=await state.db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/connexion?mode=reset-password&next='+encodeURIComponent(location.pathname)});else r=await state.db.auth.signInWithPassword({email,password});if(r.error)throw r.error;authModal(false);toast(state.authMode==='signup'?'Vérifiez votre adresse e-mail pour activer le compte.':state.authMode==='reset'?'Consultez votre messagerie.':state.authMode==='recover'?'Mot de passe modifié.':'Connexion réussie.');await refresh();if(state.authMode==='signup'||state.signupForPro){tab(state.signupForPro?'professional':'settings');state.signupForPro=false;}}catch(err){showError(err);}};
 $('logout').onclick=async()=>{if(state.db)await state.db.auth.signOut();state.session=null;location.replace('/connexion?next=%2Fespace');};
 async function init(){
- const cfg=await fetch('/api/config').then(r=>r.json());state.billingEnabled=Boolean(cfg.billingEnabled);state.identityEnabled=Boolean(cfg.identityEnabled);state.guestCaptchaSiteKey=cfg.guestCaptchaSiteKey||null;setupGuestCaptcha();
+ const cfg=await fetch('/api/config').then(r=>r.json());state.billingEnabled=Boolean(cfg.billingEnabled);state.identityEnabled=Boolean(cfg.identityEnabled);
  if(cfg.supabaseUrl&&cfg.supabaseKey&&!cfg.supabaseUrl.includes('VOTRE')){
   state.db=createClient(cfg.supabaseUrl,cfg.supabaseKey);const {data}=await state.db.auth.getSession();state.session=data?.session||null;
    if(!state.session){location.replace('/connexion?next='+encodeURIComponent(location.pathname));return;}
