@@ -1,7 +1,6 @@
 -- OFFRYA v2 : données structurées, statistiques agrégées, photos privées,
 -- attribution contrôlée, avis post-prestation, profils vérifiés et signalements.
 -- Exécuter uniquement sur le projet Supabase OFFRYA. Aucun effacement de données.
-begin;
 alter table public.offrya_missions
  add column if not exists area_sqm numeric(9,2),
  add column if not exists urgency text not null default 'normal',
@@ -333,4 +332,3 @@ grant select,insert,update on public.offrya_public_pro_profiles to authenticated
 grant select,insert on public.offrya_reviews to authenticated;
 grant select,insert on public.offrya_reports to authenticated;
 grant select,insert on public.offrya_pro_proof_requests to authenticated;
-commit;
