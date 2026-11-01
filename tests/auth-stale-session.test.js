@@ -25,7 +25,7 @@ async function loadAuthPage({
   elements:fields,
   addEventListener(type,listener){handlers[type]=listener;}
  };
- const tabButtons=['login','signup','magic','reset'].map(mode=>({
+ const tabButtons=['login','signup','reset'].map(mode=>({
   dataset:{mode},
   attributes:{},
   setAttribute(name,value){this.attributes[name]=value;},
@@ -164,7 +164,7 @@ test('Un lien de confirmation sans session vérifiée ne simule pas de connexion
  assert.deepEqual(page.redirects,[]);
  assert.equal(page.signOutCalls.length,0);
 });
-test('Lien magique : la destination demandée reste la page privée',async()=>{
+test('Connexion classique : la destination demandée reste la page privée',async()=>{
  const page=await loadAuthPage({
   session:{user:validUser},user:validUser,
   url:'?next=%2Fespace%2Fmissions'
