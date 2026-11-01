@@ -59,7 +59,7 @@ test('Anciens fragments, lien de connexion et retour profond sur page autorisée
  assert.match(app,/pathsReverse\[location.pathname\]/);
  assert.match(login,/const value=query\.get\('next'\)/);
  assert.match(login,/^.*location\.replace\(next\)/m);
- assert.match(login,/shouldCreateUser:false/);
+ assert.doesNotMatch(login,/signInWithOtp|shouldCreateUser:false/);
  assert.match(login,/resetPasswordForEmail/);
 });
 test('Stripe : paiement, portail et Identity reviennent sur les routes privées',()=>{
