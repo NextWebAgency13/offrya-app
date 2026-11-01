@@ -4,9 +4,9 @@ const get=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 const home=get('public/index.html'),pro=get('public/professionnels.html'),privateDoc=get('public/espace.html'),app=get('public/app.js'),schema=get('sql/schema.sql');
 test('L’accueil n’invente pas de statistiques ni de témoignages',()=>{
  for(const h of [home,pro])assert.doesNotMatch(h,/\bbêta\b|0\s*%\s*de commission|dix mille clients|témoignages clients/i);
- assert.match(home,/Publication gratuite/);
+ assert.match(home,/Compte demandeur gratuit/);
  assert.match(home,/34,99 €/);
- assert.match(home,/TTC \/ mois/);
+ assert.match(home,/TTC \/ mois|TTC\/mois/);
  assert.match(pro,/dirigeants vérifiés/);
  assert.doesNotMatch(home,/id="premiumSubscribe"|id="missionForm"|id="statOpen"/);
 });
