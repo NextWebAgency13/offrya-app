@@ -665,3 +665,11 @@
  .mock-home .mock-hero h1{font-size:28px}
  .mock-home .mock-hero-trust span{font-size:8px}
 }
+
+/* Le détail du décompte se déplie sans accès aux missions elles-mêmes. */
+.mock-home .mock-stat-button{border:0;cursor:pointer;font-family:inherit}
+.mock-home .mock-activity:not(.is-expanded) #publicActivity .activity-list li:not(:first-child){display:none}
+.mock-home .mock-activity.is-expanded{align-items:start}
+.mock-home .mock-activity.is-expanded #publicActivity .activity-list li{display:flex}
+.mock-home .mock-activity.is-expanded #publicActivity .activity-group{min-width:0}
+.mock-home .mock-activity.is-expanded .mock-stat-button span{transform:rotate(90deg)}
