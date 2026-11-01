@@ -63,6 +63,19 @@ async function run(){
  assert.ok(designVisible,'Render ne présente pas encore le design photographique approuvé');
  console.log('PASS: maquette OFFRYA desktop/mobile fidèle servie sur Render');
 
+ // Vérifie les six photos précisément dans la feuille de style servie par Render.
+ // Les liens de catégories et le contrôle de paiement sont testés séparément.
+ const sectorStyles=await request('/public.css',{headers:{'Cache-Control':'no-cache'}});
+ assert.equal(sectorStyles.status,200,'CSS public disponible');
+ const sectorPhotos={building:'4509089',green:'38936350',clean:'4440537',
+  restaurant:'3951656',beauty:'3985332',taxi:'5835272'};
+ for(const [sector,id] of Object.entries(sectorPhotos)){
+  const expected='.mock-home .mock-sector-'+sector+'{background-image:url("https://images.pexels.com/photos/'+id+'/pexels-photo-'+id+'.jpeg?auto=compress&cs=tinysrgb&w=800")}';
+  assert.ok(sectorStyles.text.includes(expected),'Photo métier '+sector+' non déployée');
+ }
+ console.log('PASS: six photographies sectorielles pertinentes visibles dans le CSS Render');
+
+
 
  // Les routes doivent être vraies, pas un fallback global HTTP 200.
  const publicPaths=['/professionnels','/deposer-une-mission','/connexion','/secteurs/batiment','/secteurs/nettoyage','/secteurs/espaces-verts','/secteurs/transport','/secteurs/informatique','/secteurs/autres-prestations'];
