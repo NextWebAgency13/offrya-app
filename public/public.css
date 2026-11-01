@@ -22,3 +22,30 @@
 .faq details p{color:#51455f}
 @media(max-width:860px){.hero{grid-template-columns:1fr}.hero-illustration{max-width:410px;margin:0 auto}.home-benefits{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:600px){.top nav{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 16px}.top nav .brand{margin:0;font-size:26px}.top nav>.public-nav-actions .account-link{font-size:14px;padding:8px 10px;min-height:44px}.hero{display:grid;grid-template-columns:1fr;padding:35px 19px}.hero-illustration{width:min(100%,310px)}.home-benefits{grid-template-columns:1fr 1fr;gap:7px}.home-benefits li{font-size:14px}.welcome-note{margin:12px 16px 0}.price{align-items:stretch}.cancel-note{text-align:center}}
+
+
+/* OFFRYA Premium — page publique cohérente avec la vitrine, mobile-first. */
+.premium-hero,.premium-eligibility{max-width:1200px;margin:0 auto}
+.premium-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.65fr);align-items:center;gap:32px;padding:68px 28px;background:linear-gradient(120deg,#f1e8ff,#faf9fd 70%,#f2ecff);border-radius:0 0 26px 26px}
+.premium-hero h1{max-width:19ch;font-size:clamp(2.1rem,4.5vw,3.8rem)}
+.premium-intro>p:not(.eyebrow){max-width:670px}
+.premium-intro .lead{color:#332545}
+.premium-note{font-size:15px;color:#51455f}
+.premium-note a,.premium-eligibility a:not(.btn){font-weight:700;color:#4b2aa1}
+.premium-price-card{padding:30px;border:1px solid #dfd0f4;border-radius:24px;background:#fff;box-shadow:0 14px 40px #3c247511}
+.premium-price{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:12px 0}
+.premium-price strong{font-size:clamp(2.3rem,5vw,3.3rem);line-height:1.1;color:#5d2bbf;white-space:nowrap}
+.premium-price span{font-size:15px;font-weight:750}
+.premium-price-assurance{display:inline-block;padding:8px 13px;border-radius:15px;background:#efe6ff;color:#402280;font-weight:750;font-size:14px;line-height:1.5}
+.premium-checks{list-style:none;padding:0;margin:19px 0 0;display:grid;gap:13px}
+.premium-checks li{padding-left:26px;position:relative;font-size:15px;font-weight:600;line-height:1.55}
+.premium-checks li:before{content:'✓';position:absolute;top:0;left:0;color:#25764c;font-weight:900}
+.premium-steps .card{height:100%}
+.premium-eligibility{display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,.65fr);align-items:center;gap:35px;padding:36px 40px;border-radius:24px;background:#f0e9fc}
+.premium-eligibility h2{margin-top:8px}
+.premium-eligibility p{color:#42324f}
+.premium-eligibility-action{display:flex;flex-direction:column;align-items:flex-start;gap:13px}
+.premium-eligibility-action p{font-size:14px;line-height:1.55;margin:0}
+.premium-eligibility-action .btn{width:100%}
+@media(max-width:860px){.premium-hero,.premium-eligibility{grid-template-columns:1fr}.premium-price-card{max-width:560px}}
+@media(max-width:600px){.premium-hero{padding:36px 19px;gap:18px}.premium-price-card{padding:23px}.premium-eligibility{margin:0 16px;padding:27px 23px}.premium-steps .card{padding:24px}}
