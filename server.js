@@ -10,7 +10,7 @@ const {billingEnabled,startCheckout,verifyStripeSignature,syncSubscription,porta
 const {verifyToken}=require('./lib/unsubscribe');
 const staticMap=new Map([
  ['/public.css','text/css; charset=utf-8'],['/mission-counts.js','text/javascript; charset=utf-8'],['/mission-fields.js','text/javascript; charset=utf-8'],['/mission-photos.mjs','text/javascript; charset=utf-8'],['/deposer.js','text/javascript; charset=utf-8'],['/connexion.js','text/javascript; charset=utf-8'],['/auth-feedback.mjs','text/javascript; charset=utf-8'],['/legacy-redirect.js','text/javascript; charset=utf-8'],
- ['/index.html','text/html; charset=utf-8'],['/app.js','text/javascript; charset=utf-8'],
+ ['/index.html','text/html; charset=utf-8'],['/directory.js','text/javascript; charset=utf-8'],['/app.js','text/javascript; charset=utf-8'],
  ['/styles.css','text/css; charset=utf-8'],['/home.css','text/css; charset=utf-8'],['/pro.css','text/css; charset=utf-8'],['/favicon.svg','image/svg+xml'],
  ['/confidentialite.html','text/html; charset=utf-8'],['/mentions-legales.html','text/html; charset=utf-8'],
  ['/cgv.html','text/html; charset=utf-8'],['/remboursements.html','text/html; charset=utf-8'],['/contact.html','text/html; charset=utf-8']]);
@@ -63,6 +63,26 @@ async function unsubscribe(id){const url=process.env.SUPABASE_URL, key=process.e
 async function handle(req,res){
  try{const u=new URL(req.url,'http://localhost'),p=u.pathname;
   if(p==='/api/health'&&req.method==='GET')return json(res,200,{ok:true,version:'4.0.0',paymentsEnabled:billingEnabled(),emailsConfigured:Boolean(process.env.RESEND_API_KEY)});
+  if(p==='/api/professionnels-verifies'&&req.method==='GET'){
+   if(!rateLimit(req,45))return json(res,429,{error:'Trop de demandes'});
+   const url=process.env.SUPABASE_URL,key=process.env.SUPABASE_PUBLISHABLE_KEY;
+   if(!url||!key)return json(res,503,{error:'Annuaire indisponible'});
+   try{
+    const r=await fetch(url.replace(/\/$/,'')+'/rest/v1/rpc/offrya_verified_pro_directory',
+     {method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:'{}',signal:AbortSignal.timeout(8000)});
+    if(!r.ok)throw Error(String(r.status));
+    const data=await r.json();
+    if(!Array.isArray(data)||data.length>100)throw Error('Format invalide');
+    const rows=data.map(x=>({
+     id:String(x.user_id),name:String(x.display_name||'Professionnel vérifié').slice(0,100),
+     sectors:Array.isArray(x.sectors)?x.sectors.slice(0,6):[],
+     area:String(x.service_area||'').slice(0,120),
+     presentation:String(x.presentation||'').slice(0,700),
+     badges:Array.isArray(x.badges)?x.badges.slice(0,10):[]
+    }));
+    return json(res,200,{professionals:rows},{'Cache-Control':'public,max-age=300'});
+   }catch(e){console.error('OFFRYA directory:',e.message);return json(res,503,{error:'Annuaire temporairement indisponible'});}
+  }
   if(p==='/api/mission-counts'&&req.method==='GET'){
    if(!rateLimit(req,60))return json(res,429,{error:'Trop de demandes'});
    try{return json(res,200,await publicMissionCounts(),{'Cache-Control':'public, max-age=300'});}
@@ -180,7 +200,8 @@ async function handle(req,res){
   }
   if(p.startsWith('/api/'))return json(res,404,{error:'Route inconnue'});
   if(!['GET','HEAD'].includes(req.method))return json(res,405,{error:'Méthode non autorisée'});
-  const publicPages=new Map([['/','index.html'],['/deposer-une-mission','deposer-une-mission.html'],['/professionnels','professionnels.html'],['/connexion','connexion.html'],['/secteurs/batiment','secteurs/batiment.html'],['/secteurs/nettoyage','secteurs/nettoyage.html'],['/secteurs/espaces-verts','secteurs/espaces-verts.html'],['/secteurs/transport','secteurs/transport.html'],['/secteurs/informatique','secteurs/informatique.html'],['/secteurs/autres-prestations','secteurs/autres-prestations.html']]);
+  const publicPages=new Map([
+ ['/professionnels-verifies','professionnels-verifies.html'],['/','index.html'],['/deposer-une-mission','deposer-une-mission.html'],['/professionnels','professionnels.html'],['/connexion','connexion.html'],['/secteurs/batiment','secteurs/batiment.html'],['/secteurs/nettoyage','secteurs/nettoyage.html'],['/secteurs/espaces-verts','secteurs/espaces-verts.html'],['/secteurs/transport','secteurs/transport.html'],['/secteurs/informatique','secteurs/informatique.html'],['/secteurs/autres-prestations','secteurs/autres-prestations.html']]);
   const privatePage=new Set(['/espace','/espace/missions','/espace/marches-publics','/espace/messagerie','/espace/reglages','/espace/professionnel']).has(p);
   const pageFile=privatePage?'espace.html':publicPages.get(p);
   const mime=pageFile?'text/html; charset=utf-8':p==='/robots.txt'?'text/plain; charset=utf-8':p==='/sitemap.xml'?'application/xml; charset=utf-8':staticMap.get(p);
