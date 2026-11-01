@@ -1,6 +1,11 @@
 import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm';
 const $=id=>document.getElementById(id),query=new URLSearchParams(location.search);
 const value=query.get('next')||'/espace',next=(value==='/deposer-une-mission'||/^\/espace(?:\/(?:missions|marches-publics|messagerie|reglages|professionnel))?$/.test(value))?value:'/espace';
+// Les liens de confirmation finissent sur /connexion pour permettre à Supabase
+// de lire les jetons d'authentification. L'utilisateur revient ensuite sur /.
+// Prend aussi en charge les anciens liens implicites contenant #type=signup.
+const linkHash=new URLSearchParams((location.hash||'').replace(/^#/,''));
+const confirmationReturn=query.get('confirmation')==='1'||query.get('type')==='signup'||linkHash.get('type')==='signup';
 let db,mode='login',redirected=false,verificationQueue=Promise.resolve();
 const invalidatedSessionIds=new Set();
 const labels={login:'Se connecter',signup:'Créer un compte',magic:'Envoyer un lien',reset:'Envoyer la réinitialisation',recover:'Enregistrer le mot de passe'};
@@ -36,7 +41,7 @@ function resume(session){
     return;
    }
    redirected=true;
-   location.replace(next);
+   location.replace(confirmationReturn?'/':next);
    return;
   }
   // L'authentification a changé pendant la vérification : ne pas
@@ -61,6 +66,10 @@ function resume(session){
 }
 async function init(){
  if(query.get('mode')==='reset-password')change('recover');
+ else if(confirmationReturn){
+  $('authHeading').textContent='Confirmation de votre inscription';
+  say('Vérification du lien de confirmation…');
+ }
  else if(query.get('mode')==='signup')change('signup');
  const r=await fetch('/api/config');if(!r.ok)throw Error('Connexion indisponible');const c=await r.json();
  if(!c.supabaseUrl||!c.supabaseKey)throw Error('Configuration de connexion indisponible');
@@ -85,13 +94,14 @@ $('loginForm').addEventListener('submit',async e=>{
  e.preventDefault();if(!db)return say('Connexion indisponible',true);
  const f=e.currentTarget,email=f.elements.email.value.trim(),password=f.elements.password.value,b=$('loginSubmit');b.disabled=true;
  try{
-  let r;if(mode==='signup')r=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/connexion?next='+encodeURIComponent(next)}});
+  let r;if(mode==='signup')r=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/connexion?confirmation=1'}});
   else if(mode==='magic')r=await db.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:location.origin+'/connexion?next='+encodeURIComponent(next)}});
   else if(mode==='reset')r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/connexion?mode=reset-password&next='+encodeURIComponent(next)});
   else if(mode==='recover')r=await db.auth.updateUser({password});
   else r=await db.auth.signInWithPassword({email,password});
   if(r.error)throw r.error;
-  if(['signup','magic','reset'].includes(mode))say('Consultez votre boîte e-mail et ouvrez le lien sécurisé. Aucun abonnement ni alerte n’est activé.');
+  if(mode==='signup')say('Consultez votre boîte e-mail et confirmez votre inscription. Vous serez ensuite redirigé vers l’accueil OFFRYA.');
+  else if(['magic','reset'].includes(mode))say('Consultez votre boîte e-mail et ouvrez le lien sécurisé. Aucun abonnement ni alerte n’est activé.');
   else if(mode==='recover'){say('Mot de passe modifié');location.replace(next);}
   else await resume(r.data?.session);
  }catch(err){say(err.message||'Erreur de connexion',true);}finally{b.disabled=false;}
