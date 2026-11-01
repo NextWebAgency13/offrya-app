@@ -6,7 +6,7 @@ const publicPages=['public/index.html','public/professionnels.html','public/depo
  ...['batiment','nettoyage','espaces-verts','transport','informatique','autres-prestations'].map(x=>'public/secteurs/'+x+'.html')];
 test('Accueil : connexion et inscription visibles ; autres pages gardent Mon espace',()=>{
  for(const p of publicPages){
-  const html=read(p),nav=html.match(/<header class="top">[\s\S]*?<\/header>/)?.[0];
+  const html=read(p),nav=html.match(/<header class="top(?: home-top)?">[\s\S]*?<\/header>/)?.[0];
   assert.ok(nav,p+' needs public navigation');
   if(p==='public/index.html'){
    assert.match(nav,/class="header-signin" href="\/connexion\?next=%2Fespace"/);
