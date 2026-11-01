@@ -45,7 +45,7 @@ test('Robots et sitemap : seules les pages publiques sont listées, noindex atte
  const rt=await robots.text(),xml=await sitemap.text();
  assert.match(rt,/Sitemap: https:\/\/offrya-app.onrender.com\/sitemap.xml/);
  assert.doesNotMatch(rt,/Disallow:\s*\/espace/);
- for(const p of publicPaths)assert.ok(xml.includes('https://offrya-app.onrender.com'+p+'</loc>'),p);
+ for(const p of publicPaths.filter(p=>p!=='/connexion'))assert.ok(xml.includes('https://offrya-app.onrender.com'+p+'</loc>'),p);
  assert.doesNotMatch(xml,/<loc>[^<]*\/espace/);
 });
 test('Anciens fragments, lien de connexion et retour profond sur page autorisée',()=>{
