@@ -72,3 +72,9 @@ Le serveur accepte les clés Stripe secrètes (`sk_live_`/`sk_test_`) et **restr
 Le statut `identityEnabled` sur `GET /api/config` confirme uniquement que les **variables requises sont configurées** ; il ne teste pas l'accès API Stripe ni le parcours document + selfie réel. Une fois la configuration Render enregistrée et déployée, le contrôle GitHub `OFFRYA — contrôle HTTP production` doit afficher `ETAT STRIPE IDENTITY RENDER: ACTIVE`, `401` pour un démarrage sans authentification et `400` pour un webhook Identity non signé.
 
 Les paramètres biométriques et les obligations RGPD doivent être validés avant l'utilisation réelle. Ne jamais afficher ou copier les valeurs des clés dans les captures d'écran.
+
+## Nouvelle architecture SEO et espace privé
+
+La vitrine OFFRYA est désormais servie en HTML statique sur `/`, avec `/deposer-une-mission`, `/professionnels`, six routes `/secteurs/*` et une page `/connexion`. L'espace personnel et ses sous-pages utilisent `/espace/*` (document HTML privé, contrôles Supabase conservés, `noindex`), sans redirection globale masquant les erreurs 404. Voir **`MIGRATION_URLS_ET_TESTS.md`** pour toutes les anciennes URL, le plan de redirection, la configuration manuelle Supabase Auth, les retours Stripe et les tests.
+
+Pour récupérer facultativement un suivi invité sur un autre appareil, l'utilisateur peut associer un e-mail **après publication**, avec confirmation et identité Supabase liée (option *manual linking* à activer au préalable dans Auth). Aucune campagne de messages ou alerte n'est inscrite automatiquement.
