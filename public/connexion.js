@@ -1,6 +1,6 @@
 import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm';
 const $=id=>document.getElementById(id),query=new URLSearchParams(location.search);
-const value=query.get('next')||'/espace',next=/^\/espace(?:\/(?:missions|marches-publics|messagerie|reglages|professionnel))?$/.test(value)?value:'/espace';
+const value=query.get('next')||'/espace',next=(value==='/deposer-une-mission'||/^\/espace(?:\/(?:missions|marches-publics|messagerie|reglages|professionnel))?$/.test(value))?value:'/espace';
 let db,mode='login';const labels={login:'Se connecter',signup:'Créer un compte',magic:'Envoyer un lien',reset:'Envoyer la réinitialisation',recover:'Enregistrer le mot de passe'};
 function say(s,error=false){$('loginStatus').textContent=s;$('loginStatus').style.color=error?'#ab294d':'#4e318a';}
 function change(v){
@@ -10,13 +10,13 @@ function change(v){
  em.hidden=v==='recover';em.querySelector('input').required=!em.hidden;
 }
 for(const b of document.querySelectorAll('[data-mode]'))b.addEventListener('click',()=>change(b.dataset.mode));
-function resume(session){if(session&&!session.user?.is_anonymous)location.replace(next);}
+function resume(session){if(session&&!session.user?.is_anonymous&&session.user?.email_confirmed_at)location.replace(next);}
 async function init(){
  const r=await fetch('/api/config');if(!r.ok)throw Error('Connexion indisponible');const c=await r.json();
  db=createClient(c.supabaseUrl,c.supabaseKey,{auth:{detectSessionInUrl:true}});
  db.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY'){change('recover');return;}if(event==='SIGNED_IN'&&session&&!session.user?.is_anonymous&&mode!=='recover')setTimeout(()=>resume(session),0);});
  const {data:{session}}=await db.auth.getSession();
- if(query.get('mode')==='reset-password')change('recover');else resume(session);
+ if(query.get('mode')==='reset-password')change('recover');else{if(query.get('mode')==='signup')change('signup');resume(session);}
 }
 $('loginForm').addEventListener('submit',async e=>{
  e.preventDefault();if(!db)return say('Connexion indisponible',true);
