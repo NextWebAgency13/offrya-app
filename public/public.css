@@ -49,3 +49,26 @@
 .premium-eligibility-action .btn{width:100%}
 @media(max-width:860px){.premium-hero,.premium-eligibility{grid-template-columns:1fr}.premium-price-card{max-width:560px}}
 @media(max-width:600px){.premium-hero{padding:36px 19px;gap:18px}.premium-price-card{padding:23px}.premium-eligibility{margin:0 16px;padding:27px 23px}.premium-steps .card{padding:24px}}
+
+/* Accueil guidé : inspiration de parcours marketplace, sans publication publique des missions. */
+.hero-explore{display:inline-flex;align-items:center;gap:9px;margin-top:22px;font-size:15px;font-weight:800;color:#5531b3;text-decoration:underline;text-underline-offset:5px}
+.hero-explore span{font-size:21px}
+.home-discover{padding-top:52px}
+.home-discover-head{display:flex;align-items:end;justify-content:space-between;gap:28px}
+.home-discover-head>div{min-width:0}
+.home-discover-head h2{max-width:640px;margin-bottom:0}
+.home-discover .section-intro{max-width:390px;color:#51455f;font-size:15px;line-height:1.7;margin:0}
+.home-discover .grid.sectors{margin-top:29px;gap:16px}
+.home-discover .sector{position:relative;min-height:206px;padding:25px 24px 23px;gap:9px;box-shadow:0 8px 25px #3b244e0b;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.home-discover .sector:hover{transform:translateY(-3px);border-color:#aa8aea;box-shadow:0 13px 35px #3b244e19}
+.home-discover .sector-icon{display:grid;place-items:center;width:50px;height:50px;border-radius:15px;background:#f0e9ff;color:#6941d7;margin-bottom:3px}
+.home-discover .sector:nth-child(3n+2) .sector-icon{background:#fff0eb;color:#96503c}
+.home-discover .sector:nth-child(3n) .sector-icon{background:#f3eaff;color:#5730a0}
+.home-discover .sector-icon svg{width:26px;height:26px}
+.home-discover .sector-detail{font-size:14px;line-height:1.55;color:#51455f}
+.home-discover .sector-link{margin-top:auto;font-size:14px;line-height:1.5;font-weight:800;color:#5531b3}
+.home-discover .sector-link span{font-size:16px}
+.home-discover-note{margin:20px 0 0;color:#51455f;font-size:14px;line-height:1.65}
+@media(max-width:830px){.home-discover-head{display:block}.home-discover .section-intro{max-width:650px;margin-top:16px}.home-discover .grid.sectors{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.home-discover{padding-top:38px}.home-discover .grid.sectors{grid-template-columns:1fr;gap:12px}.home-discover .sector{min-height:0;padding:20px}.home-discover-head h2{font-size:clamp(1.7rem,8vw,2.1rem)}}
+@media(prefers-reduced-motion:reduce){.home-discover .sector{transition:none}.home-discover .sector:hover{transform:none}}
