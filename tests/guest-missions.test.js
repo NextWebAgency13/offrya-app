@@ -37,6 +37,7 @@ test('Connexion : retour sûr au dépôt après inscription ou confirmation par 
 test('Compte gratuit confirmé obligatoire aussi depuis le tableau de bord',()=>{
  assert.match(privatePage,/id="missionAccountNotice"/);
  assert.match(privatePage,/Gratuit · Compte confirmé/);
+ assert.doesNotMatch(privatePage,/La publication est gratuite et sans inscription|Si vous publiez en invité/);
  assert.match(privateJs,/async function ensureMissionPublisher\(\)/);
  assert.match(privateJs,/auth\.getUser\(\)/);
  assert.match(privateJs,/user\.is_anonymous\|\|!user\.email\|\|!user\.email_confirmed_at/);
