@@ -63,6 +63,22 @@ async function unsubscribe(id){const url=process.env.SUPABASE_URL, key=process.e
 async function handle(req,res){
  try{const u=new URL(req.url,'http://localhost'),p=u.pathname;
   if(p==='/api/health'&&req.method==='GET')return json(res,200,{ok:true,version:'4.0.0',paymentsEnabled:billingEnabled(),emailsConfigured:Boolean(process.env.RESEND_API_KEY)});
+  if(p.startsWith('/api/professionnels-verifies/')&&p.endsWith('/avis')&&req.method==='GET'){
+   if(!rateLimit(req,40))return json(res,429,{error:'Trop de demandes'});
+   const id=p.split('/')[3],url=process.env.SUPABASE_URL,key=process.env.SUPABASE_PUBLISHABLE_KEY;
+   if(!/^[0-9a-f]{8}-[0-9a-f-]{27,36}$/i.test(id||''))return json(res,400,{error:'Identifiant invalide'});
+   if(!url||!key)return json(res,503,{error:'Avis indisponibles'});
+   try{
+    const r=await fetch(url.replace(/\/$/,'')+'/rest/v1/rpc/offrya_public_pro_reviews',
+     {method:'POST',headers:{apikey:key,'Content-Type':'application/json'},
+       body:JSON.stringify({p_professional:id}),signal:AbortSignal.timeout(8000)});
+    if(!r.ok)throw Error(String(r.status));
+    const data=await r.json();if(!Array.isArray(data))throw Error('Format invalide');
+    return json(res,200,{reviews:data.slice(0,30).map(x=>({
+      rating:Number(x.rating),comment:String(x.comment||'').slice(0,1500),date:String(x.created_at||'')
+    }))},{'Cache-Control':'public,max-age=300'});
+   }catch(e){console.error('OFFRYA public reviews:',e.message);return json(res,503,{error:'Avis indisponibles'});}
+  }
   if(p==='/api/professionnels-verifies'&&req.method==='GET'){
    if(!rateLimit(req,45))return json(res,429,{error:'Trop de demandes'});
    const url=process.env.SUPABASE_URL,key=process.env.SUPABASE_PUBLISHABLE_KEY;
