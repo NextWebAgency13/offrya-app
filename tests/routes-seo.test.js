@@ -75,7 +75,7 @@ test('Stripe : paiement, portail et Identity reviennent sur les routes privées'
 test('Accueil rapide : aucun module Supabase ni consultation de mission privée',()=>{
  const home=read('public/index.html');
  assert.doesNotMatch(home,/src="\/app.js"|src="\/deposer.js"|from\('offrya_missions'\)|<script type="module"/);
- assert.match(home,/Votre projet mérite le bon professionnel/);
+ assert.match(home,/Publiez gratuitement votre mission/);
 });
 
 test('Tous les modules frontend passent l’analyse syntaxique Node sans exécution',()=>{
