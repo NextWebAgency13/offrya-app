@@ -111,7 +111,7 @@ function renderInbox(){
  if(state.thread)renderMessages();else $('messageList').innerHTML='<div class="empty">Choisissez une discussion.</div>';
 }
 function renderMessages(){
- $('messageList').innerHTML=state.messages.length?state.messages.map(m=>`<div class="bubble ${m.sender_id===state.session?.user.id?'mine':''}">${esc(m.body)}<time>${date(m.created_at)} · ${new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time></div>`).join(''):'<div class="empty">Commencez la conversation.</div>';
+ $('messageList').innerHTML=state.messages.length?state.messages.map(m=>`<div class="bubble ${m.sender_id===state.session?.user.id?'mine':''}">${esc(m.body)}<time>${date(m.created_at)} · ${new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time><button type="button" class="button secondary micro-button" data-report-message="${esc(m.id)}">Signaler</button></div>`).join(''):'<div class="empty">Commencez la conversation.</div>';
  $('messageList').scrollTop=$('messageList').scrollHeight;
 }
 function renderSettings(){
@@ -472,6 +472,70 @@ $('missionForm').onsubmit=async e=>{
  }catch(err){showError(err);}
  finally{delete f.dataset.sending;button.disabled=false;}
 };
+async function showMissionPhotos(id){
+ if(!requireAuth())return;
+ const dialog=$('missionPhotoDialog'),gallery=$('missionPhotoGallery');
+ gallery.replaceChildren();
+ const loading=document.createElement('p');loading.textContent='Chargement des photos privées…';gallery.append(loading);
+ dialog.showModal();
+ try{
+  const r=await state.db.from('offrya_mission_photos').select('object_path').eq('mission_id',id).limit(6);
+  if(r.error)throw r.error;
+  gallery.replaceChildren();
+  if(!r.data?.length){gallery.textContent='Aucune photo jointe à cette mission.';return;}
+  for(const photo of r.data){
+   const result=await state.db.storage.from('offrya-mission-images').createSignedUrl(photo.object_path,90);
+   if(result.error)throw result.error;
+   const img=document.createElement('img');img.src=result.data.signedUrl;img.alt='Photo associée à la mission (accès privé)';
+   img.loading='lazy';gallery.append(img);
+  }
+ }catch(error){gallery.textContent='Impossible de consulter ces photos. Vérifiez votre accès professionnel.';console.error(error);}
+}
+function openReport(type,id){
+ if(!requireAuth())return;
+ const form=$('reportForm');form.elements.target_type.value=type;form.elements.target_id.value=id;
+ form.elements.reason.value='spam';form.elements.details.value='';
+ $('reportStatus').textContent='';$('reportDialog').showModal();
+}
+function openReview(id){
+ if(!requireAuth())return;
+ const form=$('reviewForm');form.elements.mission_id.value=id;
+ form.elements.rating.value='5';form.elements.comment.value='';
+ $('reviewStatus').textContent='';$('reviewDialog').showModal();
+}
+$('reportCancel').onclick=()=>$('reportDialog').close();
+$('reviewCancel').onclick=()=>$('reviewDialog').close();
+$('reportForm').onsubmit=async event=>{
+ event.preventDefault();if(!requireAuth())return;
+ const form=event.currentTarget,submit=form.querySelector('[type="submit"]');
+ submit.disabled=true;
+ try{
+  const r=await state.db.from('offrya_reports').insert({
+   reporter_id:state.session.user.id,target_type:form.elements.target_type.value,
+   target_id:form.elements.target_id.value,reason:form.elements.reason.value,
+   details:form.elements.details.value.trim()
+  });
+  if(r.error)throw r.error;
+  $('reportDialog').close();toast('Signalement transmis à la modération OFFRYA.');
+ }catch(error){$('reportStatus').textContent=error.code==='23505'?'Vous avez déjà signalé ce contenu.':'Signalement impossible : '+(error.message||'erreur');}
+ finally{submit.disabled=false;}
+};
+$('reviewForm').onsubmit=async event=>{
+ event.preventDefault();if(!requireAuth())return;
+ const form=event.currentTarget,submit=form.querySelector('[type="submit"]'),id=form.elements.mission_id.value;
+ const mission=state.missions.find(m=>m.id===id&&m.owner_id===state.session.user.id);
+ if(!mission||mission.status!=='closed'||!mission.selected_pro_id){$('reviewStatus').textContent='Terminez d’abord une mission attribuée.';return;}
+ submit.disabled=true;
+ try{
+  const r=await state.db.from('offrya_reviews').insert({
+   mission_id:id,client_id:state.session.user.id,professional_id:mission.selected_pro_id,
+   rating:Number(form.elements.rating.value),comment:form.elements.comment.value.trim()
+  });
+  if(r.error)throw r.error;
+  $('reviewDialog').close();toast('Votre avis a été publié.');
+ }catch(error){$('reviewStatus').textContent='Avis impossible : mission attribuée, terminée et échange réel des deux parties requis.';console.error(error);}
+ finally{submit.disabled=false;}
+};
 $('missionList').onclick=async e=>{
  const btn=e.target.closest('[data-contact],[data-close-mission],[data-favorite],[data-award-mission],[data-show-photos],[data-report-mission],[data-review-mission]');if(!btn)return;
  if(btn.dataset.showPhotos){await showMissionPhotos(btn.dataset.showPhotos);return;}
@@ -484,6 +548,7 @@ $('missionList').onclick=async e=>{
  try{let c=state.conversations.find(c=>c.mission_id===mission.id&&c.professional_id===state.session.user.id);if(!c){const r=await state.db.from('offrya_conversations').insert({mission_id:mission.id,client_id:mission.owner_id,professional_id:state.session.user.id}).select().single();if(r.error){if(r.error.code==='23505'){await refresh();c=state.conversations.find(x=>x.mission_id===mission.id&&x.professional_id===state.session.user.id);}else throw r.error;}else c=r.data;}if(!c)throw Error('Discussion introuvable');state.thread=c.id;await loadMessages(c.id);await refresh();tab('inbox');}catch(err){showError(err);}
 };
 $('conversationList').onclick=async e=>{const btn=e.target.closest('[data-thread]');if(!btn)return;state.thread=btn.dataset.thread;try{await loadMessages(state.thread);}catch(err){showError(err);}};
+$('messageList').onclick=event=>{const button=event.target.closest('[data-report-message]');if(button)openReport('message',button.dataset.reportMessage);};
 $('messageForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth()||!state.thread)return;const f=e.currentTarget,body=f.elements.body.value.trim();if(!body)return;try{const r=await state.db.from('offrya_messages').insert({conversation_id:state.thread,sender_id:state.session.user.id,body});if(r.error)throw r.error;f.reset();await loadMessages(state.thread);}catch(err){showError(err);}};
 $('profileForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget,x=Object.fromEntries(new FormData(f)),id=state.session.user.id;try{const r=state.profile?await state.db.from('offrya_profiles').update({display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim(),...(state.profile.role==='client'&&x.role==='pro'?{role:'pro'}:{})}).eq('id',id):await state.db.from('offrya_profiles').insert({id,role:x.role,display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim()});if(r.error)throw r.error;toast('Profil enregistré');await refresh();}catch(err){showError(err);}};
 $('preferencesForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget;const payload={user_id:state.session.user.id,missions_enabled:f.elements.missions_enabled.checked,messages_enabled:f.elements.messages_enabled.checked,department:f.elements.department.value.trim().toUpperCase(),category:f.elements.category.value};try{let r;if(state.prefs){delete payload.user_id;r=await state.db.from('offrya_alert_preferences').update(payload).eq('user_id',state.session.user.id);}else r=await state.db.from('offrya_alert_preferences').insert(payload);if(r.error)throw r.error;toast('Préférences enregistrées.');await refresh();}catch(err){showError(err);}};
