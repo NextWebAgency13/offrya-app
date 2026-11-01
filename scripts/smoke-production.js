@@ -24,6 +24,24 @@ async function run(){
  assert.match(page.text,/<html/i);
  assert.match(page.text,/offrya/i);
  console.log('PASS: page d’accueil accessible');
+ // Vérifier explicitement la publication du nouveau parcours d'accueil.
+ // Render peut mettre plusieurs instants à reconstruire après le push : attendre une fois le backend joignable.
+ let releaseVisible=false;
+ for(let attempt=0;attempt<14;attempt++){
+  const landing=await request('/');
+  const authPage=await request('/connexion');
+  const authScript=await request('/connexion.js');
+  releaseVisible=landing.text.includes('class="header-signin"')
+   &&landing.text.includes('class="header-signup"')
+   &&landing.text.includes('id="choisir-compte"')
+   &&authPage.text.includes('id="accountTypeChoice"')
+   &&authScript.text.includes('offrya_signup_intent');
+  if(releaseVisible)break;
+  if(attempt<13)await new Promise(resolve=>setTimeout(resolve,15000));
+ }
+ assert.ok(releaseVisible,'La version Render ne présente pas encore Connexion / Inscription et les deux parcours du compte');
+ console.log('PASS: nouvelle version OFFRYA (connexion, inscription, 2 parcours) visible en production');
+
  // Les routes doivent être vraies, pas un fallback global HTTP 200.
  const publicPaths=['/professionnels','/deposer-une-mission','/connexion','/secteurs/batiment','/secteurs/nettoyage','/secteurs/espaces-verts','/secteurs/transport','/secteurs/informatique','/secteurs/autres-prestations'];
  for(const route of publicPaths){
