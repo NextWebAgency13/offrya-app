@@ -1,4 +1,5 @@
 import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm';
+import {validateMissionPhotos,uploadMissionPhotos} from './mission-photos.mjs';
 const $=id=>document.getElementById(id);
 let db;
 function notice(id,text,failed=false){
@@ -47,15 +48,23 @@ $('missionForm').addEventListener('submit',async event=>{
    if(created.error&&created.error.code!=='23505')throw created.error;
   }
   const values=Object.fromEntries(new FormData(form));
+  const photos=validateMissionPhotos(form.elements.photos?.files);
   const amount=values.budget?Math.round(Number(values.budget)*100):null;
+  if(values.desired_date&&values.desired_date<new Date().toISOString().slice(0,10))throw Error('La date souhaitée ne peut pas être passée.');
   const result=await db.from('offrya_missions').insert({
    owner_id:uid,title:values.title.trim(),description:values.description.trim(),
    category:values.category,department:values.department.trim().toUpperCase(),
-   city:values.city.trim(),budget_cents:amount
-  });
+   city:values.city.trim(),budget_cents:amount,
+   area_sqm:values.area_sqm?Number(values.area_sqm):null,
+   urgency:values.urgency||'normal',desired_date:values.desired_date||null,
+   place_type:values.place_type||null
+  }).select('id').single();
   if(result.error)throw result.error;
+  let uploaded=0,warning='';
+  if(photos.length)try{uploaded=await uploadMissionPhotos(db,photos,uid,result.data.id);}
+  catch(error){warning=' Certaines photos n’ont pas pu être ajoutées : '+error.message;}
   form.reset();
-  notice('missionStatus','Mission publiée gratuitement. Retrouvez-la dans Mon espace → Missions.');
+  notice('missionStatus','Mission publiée gratuitement. '+uploaded+' photo(s) ajoutée(s). Retrouvez-la dans Mon espace → Missions.'+warning,Boolean(warning));
  }catch(error){
   if(!$('publishArea').hidden)notice('missionStatus',error.message||'Publication indisponible.',true);
   else notice('gateStatus',error.message||'Connexion nécessaire.',true);
