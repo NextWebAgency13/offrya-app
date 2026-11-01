@@ -70,6 +70,26 @@ async function run(){
  assert.equal(app.status,200,'Code client disponible');
  assert.match(app.text,/premium/i);
  console.log('PASS: JavaScript de l’application accessible');
+
+ // Valider la version Render réellement servie, pas seulement le code GitHub.
+ // La recherche de missions des tiers ne doit être activée qu'après vérification Pro.
+ let missionGateDeployed=false;
+ for(let attempt=0;attempt<18;attempt++){
+  const [script,privatePage]=await Promise.all([
+   request('/app.js',{headers:{'Cache-Control':'no-cache'}}),
+   request('/espace',{headers:{'Cache-Control':'no-cache'}})
+  ]);
+  missionGateDeployed=script.status===200
+   &&privatePage.status===200
+   &&script.text.includes("const owned=await state.db.from('offrya_missions')")
+   &&script.text.includes("if(canUsePremium()){")
+   &&script.text.includes("missionSearchFilters")
+   &&privatePage.text.includes('id="missionSearchFilters"');
+  if(missionGateDeployed)break;
+  if(attempt<17)await new Promise(resolve=>setTimeout(resolve,10000));
+ }
+ assert.ok(missionGateDeployed,'Render ne sert pas encore le verrouillage des missions avant certification Pro');
+ console.log('PASS: Render sert la version verrouillant la recherche des missions avant certification Premium');
  const cfg=await request('/api/config');
  assert.equal(cfg.status,200,'Configuration API');
  assert.equal(cfg.json?.supabaseUrl,'https://hhxtutvmvlphkutqscad.supabase.co');
