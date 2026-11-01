@@ -24,6 +24,24 @@ async function run(){
  assert.match(page.text,/<html/i);
  assert.match(page.text,/offrya/i);
  console.log('PASS: page d’accueil accessible');
+ // Les routes doivent être vraies, pas un fallback global HTTP 200.
+ const publicPaths=['/professionnels','/deposer-une-mission','/connexion','/secteurs/batiment','/secteurs/nettoyage','/secteurs/espaces-verts','/secteurs/transport','/secteurs/informatique','/secteurs/autres-prestations'];
+ for(const route of publicPaths){
+  const r=await request(route);assert.equal(r.status,200,route);assert.match(r.text,/<h1\\b/i,route);
+ }
+ console.log('PASS: neuf pages publiques accessibles sur URL directe');
+ for(const route of ['/espace','/espace/missions','/espace/marches-publics','/espace/messagerie','/espace/reglages','/espace/professionnel']){
+  const r=await request(route);
+  assert.equal(r.status,200,route);assert.match(r.headers.get('x-robots-tag')||'',/noindex/,route);assert.match(r.text,/name="robots" content="noindex,nofollow"/,route);
+ }
+ console.log('PASS: six chemins privés et en-têtes noindex');
+ const robots=await request('/robots.txt'),map=await request('/sitemap.xml');
+ assert.equal(robots.status,200);assert.equal(map.status,200);
+ assert.match(robots.text,/Sitemap:/);assert.doesNotMatch(map.text,/<loc>[^<]*\\/espace(?:\\/|<)/);
+ console.log('PASS: robots.txt et sitemap.xml publics uniquement');
+ const nonexistent=await request('/ce-chemin-n-existe-pas');assert.equal(nonexistent.status,404);
+ console.log('PASS: véritable page 404');
+
  for(const [p,text] of [['/cgv.html','34,99'],['/confidentialite.html','Stripe'],['/remboursements.html','14 jours'],['/contact.html','nextwebagency.contact@gmail.com'],['/mentions-legales.html','SIREN']]){
    const r=await request(p);
    assert.equal(r.status,200,'Page légale '+p);
