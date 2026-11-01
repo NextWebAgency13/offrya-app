@@ -141,25 +141,13 @@ async function run(){
  assert.equal(cfg.json?.billingEnabled,health.json?.paymentsEnabled);
  console.log('PASS: configuration publique Supabase et prix professionnel à 34,99 euros');
 
- // Validation de la deuxième étape en production : module autonome public,
- // aucune annonce consultée et aucune valeur fictive.
- let activityDeployed=false;
- for(let attempt=0;attempt<16;attempt++){
-  const [landing,asset,professional]=await Promise.all([
-   request('/'),request('/activity.js'),request('/professionnels')
-  ]);
-  activityDeployed=landing.status===200
-   &&landing.text.includes('id="publicActivity"')
-   &&asset.status===200
-   &&asset.text.includes('offrya_public_mission_counts')
-   &&professional.status===200
-   &&professional.text.includes('OFFRYA Professionnel : développez votre activité')
-   &&!professional.text.includes('Devenir Premium sur OFFRYA');
-  if(activityDeployed)break;
-  if(attempt<15)await new Promise(resolve=>setTimeout(resolve,12000));
- }
- assert.ok(activityDeployed,'Nouvelle vitrine OFFRYA Professionnel et compteurs publics non encore servis sur Render');
- console.log('PASS: vitrine OFFRYA Professionnel et module public autonomes visibles sur Render');
+ // Le widget statistique a été retiré du visuel à la demande du propriétaire.
+ // La RPC privée de détails reste indépendante et la RPC agrégée reste testée.
+ const landingWithoutBanner=await request('/');
+ assert.ok(!landingWithoutBanner.text.includes('id="publicActivity"'));
+ assert.ok(!landingWithoutBanner.text.includes('mock-activity'));
+ assert.ok(landingWithoutBanner.text.includes('class="mock-container mock-choice"'));
+ console.log('PASS: bandeau statistique retiré et choix des espaces accessible');
  const publicConfig=cfg.json||{};
  assert.ok(typeof publicConfig.supabaseKey==='string'&&publicConfig.supabaseKey.length>10);
  const rpc=await fetch(publicConfig.supabaseUrl.replace(/\/$/,'')+'/rest/v1/rpc/offrya_public_mission_counts',{
