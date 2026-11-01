@@ -118,6 +118,41 @@ async function run(){
  assert.equal(typeof cfg.json?.billingEnabled,'boolean');
  assert.equal(cfg.json?.billingEnabled,health.json?.paymentsEnabled);
  console.log('PASS: configuration publique Supabase et prix professionnel à 34,99 euros');
+
+ // Validation de la deuxième étape en production : module autonome public,
+ // aucune annonce consultée et aucune valeur fictive.
+ let activityDeployed=false;
+ for(let attempt=0;attempt<16;attempt++){
+  const [landing,asset,professional]=await Promise.all([
+   request('/'),request('/activity.js'),request('/professionnels')
+  ]);
+  activityDeployed=landing.status===200
+   &&landing.text.includes('id="publicActivity"')
+   &&asset.status===200
+   &&asset.text.includes('offrya_public_mission_counts')
+   &&professional.status===200
+   &&professional.text.includes('OFFRYA Professionnel : développez votre activité')
+   &&!professional.text.includes('Devenir Premium sur OFFRYA');
+  if(activityDeployed)break;
+  if(attempt<15)await new Promise(resolve=>setTimeout(resolve,12000));
+ }
+ assert.ok(activityDeployed,'Nouvelle vitrine OFFRYA Professionnel et compteurs publics non encore servis sur Render');
+ console.log('PASS: vitrine OFFRYA Professionnel et module public autonomes visibles sur Render');
+ const publicConfig=cfg.json||{};
+ assert.ok(typeof publicConfig.supabaseKey==='string'&&publicConfig.supabaseKey.length>10);
+ const rpc=await fetch(publicConfig.supabaseUrl.replace(/\/$/,'')+'/rest/v1/rpc/offrya_public_mission_counts',{
+  method:'POST',headers:{apikey:publicConfig.supabaseKey,'Content-Type':'application/json'},body:'{}',
+  signal:AbortSignal.timeout(20000)
+ });
+ assert.equal(rpc.status,200,'RPC public de statistiques');
+ const aggregates=await rpc.json();
+ assert.ok(Array.isArray(aggregates)&&aggregates.length<=700,'Réponse agrégée');
+ for(const entry of aggregates){
+  assert.deepEqual(Object.keys(entry).sort(),['category','count','department']);
+  assert.ok(Number.isSafeInteger(Number(entry.count))&&Number(entry.count)>=0);
+ }
+ console.log('PASS: statistiques réelles secteur/département accessibles sans aucune mission privée');
+
  const protectedApi=await request('/api/annonces');
  assert.equal(protectedApi.status,401,'BOAMP doit refuser les accès anonymes');
  console.log('PASS: recherche BOAMP protégée sans connexion');
