@@ -4,18 +4,22 @@ const fs=require('node:fs'),path=require('node:path');
 const {createServer}=require('node:http'),{handle}=require('../server');
 const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 const html=read('public/espace.html'),js=read('public/app.js'),css=read('public/pro.css'),sql=read('sql/professional_onboarding_drafts.sql'),server=read('server.js');
-test('Navigation : Espace pro et Marchés publics sont deux onglets différents',()=>{
+test('Marchés publics dans Espace Pro uniquement après validation et abonnement',()=>{
  const nav=html.split('<nav id="nav"')[1].split('</nav>')[0];
  assert.match(nav,/data-tab="professional"/);
- assert.match(nav,/data-tab="boamp"/);
- assert.notEqual(nav.indexOf('data-tab="professional"'),nav.indexOf('data-tab="boamp"'));
- const pro=html.split('<section class="tab" id="professional">')[1].split('<section class="tab" id="boamp">')[0];
- const market=html.split('<section class="tab" id="boamp">')[1].split('<section class="tab" id="inbox">')[0];
+ assert.doesNotMatch(nav,/data-tab="boamp"/);
+ assert.doesNotMatch(html,/<section class="tab" id="boamp">/);
+ const pro=html.split('<section class="tab" id="professional">')[1].split('<section class="tab" id="inbox">')[0];
  assert.ok(pro.includes('id="proLanding"')&&pro.includes('id="premiumRequestForm"'));
- assert.ok(!pro.includes('id="boampList"'));
- assert.ok(market.includes('id="boampGate"')&&market.includes('id="boampList"'));
- assert.ok(!market.includes('id="premiumRequestForm"'));
- assert.match(js,/professional:'Espace professionnel'/);
+ const dashboard=pro.split('id="proDashboard" class="hidden"')[1];
+ assert.ok(dashboard.includes('id="proMarkets"'));
+ assert.ok(dashboard.includes('id="premiumContent" class="hidden"'));
+ assert.ok(dashboard.includes('id="boampList"'));
+ assert.ok(dashboard.includes('id="proMarketsShortcut"'));
+ assert.match(js,/const markets=name==='boamp'/);
+ assert.match(js,/const active=markets\?'professional':name/);
+ assert.match(js,/\$\('premiumContent'\)\.classList\.toggle\('hidden',!allowed\)/);
+ assert.match(js,/if\(!canUsePremium\(\)\)/);
  assert.match(js,/tab\('professional'\)/);
 });
 test('Quatre étapes sans TOTP et sans paiement prématuré',()=>{

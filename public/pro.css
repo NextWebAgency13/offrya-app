@@ -72,3 +72,9 @@
 .pro-manual-verification .pro-note{margin:0;width:100%}
 .pro-manual-verification .button{max-width:100%;white-space:normal;text-align:center}
 @media(max-width:620px){.pro-manual-verification{padding:19px 16px}.pro-manual-verification .button{width:100%}}
+
+/* Marchés publics : intégrés à l'espace Pro seulement après activation. */
+.pro-market-section{margin-top:28px;padding-top:24px;border-top:1px solid rgba(92,104,139,.18)}
+.pro-market-section .section-top{margin-bottom:16px}
+.pro-market-section .section-top h3{margin:4px 0 7px}
+.pro-market-section .panel{margin-top:16px}

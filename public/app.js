@@ -10,14 +10,18 @@ function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggl
 const paths={dashboard:'/espace',missions:'/espace/missions',boamp:'/espace/marches-publics',professional:'/espace/professionnel',inbox:'/espace/messagerie',settings:'/espace/reglages'};
 const pathsReverse=Object.fromEntries(Object.entries(paths).map(([name,p])=>[p,name]));
 function tab(name,fromHistory=false){
- if(!$(name))return;
- document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.id===name));
- document.querySelectorAll('.nav-link').forEach(el=>el.classList.toggle('active',el.dataset.tab===name));
- const titles={dashboard:'Tableau de bord',missions:'Mes missions',boamp:'Marchés publics',professional:'Espace professionnel',inbox:'Messagerie',settings:'Mon compte'};
- $('pageTitle').textContent=titles[name];$('breadcrumb').textContent='OFFRYA / '+titles[name].toUpperCase();
- if(!fromHistory&&location.pathname!==paths[name])history.pushState({tab:name},'',paths[name]);
- if(name==='boamp'&&canUsePremium()&&!state.boamp.length)loadBoamp();
- window.scrollTo({top:0,behavior:'smooth'});
+ const markets=name==='boamp'; // Ancien lien et raccourci vers les marchés dans l'Espace Pro.
+ const active=markets?'professional':name;
+ if(!$(active))return;
+ document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.id===active));
+ document.querySelectorAll('.nav-link').forEach(el=>el.classList.toggle('active',el.dataset.tab===active));
+ const titles={dashboard:'Tableau de bord',missions:'Mes missions',professional:'Espace professionnel',inbox:'Messagerie',settings:'Mon compte'};
+ $('pageTitle').textContent=titles[active];$('breadcrumb').textContent='OFFRYA / '+titles[active].toUpperCase();
+ const route=markets?paths.boamp:paths[active];
+ if(!fromHistory&&location.pathname!==route)history.pushState({tab:active},'',route);
+ if(active==='professional'&&canUsePremium()&&!state.boamp.length)loadBoamp();
+ if(markets&&canUsePremium())$('proMarkets').scrollIntoView({behavior:'smooth',block:'start'});
+ else window.scrollTo({top:0,behavior:'smooth'});
 }
 window.addEventListener('popstate',()=>tab(pathsReverse[location.pathname]||'dashboard',true));
 for(const n of document.querySelectorAll('[data-tab]'))n.addEventListener('click',()=>{tab(n.dataset.tab);if(n.dataset.action==='publish')location.assign('/deposer-une-mission');});
@@ -99,8 +103,11 @@ function canUsePremium(){
 }
 function renderPremium(){
  const allowed=canUsePremium(),pro=Boolean(state.session&&state.profile?.role==='pro');
- $('boampGate').classList.toggle('hidden',allowed);
  $('premiumContent').classList.toggle('hidden',!allowed);
+ if(!allowed){
+  state.boamp=[];state.boampOffset=0;state.boampTotal=0;
+  $('boampCount').textContent='—';$('boampList').textContent='';
+ }
  $('proLanding').classList.toggle('hidden',pro);
  $('proWorkspace').classList.toggle('hidden',!pro);
  $('premiumLogin').classList.toggle('hidden',Boolean(state.session));
@@ -444,7 +451,8 @@ $('messageForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth()||!state
 $('profileForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget,x=Object.fromEntries(new FormData(f)),id=state.session.user.id;try{const r=state.profile?await state.db.from('offrya_profiles').update({display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim(),...(state.profile.role==='client'&&x.role==='pro'?{role:'pro'}:{})}).eq('id',id):await state.db.from('offrya_profiles').insert({id,role:x.role,display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim()});if(r.error)throw r.error;toast('Profil enregistré');await refresh();}catch(err){showError(err);}};
 $('preferencesForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget;const payload={user_id:state.session.user.id,missions_enabled:f.elements.missions_enabled.checked,messages_enabled:f.elements.messages_enabled.checked,department:f.elements.department.value.trim().toUpperCase(),category:f.elements.category.value};try{let r;if(state.prefs){delete payload.user_id;r=await state.db.from('offrya_alert_preferences').update(payload).eq('user_id',state.session.user.id);}else r=await state.db.from('offrya_alert_preferences').insert(payload);if(r.error)throw r.error;toast('Préférences enregistrées.');await refresh();}catch(err){showError(err);}};
 async function loadBoamp(append=false){if(!canUsePremium()){renderPremium();return;}if(!append){state.boampOffset=0;state.boamp=[];}$('boampCount').textContent='Recherche en cours';$('boampList').innerHTML='<div class="boamp-skeleton" aria-hidden="true"><div></div><div></div></div>';try{const qs=new URLSearchParams({q:$('boampKeyword').value.trim(),dept:$('boampDept').value.trim(),offset:String(state.boampOffset)});const {data:{session}}=await state.db.auth.getSession();if(!session)throw Error('Session expirée.');
-const r=await fetch('/api/annonces?'+qs,{headers:{Authorization:'Bearer '+session.access_token}});const data=await r.json();if(!r.ok)throw Error(data.error||'Source indisponible');state.boamp.push(...data.items);state.boampOffset+=data.items.length;state.boampTotal=data.total;$('boampCount').textContent=`${data.total} avis officiels`;$('boampList').innerHTML=state.boamp.map(m=>`<article class="data-item"><span class="tag">BOAMP OFFICIEL</span><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.buyer)}</div><div class="meta-row"><span>Dépt. : ${esc(m.departments)}</span><span>Publié : ${date(m.published)}</span><span>Échéance : ${date(m.deadline)}</span></div><a class="button secondary micro-button" href="${esc(m.url)}" target="_blank" rel="noopener noreferrer">Consulter l'avis officiel ↗</a></article>`).join('')||'<div class="empty">Aucune annonce correspondante.</div>';$('boampMore').classList.toggle('hidden',state.boampOffset>=data.total||!data.items.length);}catch(err){$('boampCount').textContent='Indisponible';$('boampList').innerHTML='<div class="empty">Le service officiel ne répond pas. Aucune donnée fictive n’est affichée.</div>';console.error(err);}}
+const r=await fetch('/api/annonces?'+qs,{headers:{Authorization:'Bearer '+session.access_token}});const data=await r.json();if(!r.ok)throw Error(data.error||'Source indisponible');if(!canUsePremium())return;state.boamp.push(...data.items);state.boampOffset+=data.items.length;state.boampTotal=data.total;$('boampCount').textContent=`${data.total} avis officiels`;$('boampList').innerHTML=state.boamp.map(m=>`<article class="data-item"><span class="tag">BOAMP OFFICIEL</span><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.buyer)}</div><div class="meta-row"><span>Dépt. : ${esc(m.departments)}</span><span>Publié : ${date(m.published)}</span><span>Échéance : ${date(m.deadline)}</span></div><a class="button secondary micro-button" href="${esc(m.url)}" target="_blank" rel="noopener noreferrer">Consulter l'avis officiel ↗</a></article>`).join('')||'<div class="empty">Aucune annonce correspondante.</div>';$('boampMore').classList.toggle('hidden',state.boampOffset>=data.total||!data.items.length);}catch(err){$('boampCount').textContent='Indisponible';$('boampList').innerHTML='<div class="empty">Le service officiel ne répond pas. Aucune donnée fictive n’est affichée.</div>';console.error(err);}}
+$('proMarketsShortcut').onclick=()=>tab('boamp');
 $('boampSearch').onclick=()=>loadBoamp();$('boampMore').onclick=()=>loadBoamp(true);$('exportBoamp').onclick=async()=>{
  if(!canUsePremium())return renderPremium();
  try{
