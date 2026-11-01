@@ -63,11 +63,9 @@ test('Protection SQL : mission INSERT restreint sans altérer les droits Premium
 test('Accueil : communication cohérente et FAQ HTML / JSON-LD identiques',()=>{
  assert.match(home,/Publication après confirmation de l’e-mail/);
  assert.doesNotMatch(home,/sans inscription|sans compte|session invitée|Aucun compte n.est imposé/i);
- const faqs=[...home.matchAll(/<details><summary>([^<]+)<\/summary><p>([^<]+)<\/p><\/details>/g)];
- const schema=[...home.matchAll(/<script type="application\/ld\+json">([^<]+)<\/script>/g)].map(v=>JSON.parse(v[1])).find(s=>s['@type']==='FAQPage');
- assert.ok(schema);
- assert.equal(schema.mainEntity.length,faqs.length);
- for(let i=0;i<faqs.length;i++){assert.equal(schema.mainEntity[i].name,faqs[i][1]);assert.equal(schema.mainEntity[i].acceptedAnswer.text,faqs[i][2]);}
+ // La maquette fidèle ne comporte pas de FAQ sur l'accueil. Aucune FAQ JSON-LD masquée.
+ assert.doesNotMatch(home,/\\"@type\\":\\"FAQPage\\"/);
+ assert.match(home,/class="mock-how"/);
  for(const slug of ['batiment','nettoyage','espaces-verts','transport','informatique','autres-prestations']){
   const page=read('public/secteurs/'+slug+'.html');
   assert.match(page,/gratuite après création d'un compte et confirmation/);
