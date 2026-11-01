@@ -23,7 +23,7 @@ function permitted(prefs,mission,alert,uid){
   &&(!prefs.department||prefs.department===mission.department));
 }
 function emailTemplate({mission,siteUrl,token}){
- const destination=siteUrl.replace(/\/$/,'')+'/#missions';
+ const destination=siteUrl.replace(/\/$/,'')+'/espace/missions';
  const stop=siteUrl.replace(/\/$/,'')+'/api/unsubscribe?token='+encodeURIComponent(token);
  return {
   subject:'OFFRYA Professionnel — nouvelle mission : '+clean(mission.category)+' · '+clean(mission.department),
@@ -34,7 +34,7 @@ function emailTemplate({mission,siteUrl,token}){
    <p><a href="${html(destination)}">Consulter les missions sur OFFRYA</a></p>
    <hr><p style="font-size:12px;color:#777">Alerte de service envoyée parce que vous avez activé les alertes de missions.
    Aucune obligation de répondre. <a href="${html(stop)}">Se désabonner</a> ·
-   <a href="${html(siteUrl.replace(/\/$/,'')+'/#settings')}">Gérer les préférences</a>.</p>
+   <a href="${html(siteUrl.replace(/\/$/,'')+'/espace/reglages')}">Gérer les préférences</a>.</p>
    </div>`,
   unsubscribeUrl:stop
  };
