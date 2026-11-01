@@ -31,7 +31,7 @@ async function run(){
   const landing=await request('/');
   const authPage=await request('/connexion');
   const authScript=await request('/connexion.js');
-  const header=landing.text.match(/<header class="top home-top mock-top">([\\s\\S]*?)<\\/header>/)?.[1]||'';
+  const header=landing.text.match(/<header class="top home-top mock-top">([\s\S]*?)<\/header>/)?.[1]||'';
   releaseVisible=header.includes('class="header-signin"')
    &&header.includes('class="brand"')
    &&!header.includes('header-signup')
