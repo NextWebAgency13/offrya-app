@@ -1,22 +1,85 @@
 import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm';
 const $=id=>document.getElementById(id),query=new URLSearchParams(location.search);
 const value=query.get('next')||'/espace',next=(value==='/deposer-une-mission'||/^\/espace(?:\/(?:missions|marches-publics|messagerie|reglages|professionnel))?$/.test(value))?value:'/espace';
-let db,mode='login';const labels={login:'Se connecter',signup:'Créer un compte',magic:'Envoyer un lien',reset:'Envoyer la réinitialisation',recover:'Enregistrer le mot de passe'};
+let db,mode='login',redirected=false,verificationQueue=Promise.resolve();
+const invalidatedSessionIds=new Set();
+const labels={login:'Se connecter',signup:'Créer un compte',magic:'Envoyer un lien',reset:'Envoyer la réinitialisation',recover:'Enregistrer le mot de passe'};
+const titles={login:'Connexion à votre espace',signup:'Créer mon compte gratuit',magic:'Recevoir un lien de connexion',reset:'Réinitialiser mon mot de passe',recover:'Choisir un nouveau mot de passe'};
 function say(s,error=false){$('loginStatus').textContent=s;$('loginStatus').style.color=error?'#ab294d':'#4e318a';}
 function change(v){
  mode=v;for(const b of document.querySelectorAll('[data-mode]'))b.setAttribute('aria-pressed',String(b.dataset.mode===v));
- $('loginSubmit').textContent=labels[v];const ps=$('passwordRow'),em=$('emailRow');
+ $('loginSubmit').textContent=labels[v];$('authHeading').textContent=titles[v];
+ const ps=$('passwordRow'),em=$('emailRow');
  ps.hidden=['magic','reset'].includes(v);ps.querySelector('input').required=!ps.hidden;ps.querySelector('input').autocomplete=v==='login'?'current-password':'new-password';
  em.hidden=v==='recover';em.querySelector('input').required=!em.hidden;
 }
 for(const b of document.querySelectorAll('[data-mode]'))b.addEventListener('click',()=>change(b.dataset.mode));
-function resume(session){if(session&&!session.user?.is_anonymous&&session.user?.email_confirmed_at)location.replace(next);}
+function invalidSessionError(error){
+ const code=String(error?.code||'').toLowerCase();
+ const message=String(error?.message||'').toLowerCase();
+ return [401,403,404].includes(Number(error?.status))
+  || /user_not_found|session_not_found|refresh_token_not_found|invalid_refresh_token|bad_jwt|invalid_jwt/.test(code)
+  || /user from sub claim|user not found|does not exist|invalid refresh token|session not found|session missing|jwt expired|invalid jwt/.test(message);
+}
+// Une session locale peut encore exister après suppression d'un compte Auth.
+// Seul getUser() interroge Supabase Auth et confirme l'existence du compte.
+function resume(session){
+ if(!session?.user?.id||redirected||invalidatedSessionIds.has(session.user.id)||mode==='recover'||query.get('mode')==='reset-password')return verificationQueue;
+ const work=verificationQueue.then(async()=>{
+  if(redirected||invalidatedSessionIds.has(session.user.id))return;
+  let result;
+  try{result=await db.auth.getUser();}catch(error){result={error};}
+  const user=result?.data?.user,error=result?.error;
+  if(!error&&user?.id===session.user.id){
+   if(user.is_anonymous||!user.email_confirmed_at){
+    say('Confirmez votre adresse e-mail pour accéder à votre compte et publier une mission.');
+    return;
+   }
+   redirected=true;
+   location.replace(next);
+   return;
+  }
+  // L'authentification a changé pendant la vérification : ne pas
+  // déconnecter une session plus récente.
+  if(!error&&user?.id&&user.id!==session.user.id)return;
+  if(!user&&(!error||invalidSessionError(error))){
+   try{
+    const out=await db.auth.signOut({scope:'local'});
+    if(out?.error)throw out.error;
+    invalidatedSessionIds.add(session.user.id);
+    say('Votre ancienne session a expiré ou le compte a été supprimé. Créez un compte gratuit ou connectez-vous.');
+   }catch(signOutError){
+    say('Session invalide : impossible de la réinitialiser automatiquement. Réessayez en navigation privée.',true);
+   }
+   return;
+  }
+  // Ne pas supprimer une session sur une simple panne réseau.
+  if(error)say('Vérification du compte temporairement indisponible. Réessayez.',true);
+ });
+ verificationQueue=work.catch(()=>{});
+ return work;
+}
 async function init(){
+ if(query.get('mode')==='reset-password')change('recover');
+ else if(query.get('mode')==='signup')change('signup');
  const r=await fetch('/api/config');if(!r.ok)throw Error('Connexion indisponible');const c=await r.json();
+ if(!c.supabaseUrl||!c.supabaseKey)throw Error('Configuration de connexion indisponible');
  db=createClient(c.supabaseUrl,c.supabaseKey,{auth:{detectSessionInUrl:true}});
- db.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY'){change('recover');return;}if(event==='SIGNED_IN'&&session&&!session.user?.is_anonymous&&mode!=='recover')setTimeout(()=>resume(session),0);});
- const {data:{session}}=await db.auth.getSession();
- if(query.get('mode')==='reset-password')change('recover');else{if(query.get('mode')==='signup')change('signup');resume(session);}
+ db.auth.onAuthStateChange((event,session)=>{
+  if(event==='PASSWORD_RECOVERY'){change('recover');return;}
+  if(event==='SIGNED_IN'&&session&&mode!=='recover'){
+   // Supabase recommande de différer les autres appels Auth hors du callback.
+   setTimeout(()=>resume(session).catch(error=>say(error.message,true)),0);
+  }
+ });
+ const {data,error}=await db.auth.getSession();
+ if(error&&invalidSessionError(error)){
+  await db.auth.signOut({scope:'local'});
+  say('Votre ancienne session n’est plus valide. Vous pouvez créer un nouveau compte.');
+  return;
+ }
+ if(error){say('Vérification du compte temporairement indisponible. Réessayez.',true);return;}
+ await resume(data?.session);
 }
 $('loginForm').addEventListener('submit',async e=>{
  e.preventDefault();if(!db)return say('Connexion indisponible',true);
@@ -30,7 +93,7 @@ $('loginForm').addEventListener('submit',async e=>{
   if(r.error)throw r.error;
   if(['signup','magic','reset'].includes(mode))say('Consultez votre boîte e-mail et ouvrez le lien sécurisé. Aucun abonnement ni alerte n’est activé.');
   else if(mode==='recover'){say('Mot de passe modifié');location.replace(next);}
-  else resume(r.data?.session);
+  else await resume(r.data?.session);
  }catch(err){say(err.message||'Erreur de connexion',true);}finally{b.disabled=false;}
 });
-init().catch(e=>say(e.message,true));
+init().catch(e=>say(e.message||'Connexion indisponible',true));
