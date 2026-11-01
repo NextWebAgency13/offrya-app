@@ -1,8 +1,12 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm';
+import {validateMissionPhotos,uploadMissionPhotos} from './mission-photos.mjs';
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
+const missionEffectiveStatus=m=>m.status==='open'&&m.expires_at&&new Date(m.expires_at)<=new Date()?'expired':m.status;
+const missionStatusLabel=m=>({open:'Ouverte',awarded:'Pourvue',closed:'Clôturée',expired:'Expirée'})[missionEffectiveStatus(m)]||'Indéterminée';
+const urgencyLabel=u=>({normal:'Flexible',soon:'Prochainement',urgent:'Urgente'})[u]||'Flexible';
 const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
@@ -51,7 +55,7 @@ async function refresh(){
  state.profile=prof.data;state.premium=premium.data;state.subscription=subscription.data;state.draft=draft.data;state.manualIdentity=manualReview.data;state.conversations=conv.data||[];state.prefs=prefs.data;state.profiles=profiles.data||[];state.favorites=(favorites.data||[]).map(x=>x.mission_id);
  if(canUsePremium()){
   // La base RLS reste l'autorité : vérification officielle + abonnement en cours.
-  const opportunities=await state.db.from('offrya_missions').select('*').eq('status','open').order('created_at',{ascending:false}).limit(200);
+  const opportunities=await state.db.from('offrya_missions').select('*').eq('status','open').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false}).limit(200);
   if(opportunities.error)throw opportunities.error;
   const byId=new Map(state.missions.map(m=>[m.id,m]));
   for(const mission of opportunities.data||[])byId.set(mission.id,mission);
@@ -63,12 +67,18 @@ async function refresh(){
  await loadPriorityAlerts(false);
  state.loaded=true;render();
 }
-function row(m,actions=''){return `<article class="data-item"><div class="item-top"><span class="tag">${esc(m.category)}</span><span class="muted tiny">${date(m.created_at)}</span></div><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.description).slice(0,270)}</div><div class="meta-row"><span>⌖ ${esc(m.city)} (${esc(m.department)})</span><span>Budget : ${m.budget_cents?euro(m.budget_cents):'À définir'}</span><span>${m.status==='open'?'Ouverte':m.status==='awarded'?'Attribuée':'Fermée'}</span></div>${actions?`<div class="item-actions">${actions}</div>`:''}</article>`;}
+function row(m,actions=''){
+ const extra=[m.area_sqm?'Surface : '+esc(m.area_sqm)+' m²':'',
+  m.urgency?'Urgence : '+esc(urgencyLabel(m.urgency)):'',
+  m.desired_date?'Date souhaitée : '+esc(date(m.desired_date)):'',
+  m.place_type?'Lieu : '+esc(m.place_type):''].filter(Boolean).join(' · ');
+ return `<article class="data-item"><div class="item-top"><span class="tag">${esc(m.category)}</span><span class="tag">${missionStatusLabel(m)}</span><span class="muted tiny">${date(m.created_at)}</span></div><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.description).slice(0,270)}</div><div class="meta-row"><span>⌖ ${esc(m.city)} (${esc(m.department)})</span><span>Budget : ${m.budget_cents?euro(m.budget_cents):'À définir'}</span><span>${extra}</span></div><div class="item-actions"><button class="button secondary micro-button" data-show-photos="${esc(m.id)}">Voir photos</button><button class="button secondary micro-button" data-report-mission="${esc(m.id)}">Signaler</button>${actions}</div></article>`;
+}
 function renderMissions(){
  const uid=state.session?.user.id,canBrowse=canUsePremium();
  const visible=state.missions.filter(m=>m.owner_id===uid||canBrowse);
  let q=$('missionQuery').value.trim().toLowerCase(),c=$('missionCategory').value,d=$('missionDept').value.trim().toUpperCase();
- const matches=visible.filter(m=>(m.owner_id===uid||m.status==='open')&&(!q||(m.title+' '+m.description+' '+m.city).toLowerCase().includes(q))&&(!c||m.category===c)&&(!d||m.department===d));
+ const matches=visible.filter(m=>(m.owner_id===uid||missionEffectiveStatus(m)==='open')&&(!q||(m.title+' '+m.description+' '+m.city).toLowerCase().includes(q))&&(!c||m.category===c)&&(!d||m.department===d));
  $('missionsCount').textContent=matches.length+(canBrowse?' mission(s) accessible(s)':' annonce(s) personnelle(s)');
  $('missionsListHeading').textContent=canBrowse?'Missions accessibles à mon compte Pro':'Mes annonces publiées';
  $('missionSearchFilters').classList.toggle('hidden',!canBrowse);
@@ -78,12 +88,20 @@ function renderMissions(){
  $('missionAccountNotice').classList.toggle('hidden',publisherReady);
  $('missionList').innerHTML=matches.length?matches.map(m=>{
   const own=m.owner_id===uid;
-  const actions=own?`<span class="tag">Votre annonce</span> ${m.status==='open'?`<button class="button secondary micro-button" data-close-mission="${esc(m.id)}">Clôturer</button>`:''}`:
-   canBrowse?`<button class="button secondary micro-button" data-favorite="${esc(m.id)}" aria-pressed="${state.favorites.includes(m.id)}">${state.favorites.includes(m.id)?'★ Enregistrée':'☆ Favori'}</button> <button class="button primary micro-button" data-contact="${esc(m.id)}">Contacter le client</button>`:'';
+  const available=missionEffectiveStatus(m)==='open';
+  const interested=state.conversations.filter(c=>c.mission_id===m.id&&c.client_id===uid);
+  const eligibleProOptions=interested.map(c=>`<option value="${esc(c.professional_id)}">${esc(profileName(c.professional_id))}</option>`).join('');
+  const award=available&&interested.length
+    ?`<label class="mission-select-pro">Choisir un professionnel <select class="field" data-award-select="${esc(m.id)}"><option value="">Choisir dans mes échanges</option>${eligibleProOptions}</select></label><button class="button primary micro-button" data-award-mission="${esc(m.id)}">Attribuer</button>`:'';
+  const actions=own
+    ?`<span class="tag">Votre annonce</span> ${award}
+       ${m.status!=='closed'? `<button class="button secondary micro-button" data-close-mission="${esc(m.id)}">Clôturer</button>`:''}
+       ${m.status==='closed'&&m.selected_pro_id?`<button class="button secondary micro-button" data-review-mission="${esc(m.id)}">Donner un avis</button>`:''}`
+    :available&&canBrowse?`<button class="button secondary micro-button" data-favorite="${esc(m.id)}" aria-pressed="${state.favorites.includes(m.id)}">${state.favorites.includes(m.id)?'★ Enregistrée':'☆ Favori'}</button><button class="button primary micro-button" data-contact="${esc(m.id)}">Contacter le client</button>`:'';
   return row(m,actions);
  }).join(''):'<div class="empty">Vous n’avez pas encore publié de mission, ou aucun résultat ne correspond à vos critères. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
  const preview=canBrowse?visible:visible.filter(m=>m.owner_id===uid);
- $('dashMissions').innerHTML=preview.filter(m=>m.status==='open').slice(0,3).map(m=>row(m)).join('')||'<div class="empty">Vous n’avez pas encore publié de mission. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
+ $('dashMissions').innerHTML=preview.filter(m=>missionEffectiveStatus(m)==='open').slice(0,3).map(m=>row(m)).join('')||'<div class="empty">Vous n’avez pas encore publié de mission. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
 }
 function renderInbox(){
  const items=state.conversations;
@@ -396,7 +414,7 @@ function render(){
  banner.classList.toggle('hidden',!pro);
  if(pro){const p=state.premium;banner.textContent='Entreprise : '+(p?.legal_name||'à vérifier')+' · Identité : '+(p?.identity_status==='verified'?'vérifiée':'en cours')+' · Dirigeant : '+(p?.authority_status==='verified'?'confirmé':'en attente')+' · Abonnement : '+(canUsePremium()?'actif':'inactif');}
 $('homePrivateDashboard').classList.toggle('hidden',!yes);$('statOpenLabel').textContent=canUsePremium()?'Missions accessibles':'Mes annonces actives';$('homeMissionHeading').textContent=canUsePremium()?'Missions accessibles':'Mes annonces publiées';$('authOpen').textContent=!yes?'Se connecter':isGuest()?'Suivi invité':(state.session.user.email?.split('@')[0]||'Mon compte');$('logout').classList.toggle('hidden',!yes||isGuest());$('avatar').textContent=state.profile?.display_name?.[0]?.toUpperCase()||'V';
- $('statOpen').textContent=state.missions.filter(x=>x.status==='open'&&(canUsePremium()||x.owner_id===state.session?.user.id)).length;$('statMissions').textContent=state.missions.filter(x=>x.owner_id===state.session?.user.id).length;$('statConvos').textContent=state.conversations.length;$('statFavorites').textContent=state.favorites.length;
+ $('statOpen').textContent=state.missions.filter(x=>missionEffectiveStatus(x)==='open'&&(canUsePremium()||x.owner_id===state.session?.user.id)).length;$('statMissions').textContent=state.missions.filter(x=>x.owner_id===state.session?.user.id).length;$('statConvos').textContent=state.conversations.length;$('statFavorites').textContent=state.favorites.length;
  $('dashActivity').innerHTML=yes?`<div class="data-item"><div class="item-title">${esc(state.profile?.display_name||'Profil à compléter')}</div><div class="item-desc">${state.profile?.role==='client'?'Compte client':'Compte professionnel'} · ${state.conversations.length} discussion(s)</div></div><div class="data-item"><div class="item-title">Échanges directs entre utilisateurs</div><div class="item-desc">Échangez dans la messagerie, puis organisez librement votre accord, les tarifs et le règlement avec l'autre partie. OFFRYA n'intervient pas dans la transaction.</div></div>`:'<div class="empty">Connectez-vous pour voir vos contacts et vos missions.</div>';
  renderMissions();renderInbox();renderSettings();renderPremium();renderPriorityAlerts();
 }
@@ -428,28 +446,40 @@ $('missionForm').onsubmit=async e=>{
  const f=e.currentTarget;
  if(f.dataset.sending==='true')return;
  const x=Object.fromEntries(new FormData(f));
+ const files=Array.from(f.elements.photos?.files||[]);
  const amount=x.budget?Math.round(Number(x.budget)*100):null;
  const button=f.querySelector('button[type="submit"]');
  f.dataset.sending='true';button.disabled=true;
  try{
   const uid=await ensureMissionPublisher();
+  validateMissionPhotos(files);
+  if(x.desired_date&&x.desired_date<new Date().toISOString().slice(0,10))throw Error('Date souhaitée passée.');
   const r=await state.db.from('offrya_missions').insert({
    owner_id:uid,title:x.title.trim(),description:x.description.trim(),
    category:x.category,department:x.department.trim().toUpperCase(),
-   city:x.city.trim(),budget_cents:amount
-  });
+   city:x.city.trim(),budget_cents:amount,
+   area_sqm:x.area_sqm?Number(x.area_sqm):null,urgency:x.urgency||'normal',
+   desired_date:x.desired_date||null,place_type:x.place_type||null
+  }).select('id').single();
   if(r.error)throw r.error;
+  let warning='';
+  if(files.length)try{await uploadMissionPhotos(state.db,files,uid,r.data.id);}
+  catch(error){warning=' Mission enregistrée, mais certaines photos ont échoué : '+error.message;}
   f.reset();await refresh();
-  toast('Mission publiée gratuitement.');
+  toast('Mission publiée gratuitement.'+warning);
   $('missionStatus').textContent='Mission publiée. Retrouvez-la dans Mes missions.';
   $('missionStatus').classList.remove('hidden');
  }catch(err){showError(err);}
  finally{delete f.dataset.sending;button.disabled=false;}
 };
 $('missionList').onclick=async e=>{
- const btn=e.target.closest('[data-contact],[data-close-mission],[data-favorite]');if(!btn)return;
+ const btn=e.target.closest('[data-contact],[data-close-mission],[data-favorite],[data-award-mission],[data-show-photos],[data-report-mission],[data-review-mission]');if(!btn)return;
+ if(btn.dataset.showPhotos){await showMissionPhotos(btn.dataset.showPhotos);return;}
+ if(btn.dataset.reportMission){openReport('mission',btn.dataset.reportMission);return;}
+ if(btn.dataset.reviewMission){openReview(btn.dataset.reviewMission);return;}
+ if(btn.dataset.awardMission){const id=btn.dataset.awardMission,select=document.querySelector('[data-award-select="'+id+'"]');const pro=select?.value;if(!pro)return toast('Choisissez un professionnel avec lequel vous avez échangé.');if(!confirm('Attribuer cette mission au professionnel sélectionné ?'))return;try{const r=await state.db.rpc('offrya_award_mission',{p_mission:id,p_professional:pro});if(r.error)throw r.error;if(!r.data)throw Error('Attribution impossible : échange réciproque ou mission ouverte requis.');await refresh();toast('Mission pourvue.');}catch(err){showError(err);}return;}
  if(btn.dataset.favorite){if(!requireAuth())return;const id=btn.dataset.favorite;try{const result=state.favorites.includes(id)?await state.db.from('offrya_favorites').delete().eq('user_id',state.session.user.id).eq('mission_id',id):await state.db.from('offrya_favorites').insert({user_id:state.session.user.id,mission_id:id});if(result.error)throw result.error;await refresh();toast(state.favorites.includes(id)?'Mission ajoutée aux favoris.':'Favori retiré.');}catch(err){showError(err);}return;}
- if(btn.dataset.closeMission){if(!confirm('Clôturer cette mission ? Elle ne sera plus visible dans les recherches, mais vos conversations resteront accessibles.'))return;try{const r=await state.db.rpc('offrya_close_mission',{p_id:btn.dataset.closeMission});if(r.error)throw r.error;await refresh();toast('Mission clôturée');}catch(err){showError(err);}return;}
+ if(btn.dataset.closeMission){if(!confirm('Clôturer cette mission ? Elle ne sera plus visible dans les recherches, mais vos conversations resteront accessibles.'))return;try{const r=await state.db.rpc('offrya_finish_mission',{p_mission:btn.dataset.closeMission});if(r.error)throw r.error;if(!r.data)throw Error('Clôture non autorisée.');await refresh();toast('Mission clôturée');}catch(err){showError(err);}return;}
  if(!requireRole('pro'))return;const mission=state.missions.find(m=>m.id===btn.dataset.contact);if(!mission)return;
  try{let c=state.conversations.find(c=>c.mission_id===mission.id&&c.professional_id===state.session.user.id);if(!c){const r=await state.db.from('offrya_conversations').insert({mission_id:mission.id,client_id:mission.owner_id,professional_id:state.session.user.id}).select().single();if(r.error){if(r.error.code==='23505'){await refresh();c=state.conversations.find(x=>x.mission_id===mission.id&&x.professional_id===state.session.user.id);}else throw r.error;}else c=r.data;}if(!c)throw Error('Discussion introuvable');state.thread=c.id;await loadMessages(c.id);await refresh();tab('inbox');}catch(err){showError(err);}
 };
