@@ -4,28 +4,32 @@ const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 const home=read('public/index.html'),css=read('public/public.css'),pro=read('public/professionnels.html');
 const publicPages=['public/index.html','public/professionnels.html','public/deposer-une-mission.html','public/connexion.html',
  ...['batiment','nettoyage','espaces-verts','transport','informatique','autres-prestations'].map(x=>'public/secteurs/'+x+'.html')];
-test('Navigation publique : seulement Mon espace, dépôt accessible depuis le contenu',()=>{
+test('Accueil : connexion et inscription visibles ; autres pages gardent Mon espace',()=>{
  for(const p of publicPages){
   const html=read(p),nav=html.match(/<header class="top">[\s\S]*?<\/header>/)?.[0];
   assert.ok(nav,p+' needs public navigation');
-  assert.match(nav,/class="account-link" href="\/espace"/);
+  if(p==='public/index.html'){
+   assert.match(nav,/class="header-signin" href="\/connexion\?next=%2Fespace"/);
+   assert.match(nav,/class="header-signup" href="\/connexion\?mode=signup&amp;next=%2Fdeposer-une-mission"/);
+  } else assert.match(nav,/class="account-link" href="\/espace"/);
   assert.doesNotMatch(nav,/href="\/professionnels"|href="\/deposer-une-mission"|href="\/#fonctionnement"/);
  }
  assert.match(home,/class="btn primary" href="\/deposer-une-mission"/);
 });
 test('Accueil : texte revu, offre claire, aucun portrait chargé et CTAs uniformes',()=>{
- assert.match(home,/<h1>Votre projet mérite le bon professionnel\.<\/h1>/);
+ assert.match(home,/<h1>Publiez gratuitement votre mission\. Des professionnels vérifiés vous répondent\.<\/h1>/);
  assert.equal((home.match(/<h1\b/g)||[]).length,1);
- assert.match(home,/Vous êtes professionnel \?/);
+ assert.match(home,/Vous êtes demandeur ou professionnel \?/);
  assert.doesNotMatch(home,/Nouvel professionnel \?|Les opportunités prennent forme|Des entreprises contrôlées et abonnées/);
  assert.match(home,/Entreprise et dirigeant vérifiés/);
- assert.doesNotMatch(home,/Je suis professionnel|Vous êtes un professionnel \?/);
- assert.match(home,/<a class="btn outline" href="\/professionnels">Devenir Premium<\/a>/);
- assert.match(home,/<article class="card tinted"><h3>Devenir Premium<\/h3>[\s\S]*?<a class="btn outline" href="\/professionnels">Devenir Premium<\/a><\/article>/);
+ assert.match(home,/Je suis professionnel/);
+ assert.match(home,/<a class="btn outline" href="\/professionnels">Je suis professionnel<\/a>/);
+ assert.match(home,/<article class="card tinted account-card">[\s\S]*?<h3>Je souhaite consulter les missions<\/h3>[\s\S]*?<a class="btn outline" href="\/professionnels">Découvrir le compte professionnel<\/a><\/article>/);
  assert.equal((home.match(/href="\/professionnels">Devenir professionnel<\/a>/g)||[]).length,1);
  assert.match(home,/Accédez aux missions privées et aux outils de veille des marchés publics \(BOAMP\)/);
  assert.match(home,/Sans engagement, résiliable à tout moment\./);
  assert.match(pro,/Sans engagement, résiliable à tout moment\./);
+ assert.match(home,/id="choisir-compte"/);
  assert.match(home,/class="hero-illustration"/);
  assert.match(home,/<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox="0 0 460 380"/);
  assert.doesNotMatch(home,/<img\b|\.jpe?g|\.png|\.webp/);

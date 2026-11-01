@@ -49,3 +49,27 @@
 .premium-eligibility-action .btn{width:100%}
 @media(max-width:860px){.premium-hero,.premium-eligibility{grid-template-columns:1fr}.premium-price-card{max-width:560px}}
 @media(max-width:600px){.premium-hero{padding:36px 19px;gap:18px}.premium-price-card{padding:23px}.premium-eligibility{margin:0 16px;padding:27px 23px}.premium-steps .card{padding:24px}}
+
+/* Choix des comptes OFFRYA : navigation claire, deux parcours, design responsive. */
+.top nav>.public-nav-actions{display:flex;align-items:center;gap:10px;flex-wrap:nowrap}
+.top nav>.public-nav-actions .header-signin,.top nav>.public-nav-actions .header-signup{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;min-height:44px;padding:9px 15px;border-radius:12px;font-size:14px;font-weight:800;text-decoration:none}
+.top nav>.public-nav-actions .header-signin{color:#5130af;background:#fff;border:1px solid #dcd0ef}
+.top nav>.public-nav-actions .header-signup{color:#fff;background:#6941d7;border:1px solid #6941d7}
+.top nav>.public-nav-actions a:hover{filter:brightness(.95)}
+.audience-section{padding-top:43px}
+.account-card{display:flex;flex-direction:column;align-items:flex-start}
+.account-card .account-kind{font-size:12px;font-weight:850;letter-spacing:.7px;color:#6941d7}
+.account-card h3{font-size:23px;margin:13px 0 9px}
+.account-card p{font-size:15px;line-height:1.65;margin:0 0 18px}
+.account-card .btn{margin-top:auto}
+.account-type-choice[hidden]{display:none!important}
+.account-type-choice{margin:0 0 25px}
+.choice-title{margin:0 0 12px;font-size:17px;font-weight:800}
+.account-type-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.account-type-option{display:flex;flex-direction:column;gap:8px;padding:18px;border:2px solid #e5def1;border-radius:15px;background:#fff;color:#31243f;text-decoration:none}
+.account-type-option.chosen{background:#f4efff;border-color:#6941d7}
+.account-type-option strong{font-size:16px;line-height:1.35}
+.account-type-option span{font-size:14px;color:#51455f;line-height:1.5}
+.choice-note{font-size:14px;color:#51455f;line-height:1.5}
+@media(max-width:600px){.top nav>.public-nav-actions{gap:6px}.top nav>.public-nav-actions .header-signin,.top nav>.public-nav-actions .header-signup{min-height:41px;padding:8px 10px;font-size:12px}.account-type-grid{grid-template-columns:1fr}.account-card h3{font-size:20px}.account-card p{font-size:14px}.audience-section{padding-top:35px}}
+@media(max-width:370px){.top nav .brand{font-size:23px}.top nav .symbol{width:36px;height:36px}.top nav>.public-nav-actions .header-signin,.top nav>.public-nav-actions .header-signup{padding:8px 7px;font-size:11px}}
