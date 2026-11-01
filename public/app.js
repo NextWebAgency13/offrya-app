@@ -29,10 +29,13 @@ function profileName(id){return state.profiles.find(p=>p.id===id)?.display_name|
 async function refresh(){
  if(!state.db){render();return;}
  if(!state.session){state.draft=null;state.proStep=1;state.proStepUserId=null;state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.manualIdentity=null;state.boamp=[];state.priorityAlerts=[];state.lastPriorityIds=null;render();return;}
- const missionResult=await state.db.from('offrya_missions').select('*').order('created_at',{ascending:false}).limit(200);
- if(missionResult.error)throw missionResult.error;
- state.missions=missionResult.data||[];
  const uid=state.session.user.id;
+ // Par défaut : ne charger que les annonces dont ce compte est propriétaire.
+ // Les annonces des tiers ne sont interrogées qu'après contrôle professionnel.
+ state.missions=[];
+ const owned=await state.db.from('offrya_missions').select('*').eq('owner_id',uid).order('created_at',{ascending:false}).limit(200);
+ if(owned.error)throw owned.error;
+ state.missions=owned.data||[];
  const [prof,conv,prefs,profiles,favorites,premium,subscription,draft,manualReview]=await Promise.all([
   state.db.from('offrya_profiles').select('*').eq('id',uid).maybeSingle(),
   state.db.from('offrya_conversations').select('*').order('created_at',{ascending:false}).limit(100),
@@ -46,6 +49,14 @@ async function refresh(){
  ]);
  for(const res of [prof,conv,prefs,profiles,favorites,premium,subscription,draft,manualReview])if(res.error)throw res.error;
  state.profile=prof.data;state.premium=premium.data;state.subscription=subscription.data;state.draft=draft.data;state.manualIdentity=manualReview.data;state.conversations=conv.data||[];state.prefs=prefs.data;state.profiles=profiles.data||[];state.favorites=(favorites.data||[]).map(x=>x.mission_id);
+ if(canUsePremium()){
+  // La base RLS reste l'autorité : vérification officielle + abonnement en cours.
+  const opportunities=await state.db.from('offrya_missions').select('*').eq('status','open').order('created_at',{ascending:false}).limit(200);
+  if(opportunities.error)throw opportunities.error;
+  const byId=new Map(state.missions.map(m=>[m.id,m]));
+  for(const mission of opportunities.data||[])byId.set(mission.id,mission);
+  state.missions=Array.from(byId.values()).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+ }
  if(state.proStepUserId!==uid){state.proStepUserId=uid;state.proStep=Math.max(1,Math.min(3,Number(state.draft?.step||1)));}
  if(state.thread&&!state.conversations.find(x=>x.id===state.thread))state.thread=null;
  if(state.thread)await loadMessages(state.thread,false);
@@ -58,7 +69,9 @@ function renderMissions(){
  const visible=state.missions.filter(m=>m.owner_id===uid||canBrowse);
  let q=$('missionQuery').value.trim().toLowerCase(),c=$('missionCategory').value,d=$('missionDept').value.trim().toUpperCase();
  const matches=visible.filter(m=>m.status==='open'&&(!q||(m.title+' '+m.description+' '+m.city).toLowerCase().includes(q))&&(!c||m.category===c)&&(!d||m.department===d));
- $('missionsCount').textContent=matches.length+' mission(s)';
+ $('missionsCount').textContent=matches.length+(canBrowse?' mission(s) accessible(s)':' annonce(s) personnelle(s)');
+ $('missionsListHeading').textContent=canBrowse?'Missions accessibles à mon compte Pro':'Mes annonces publiées';
+ $('missionSearchFilters').classList.toggle('hidden',!canBrowse);
  $('missionAccessNotice').classList.toggle('hidden',canBrowse);
  const publisherReady=Boolean(state.session&&!isGuest()&&state.session.user.email_confirmed_at);
  $('missionForm').classList.toggle('hidden',!publisherReady);
@@ -69,7 +82,8 @@ function renderMissions(){
    canBrowse?`<button class="button secondary micro-button" data-favorite="${esc(m.id)}" aria-pressed="${state.favorites.includes(m.id)}">${state.favorites.includes(m.id)?'★ Enregistrée':'☆ Favori'}</button> <button class="button primary micro-button" data-contact="${esc(m.id)}">Contacter le client</button>`:'';
   return row(m,actions);
  }).join(''):'<div class="empty">Vous n’avez pas encore publié de mission, ou aucun résultat ne correspond à vos critères. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
- $('dashMissions').innerHTML=visible.filter(m=>m.status==='open').slice(0,3).map(m=>row(m)).join('')||'<div class="empty">Vous n’avez pas encore publié de mission. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
+ const preview=canBrowse?visible:visible.filter(m=>m.owner_id===uid);
+ $('dashMissions').innerHTML=preview.filter(m=>m.status==='open').slice(0,3).map(m=>row(m)).join('')||'<div class="empty">Vous n’avez pas encore publié de mission. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
 }
 function renderInbox(){
  const items=state.conversations;
@@ -381,7 +395,7 @@ function render(){
  const banner=$('proVerificationBanner');const pro=state.profile?.role==='pro';
  banner.classList.toggle('hidden',!pro);
  if(pro){const p=state.premium;banner.textContent='Entreprise : '+(p?.legal_name||'à vérifier')+' · Identité : '+(p?.identity_status==='verified'?'vérifiée':'en cours')+' · Dirigeant : '+(p?.authority_status==='verified'?'confirmé':'en attente')+' · Abonnement : '+(canUsePremium()?'actif':'inactif');}
-$('homePrivateDashboard').classList.toggle('hidden',!yes);$('statOpenLabel').textContent=canUsePremium()?'Missions accessibles':'Mes missions en cours';$('homeMissionHeading').textContent=canUsePremium()?'Missions accessibles':'Mes missions en cours';$('authOpen').textContent=!yes?'Se connecter':isGuest()?'Suivi invité':(state.session.user.email?.split('@')[0]||'Mon compte');$('logout').classList.toggle('hidden',!yes||isGuest());$('avatar').textContent=state.profile?.display_name?.[0]?.toUpperCase()||'V';
+$('homePrivateDashboard').classList.toggle('hidden',!yes);$('statOpenLabel').textContent=canUsePremium()?'Missions accessibles':'Mes annonces actives';$('homeMissionHeading').textContent=canUsePremium()?'Missions accessibles':'Mes annonces publiées';$('authOpen').textContent=!yes?'Se connecter':isGuest()?'Suivi invité':(state.session.user.email?.split('@')[0]||'Mon compte');$('logout').classList.toggle('hidden',!yes||isGuest());$('avatar').textContent=state.profile?.display_name?.[0]?.toUpperCase()||'V';
  $('statOpen').textContent=state.missions.filter(x=>x.status==='open'&&(canUsePremium()||x.owner_id===state.session?.user.id)).length;$('statMissions').textContent=state.missions.filter(x=>x.owner_id===state.session?.user.id).length;$('statConvos').textContent=state.conversations.length;$('statFavorites').textContent=state.favorites.length;
  $('dashActivity').innerHTML=yes?`<div class="data-item"><div class="item-title">${esc(state.profile?.display_name||'Profil à compléter')}</div><div class="item-desc">${state.profile?.role==='client'?'Compte client':'Compte professionnel'} · ${state.conversations.length} discussion(s)</div></div><div class="data-item"><div class="item-title">Échanges directs entre utilisateurs</div><div class="item-desc">Échangez dans la messagerie, puis organisez librement votre accord, les tarifs et le règlement avec l'autre partie. OFFRYA n'intervient pas dans la transaction.</div></div>`:'<div class="empty">Connectez-vous pour voir vos contacts et vos missions.</div>';
  renderMissions();renderInbox();renderSettings();renderPremium();renderPriorityAlerts();
