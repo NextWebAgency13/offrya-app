@@ -61,7 +61,8 @@ test('Compte Premium : second chargement limité aux annonces ouvertes, avec ann
  const {state,calls}=await refreshed('pro');
  assert.deepEqual(Array.from(state.missions,m=>m.id).sort(),['other-open','own-closed','own-open']);
  const missionQueries=calls.filter(c=>c.table==='offrya_missions');
- assert.equal(missionQueries.length,2);
+ assert.equal(missionQueries.length,3);
+ assert.equal(missionQueries[2].filters[0][0],'selected_pro_id');
  assert.equal(missionQueries[1].filters[0][0],'status');
  assert.equal(missionQueries[1].filters[0][1],'open');
  assert.equal(missionQueries[1].filters[1][0],'gt:expires_at');
