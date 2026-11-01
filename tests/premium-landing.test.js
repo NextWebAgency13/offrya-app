@@ -2,14 +2,14 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 const home=read('public/index.html'),premium=read('public/professionnels.html'),css=read('public/public.css');
-test('Devenir Premium : le bouton de la vitrine mène vers une page publique Premium',()=>{
+test('OFFRYA Professionnel : vitrine et offre unique cohérentes',()=>{
  assert.match(home,/<a class="btn outline" href="\/professionnels">Je suis professionnel<\/a>/);
- assert.match(premium,/<h1 id="premium-title">Devenir Premium sur OFFRYA<\/h1>/);
+ assert.match(premium,/<h1 id="premium-title">OFFRYA Professionnel : développez votre activité<\/h1>/);
  assert.equal((premium.match(/<h1\b/g)||[]).length,1);
- assert.match(premium,/<title>Devenir Premium sur OFFRYA \| 34,99 € TTC\/mois<\/title>/);
+ assert.match(premium,/<title>OFFRYA Professionnel \| 34,99 € TTC\/mois<\/title>/);
  assert.match(premium,/rel="canonical" href="https:\/\/offrya-app\.onrender\.com\/professionnels"/);
  assert.doesNotMatch(premium,/>Devenir professionnel<\/a>/);
- assert.equal((premium.match(/href="\/espace\/professionnel">Devenir Premium<\/a>/g)||[]).length,2);
+ assert.equal((premium.match(/href="\/espace\/professionnel">Rejoindre OFFRYA Professionnel<\/a>/g)||[]).length,2);
  assert.match(premium,/class="account-link" href="\/espace"/);
 });
 test('Le paiement reste conditionné à la vérification du dirigeant',()=>{
@@ -22,7 +22,7 @@ test('Le paiement reste conditionné à la vérification du dirigeant',()=>{
  assert.match(premium,/href="\/cgv.html"/);
  for(const link of ['/cgv.html','/confidentialite.html','/remboursements.html','/contact.html','/mentions-legales.html'])assert.ok(premium.includes('href="'+link+'"'));
 });
-test('FAQ Premium en HTML et JSON-LD concordants',()=>{
+test('FAQ OFFRYA Professionnel en HTML et JSON-LD concordants',()=>{
  const questions=[...premium.matchAll(/<details><summary>([^<]+)<\/summary><p>([^<]+)<\/p><\/details>/g)];
  assert.equal(questions.length,3);
  const script=[...premium.matchAll(/<script type="application\/ld\+json">([^<]+)<\/script>/g)].map(x=>JSON.parse(x[1])).find(x=>x['@type']==='FAQPage');
@@ -33,7 +33,7 @@ test('FAQ Premium en HTML et JSON-LD concordants',()=>{
   assert.equal(script.mainEntity[i].acceptedAnswer.text,questions[i][2]);
  }
 });
-test('Page Premium compacte et responsive, sans image distante',()=>{
+test('Page OFFRYA Professionnel compacte et responsive, sans image distante',()=>{
  assert.match(css,/\.premium-hero\{display:grid/);
  assert.match(css,/@media\(max-width:600px\)\{\.premium-hero/);
  assert.match(css,/\.premium-price-assurance\{[^}]*font-size:14px/);
