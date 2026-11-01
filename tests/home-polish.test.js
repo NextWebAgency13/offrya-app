@@ -25,7 +25,7 @@ test('Accueil : texte revu, offre claire, aucun portrait chargé et CTAs uniform
  assert.match(home,/Je suis professionnel/);
  assert.match(home,/<a class="btn outline" href="\/professionnels">Je suis professionnel<\/a>/);
  assert.match(home,/<article class="card tinted account-card">[\s\S]*?<h3>Je souhaite consulter les missions<\/h3>[\s\S]*?<a class="btn outline" href="\/professionnels">Découvrir le compte professionnel<\/a><\/article>/);
- assert.equal((home.match(/href="\/professionnels">Devenir professionnel<\/a>/g)||[]).length,1);
+ assert.equal((home.match(/href="\/professionnels">Découvrir OFFRYA Professionnel<\/a>/g)||[]).length,1);
  assert.match(home,/Accédez aux missions privées et aux outils de veille des marchés publics \(BOAMP\)/);
  assert.match(home,/Sans engagement, résiliable à tout moment\./);
  assert.match(pro,/Sans engagement, résiliable à tout moment\./);
