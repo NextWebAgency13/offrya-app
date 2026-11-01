@@ -90,6 +90,27 @@ async function run(){
  }
  assert.ok(missionGateDeployed,'Render ne sert pas encore le verrouillage des missions avant certification Pro');
  console.log('PASS: Render sert la version verrouillant la recherche des missions avant certification Premium');
+
+ // Contrôle de restauration : vérifier que la version v2 à l'origine du repli
+ // n'est plus distribuée par Render, y compris après invalidation de cache.
+ let restored=false;
+ for(let attempt=0;attempt<20;attempt++){
+  const [script,publicPage,privatePage]=await Promise.all([
+   request('/app.js',{headers:{'Cache-Control':'no-cache'}}),
+   request('/deposer-une-mission',{headers:{'Cache-Control':'no-cache'}}),
+   request('/espace',{headers:{'Cache-Control':'no-cache'}})
+  ]);
+  restored=script.status===200 && publicPage.status===200 && privatePage.status===200
+   && !script.text.includes("from './mission-photos.mjs'")
+   && !script.text.includes('offrya_pro_proof_requests')
+   && !publicPage.text.includes('name="area_sqm"')
+   && !privatePage.text.includes('id="reportDialog"');
+  if(restored)break;
+  if(attempt<19)await new Promise(resolve=>setTimeout(resolve,10000));
+ }
+ assert.ok(restored,'Rollback non encore visible sur Render : l’ancienne interface v2 est toujours servie.');
+ console.log('PASS: rollback effectif sur Render, interface stable servie sans fonctionnalites v2');
+
  const cfg=await request('/api/config');
  assert.equal(cfg.status,200,'Configuration API');
  assert.equal(cfg.json?.supabaseUrl,'https://hhxtutvmvlphkutqscad.supabase.co');
