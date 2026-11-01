@@ -23,6 +23,27 @@ alter table public.offrya_missions add constraint offrya_missions_extra_check
  and (status<>'awarded' or (selected_pro_id is not null and awarded_at is not null)));
 create index if not exists offrya_missions_expire on public.offrya_missions(status,expires_at,category,department);
 
+-- Les missions périmées ne sont plus accessibles aux autres pros, même via REST.
+alter policy missions_read_authorized on public.offrya_missions
+ using(owner_id=(select auth.uid()) or
+ (status='open' and expires_at>now() and (select offrya_private.has_active_professional_access())));
+-- Impossible d'ouvrir une nouvelle conversation ou de mettre en favori une
+-- demande périmée en appelant directement le Data API.
+alter policy conversation_open on public.offrya_conversations
+ with check(
+ professional_id=(select auth.uid()) and client_id<>(select auth.uid())
+ and (select offrya_private.has_active_professional_access())
+ and exists(select 1 from public.offrya_missions m
+   where m.id=mission_id and m.owner_id=client_id
+   and m.status='open' and m.expires_at>now()));
+alter policy favorites_insert on public.offrya_favorites
+ with check(user_id=(select auth.uid())
+ and (select offrya_private.has_active_professional_access())
+ and exists(select 1 from public.offrya_missions m
+   where m.id=mission_id and m.owner_id<>(select auth.uid())
+   and m.status='open' and m.expires_at>now()));
+
+
 -- Ne jamais rendre un rang, une description, un utilisateur, une photo ou
 -- un identifiant public. Résultat uniquement catégories et départements.
 create or replace function public.offrya_public_mission_counts()
