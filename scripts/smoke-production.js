@@ -47,17 +47,20 @@ async function run(){
  for(let attempt=0;attempt<16;attempt++){
   const [landing,styles]=await Promise.all([request('/',{headers:{'Cache-Control':'no-cache'}}),request('/public.css',{headers:{'Cache-Control':'no-cache'}})]);
   designVisible=landing.status===200&&styles.status===200
-   &&landing.text.includes('class="home-hero-portrait"')
-   &&landing.text.includes('Votre projet mérite <span>le bon professionnel.</span>')
+   &&landing.text.includes('class="mock-hero"')
+   &&landing.text.includes('Votre projet mérite<br>le bon <span>professionnel.</span>')
+   &&landing.text.includes('class="mock-activity-title"')
    &&landing.text.includes('id="publicActivity"')
-   &&landing.text.includes('id="choisir-compte"')
-   &&styles.text.includes('home-hero-portrait')
-   &&styles.text.includes('images.pexels.com/photos/34670926/');
+   &&landing.text.includes('class="mock-choice-grid"')
+   &&landing.text.includes('class="mock-sector-grid"')
+   &&landing.text.includes('class="mock-end"')
+   &&styles.text.includes('.mock-home .mock-hero')
+   &&styles.text.includes('@media(max-width:560px)');
   if(designVisible)break;
   if(attempt<15)await new Promise(resolve=>setTimeout(resolve,12000));
  }
  assert.ok(designVisible,'Render ne présente pas encore le design photographique approuvé');
- console.log('PASS: nouvelle vitrine professionnelle approuvée visible sur Render');
+ console.log('PASS: maquette OFFRYA desktop/mobile fidèle servie sur Render');
 
 
  // Les routes doivent être vraies, pas un fallback global HTTP 200.
