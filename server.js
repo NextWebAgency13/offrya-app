@@ -9,12 +9,42 @@ const {beginIdentity,processIdentityEvent,configured:identityConfigured,identity
 const {billingEnabled,startCheckout,verifyStripeSignature,syncSubscription,portal}=require('./lib/billing');
 const {verifyToken}=require('./lib/unsubscribe');
 const staticMap=new Map([
- ['/public.css','text/css; charset=utf-8'],['/deposer.js','text/javascript; charset=utf-8'],['/connexion.js','text/javascript; charset=utf-8'],['/auth-feedback.mjs','text/javascript; charset=utf-8'],['/legacy-redirect.js','text/javascript; charset=utf-8'],
- ['/index.html','text/html; charset=utf-8'],['/app.js','text/javascript; charset=utf-8'],
+ ['/public.css','text/css; charset=utf-8'],['/mission-counts.js','text/javascript; charset=utf-8'],['/mission-fields.js','text/javascript; charset=utf-8'],['/mission-photos.mjs','text/javascript; charset=utf-8'],['/deposer.js','text/javascript; charset=utf-8'],['/connexion.js','text/javascript; charset=utf-8'],['/auth-feedback.mjs','text/javascript; charset=utf-8'],['/legacy-redirect.js','text/javascript; charset=utf-8'],
+ ['/index.html','text/html; charset=utf-8'],['/directory.js','text/javascript; charset=utf-8'],['/app.js','text/javascript; charset=utf-8'],
  ['/styles.css','text/css; charset=utf-8'],['/home.css','text/css; charset=utf-8'],['/pro.css','text/css; charset=utf-8'],['/favicon.svg','image/svg+xml'],
  ['/confidentialite.html','text/html; charset=utf-8'],['/mentions-legales.html','text/html; charset=utf-8'],
  ['/cgv.html','text/html; charset=utf-8'],['/remboursements.html','text/html; charset=utf-8'],['/contact.html','text/html; charset=utf-8']]);
 const buckets=new Map();
+let publicCountsCache={until:0,data:null};
+async function publicMissionCounts(){
+ if(publicCountsCache.data&&Date.now()<publicCountsCache.until)return publicCountsCache.data;
+ const root=process.env.SUPABASE_URL,key=process.env.SUPABASE_PUBLISHABLE_KEY;
+ if(!root||!key)throw Error('Statistiques non configurées');
+ const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),8000);
+ let response;
+ try{response=await fetch(root.replace(/\/$/,'')+'/rest/v1/rpc/offrya_public_mission_counts',
+  {method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:'{}',signal:controller.signal});}
+ finally{clearTimeout(timeout);}
+ if(!response.ok)throw Error('Statistiques indisponibles ('+response.status+')');
+ const records=await response.json();
+ if(!Array.isArray(records)||records.length>700)throw Error('Statistiques invalides');
+ const categories=new Map(),departments=new Map();
+ for(const entry of records){
+  const category=String(entry.category||''),dept=String(entry.department||'');
+  const count=Number(entry.count);
+  if(!['Nettoyage','Espaces verts','Bâtiment','Informatique','Transport','Autre'].includes(category)
+  || !/^(0[1-9]|[1-8][0-9]|9[0-5]|2A|2B|97[1-6])$/.test(dept)
+  || !Number.isSafeInteger(count)||count<0)throw Error('Statistiques invalides');
+  categories.set(category,(categories.get(category)||0)+count);
+  departments.set(dept,(departments.get(dept)||0)+count);
+ }
+ const data={total:Array.from(categories.values()).reduce((a,b)=>a+b,0),
+  sectors:Array.from(categories,([name,count])=>({name,count})).sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name)),
+  departments:Array.from(departments,([name,count])=>({name,count})).sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name)),
+  updatedAt:new Date().toISOString()};
+ publicCountsCache={until:Date.now()+300000,data};
+ return data;
+}
 function json(res,status,data,extra={}){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...extra});res.end(JSON.stringify(data));}
 function rateLimit(req,max=50){const ip=req.socket.remoteAddress||'unknown',key=ip+':'+req.url.split('?')[0],now=Date.now();
  if(buckets.size>2000)for(const [k,v] of buckets)if(v.until<now)buckets.delete(k);
@@ -33,6 +63,47 @@ async function unsubscribe(id){const url=process.env.SUPABASE_URL, key=process.e
 async function handle(req,res){
  try{const u=new URL(req.url,'http://localhost'),p=u.pathname;
   if(p==='/api/health'&&req.method==='GET')return json(res,200,{ok:true,version:'4.0.0',paymentsEnabled:billingEnabled(),emailsConfigured:Boolean(process.env.RESEND_API_KEY)});
+  if(p.startsWith('/api/professionnels-verifies/')&&p.endsWith('/avis')&&req.method==='GET'){
+   if(!rateLimit(req,40))return json(res,429,{error:'Trop de demandes'});
+   const id=p.split('/')[3],url=process.env.SUPABASE_URL,key=process.env.SUPABASE_PUBLISHABLE_KEY;
+   if(!/^[0-9a-f]{8}-[0-9a-f-]{27,36}$/i.test(id||''))return json(res,400,{error:'Identifiant invalide'});
+   if(!url||!key)return json(res,503,{error:'Avis indisponibles'});
+   try{
+    const r=await fetch(url.replace(/\/$/,'')+'/rest/v1/rpc/offrya_public_pro_reviews',
+     {method:'POST',headers:{apikey:key,'Content-Type':'application/json'},
+       body:JSON.stringify({p_professional:id}),signal:AbortSignal.timeout(8000)});
+    if(!r.ok)throw Error(String(r.status));
+    const data=await r.json();if(!Array.isArray(data))throw Error('Format invalide');
+    return json(res,200,{reviews:data.slice(0,30).map(x=>({
+      rating:Number(x.rating),comment:String(x.comment||'').slice(0,1500),date:String(x.created_at||'')
+    }))},{'Cache-Control':'public,max-age=300'});
+   }catch(e){console.error('OFFRYA public reviews:',e.message);return json(res,503,{error:'Avis indisponibles'});}
+  }
+  if(p==='/api/professionnels-verifies'&&req.method==='GET'){
+   if(!rateLimit(req,45))return json(res,429,{error:'Trop de demandes'});
+   const url=process.env.SUPABASE_URL,key=process.env.SUPABASE_PUBLISHABLE_KEY;
+   if(!url||!key)return json(res,503,{error:'Annuaire indisponible'});
+   try{
+    const r=await fetch(url.replace(/\/$/,'')+'/rest/v1/rpc/offrya_verified_pro_directory',
+     {method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:'{}',signal:AbortSignal.timeout(8000)});
+    if(!r.ok)throw Error(String(r.status));
+    const data=await r.json();
+    if(!Array.isArray(data)||data.length>100)throw Error('Format invalide');
+    const rows=data.map(x=>({
+     id:String(x.user_id),name:String(x.display_name||'Professionnel vérifié').slice(0,100),
+     sectors:Array.isArray(x.sectors)?x.sectors.slice(0,6):[],
+     area:String(x.service_area||'').slice(0,120),
+     presentation:String(x.presentation||'').slice(0,700),
+     badges:Array.isArray(x.badges)?x.badges.slice(0,10):[]
+    }));
+    return json(res,200,{professionals:rows},{'Cache-Control':'public,max-age=300'});
+   }catch(e){console.error('OFFRYA directory:',e.message);return json(res,503,{error:'Annuaire temporairement indisponible'});}
+  }
+  if(p==='/api/mission-counts'&&req.method==='GET'){
+   if(!rateLimit(req,60))return json(res,429,{error:'Trop de demandes'});
+   try{return json(res,200,await publicMissionCounts(),{'Cache-Control':'public, max-age=300'});}
+   catch(error){console.error('OFFRYA public counts:',error.message);return json(res,503,{error:'Les statistiques sont temporairement indisponibles.'});}
+  }
   if(p==='/api/company/lookup'&&req.method==='GET'){
    if(!rateLimit(req,12))return json(res,429,{error:'Trop de demandes de vérification.'});
    try{
@@ -145,7 +216,8 @@ async function handle(req,res){
   }
   if(p.startsWith('/api/'))return json(res,404,{error:'Route inconnue'});
   if(!['GET','HEAD'].includes(req.method))return json(res,405,{error:'Méthode non autorisée'});
-  const publicPages=new Map([['/','index.html'],['/deposer-une-mission','deposer-une-mission.html'],['/professionnels','professionnels.html'],['/connexion','connexion.html'],['/secteurs/batiment','secteurs/batiment.html'],['/secteurs/nettoyage','secteurs/nettoyage.html'],['/secteurs/espaces-verts','secteurs/espaces-verts.html'],['/secteurs/transport','secteurs/transport.html'],['/secteurs/informatique','secteurs/informatique.html'],['/secteurs/autres-prestations','secteurs/autres-prestations.html']]);
+  const publicPages=new Map([
+ ['/professionnels-verifies','professionnels-verifies.html'],['/','index.html'],['/deposer-une-mission','deposer-une-mission.html'],['/professionnels','professionnels.html'],['/connexion','connexion.html'],['/secteurs/batiment','secteurs/batiment.html'],['/secteurs/nettoyage','secteurs/nettoyage.html'],['/secteurs/espaces-verts','secteurs/espaces-verts.html'],['/secteurs/transport','secteurs/transport.html'],['/secteurs/informatique','secteurs/informatique.html'],['/secteurs/autres-prestations','secteurs/autres-prestations.html']]);
   const privatePage=new Set(['/espace','/espace/missions','/espace/marches-publics','/espace/messagerie','/espace/reglages','/espace/professionnel']).has(p);
   const pageFile=privatePage?'espace.html':publicPages.get(p);
   const mime=pageFile?'text/html; charset=utf-8':p==='/robots.txt'?'text/plain; charset=utf-8':p==='/sitemap.xml'?'application/xml; charset=utf-8':staticMap.get(p);
@@ -156,7 +228,7 @@ async function handle(req,res){
   }
   const asset=path.join(__dirname,'public',pageFile||p.slice(1));
   const buf=await fs.readFile(asset);
-  res.writeHead(200,{'Content-Type':mime,...((privatePage||p==='/connexion')?{'X-Robots-Tag':'noindex, nofollow'}:{}),'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','X-Frame-Options':'DENY','Permissions-Policy':'camera=(), microphone=(), geolocation=()','Content-Security-Policy':"default-src 'self'; connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",'Cache-Control':(privatePage||p==='/connexion')?'private, no-store':'public,max-age=60'});
+  res.writeHead(200,{'Content-Type':mime,...((privatePage||p==='/connexion')?{'X-Robots-Tag':'noindex, nofollow'}:{}),'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','X-Frame-Options':'DENY','Permissions-Policy':'camera=(), microphone=(), geolocation=()','Content-Security-Policy':"default-src 'self'; connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.supabase.co; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",'Cache-Control':(privatePage||p==='/connexion')?'private, no-store':'public,max-age=60'});
   return res.end(req.method==='HEAD'?undefined:buf);
  }catch(e){console.error('OFFRYA',e.message);if(!res.headersSent)json(res,500,{error:'Erreur interne'});}
 }

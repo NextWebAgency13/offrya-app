@@ -1,9 +1,13 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm';
+import {validateMissionPhotos,uploadMissionPhotos} from './mission-photos.mjs';
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
+const missionEffectiveStatus=m=>m.status==='open'&&m.expires_at&&new Date(m.expires_at)<=new Date()?'expired':m.status;
+const missionStatusLabel=m=>({open:'Ouverte',awarded:'Pourvue',closed:'Clôturée',expired:'Expirée'})[missionEffectiveStatus(m)]||'Indéterminée';
+const urgencyLabel=u=>({normal:'Flexible',soon:'Prochainement',urgent:'Urgente'})[u]||'Flexible';
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,draft:null,proStep:1,proStepUserId:null,signupForPro:false,publicPro:null,proProofs:[],loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
@@ -28,7 +32,7 @@ function titleForMission(id){return state.missions.find(m=>m.id===id)?.title||'M
 function profileName(id){return state.profiles.find(p=>p.id===id)?.display_name||'Utilisateur OFFRYA';}
 async function refresh(){
  if(!state.db){render();return;}
- if(!state.session){state.draft=null;state.proStep=1;state.proStepUserId=null;state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.manualIdentity=null;state.boamp=[];state.priorityAlerts=[];state.lastPriorityIds=null;render();return;}
+ if(!state.session){state.draft=null;state.proStep=1;state.proStepUserId=null;state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.manualIdentity=null;state.publicPro=null;state.proProofs=[];state.boamp=[];state.priorityAlerts=[];state.lastPriorityIds=null;render();return;}
  const uid=state.session.user.id;
  // Par défaut : ne charger que les annonces dont ce compte est propriétaire.
  // Les annonces des tiers ne sont interrogées qu'après contrôle professionnel.
@@ -36,7 +40,7 @@ async function refresh(){
  const owned=await state.db.from('offrya_missions').select('*').eq('owner_id',uid).order('created_at',{ascending:false}).limit(200);
  if(owned.error)throw owned.error;
  state.missions=owned.data||[];
- const [prof,conv,prefs,profiles,favorites,premium,subscription,draft,manualReview]=await Promise.all([
+ const [prof,conv,prefs,profiles,favorites,premium,subscription,draft,manualReview,publicPro,proProofs]=await Promise.all([
   state.db.from('offrya_profiles').select('*').eq('id',uid).maybeSingle(),
   state.db.from('offrya_conversations').select('*').order('created_at',{ascending:false}).limit(100),
   state.db.from('offrya_alert_preferences').select('*').eq('user_id',uid).maybeSingle(),
@@ -45,16 +49,21 @@ async function refresh(){
   state.db.from('offrya_premium_requests').select('user_id,siret,legal_name,status,premium_until,identity_status,authority_status,representative_kind,registry_name_matched').eq('user_id',uid).maybeSingle(),
   state.db.from('offrya_premium_subscriptions').select('status,paid_through,stripe_customer_id').eq('user_id',uid).maybeSingle(),
    state.db.from('offrya_professional_drafts').select('step,siret,legal_name,representative_name,representative_capacity,representative_kind').eq('user_id',uid).maybeSingle(),
-   state.db.from('offrya_manual_identity_requests').select('status,requested_at,updated_at').eq('user_id',uid).maybeSingle()
+   state.db.from('offrya_manual_identity_requests').select('status,requested_at,updated_at').eq('user_id',uid).maybeSingle(),
+  state.db.from('offrya_public_pro_profiles').select('user_id,sectors,service_area,presentation,published').eq('user_id',uid).maybeSingle(),
+  state.db.from('offrya_pro_proof_requests').select('kind,status,created_at').eq('professional_id',uid).order('created_at',{ascending:false}).limit(12)
  ]);
- for(const res of [prof,conv,prefs,profiles,favorites,premium,subscription,draft,manualReview])if(res.error)throw res.error;
+ for(const res of [prof,conv,prefs,profiles,favorites,premium,subscription,draft,manualReview,publicPro,proProofs])if(res.error)throw res.error;
+ state.publicPro=publicPro.data;state.proProofs=proProofs.data||[];
  state.profile=prof.data;state.premium=premium.data;state.subscription=subscription.data;state.draft=draft.data;state.manualIdentity=manualReview.data;state.conversations=conv.data||[];state.prefs=prefs.data;state.profiles=profiles.data||[];state.favorites=(favorites.data||[]).map(x=>x.mission_id);
  if(canUsePremium()){
   // La base RLS reste l'autorité : vérification officielle + abonnement en cours.
-  const opportunities=await state.db.from('offrya_missions').select('*').eq('status','open').order('created_at',{ascending:false}).limit(200);
+  const opportunities=await state.db.from('offrya_missions').select('*').eq('status','open').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false}).limit(200);
   if(opportunities.error)throw opportunities.error;
+  const assigned=await state.db.from('offrya_missions').select('*').eq('selected_pro_id',uid).order('created_at',{ascending:false}).limit(200);
+  if(assigned.error)throw assigned.error;
   const byId=new Map(state.missions.map(m=>[m.id,m]));
-  for(const mission of opportunities.data||[])byId.set(mission.id,mission);
+  for(const mission of [...(opportunities.data||[]),...(assigned.data||[])])byId.set(mission.id,mission);
   state.missions=Array.from(byId.values()).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
  }
  if(state.proStepUserId!==uid){state.proStepUserId=uid;state.proStep=Math.max(1,Math.min(3,Number(state.draft?.step||1)));}
@@ -63,12 +72,18 @@ async function refresh(){
  await loadPriorityAlerts(false);
  state.loaded=true;render();
 }
-function row(m,actions=''){return `<article class="data-item"><div class="item-top"><span class="tag">${esc(m.category)}</span><span class="muted tiny">${date(m.created_at)}</span></div><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.description).slice(0,270)}</div><div class="meta-row"><span>⌖ ${esc(m.city)} (${esc(m.department)})</span><span>Budget : ${m.budget_cents?euro(m.budget_cents):'À définir'}</span><span>${m.status==='open'?'Ouverte':m.status==='awarded'?'Attribuée':'Fermée'}</span></div>${actions?`<div class="item-actions">${actions}</div>`:''}</article>`;}
+function row(m,actions=''){
+ const extra=[m.area_sqm?'Surface : '+esc(m.area_sqm)+' m²':'',
+  m.urgency?'Urgence : '+esc(urgencyLabel(m.urgency)):'',
+  m.desired_date?'Date souhaitée : '+esc(date(m.desired_date)):'',
+  m.place_type?'Lieu : '+esc(m.place_type):''].filter(Boolean).join(' · ');
+ return `<article class="data-item"><div class="item-top"><span class="tag">${esc(m.category)}</span><span class="tag">${missionStatusLabel(m)}</span><span class="muted tiny">${date(m.created_at)}</span></div><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.description).slice(0,270)}</div><div class="meta-row"><span>⌖ ${esc(m.city)} (${esc(m.department)})</span><span>Budget : ${m.budget_cents?euro(m.budget_cents):'À définir'}</span><span>${extra}</span></div><div class="item-actions"><button class="button secondary micro-button" data-show-photos="${esc(m.id)}">Voir photos</button><button class="button secondary micro-button" data-report-mission="${esc(m.id)}">Signaler</button>${actions}</div></article>`;
+}
 function renderMissions(){
  const uid=state.session?.user.id,canBrowse=canUsePremium();
  const visible=state.missions.filter(m=>m.owner_id===uid||canBrowse);
  let q=$('missionQuery').value.trim().toLowerCase(),c=$('missionCategory').value,d=$('missionDept').value.trim().toUpperCase();
- const matches=visible.filter(m=>(m.owner_id===uid||m.status==='open')&&(!q||(m.title+' '+m.description+' '+m.city).toLowerCase().includes(q))&&(!c||m.category===c)&&(!d||m.department===d));
+ const matches=visible.filter(m=>(m.owner_id===uid||m.selected_pro_id===uid||missionEffectiveStatus(m)==='open')&&(!q||(m.title+' '+m.description+' '+m.city).toLowerCase().includes(q))&&(!c||m.category===c)&&(!d||m.department===d));
  $('missionsCount').textContent=matches.length+(canBrowse?' mission(s) accessible(s)':' annonce(s) personnelle(s)');
  $('missionsListHeading').textContent=canBrowse?'Missions accessibles à mon compte Pro':'Mes annonces publiées';
  $('missionSearchFilters').classList.toggle('hidden',!canBrowse);
@@ -78,12 +93,20 @@ function renderMissions(){
  $('missionAccountNotice').classList.toggle('hidden',publisherReady);
  $('missionList').innerHTML=matches.length?matches.map(m=>{
   const own=m.owner_id===uid;
-  const actions=own?`<span class="tag">Votre annonce</span> ${m.status==='open'?`<button class="button secondary micro-button" data-close-mission="${esc(m.id)}">Clôturer</button>`:''}`:
-   canBrowse?`<button class="button secondary micro-button" data-favorite="${esc(m.id)}" aria-pressed="${state.favorites.includes(m.id)}">${state.favorites.includes(m.id)?'★ Enregistrée':'☆ Favori'}</button> <button class="button primary micro-button" data-contact="${esc(m.id)}">Contacter le client</button>`:'';
+  const available=missionEffectiveStatus(m)==='open';
+  const interested=state.conversations.filter(c=>c.mission_id===m.id&&c.client_id===uid);
+  const eligibleProOptions=interested.map(c=>`<option value="${esc(c.professional_id)}">${esc(profileName(c.professional_id))}</option>`).join('');
+  const award=available&&interested.length
+    ?`<label class="mission-select-pro">Choisir un professionnel <select class="field" data-award-select="${esc(m.id)}"><option value="">Choisir dans mes échanges</option>${eligibleProOptions}</select></label><button class="button primary micro-button" data-award-mission="${esc(m.id)}">Attribuer</button>`:'';
+  const actions=own
+    ?`<span class="tag">Votre annonce</span> ${award}
+       ${m.status!=='closed'? `<button class="button secondary micro-button" data-close-mission="${esc(m.id)}">Clôturer</button>`:''}
+       ${m.status==='closed'&&m.selected_pro_id?`<button class="button secondary micro-button" data-review-mission="${esc(m.id)}">Donner un avis</button>`:''}`
+    :available&&canBrowse?`<button class="button secondary micro-button" data-favorite="${esc(m.id)}" aria-pressed="${state.favorites.includes(m.id)}">${state.favorites.includes(m.id)?'★ Enregistrée':'☆ Favori'}</button><button class="button primary micro-button" data-contact="${esc(m.id)}">Contacter le client</button>`:'';
   return row(m,actions);
  }).join(''):'<div class="empty">Vous n’avez pas encore publié de mission, ou aucun résultat ne correspond à vos critères. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
  const preview=canBrowse?visible:visible.filter(m=>m.owner_id===uid);
- $('dashMissions').innerHTML=preview.filter(m=>m.status==='open').slice(0,3).map(m=>row(m)).join('')||'<div class="empty">Vous n’avez pas encore publié de mission. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
+ $('dashMissions').innerHTML=preview.filter(m=>missionEffectiveStatus(m)==='open').slice(0,3).map(m=>row(m)).join('')||'<div class="empty">Vous n’avez pas encore publié de mission. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
 }
 function renderInbox(){
  const items=state.conversations;
@@ -93,7 +116,7 @@ function renderInbox(){
  if(state.thread)renderMessages();else $('messageList').innerHTML='<div class="empty">Choisissez une discussion.</div>';
 }
 function renderMessages(){
- $('messageList').innerHTML=state.messages.length?state.messages.map(m=>`<div class="bubble ${m.sender_id===state.session?.user.id?'mine':''}">${esc(m.body)}<time>${date(m.created_at)} · ${new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time></div>`).join(''):'<div class="empty">Commencez la conversation.</div>';
+ $('messageList').innerHTML=state.messages.length?state.messages.map(m=>`<div class="bubble ${m.sender_id===state.session?.user.id?'mine':''}">${esc(m.body)}<time>${date(m.created_at)} · ${new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time><button type="button" class="button secondary micro-button" data-report-message="${esc(m.id)}">Signaler</button></div>`).join(''):'<div class="empty">Commencez la conversation.</div>';
  $('messageList').scrollTop=$('messageList').scrollHeight;
 }
 function renderSettings(){
@@ -115,6 +138,15 @@ function renderPremium(){
  const allowed=canUsePremium(),pro=Boolean(state.session&&state.profile?.role==='pro');
  $('boampGate').classList.toggle('hidden',allowed);
  $('premiumContent').classList.toggle('hidden',!allowed);
+ $('professionalPublicCard').classList.toggle('hidden',!pro);
+ if(pro){
+  const form=$('publicProForm'),card=state.publicPro;
+  form.elements.sectors.value=(card?.sectors||[]).join(', ');
+  form.elements.service_area.value=card?.service_area||'';
+  form.elements.presentation.value=card?.presentation||'';
+  form.elements.published.checked=Boolean(card?.published);
+  $('proProofList').innerHTML=state.proProofs.map(p=>`<div class="data-item"><strong>${esc(({decennale:'Assurance décennale',rge:'RGE',qualibat:'Qualibat'})[p.kind]||p.kind)}</strong><small> · ${esc(({pending:'En cours de vérification',verified:'Vérifié',rejected:'Refusé'})[p.status]||'À examiner')}</small></div>`).join('')||'<p class="muted">Aucun justificatif transmis.</p>';
+ }
  $('proLanding').classList.toggle('hidden',pro);
  $('proWorkspace').classList.toggle('hidden',!pro);
  $('premiumLogin').classList.toggle('hidden',Boolean(state.session));
@@ -350,7 +382,7 @@ async function loadPriorityAlerts(shouldRender=true){
  state.priorityAlerts=(r.data||[]).filter(a=>a.mission?.status==='open');
  const currentIds=new Set(state.priorityAlerts.map(a=>a.id));
  if(state.lastPriorityIds&&state.priorityAlerts.some(a=>!a.seen_at&&!state.lastPriorityIds.has(a.id)))
-   toast('Nouvelle mission prioritaire OFFRYA Premium disponible.');
+   toast('Nouvelle mission prioritaire OFFRYA Professionnel disponible.');
  state.lastPriorityIds=currentIds;
  if(shouldRender)renderPriorityAlerts();
 }
@@ -366,7 +398,7 @@ function renderPriorityAlerts(){
  $('priorityAlertShortcut').setAttribute('aria-label',unread+' opportunité(s) prioritaires non consultée(s)');
  $('priorityAlertsList').innerHTML=alerts.length?alerts.map(a=>
   `<article class="data-item">
-    <div class="item-top"><span class="tag">${a.seen_at?'Consultée':'NOUVELLE · PRIORITÉ PREMIUM'}</span><span class="muted tiny">${date(a.created_at)}</span></div>
+    <div class="item-top"><span class="tag">${a.seen_at?'Consultée':'NOUVELLE · OFFRYA PROFESSIONNEL'}</span><span class="muted tiny">${date(a.created_at)}</span></div>
     <div class="item-title">${esc(a.mission.title)}</div>
     <div class="meta-row"><span>${esc(a.mission.category)}</span><span>${esc(a.mission.city)} (${esc(a.mission.department)})</span></div>
     <div class="item-actions"><button class="button secondary micro-button" data-priority-open="${esc(a.id)}">Consulter cette mission</button></div>
@@ -396,7 +428,7 @@ function render(){
  banner.classList.toggle('hidden',!pro);
  if(pro){const p=state.premium;banner.textContent='Entreprise : '+(p?.legal_name||'à vérifier')+' · Identité : '+(p?.identity_status==='verified'?'vérifiée':'en cours')+' · Dirigeant : '+(p?.authority_status==='verified'?'confirmé':'en attente')+' · Abonnement : '+(canUsePremium()?'actif':'inactif');}
 $('homePrivateDashboard').classList.toggle('hidden',!yes);$('statOpenLabel').textContent=canUsePremium()?'Missions accessibles':'Mes annonces actives';$('homeMissionHeading').textContent=canUsePremium()?'Missions accessibles':'Mes annonces publiées';$('authOpen').textContent=!yes?'Se connecter':isGuest()?'Suivi invité':(state.session.user.email?.split('@')[0]||'Mon compte');$('logout').classList.toggle('hidden',!yes||isGuest());$('avatar').textContent=state.profile?.display_name?.[0]?.toUpperCase()||'V';
- $('statOpen').textContent=state.missions.filter(x=>x.status==='open'&&(canUsePremium()||x.owner_id===state.session?.user.id)).length;$('statMissions').textContent=state.missions.filter(x=>x.owner_id===state.session?.user.id).length;$('statConvos').textContent=state.conversations.length;$('statFavorites').textContent=state.favorites.length;
+ $('statOpen').textContent=state.missions.filter(x=>missionEffectiveStatus(x)==='open'&&(canUsePremium()||x.owner_id===state.session?.user.id)).length;$('statMissions').textContent=state.missions.filter(x=>x.owner_id===state.session?.user.id).length;$('statConvos').textContent=state.conversations.length;$('statFavorites').textContent=state.favorites.length;
  $('dashActivity').innerHTML=yes?`<div class="data-item"><div class="item-title">${esc(state.profile?.display_name||'Profil à compléter')}</div><div class="item-desc">${state.profile?.role==='client'?'Compte client':'Compte professionnel'} · ${state.conversations.length} discussion(s)</div></div><div class="data-item"><div class="item-title">Échanges directs entre utilisateurs</div><div class="item-desc">Échangez dans la messagerie, puis organisez librement votre accord, les tarifs et le règlement avec l'autre partie. OFFRYA n'intervient pas dans la transaction.</div></div>`:'<div class="empty">Connectez-vous pour voir vos contacts et vos missions.</div>';
  renderMissions();renderInbox();renderSettings();renderPremium();renderPriorityAlerts();
 }
@@ -428,33 +460,145 @@ $('missionForm').onsubmit=async e=>{
  const f=e.currentTarget;
  if(f.dataset.sending==='true')return;
  const x=Object.fromEntries(new FormData(f));
+ const files=Array.from(f.elements.photos?.files||[]);
  const amount=x.budget?Math.round(Number(x.budget)*100):null;
  const button=f.querySelector('button[type="submit"]');
  f.dataset.sending='true';button.disabled=true;
  try{
   const uid=await ensureMissionPublisher();
+  validateMissionPhotos(files);
+  if(x.desired_date&&x.desired_date<new Date().toISOString().slice(0,10))throw Error('Date souhaitée passée.');
   const r=await state.db.from('offrya_missions').insert({
    owner_id:uid,title:x.title.trim(),description:x.description.trim(),
    category:x.category,department:x.department.trim().toUpperCase(),
-   city:x.city.trim(),budget_cents:amount
-  });
+   city:x.city.trim(),budget_cents:amount,
+   area_sqm:x.area_sqm?Number(x.area_sqm):null,urgency:x.urgency||'normal',
+   desired_date:x.desired_date||null,place_type:x.place_type||null
+  }).select('id').single();
   if(r.error)throw r.error;
+  let warning='';
+  if(files.length)try{await uploadMissionPhotos(state.db,files,uid,r.data.id);}
+  catch(error){warning=' Mission enregistrée, mais certaines photos ont échoué : '+error.message;}
   f.reset();await refresh();
-  toast('Mission publiée gratuitement.');
+  toast('Mission publiée gratuitement.'+warning);
   $('missionStatus').textContent='Mission publiée. Retrouvez-la dans Mes missions.';
   $('missionStatus').classList.remove('hidden');
  }catch(err){showError(err);}
  finally{delete f.dataset.sending;button.disabled=false;}
 };
+async function showMissionPhotos(id){
+ if(!requireAuth())return;
+ const dialog=$('missionPhotoDialog'),gallery=$('missionPhotoGallery');
+ gallery.replaceChildren();
+ const loading=document.createElement('p');loading.textContent='Chargement des photos privées…';gallery.append(loading);
+ dialog.showModal();
+ try{
+  const r=await state.db.from('offrya_mission_photos').select('object_path').eq('mission_id',id).limit(6);
+  if(r.error)throw r.error;
+  gallery.replaceChildren();
+  if(!r.data?.length){gallery.textContent='Aucune photo jointe à cette mission.';return;}
+  for(const photo of r.data){
+   const result=await state.db.storage.from('offrya-mission-images').createSignedUrl(photo.object_path,90);
+   if(result.error)throw result.error;
+   const img=document.createElement('img');img.src=result.data.signedUrl;img.alt='Photo associée à la mission (accès privé)';
+   img.loading='lazy';gallery.append(img);
+  }
+ }catch(error){gallery.textContent='Impossible de consulter ces photos. Vérifiez votre accès professionnel.';console.error(error);}
+}
+function openReport(type,id){
+ if(!requireAuth())return;
+ const form=$('reportForm');form.elements.target_type.value=type;form.elements.target_id.value=id;
+ form.elements.reason.value='spam';form.elements.details.value='';
+ $('reportStatus').textContent='';$('reportDialog').showModal();
+}
+function openReview(id){
+ if(!requireAuth())return;
+ const form=$('reviewForm');form.elements.mission_id.value=id;
+ form.elements.rating.value='5';form.elements.comment.value='';
+ $('reviewStatus').textContent='';$('reviewDialog').showModal();
+}
+$('reportCancel').onclick=()=>$('reportDialog').close();
+$('reviewCancel').onclick=()=>$('reviewDialog').close();
+$('reportForm').onsubmit=async event=>{
+ event.preventDefault();if(!requireAuth())return;
+ const form=event.currentTarget,submit=form.querySelector('[type="submit"]');
+ submit.disabled=true;
+ try{
+  const r=await state.db.from('offrya_reports').insert({
+   reporter_id:state.session.user.id,target_type:form.elements.target_type.value,
+   target_id:form.elements.target_id.value,reason:form.elements.reason.value,
+   details:form.elements.details.value.trim()
+  });
+  if(r.error)throw r.error;
+  $('reportDialog').close();toast('Signalement transmis à la modération OFFRYA.');
+ }catch(error){$('reportStatus').textContent=error.code==='23505'?'Vous avez déjà signalé ce contenu.':'Signalement impossible : '+(error.message||'erreur');}
+ finally{submit.disabled=false;}
+};
+$('reviewForm').onsubmit=async event=>{
+ event.preventDefault();if(!requireAuth())return;
+ const form=event.currentTarget,submit=form.querySelector('[type="submit"]'),id=form.elements.mission_id.value;
+ const mission=state.missions.find(m=>m.id===id&&m.owner_id===state.session.user.id);
+ if(!mission||mission.status!=='closed'||!mission.selected_pro_id){$('reviewStatus').textContent='Terminez d’abord une mission attribuée.';return;}
+ submit.disabled=true;
+ try{
+  const r=await state.db.from('offrya_reviews').insert({
+   mission_id:id,client_id:state.session.user.id,professional_id:mission.selected_pro_id,
+   rating:Number(form.elements.rating.value),comment:form.elements.comment.value.trim()
+  });
+  if(r.error)throw r.error;
+  $('reviewDialog').close();toast('Votre avis a été publié.');
+ }catch(error){$('reviewStatus').textContent='Avis impossible : mission attribuée, terminée et échange réel des deux parties requis.';console.error(error);}
+ finally{submit.disabled=false;}
+};
 $('missionList').onclick=async e=>{
- const btn=e.target.closest('[data-contact],[data-close-mission],[data-favorite]');if(!btn)return;
+ const btn=e.target.closest('[data-contact],[data-close-mission],[data-favorite],[data-award-mission],[data-show-photos],[data-report-mission],[data-review-mission]');if(!btn)return;
+ if(btn.dataset.showPhotos){await showMissionPhotos(btn.dataset.showPhotos);return;}
+ if(btn.dataset.reportMission){openReport('mission',btn.dataset.reportMission);return;}
+ if(btn.dataset.reviewMission){openReview(btn.dataset.reviewMission);return;}
+ if(btn.dataset.awardMission){const id=btn.dataset.awardMission,select=document.querySelector('[data-award-select="'+id+'"]');const pro=select?.value;if(!pro)return toast('Choisissez un professionnel avec lequel vous avez échangé.');if(!confirm('Attribuer cette mission au professionnel sélectionné ?'))return;try{const r=await state.db.rpc('offrya_award_mission',{p_mission:id,p_professional:pro});if(r.error)throw r.error;if(!r.data)throw Error('Attribution impossible : échange réciproque ou mission ouverte requis.');await refresh();toast('Mission pourvue.');}catch(err){showError(err);}return;}
  if(btn.dataset.favorite){if(!requireAuth())return;const id=btn.dataset.favorite;try{const result=state.favorites.includes(id)?await state.db.from('offrya_favorites').delete().eq('user_id',state.session.user.id).eq('mission_id',id):await state.db.from('offrya_favorites').insert({user_id:state.session.user.id,mission_id:id});if(result.error)throw result.error;await refresh();toast(state.favorites.includes(id)?'Mission ajoutée aux favoris.':'Favori retiré.');}catch(err){showError(err);}return;}
- if(btn.dataset.closeMission){if(!confirm('Clôturer cette mission ? Elle ne sera plus visible dans les recherches, mais vos conversations resteront accessibles.'))return;try{const r=await state.db.rpc('offrya_close_mission',{p_id:btn.dataset.closeMission});if(r.error)throw r.error;await refresh();toast('Mission clôturée');}catch(err){showError(err);}return;}
+ if(btn.dataset.closeMission){if(!confirm('Clôturer cette mission ? Elle ne sera plus visible dans les recherches, mais vos conversations resteront accessibles.'))return;try{const r=await state.db.rpc('offrya_finish_mission',{p_mission:btn.dataset.closeMission});if(r.error)throw r.error;if(!r.data)throw Error('Clôture non autorisée.');await refresh();toast('Mission clôturée');}catch(err){showError(err);}return;}
  if(!requireRole('pro'))return;const mission=state.missions.find(m=>m.id===btn.dataset.contact);if(!mission)return;
  try{let c=state.conversations.find(c=>c.mission_id===mission.id&&c.professional_id===state.session.user.id);if(!c){const r=await state.db.from('offrya_conversations').insert({mission_id:mission.id,client_id:mission.owner_id,professional_id:state.session.user.id}).select().single();if(r.error){if(r.error.code==='23505'){await refresh();c=state.conversations.find(x=>x.mission_id===mission.id&&x.professional_id===state.session.user.id);}else throw r.error;}else c=r.data;}if(!c)throw Error('Discussion introuvable');state.thread=c.id;await loadMessages(c.id);await refresh();tab('inbox');}catch(err){showError(err);}
 };
 $('conversationList').onclick=async e=>{const btn=e.target.closest('[data-thread]');if(!btn)return;state.thread=btn.dataset.thread;try{await loadMessages(state.thread);}catch(err){showError(err);}};
+$('messageList').onclick=event=>{const button=event.target.closest('[data-report-message]');if(button)openReport('message',button.dataset.reportMessage);};
 $('messageForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth()||!state.thread)return;const f=e.currentTarget,body=f.elements.body.value.trim();if(!body)return;try{const r=await state.db.from('offrya_messages').insert({conversation_id:state.thread,sender_id:state.session.user.id,body});if(r.error)throw r.error;f.reset();await loadMessages(state.thread);}catch(err){showError(err);}};
+$('publicProForm').onsubmit=async e=>{
+ e.preventDefault();if(!requireAuth()||state.profile?.role!=='pro')return;
+ const form=e.currentTarget;
+ const sectors=[...new Set(form.elements.sectors.value.split(',').map(s=>s.trim()).filter(Boolean))];
+ const permitted=['Nettoyage','Espaces verts','Bâtiment','Informatique','Transport','Autre'];
+ if(sectors.some(s=>!permitted.includes(s))){$('publicProStatus').textContent='Secteurs autorisés : '+permitted.join(', ');return;}
+ try{
+  const row={user_id:state.session.user.id,sectors,
+   service_area:form.elements.service_area.value.trim(),
+   presentation:form.elements.presentation.value.trim(),
+   published:form.elements.published.checked,updated_at:new Date().toISOString()};
+  const r=await state.db.from('offrya_public_pro_profiles').upsert(row,{onConflict:'user_id'});
+  if(r.error)throw r.error;
+  await refresh();
+  $('publicProStatus').textContent='Fiche enregistrée. Publication seulement après vérification professionnelle.';
+ }catch(error){$('publicProStatus').textContent='Enregistrement impossible : '+(error.message||'erreur');}
+};
+$('proProofForm').onsubmit=async event=>{
+ event.preventDefault();if(!requireAuth()||state.profile?.role!=='pro')return;
+ const form=event.currentTarget,file=form.elements.proof.files?.[0],kind=form.elements.kind.value,button=form.querySelector('[type="submit"]');
+ if(!file||!['application/pdf','image/jpeg','image/png'].includes(file.type)||file.size>10485760||file.size<1){
+  $('proProofStatus').textContent='PDF, JPEG ou PNG de 10 Mo maximum requis.';return;
+ }
+ button.disabled=true;
+ try{
+  const ext={'application/pdf':'pdf','image/jpeg':'jpg','image/png':'png'}[file.type];
+  const object_path=state.session.user.id+'/'+crypto.randomUUID()+'.'+ext;
+  const upload=await state.db.storage.from('offrya-pro-proofs').upload(object_path,file,{contentType:file.type,upsert:false});
+  if(upload.error)throw upload.error;
+  const r=await state.db.from('offrya_pro_proof_requests').insert({professional_id:state.session.user.id,kind,object_path});
+  if(r.error)throw r.error;
+  await refresh();form.reset();$('proProofStatus').textContent='Justificatif transmis. Badge en attente de validation OFFRYA.';
+ }catch(error){$('proProofStatus').textContent='Transmission impossible : '+(error.message||'erreur');}
+ finally{button.disabled=false;}
+};
 $('profileForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget,x=Object.fromEntries(new FormData(f)),id=state.session.user.id;try{const r=state.profile?await state.db.from('offrya_profiles').update({display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim(),...(state.profile.role==='client'&&x.role==='pro'?{role:'pro'}:{})}).eq('id',id):await state.db.from('offrya_profiles').insert({id,role:x.role,display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim()});if(r.error)throw r.error;toast('Profil enregistré');await refresh();}catch(err){showError(err);}};
 $('preferencesForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget;const payload={user_id:state.session.user.id,missions_enabled:f.elements.missions_enabled.checked,messages_enabled:f.elements.messages_enabled.checked,department:f.elements.department.value.trim().toUpperCase(),category:f.elements.category.value};try{let r;if(state.prefs){delete payload.user_id;r=await state.db.from('offrya_alert_preferences').update(payload).eq('user_id',state.session.user.id);}else r=await state.db.from('offrya_alert_preferences').insert(payload);if(r.error)throw r.error;toast('Préférences enregistrées.');await refresh();}catch(err){showError(err);}};
 async function loadBoamp(append=false){if(!canUsePremium()){renderPremium();return;}if(!append){state.boampOffset=0;state.boamp=[];}$('boampCount').textContent='Recherche en cours';$('boampList').innerHTML='<div class="boamp-skeleton" aria-hidden="true"><div></div><div></div></div>';try{const qs=new URLSearchParams({q:$('boampKeyword').value.trim(),dept:$('boampDept').value.trim(),offset:String(state.boampOffset)});const {data:{session}}=await state.db.auth.getSession();if(!session)throw Error('Session expirée.');
