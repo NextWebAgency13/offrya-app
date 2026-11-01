@@ -26,7 +26,8 @@ create index if not exists offrya_missions_expire on public.offrya_missions(stat
 -- Les missions périmées ne sont plus accessibles aux autres pros, même via REST.
 alter policy missions_read_authorized on public.offrya_missions
  using(owner_id=(select auth.uid()) or
- (status='open' and expires_at>now() and (select offrya_private.has_active_professional_access())));
+ ((status='open' and expires_at>now() or selected_pro_id=(select auth.uid()))
+  and (select offrya_private.has_active_professional_access())));
 -- Impossible d'ouvrir une nouvelle conversation ou de mettre en favori une
 -- demande périmée en appelant directement le Data API.
 alter policy conversation_open on public.offrya_conversations
@@ -75,7 +76,8 @@ alter table public.offrya_mission_photos enable row level security;
 create policy mission_photos_own_or_pro on public.offrya_mission_photos for select to authenticated
  using(exists(select 1 from public.offrya_missions m where m.id=mission_id and
   (m.owner_id=(select auth.uid()) or
-    (m.status='open' and m.expires_at>now() and (select offrya_private.has_active_professional_access())))));
+    ((m.status='open' and m.expires_at>now() or m.selected_pro_id=(select auth.uid()))
+    and (select offrya_private.has_active_professional_access())))));
 create policy mission_photos_owner_add on public.offrya_mission_photos for insert to authenticated
  with check(exists(select 1 from public.offrya_missions m
   where m.id=mission_id and m.owner_id=(select auth.uid())
@@ -104,7 +106,8 @@ create policy offrya_storage_owner_pro_download on storage.objects for select to
   select 1 from public.offrya_missions m
   where m.id::text=(storage.foldername(name))[2] and
   ((m.owner_id=(select auth.uid())) or
-  (m.status='open' and m.expires_at>now() and (select offrya_private.has_active_professional_access())))
+  ((m.status='open' and m.expires_at>now() or m.selected_pro_id=(select auth.uid()))
+    and (select offrya_private.has_active_professional_access())))
  ));
 create policy offrya_storage_owner_remove on storage.objects for delete to authenticated
  using(bucket_id='offrya-mission-images' and
@@ -239,10 +242,10 @@ alter table public.offrya_reviews enable row level security;
 create policy review_after_real_exchange on public.offrya_reviews for insert to authenticated
  with check(client_id=(select auth.uid()) and exists(
  select 1 from public.offrya_missions m
- where m.id=mission_id and m.owner_id=client_id and m.selected_pro_id=professional_id
+ where m.id=offrya_reviews.mission_id and m.owner_id=offrya_reviews.client_id and m.selected_pro_id=offrya_reviews.professional_id
  and m.status='closed' and exists(
   select 1 from public.offrya_conversations c where c.mission_id=m.id
-  and c.client_id=client_id and c.professional_id=professional_id
+  and c.client_id=offrya_reviews.client_id and c.professional_id=offrya_reviews.professional_id
   and exists(select 1 from public.offrya_messages msg where msg.conversation_id=c.id and msg.sender_id=client_id)
   and exists(select 1 from public.offrya_messages msg where msg.conversation_id=c.id and msg.sender_id=professional_id)
   )
@@ -277,7 +280,8 @@ create policy report_owner_insert on public.offrya_reports for insert to authent
  with check(reporter_id=(select auth.uid()) and (
   (target_type='mission' and exists(select 1 from public.offrya_missions m
     where m.id=target_id and (m.owner_id=(select auth.uid()) or
-     (m.status='open' and m.expires_at>now() and (select offrya_private.has_active_professional_access())))))
+     ((m.status='open' and m.expires_at>now() or m.selected_pro_id=(select auth.uid()))
+    and (select offrya_private.has_active_professional_access())))))
   or (target_type='message' and exists(select 1 from public.offrya_messages msg
     join public.offrya_conversations c on c.id=msg.conversation_id
     where msg.id=target_id and (c.client_id=(select auth.uid()) or
