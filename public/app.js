@@ -50,7 +50,7 @@ async function refresh(){
  if(state.thread&&!state.conversations.find(x=>x.id===state.thread))state.thread=null;
  if(state.thread)await loadMessages(state.thread,false);
  await loadPriorityAlerts(false);
- render();
+ state.loaded=true;render();
 }
 function row(m,actions=''){return `<article class="data-item"><div class="item-top"><span class="tag">${esc(m.category)}</span><span class="muted tiny">${date(m.created_at)}</span></div><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.description).slice(0,270)}</div><div class="meta-row"><span>⌖ ${esc(m.city)} (${esc(m.department)})</span><span>Budget : ${m.budget_cents?euro(m.budget_cents):'À définir'}</span><span>${m.status==='open'?'Ouverte':m.status==='awarded'?'Attribuée':'Fermée'}</span></div>${actions?`<div class="item-actions">${actions}</div>`:''}</article>`;}
 function renderMissions(){
