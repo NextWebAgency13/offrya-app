@@ -61,7 +61,7 @@ test('Protection SQL : mission INSERT restreint sans altérer les droits Premium
  assert.match(premiumSql,/s\.status='active'/);
 });
 test('Accueil : communication cohérente et FAQ HTML / JSON-LD identiques',()=>{
- assert.match(home,/Publication après confirmation de l’e-mail/);
+ assert.match(home,/Publiez votre mission après confirmation de l’e-mail/);
  assert.doesNotMatch(home,/sans inscription|sans compte|session invitée|Aucun compte n.est imposé/i);
  // La maquette fidèle ne comporte pas de FAQ sur l'accueil. Aucune FAQ JSON-LD masquée.
  assert.doesNotMatch(home,/\\"@type\\":\\"FAQPage\\"/);
