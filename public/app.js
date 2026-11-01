@@ -382,7 +382,7 @@ async function loadPriorityAlerts(shouldRender=true){
  state.priorityAlerts=(r.data||[]).filter(a=>a.mission?.status==='open');
  const currentIds=new Set(state.priorityAlerts.map(a=>a.id));
  if(state.lastPriorityIds&&state.priorityAlerts.some(a=>!a.seen_at&&!state.lastPriorityIds.has(a.id)))
-   toast('Nouvelle mission prioritaire OFFRYA Premium disponible.');
+   toast('Nouvelle mission prioritaire OFFRYA Professionnel disponible.');
  state.lastPriorityIds=currentIds;
  if(shouldRender)renderPriorityAlerts();
 }
