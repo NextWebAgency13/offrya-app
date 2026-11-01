@@ -9,12 +9,42 @@ const {beginIdentity,processIdentityEvent,configured:identityConfigured,identity
 const {billingEnabled,startCheckout,verifyStripeSignature,syncSubscription,portal}=require('./lib/billing');
 const {verifyToken}=require('./lib/unsubscribe');
 const staticMap=new Map([
- ['/public.css','text/css; charset=utf-8'],['/deposer.js','text/javascript; charset=utf-8'],['/connexion.js','text/javascript; charset=utf-8'],['/auth-feedback.mjs','text/javascript; charset=utf-8'],['/legacy-redirect.js','text/javascript; charset=utf-8'],
+ ['/public.css','text/css; charset=utf-8'],['/mission-counts.js','text/javascript; charset=utf-8'],['/deposer.js','text/javascript; charset=utf-8'],['/connexion.js','text/javascript; charset=utf-8'],['/auth-feedback.mjs','text/javascript; charset=utf-8'],['/legacy-redirect.js','text/javascript; charset=utf-8'],
  ['/index.html','text/html; charset=utf-8'],['/app.js','text/javascript; charset=utf-8'],
  ['/styles.css','text/css; charset=utf-8'],['/home.css','text/css; charset=utf-8'],['/pro.css','text/css; charset=utf-8'],['/favicon.svg','image/svg+xml'],
  ['/confidentialite.html','text/html; charset=utf-8'],['/mentions-legales.html','text/html; charset=utf-8'],
  ['/cgv.html','text/html; charset=utf-8'],['/remboursements.html','text/html; charset=utf-8'],['/contact.html','text/html; charset=utf-8']]);
 const buckets=new Map();
+let publicCountsCache={until:0,data:null};
+async function publicMissionCounts(){
+ if(publicCountsCache.data&&Date.now()<publicCountsCache.until)return publicCountsCache.data;
+ const root=process.env.SUPABASE_URL,key=process.env.SUPABASE_PUBLISHABLE_KEY;
+ if(!root||!key)throw Error('Statistiques non configurées');
+ const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),8000);
+ let response;
+ try{response=await fetch(root.replace(/\/$/,'')+'/rest/v1/rpc/offrya_public_mission_counts',
+  {method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:'{}',signal:controller.signal});}
+ finally{clearTimeout(timeout);}
+ if(!response.ok)throw Error('Statistiques indisponibles ('+response.status+')');
+ const records=await response.json();
+ if(!Array.isArray(records)||records.length>700)throw Error('Statistiques invalides');
+ const categories=new Map(),departments=new Map();
+ for(const entry of records){
+  const category=String(entry.category||''),dept=String(entry.department||'');
+  const count=Number(entry.count);
+  if(!['Nettoyage','Espaces verts','Bâtiment','Informatique','Transport','Autre'].includes(category)
+  || !/^(0[1-9]|[1-8][0-9]|9[0-5]|2A|2B|97[1-6])$/.test(dept)
+  || !Number.isSafeInteger(count)||count<0)throw Error('Statistiques invalides');
+  categories.set(category,(categories.get(category)||0)+count);
+  departments.set(dept,(departments.get(dept)||0)+count);
+ }
+ const data={total:Array.from(categories.values()).reduce((a,b)=>a+b,0),
+  sectors:Array.from(categories,([name,count])=>({name,count})).sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name)),
+  departments:Array.from(departments,([name,count])=>({name,count})).sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name)),
+  updatedAt:new Date().toISOString()};
+ publicCountsCache={until:Date.now()+300000,data};
+ return data;
+}
 function json(res,status,data,extra={}){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...extra});res.end(JSON.stringify(data));}
 function rateLimit(req,max=50){const ip=req.socket.remoteAddress||'unknown',key=ip+':'+req.url.split('?')[0],now=Date.now();
  if(buckets.size>2000)for(const [k,v] of buckets)if(v.until<now)buckets.delete(k);
@@ -33,6 +63,11 @@ async function unsubscribe(id){const url=process.env.SUPABASE_URL, key=process.e
 async function handle(req,res){
  try{const u=new URL(req.url,'http://localhost'),p=u.pathname;
   if(p==='/api/health'&&req.method==='GET')return json(res,200,{ok:true,version:'4.0.0',paymentsEnabled:billingEnabled(),emailsConfigured:Boolean(process.env.RESEND_API_KEY)});
+  if(p==='/api/mission-counts'&&req.method==='GET'){
+   if(!rateLimit(req,60))return json(res,429,{error:'Trop de demandes'});
+   try{return json(res,200,await publicMissionCounts(),{'Cache-Control':'public, max-age=300'});}
+   catch(error){console.error('OFFRYA public counts:',error.message);return json(res,503,{error:'Les statistiques sont temporairement indisponibles.'});}
+  }
   if(p==='/api/company/lookup'&&req.method==='GET'){
    if(!rateLimit(req,12))return json(res,429,{error:'Trop de demandes de vérification.'});
    try{
