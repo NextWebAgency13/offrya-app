@@ -7,7 +7,7 @@ const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
 const missionEffectiveStatus=m=>m.status==='open'&&m.expires_at&&new Date(m.expires_at)<=new Date()?'expired':m.status;
 const missionStatusLabel=m=>({open:'Ouverte',awarded:'Pourvue',closed:'Clôturée',expired:'Expirée'})[missionEffectiveStatus(m)]||'Indéterminée';
 const urgencyLabel=u=>({normal:'Flexible',soon:'Prochainement',urgent:'Urgente'})[u]||'Flexible';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,draft:null,proStep:1,proStepUserId:null,signupForPro:false,publicPro:null,proProofs:[],loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
@@ -32,7 +32,7 @@ function titleForMission(id){return state.missions.find(m=>m.id===id)?.title||'M
 function profileName(id){return state.profiles.find(p=>p.id===id)?.display_name||'Utilisateur OFFRYA';}
 async function refresh(){
  if(!state.db){render();return;}
- if(!state.session){state.draft=null;state.proStep=1;state.proStepUserId=null;state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.manualIdentity=null;state.boamp=[];state.priorityAlerts=[];state.lastPriorityIds=null;render();return;}
+ if(!state.session){state.draft=null;state.proStep=1;state.proStepUserId=null;state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.manualIdentity=null;state.publicPro=null;state.proProofs=[];state.boamp=[];state.priorityAlerts=[];state.lastPriorityIds=null;render();return;}
  const uid=state.session.user.id;
  // Par défaut : ne charger que les annonces dont ce compte est propriétaire.
  // Les annonces des tiers ne sont interrogées qu'après contrôle professionnel.
@@ -40,7 +40,7 @@ async function refresh(){
  const owned=await state.db.from('offrya_missions').select('*').eq('owner_id',uid).order('created_at',{ascending:false}).limit(200);
  if(owned.error)throw owned.error;
  state.missions=owned.data||[];
- const [prof,conv,prefs,profiles,favorites,premium,subscription,draft,manualReview]=await Promise.all([
+ const [prof,conv,prefs,profiles,favorites,premium,subscription,draft,manualReview,publicPro,proProofs]=await Promise.all([
   state.db.from('offrya_profiles').select('*').eq('id',uid).maybeSingle(),
   state.db.from('offrya_conversations').select('*').order('created_at',{ascending:false}).limit(100),
   state.db.from('offrya_alert_preferences').select('*').eq('user_id',uid).maybeSingle(),
@@ -49,9 +49,12 @@ async function refresh(){
   state.db.from('offrya_premium_requests').select('user_id,siret,legal_name,status,premium_until,identity_status,authority_status,representative_kind,registry_name_matched').eq('user_id',uid).maybeSingle(),
   state.db.from('offrya_premium_subscriptions').select('status,paid_through,stripe_customer_id').eq('user_id',uid).maybeSingle(),
    state.db.from('offrya_professional_drafts').select('step,siret,legal_name,representative_name,representative_capacity,representative_kind').eq('user_id',uid).maybeSingle(),
-   state.db.from('offrya_manual_identity_requests').select('status,requested_at,updated_at').eq('user_id',uid).maybeSingle()
+   state.db.from('offrya_manual_identity_requests').select('status,requested_at,updated_at').eq('user_id',uid).maybeSingle(),
+  state.db.from('offrya_public_pro_profiles').select('user_id,sectors,service_area,presentation,published').eq('user_id',uid).maybeSingle(),
+  state.db.from('offrya_pro_proof_requests').select('kind,status,created_at').eq('professional_id',uid).order('created_at',{ascending:false}).limit(12)
  ]);
- for(const res of [prof,conv,prefs,profiles,favorites,premium,subscription,draft,manualReview])if(res.error)throw res.error;
+ for(const res of [prof,conv,prefs,profiles,favorites,premium,subscription,draft,manualReview,publicPro,proProofs])if(res.error)throw res.error;
+ state.publicPro=publicPro.data;state.proProofs=proProofs.data||[];
  state.profile=prof.data;state.premium=premium.data;state.subscription=subscription.data;state.draft=draft.data;state.manualIdentity=manualReview.data;state.conversations=conv.data||[];state.prefs=prefs.data;state.profiles=profiles.data||[];state.favorites=(favorites.data||[]).map(x=>x.mission_id);
  if(canUsePremium()){
   // La base RLS reste l'autorité : vérification officielle + abonnement en cours.
@@ -133,6 +136,15 @@ function renderPremium(){
  const allowed=canUsePremium(),pro=Boolean(state.session&&state.profile?.role==='pro');
  $('boampGate').classList.toggle('hidden',allowed);
  $('premiumContent').classList.toggle('hidden',!allowed);
+ $('professionalPublicCard').classList.toggle('hidden',!pro);
+ if(pro){
+  const form=$('publicProForm'),card=state.publicPro;
+  form.elements.sectors.value=(card?.sectors||[]).join(', ');
+  form.elements.service_area.value=card?.service_area||'';
+  form.elements.presentation.value=card?.presentation||'';
+  form.elements.published.checked=Boolean(card?.published);
+  $('proProofList').innerHTML=state.proProofs.map(p=>`<div class="data-item"><strong>${esc(({decennale:'Assurance décennale',rge:'RGE',qualibat:'Qualibat'})[p.kind]||p.kind)}</strong><small> · ${esc(({pending:'En cours de vérification',verified:'Vérifié',rejected:'Refusé'})[p.status]||'À examiner')}</small></div>`).join('')||'<p class="muted">Aucun justificatif transmis.</p>';
+ }
  $('proLanding').classList.toggle('hidden',pro);
  $('proWorkspace').classList.toggle('hidden',!pro);
  $('premiumLogin').classList.toggle('hidden',Boolean(state.session));
@@ -550,6 +562,41 @@ $('missionList').onclick=async e=>{
 $('conversationList').onclick=async e=>{const btn=e.target.closest('[data-thread]');if(!btn)return;state.thread=btn.dataset.thread;try{await loadMessages(state.thread);}catch(err){showError(err);}};
 $('messageList').onclick=event=>{const button=event.target.closest('[data-report-message]');if(button)openReport('message',button.dataset.reportMessage);};
 $('messageForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth()||!state.thread)return;const f=e.currentTarget,body=f.elements.body.value.trim();if(!body)return;try{const r=await state.db.from('offrya_messages').insert({conversation_id:state.thread,sender_id:state.session.user.id,body});if(r.error)throw r.error;f.reset();await loadMessages(state.thread);}catch(err){showError(err);}};
+$('publicProForm').onsubmit=async e=>{
+ e.preventDefault();if(!requireAuth()||state.profile?.role!=='pro')return;
+ const form=e.currentTarget;
+ const sectors=[...new Set(form.elements.sectors.value.split(',').map(s=>s.trim()).filter(Boolean))];
+ const permitted=['Nettoyage','Espaces verts','Bâtiment','Informatique','Transport','Autre'];
+ if(sectors.some(s=>!permitted.includes(s))){$('publicProStatus').textContent='Secteurs autorisés : '+permitted.join(', ');return;}
+ try{
+  const row={user_id:state.session.user.id,sectors,
+   service_area:form.elements.service_area.value.trim(),
+   presentation:form.elements.presentation.value.trim(),
+   published:form.elements.published.checked,updated_at:new Date().toISOString()};
+  const r=await state.db.from('offrya_public_pro_profiles').upsert(row,{onConflict:'user_id'});
+  if(r.error)throw r.error;
+  await refresh();
+  $('publicProStatus').textContent='Fiche enregistrée. Publication seulement après vérification professionnelle.';
+ }catch(error){$('publicProStatus').textContent='Enregistrement impossible : '+(error.message||'erreur');}
+};
+$('proProofForm').onsubmit=async event=>{
+ event.preventDefault();if(!requireAuth()||state.profile?.role!=='pro')return;
+ const form=event.currentTarget,file=form.elements.proof.files?.[0],kind=form.elements.kind.value,button=form.querySelector('[type="submit"]');
+ if(!file||!['application/pdf','image/jpeg','image/png'].includes(file.type)||file.size>10485760||file.size<1){
+  $('proProofStatus').textContent='PDF, JPEG ou PNG de 10 Mo maximum requis.';return;
+ }
+ button.disabled=true;
+ try{
+  const ext={'application/pdf':'pdf','image/jpeg':'jpg','image/png':'png'}[file.type];
+  const object_path=state.session.user.id+'/'+crypto.randomUUID()+'.'+ext;
+  const upload=await state.db.storage.from('offrya-pro-proofs').upload(object_path,file,{contentType:file.type,upsert:false});
+  if(upload.error)throw upload.error;
+  const r=await state.db.from('offrya_pro_proof_requests').insert({professional_id:state.session.user.id,kind,object_path});
+  if(r.error)throw r.error;
+  await refresh();form.reset();$('proProofStatus').textContent='Justificatif transmis. Badge en attente de validation OFFRYA.';
+ }catch(error){$('proProofStatus').textContent='Transmission impossible : '+(error.message||'erreur');}
+ finally{button.disabled=false;}
+};
 $('profileForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget,x=Object.fromEntries(new FormData(f)),id=state.session.user.id;try{const r=state.profile?await state.db.from('offrya_profiles').update({display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim(),...(state.profile.role==='client'&&x.role==='pro'?{role:'pro'}:{})}).eq('id',id):await state.db.from('offrya_profiles').insert({id,role:x.role,display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim()});if(r.error)throw r.error;toast('Profil enregistré');await refresh();}catch(err){showError(err);}};
 $('preferencesForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget;const payload={user_id:state.session.user.id,missions_enabled:f.elements.missions_enabled.checked,messages_enabled:f.elements.messages_enabled.checked,department:f.elements.department.value.trim().toUpperCase(),category:f.elements.category.value};try{let r;if(state.prefs){delete payload.user_id;r=await state.db.from('offrya_alert_preferences').update(payload).eq('user_id',state.session.user.id);}else r=await state.db.from('offrya_alert_preferences').insert(payload);if(r.error)throw r.error;toast('Préférences enregistrées.');await refresh();}catch(err){showError(err);}};
 async function loadBoamp(append=false){if(!canUsePremium()){renderPremium();return;}if(!append){state.boampOffset=0;state.boamp=[];}$('boampCount').textContent='Recherche en cours';$('boampList').innerHTML='<div class="boamp-skeleton" aria-hidden="true"><div></div><div></div></div>';try{const qs=new URLSearchParams({q:$('boampKeyword').value.trim(),dept:$('boampDept').value.trim(),offset:String(state.boampOffset)});const {data:{session}}=await state.db.auth.getSession();if(!session)throw Error('Session expirée.');
