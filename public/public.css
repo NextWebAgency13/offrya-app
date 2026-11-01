@@ -673,3 +673,14 @@
 .mock-home .mock-activity.is-expanded #publicActivity .activity-list li{display:flex}
 .mock-home .mock-activity.is-expanded #publicActivity .activity-group{min-width:0}
 .mock-home .mock-activity.is-expanded .mock-stat-button span{transform:rotate(90deg)}
+
+
+/* Contrôle explicite de la navigation selon la largeur réelle, indépendamment des anciens styles. */
+@media(min-width:851px){.mock-home .home-top .mock-nav-links{display:flex!important}}
+@media(max-width:850px){.mock-home .home-top .mock-nav-links{display:none!important}}
+@media(min-width:851px) and (max-width:1120px){
+ .mock-home .mock-top nav{gap:9px;padding-inline:15px}
+ .mock-home .mock-brand-tagline{display:none}
+ .mock-home .mock-nav-links{gap:10px}
+ .mock-home .mock-nav-links a{font-size:10px}
+}
