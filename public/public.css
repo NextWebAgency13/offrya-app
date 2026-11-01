@@ -73,3 +73,17 @@
 .choice-note{font-size:14px;color:#51455f;line-height:1.5}
 @media(max-width:600px){.top nav>.public-nav-actions{gap:6px}.top nav>.public-nav-actions .header-signin,.top nav>.public-nav-actions .header-signup{min-height:41px;padding:8px 10px;font-size:12px}.account-type-grid{grid-template-columns:1fr}.account-card h3{font-size:20px}.account-card p{font-size:14px}.audience-section{padding-top:35px}}
 @media(max-width:370px){.top nav .brand{font-size:23px}.top nav .symbol{width:36px;height:36px}.top nav>.public-nav-actions .header-signin,.top nav>.public-nav-actions .header-signup{padding:8px 7px;font-size:11px}}
+
+/* Statistiques publiques de missions : aucune donnée de mission individuelle. */
+.activity-section{padding-block:40px 48px}
+.activity-intro{max-width:760px;margin-bottom:20px}
+.activity-loading,.activity-unavailable,.activity-disclaimer{color:#51455f;font-size:14px;line-height:1.55}
+.activity-total{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:6px 0 18px}
+.activity-total strong{font-size:clamp(2rem,4vw,2.8rem);color:var(--violet);line-height:1.2;font-variant-numeric:tabular-nums}
+.activity-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.activity-group{background:#fff;border:1px solid var(--border);border-radius:18px;padding:20px}
+.activity-group h3{font-size:18px;margin:0 0 13px}
+.activity-list{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.activity-list li{display:flex;gap:12px;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f0ebf4}
+.activity-list strong{color:#5531b3;font-variant-numeric:tabular-nums}
+@media(max-width:600px){.activity-groups{grid-template-columns:1fr}.activity-group{padding:16px}}
