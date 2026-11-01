@@ -27,7 +27,7 @@ async function run(){
  // Les routes doivent être vraies, pas un fallback global HTTP 200.
  const publicPaths=['/professionnels','/deposer-une-mission','/connexion','/secteurs/batiment','/secteurs/nettoyage','/secteurs/espaces-verts','/secteurs/transport','/secteurs/informatique','/secteurs/autres-prestations'];
  for(const route of publicPaths){
-  const r=await request(route);assert.equal(r.status,200,route);assert.match(r.text,/<h1\\b/i,route);
+  const r=await request(route);assert.equal(r.status,200,route);assert.match(r.text,/<h1[^>]*>/i,route);
  }
  console.log('PASS: neuf pages publiques accessibles sur URL directe');
  for(const route of ['/espace','/espace/missions','/espace/marches-publics','/espace/messagerie','/espace/reglages','/espace/professionnel']){
@@ -37,7 +37,7 @@ async function run(){
  console.log('PASS: six chemins privés et en-têtes noindex');
  const robots=await request('/robots.txt'),map=await request('/sitemap.xml');
  assert.equal(robots.status,200);assert.equal(map.status,200);
- assert.match(robots.text,/Sitemap:/);assert.doesNotMatch(map.text,/<loc>[^<]*\\/espace(?:\\/|<)/);
+ assert.match(robots.text,/Sitemap:/);assert.ok(!map.text.includes('<loc>https://offrya-app.onrender.com/espace'));
  console.log('PASS: robots.txt et sitemap.xml publics uniquement');
  const nonexistent=await request('/ce-chemin-n-existe-pas');assert.equal(nonexistent.status,404);
  console.log('PASS: véritable page 404');
