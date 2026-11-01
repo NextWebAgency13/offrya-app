@@ -517,12 +517,12 @@
 .mock-home .mock-sector-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:11px;margin-top:19px}
 .mock-home .mock-sector{display:flex;flex-direction:column;text-align:center;border:1px solid #eae6f0;border-radius:11px;overflow:hidden;min-width:0;background:#fff;color:#1c0c43;text-decoration:none;box-shadow:0 3px 9px #3b216410;min-height:148px}
 .mock-home .mock-sector-picture{height:91px;display:block;background-color:#eee8f7;background-size:cover;background-position:center}
-.mock-home .mock-sector-building{background-image:url("https://images.pexels.com/photos/34670926/pexels-photo-34670926.jpeg?auto=compress&cs=tinysrgb&w=400")}
-.mock-home .mock-sector-green{background-image:url("https://images.pexels.com/photos/4239146/pexels-photo-4239146.jpeg?auto=compress&cs=tinysrgb&w=400")}
-.mock-home .mock-sector-clean{background-image:url("https://images.pexels.com/photos/38936350/pexels-photo-38936350.jpeg?auto=compress&cs=tinysrgb&w=400")}
-.mock-home .mock-sector-restaurant{background-image:url("https://images.pexels.com/photos/12081250/pexels-photo-12081250.jpeg?auto=compress&cs=tinysrgb&w=400")}
-.mock-home .mock-sector-beauty{background-image:url("https://images.pexels.com/photos/7587880/pexels-photo-7587880.jpeg?auto=compress&cs=tinysrgb&w=400")}
-.mock-home .mock-sector-taxi{background-image:url("https://images.pexels.com/photos/33531813/pexels-photo-33531813.jpeg?auto=compress&cs=tinysrgb&w=400")}
+.mock-home .mock-sector-building{background-image:url("https://images.pexels.com/photos/4509089/pexels-photo-4509089.jpeg?auto=compress&cs=tinysrgb&w=800")}
+.mock-home .mock-sector-green{background-image:url("https://images.pexels.com/photos/38936350/pexels-photo-38936350.jpeg?auto=compress&cs=tinysrgb&w=800")}
+.mock-home .mock-sector-clean{background-image:url("https://images.pexels.com/photos/4440537/pexels-photo-4440537.jpeg?auto=compress&cs=tinysrgb&w=800")}
+.mock-home .mock-sector-restaurant{background-image:url("https://images.pexels.com/photos/3951656/pexels-photo-3951656.jpeg?auto=compress&cs=tinysrgb&w=800")}
+.mock-home .mock-sector-beauty{background-image:url("https://images.pexels.com/photos/3985332/pexels-photo-3985332.jpeg?auto=compress&cs=tinysrgb&w=800")}
+.mock-home .mock-sector-taxi{background-image:url("https://images.pexels.com/photos/5835272/pexels-photo-5835272.jpeg?auto=compress&cs=tinysrgb&w=800")}
 .mock-home .mock-sector strong{font-size:11px;line-height:1.28;padding:9px 4px;min-height:53px;display:grid;place-items:center}
 .mock-home .mock-sector-other{background:#f1eafb;border-color:#eee2fb;align-items:center;justify-content:center}
 .mock-home .mock-sector-other-glyph{font-size:38px;line-height:1;color:#6427ca;margin-top:5px}
@@ -701,4 +701,17 @@
  .mock-home .mock-choice{padding-top:32px}
  .mock-home .mock-hero-trust{justify-content:flex-start;gap:25px}
  .mock-home .mock-hero-trust>div{flex:0 1 auto}
+}
+
+
+/* Photos des secteurs : scènes réellement associées aux métiers.
+   Sources Pexels libres, avec recadrage optimisé pour les petites cartes. */
+.mock-home .mock-sector-building{background-position:center 51%}
+.mock-home .mock-sector-green{background-position:center 52%}
+.mock-home .mock-sector-clean{background-position:center 56%}
+.mock-home .mock-sector-restaurant{background-position:center 62%}
+.mock-home .mock-sector-beauty{background-position:center 49%}
+.mock-home .mock-sector-taxi{background-position:center 54%}
+@media(min-width:821px){
+ .mock-home .mock-sector-picture{background-size:cover}
 }
