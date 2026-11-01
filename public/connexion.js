@@ -2,6 +2,7 @@ import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2
 const $=id=>document.getElementById(id),query=new URLSearchParams(location.search);
 const value=query.get('next')||'/espace',next=(value==='/deposer-une-mission'||/^\/espace(?:\/(?:missions|marches-publics|messagerie|reglages|professionnel))?$/.test(value))?value:'/espace';
 let db,mode='login',redirected=false,verificationQueue=Promise.resolve();
+const invalidatedSessionIds=new Set();
 const labels={login:'Se connecter',signup:'Créer un compte',magic:'Envoyer un lien',reset:'Envoyer la réinitialisation',recover:'Enregistrer le mot de passe'};
 const titles={login:'Connexion à votre espace',signup:'Créer mon compte gratuit',magic:'Recevoir un lien de connexion',reset:'Réinitialiser mon mot de passe',recover:'Choisir un nouveau mot de passe'};
 function say(s,error=false){$('loginStatus').textContent=s;$('loginStatus').style.color=error?'#ab294d':'#4e318a';}
@@ -18,14 +19,14 @@ function invalidSessionError(error){
  const message=String(error?.message||'').toLowerCase();
  return [401,403,404].includes(Number(error?.status))
   || /user_not_found|session_not_found|refresh_token_not_found|invalid_refresh_token|bad_jwt|invalid_jwt/.test(code)
-  || /user from sub claim|user not found|does not exist|invalid refresh token|session not found/.test(message);
+  || /user from sub claim|user not found|does not exist|invalid refresh token|session not found|session missing|jwt expired|invalid jwt/.test(message);
 }
 // Une session locale peut encore exister après suppression d'un compte Auth.
 // Seul getUser() interroge Supabase Auth et confirme l'existence du compte.
 function resume(session){
- if(!session?.user?.id||redirected||mode==='recover'||query.get('mode')==='reset-password')return verificationQueue;
+ if(!session?.user?.id||redirected||invalidatedSessionIds.has(session.user.id)||mode==='recover'||query.get('mode')==='reset-password')return verificationQueue;
  const work=verificationQueue.then(async()=>{
-  if(redirected)return;
+  if(redirected||invalidatedSessionIds.has(session.user.id))return;
   let result;
   try{result=await db.auth.getUser();}catch(error){result={error};}
   const user=result?.data?.user,error=result?.error;
@@ -45,6 +46,7 @@ function resume(session){
    try{
     const out=await db.auth.signOut({scope:'local'});
     if(out?.error)throw out.error;
+    invalidatedSessionIds.add(session.user.id);
     say('Votre ancienne session a expiré ou le compte a été supprimé. Créez un compte gratuit ou connectez-vous.');
    }catch(signOutError){
     say('Session invalide : impossible de la réinitialiser automatiquement. Réessayez en navigation privée.',true);
