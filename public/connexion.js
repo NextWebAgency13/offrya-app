@@ -1,4 +1,5 @@
 import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm';
+import {authFeedback} from './auth-feedback.mjs';
 const $=id=>document.getElementById(id),query=new URLSearchParams(location.search);
 const value=query.get('next')||'/espace',next=(value==='/deposer-une-mission'||/^\/espace(?:\/(?:missions|marches-publics|messagerie|reglages|professionnel))?$/.test(value))?value:'/espace';
 // Les liens de confirmation finissent sur /connexion pour permettre à Supabase
@@ -103,6 +104,6 @@ $('loginForm').addEventListener('submit',async e=>{
   else if(mode==='reset')say('Consultez votre boîte e-mail et ouvrez le lien sécurisé de réinitialisation. Aucun abonnement ni alerte n’est activé.');
   else if(mode==='recover'){say('Mot de passe modifié');location.replace(next);}
   else await resume(r.data?.session);
- }catch(err){say(err.message||'Erreur de connexion',true);}finally{b.disabled=false;}
+ }catch(err){say(authFeedback(err,mode),true);}finally{b.disabled=false;}
 });
-init().catch(e=>say(e.message||'Connexion indisponible',true));
+init().catch(e=>say(authFeedback(e,'login'),true));
