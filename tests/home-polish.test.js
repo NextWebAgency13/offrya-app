@@ -21,7 +21,8 @@ test('Accueil : texte revu, offre claire, aucun portrait chargé et CTAs uniform
  assert.match(home,/Entreprise et dirigeant vérifiés/);
  assert.doesNotMatch(home,/Je suis professionnel|Vous êtes un professionnel \?/);
  assert.match(home,/<a class="btn outline" href="\/professionnels">Devenir Premium<\/a>/);
- assert.equal((home.match(/href="\/professionnels">Devenir professionnel<\/a>/g)||[]).length,2);
+ assert.match(home,/<article class="card tinted"><h3>Devenir Premium<\/h3>[\s\S]*?<a class="btn outline" href="\/professionnels">Devenir Premium<\/a><\/article>/);
+ assert.equal((home.match(/href="\/professionnels">Devenir professionnel<\/a>/g)||[]).length,1);
  assert.match(home,/Accédez aux missions privées et aux outils de veille des marchés publics \(BOAMP\)/);
  assert.match(home,/Sans engagement, résiliable à tout moment\./);
  assert.match(pro,/Sans engagement, résiliable à tout moment\./);
