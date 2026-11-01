@@ -31,7 +31,7 @@ test('Connexion : retour sûr au dépôt après inscription ou confirmation par 
  assert.match(login,/if\(mode==='signup'\).*emailRedirectTo:location\.origin\+'\/connexion\?confirmation=1'/);
  assert.match(login,/offrya_signup_intent/);
  assert.match(login,/resetPasswordForEmail/);
- assert.match(login,/if\(confirmationReturn&&\(!query\.has\('next'\)/);
+ assert.match(login,/if\(confirmationReturn&&!query\.has\('next'\)\)/);
  assert.match(login,/else location\.replace\(next\)/);
  assert.match(login,/email_confirmed_at/);
  assert.doesNotMatch(login,/signInWithOtp|mode==='magic'/);
