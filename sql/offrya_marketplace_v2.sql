@@ -155,6 +155,17 @@ begin
  if not found or v_mission.owner_id<>auth.uid()
     or v_mission.status<>'open' or v_mission.expires_at<=now()
  then return false; end if;
+ -- Le professionnel sélectionné est encore certifié et abonné lors de l'attribution.
+ if not exists(
+   select 1 from public.offrya_profiles p
+   join public.offrya_premium_requests v on v.user_id=p.id
+   join public.offrya_premium_subscriptions sub on sub.user_id=p.id
+   where p.id=p_professional and p.role='pro'
+   and v.status='verified' and v.representative_kind='dirigeant'
+   and v.registry_name_matched is true
+   and v.identity_status='verified' and v.authority_status='verified'
+   and sub.status='active' and sub.paid_through>now()
+ ) then return false; end if;
  if not exists(select 1 from public.offrya_conversations c
     where c.mission_id=p_mission and c.client_id=auth.uid()
     and c.professional_id=p_professional
@@ -255,4 +266,38 @@ create policy report_owner_insert on public.offrya_reports for insert to authent
 create policy report_own_read on public.offrya_reports for select to authenticated
  using(reporter_id=(select auth.uid()));
 -- Aucun changement de statut par les utilisateurs ; modération service uniquement.
+
+-- Justificatifs de décennale/RGE/Qualibat : strictement privés.
+-- Les professionnels déposent une pièce, l'équipe OFFRYA valide le badge
+-- séparément. Déposer un fichier ne confère AUCUN badge automatiquement.
+insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
+values('offrya-pro-proofs','offrya-pro-proofs',false,10485760,
+ array['application/pdf','image/jpeg','image/png'])
+on conflict(id) do update
+set public=false,file_size_limit=10485760,
+ allowed_mime_types=array['application/pdf','image/jpeg','image/png'];
+create table if not exists public.offrya_pro_proof_requests(
+ id uuid primary key default gen_random_uuid(),
+ professional_id uuid not null references public.offrya_profiles(id) on delete cascade,
+ kind text not null check(kind in ('decennale','rge','qualibat')),
+ object_path text not null unique,
+ status text not null default 'pending' check(status in ('pending','verified','rejected')),
+ created_at timestamptz not null default now(),
+ constraint proof_path_check check(length(object_path)<260)
+);
+alter table public.offrya_pro_proof_requests enable row level security;
+create policy pro_proof_owner_read on public.offrya_pro_proof_requests for select to authenticated
+ using(professional_id=(select auth.uid()));
+create policy pro_proof_owner_insert on public.offrya_pro_proof_requests for insert to authenticated
+ with check(professional_id=(select auth.uid()) and
+ object_path like ((select auth.uid())::text||'/%') and exists(
+ select 1 from public.offrya_profiles p where p.id=professional_id and p.role='pro'));
+create policy offrya_proof_storage_upload on storage.objects for insert to authenticated
+ with check(bucket_id='offrya-pro-proofs' and
+ (storage.foldername(name))[1]=(select auth.uid())::text
+ and exists(select 1 from public.offrya_profiles p
+ where p.id=(select auth.uid()) and p.role='pro'));
+create policy offrya_proof_storage_owner_download on storage.objects for select to authenticated
+ using(bucket_id='offrya-pro-proofs' and
+ (storage.foldername(name))[1]=(select auth.uid())::text);
 commit;
