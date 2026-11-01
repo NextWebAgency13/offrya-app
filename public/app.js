@@ -60,8 +60,10 @@ async function refresh(){
   // La base RLS reste l'autorité : vérification officielle + abonnement en cours.
   const opportunities=await state.db.from('offrya_missions').select('*').eq('status','open').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false}).limit(200);
   if(opportunities.error)throw opportunities.error;
+  const assigned=await state.db.from('offrya_missions').select('*').eq('selected_pro_id',uid).order('created_at',{ascending:false}).limit(200);
+  if(assigned.error)throw assigned.error;
   const byId=new Map(state.missions.map(m=>[m.id,m]));
-  for(const mission of opportunities.data||[])byId.set(mission.id,mission);
+  for(const mission of [...(opportunities.data||[]),...(assigned.data||[])])byId.set(mission.id,mission);
   state.missions=Array.from(byId.values()).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
  }
  if(state.proStepUserId!==uid){state.proStepUserId=uid;state.proStep=Math.max(1,Math.min(3,Number(state.draft?.step||1)));}
@@ -81,7 +83,7 @@ function renderMissions(){
  const uid=state.session?.user.id,canBrowse=canUsePremium();
  const visible=state.missions.filter(m=>m.owner_id===uid||canBrowse);
  let q=$('missionQuery').value.trim().toLowerCase(),c=$('missionCategory').value,d=$('missionDept').value.trim().toUpperCase();
- const matches=visible.filter(m=>(m.owner_id===uid||missionEffectiveStatus(m)==='open')&&(!q||(m.title+' '+m.description+' '+m.city).toLowerCase().includes(q))&&(!c||m.category===c)&&(!d||m.department===d));
+ const matches=visible.filter(m=>(m.owner_id===uid||m.selected_pro_id===uid||missionEffectiveStatus(m)==='open')&&(!q||(m.title+' '+m.description+' '+m.city).toLowerCase().includes(q))&&(!c||m.category===c)&&(!d||m.department===d));
  $('missionsCount').textContent=matches.length+(canBrowse?' mission(s) accessible(s)':' annonce(s) personnelle(s)');
  $('missionsListHeading').textContent=canBrowse?'Missions accessibles à mon compte Pro':'Mes annonces publiées';
  $('missionSearchFilters').classList.toggle('hidden',!canBrowse);
