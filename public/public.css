@@ -684,3 +684,21 @@
  .mock-home .mock-nav-links{gap:10px}
  .mock-home .mock-nav-links a{font-size:10px}
 }
+
+/* Page approuvée du 02/11 : photographie 16:9 et accès direct à « Choisissez votre espace ».
+   Le contenu mobile reste fluide, sans rognage de texte ni bandeau de statistiques. */
+.mock-home .mock-choice{padding-top:40px}
+.mock-home .mock-hero-trust{max-width:390px}
+.mock-home .mock-hero-text{position:relative;z-index:2}
+@media(min-width:851px) and (min-aspect-ratio:16/9){
+ .mock-home .mock-hero{height:clamp(378px,36.9vw,580px)}
+ .mock-home .mock-hero-text{padding-top:clamp(37px,3.5vw,62px)}
+}
+@media(max-width:820px){
+ .mock-home .mock-choice{padding-top:36px}
+}
+@media(max-width:560px){
+ .mock-home .mock-choice{padding-top:32px}
+ .mock-home .mock-hero-trust{justify-content:flex-start;gap:25px}
+ .mock-home .mock-hero-trust>div{flex:0 1 auto}
+}

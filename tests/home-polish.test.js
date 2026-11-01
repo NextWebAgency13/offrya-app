@@ -11,9 +11,9 @@ test('Navigation : les accès Connexion et Inscription restent inchangés',()=>{
  for(const p of otherPages)assert.match(read(p),/class="account-link" href="\/espace"/,p);
 });
 test('Maquette : huit blocs dans le bon ordre et un seul H1',()=>{
- const sections=['class="mock-top"','class="mock-hero"','id="activite"','id="choisir-compte"','id="secteurs"','id="fonctionnement"','class="mock-container mock-assurance"','class="mock-end"'];
+ const sections=['class="mock-top"','class="mock-hero"','id="choisir-compte"','id="secteurs"','id="fonctionnement"','class="mock-container mock-assurance"','class="mock-end"'];
  // Les classes supplémentaires sont autorisées.
- const markers=['class="top home-top mock-top"','class="mock-hero"','class="mock-container mock-activity"','class="mock-container mock-choice"','class="mock-container mock-sectors"','class="mock-how"','class="mock-container mock-assurance"','class="mock-end"'];
+ const markers=['class="top home-top mock-top"','class="mock-hero"','class="mock-container mock-choice"','class="mock-container mock-sectors"','class="mock-how"','class="mock-container mock-assurance"','class="mock-end"'];
  const indexes=markers.map(m=>home.indexOf(m));
  assert.ok(indexes.every(i=>i>=0));assert.deepEqual(indexes,[...indexes].sort((a,b)=>a-b));
  assert.equal((home.match(/<h1\b/g)||[]).length,1);
@@ -22,8 +22,8 @@ test('Maquette : huit blocs dans le bon ordre et un seul H1',()=>{
  assert.match(home,/class="mock-pro-price"/);
  assert.match(home,/34,99 € TTC \/ mois/);
  assert.equal((home.match(/class="mock-sector(?: mock-sector-other)?"/g)||[]).length,7);
- assert.match(home,/src="\/activity\.js" defer/);
- assert.match(home,/id="publicActivity"/);
+ assert.doesNotMatch(home,/mock-activity|id="publicActivity"|src="\/activity\.js" defer/);
+ assert.ok(home.indexOf('class="mock-hero"')<home.indexOf('class="mock-container mock-choice"'));
  assert.match(home,/Photographie d’illustration/);
 });
 test('Sécurité et parcours : aucun faux avis ni mission publique',()=>{
@@ -44,4 +44,13 @@ test('Responsive et isolation de la vitrine',()=>{
  assert.match(css,/\.mock-home \.mock-choice-grid\{/);
  assert.match(home,/class="home-skip" href="#contenu"/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
+});
+test('Maquette 16:9 : le bandeau est supprimé et le contenu commence directement après le héros',()=>{
+ const heroEnd=home.indexOf('</section>',home.indexOf('<section class="mock-hero"'));
+ const nextSection=home.slice(heroEnd+10).trimStart();
+ assert.match(nextSection,/^<section class="mock-container mock-choice"/);
+ assert.doesNotMatch(home,/L’activité OFFRYA|Voir les statistiques|id="activite"|mock-activity/);
+ assert.match(css,/\.mock-home \.mock-choice\{padding-top:34px/);
+ assert.match(css,/\.mock-home \.mock-hero-wave\{/);
+ assert.match(css,/@media\(max-width:560px\)/);
 });

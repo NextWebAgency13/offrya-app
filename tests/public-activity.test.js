@@ -33,10 +33,8 @@ async function render(rows,fail=false){
  await scope.__activityPromise;
  return {root,requests,all:texts(root).join(' ')};
 }
-test('La page publique affiche une section agrégée sans ouverture des annonces',()=>{
- assert.match(home,/id="activite"/);
- assert.match(home,/id="publicActivity"/);
- assert.match(home,/src="\/activity\.js" defer/);
+test('La RPC anonyme reste sécurisée, sans bandeau de statistiques sur l’accueil',()=>{
+ assert.doesNotMatch(home,/id="activite"|id="publicActivity"|src="\/activity\.js" defer/);
  assert.match(server,/activity\.js/);
  assert.doesNotMatch(src,/offrya_missions'\)|getPublicUrl|select\('\*'\)|mission\.description|mission\.owner_id/);
  assert.doesNotMatch(home,/id="missionList"|id="dashMissions"/);
