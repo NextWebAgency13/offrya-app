@@ -32,7 +32,7 @@ test('Connexion : retour sûr au dépôt après inscription ou confirmation par 
  assert.match(login,/emailRedirectTo:location\.origin\+'\/connexion\?next='/);
  assert.match(login,/location\.replace\(confirmationReturn\?'\/':next\)/);
  assert.match(login,/email_confirmed_at/);
- assert.match(login,/shouldCreateUser:false/);
+ assert.doesNotMatch(login,/signInWithOtp|mode==='magic'/);
  assert.match(login,/resetPasswordForEmail/);
  assert.doesNotMatch(login,/signInAnonymously/);
 });
