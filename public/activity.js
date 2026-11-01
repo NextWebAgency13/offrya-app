@@ -4,6 +4,13 @@
 (async()=>{
  const mount=document.getElementById('publicActivity');
  if(!mount)return;
+ const details=document.getElementById('activityDetailsButton');
+ const section=document.getElementById('activite');
+ if(details&&section)details.addEventListener('click',()=>{
+   const expanded=details.getAttribute('aria-expanded')!=='true';
+   details.setAttribute('aria-expanded',String(expanded));
+   section.classList.toggle('is-expanded',expanded);
+ });
  const element=(tag,content)=>{
   const node=document.createElement(tag);
   if(content!==undefined)node.textContent=String(content);
