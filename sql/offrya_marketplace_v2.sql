@@ -300,4 +300,12 @@ create policy offrya_proof_storage_upload on storage.objects for insert to authe
 create policy offrya_proof_storage_owner_download on storage.objects for select to authenticated
  using(bucket_id='offrya-pro-proofs' and
  (storage.foldername(name))[1]=(select auth.uid())::text);
+
+-- Privilèges REST explicites ; RLS détermine ensuite les lignes visibles.
+revoke all on public.offrya_pro_qualification_badges from anon,authenticated;
+grant select,insert,delete on public.offrya_mission_photos to authenticated;
+grant select,insert,update on public.offrya_public_pro_profiles to authenticated;
+grant select,insert on public.offrya_reviews to authenticated;
+grant select,insert on public.offrya_reports to authenticated;
+grant select,insert on public.offrya_pro_proof_requests to authenticated;
 commit;
