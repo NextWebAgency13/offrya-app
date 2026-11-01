@@ -8,7 +8,7 @@
     <nav id="nav" aria-label="Sections">
       <button class="nav-link active" data-tab="dashboard"><svg class="nav-icon"><use href="#ic-dashboard"/></svg><span>Accueil</span></button>
       <button class="nav-link" data-tab="missions"><svg class="nav-icon"><use href="#ic-missions"/></svg><span>Missions</span></button>
-      <button class="nav-link" data-tab="professional"><svg class="nav-icon"><use href="#ic-shield"/></svg><span>Espace pro</span></button><button class="nav-link" data-tab="boamp"><svg class="nav-icon"><use href="#ic-boamp"/></svg><span>Marchés publics</span></button>
+      <button class="nav-link" data-tab="professional"><svg class="nav-icon"><use href="#ic-shield"/></svg><span>Espace pro</span></button>
       <button class="nav-link" data-tab="inbox"><svg class="nav-icon"><use href="#ic-inbox"/></svg><span>Messagerie</span></button>
       <button class="nav-link" data-tab="settings"><svg class="nav-icon"><use href="#ic-settings"/></svg><span>Réglages</span></button>
     </nav>
@@ -154,24 +154,19 @@
      <span class="pro-stage-label">COMPTE PROFESSIONNEL ACTIF</span><h3>Votre activité sur OFFRYA</h3>
      <p class="pro-stage-desc">Entreprise et identité vérifiées, habilitation contrôlée et abonnement actif.</p>
      <div class="pro-checklist"><div><span>Identité et mandat</span><strong>Validés</strong></div><div><span>Abonnement</span><strong id="proSubscriptionState">Actif</strong></div></div>
-     <div class="pro-actions"><button class="button primary" type="button" data-tab="missions">Consulter les missions</button><button class="button secondary" type="button" data-tab="boamp">Marchés publics</button><button class="button outline" type="button" id="premiumPortal">Gérer / résilier mon abonnement</button></div>
+     <div class="pro-actions"><button class="button primary" type="button" data-tab="missions">Consulter les missions</button><button class="button secondary" type="button" id="proMarketsShortcut">Marchés publics</button><button class="button outline" type="button" id="premiumPortal">Gérer / résilier mon abonnement</button></div>
     
-    </div>
-   </div>
-  </div>
- </div>
-</section>
-<section class="tab" id="boamp">
- <div class="section-top"><div><p class="eyebrow">OFFRYA PROFESSIONNEL / DILA</p><h2>Marchés publics</h2><p>Recherchez les avis officiels, les échéances et les opportunités sectorielles.</p></div></div>
- <div id="boampGate" class="pro-market-gate">
-  <div><span class="pro-kicker">OUTILS DE VEILLE PROFESSIONNELLE</span><h3>Explorez les marchés publics avec OFFRYA.</h3><p>Les avis BOAMP sont publics à la source. OFFRYA réserve ses outils intégrés de recherche, de veille et d'export aux professionnels dont le compte est validé et l'abonnement actif.</p>
-   <button class="button primary" type="button" data-tab="professional">Découvrir l'Espace professionnel →</button></div>
-  <div class="pro-market-seal"><svg class="nav-icon" aria-hidden="true"><use href="#ic-shield"/></svg><strong>Accès professionnel</strong><small>Identité et mandat vérifiés<br>Abonnement actif</small></div>
- </div>
- <div id="premiumContent" class="hidden">
+     <section class="pro-market-section" id="proMarkets" aria-labelledby="proMarketsTitle">
+      <div class="section-top"><div><p class="eyebrow">OFFRYA PROFESSIONNEL / DILA</p><h3 id="proMarketsTitle">Marchés publics</h3><p>Retrouvez ici les avis officiels et les outils de recherche réservés à votre abonnement professionnel actif.</p></div></div>
+      <div id="premiumContent" class="hidden">
   <div class="section-top"><div><h3>Rechercher un appel d'offres</h3><p>Données de la source officielle DILA. Vérifiez toujours les échéances sur l'avis d'origine.</p></div><button class="button secondary" id="exportBoamp">↓ Export CSV</button></div>
   <div class="panel filters"><input class="field" id="boampKeyword" placeholder="Rechercher un appel d'offres…" aria-label="Mot clé"><input class="field" id="boampDept" maxlength="3" placeholder="Département" aria-label="Département"><button class="button primary" id="boampSearch">Lancer la recherche</button></div>
   <div class="panel"><div class="panel-heading"><h3>Avis officiels</h3><span class="tag" id="boampCount">—</span></div><div class="data-list" id="boampList"><div class="empty">Lancez une recherche pour consulter les avis officiels.</div></div><div class="centered"><button class="button secondary hidden" id="boampMore">Afficher davantage</button></div></div>
+ </div>
+     </section>
+    </div>
+   </div>
+  </div>
  </div>
 </section>
 <section class="tab" id="inbox"><div class="section-top"><div><p class="eyebrow">ÉCHANGES PRIVÉS</p><h2>Vos conversations</h2><p>Seuls le client et le professionnel peuvent lire leurs messages. Conditions, tarifs et paiement sont convenus directement entre eux, hors OFFRYA.</p></div></div><div class="inbox-grid"><div class="panel"><h3>Discussions</h3><div id="conversationList" class="data-list"></div></div><div class="panel message-panel"><div class="panel-heading"><h3 id="threadTitle">Sélectionnez une discussion</h3><span class="tag">Échange direct</span></div><div id="messageList" class="messages"><div class="empty">Aucune conversation sélectionnée.</div></div><form id="messageForm" class="send-form"><input class="field" name="body" maxlength="2500" minlength="1" required placeholder="Écrivez votre message…" aria-label="Votre message"><button class="button primary" type="submit">Envoyer</button></form></div></div></section>
