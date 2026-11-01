@@ -36,6 +36,8 @@ test('Vraie 404 et aucune fuite d’API ou de fichier',async()=>{
  assert.equal((await fetch(base+'/app.js')).status,200);
  assert.equal((await fetch(base+'/public.css')).status,200);
  assert.equal((await fetch(base+'/connexion.js')).status,200);
+ const feedback=await fetch(base+'/auth-feedback.mjs');assert.equal(feedback.status,200);
+ assert.match(feedback.headers.get('content-type'),/text\/javascript/);
  assert.equal((await fetch(base+'/legacy-redirect.js')).status,200);
  assert.equal((await fetch(base+'/deposer.js')).status,200);
 });

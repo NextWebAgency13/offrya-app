@@ -6,7 +6,7 @@ const path=require('node:path');
 const vm=require('node:vm');
 
 const filename=path.join(__dirname,'../public/connexion.js');
-const source=fs.readFileSync(filename,'utf8').replace(/^import \{createClient\}[^\n]+\n/,'');
+const source=fs.readFileSync(filename,'utf8').replace(/^import \{(?:createClient|authFeedback)\}[^\n]+\n/gm,'');
 assert.doesNotMatch(source,/^import /);
 const validUser={id:'user-confirmed',email:'client@example.test',email_confirmed_at:'2026-11-01T09:00:00Z',is_anonymous:false};
 const deletedSession={user:{id:'user-deleted',email:'deleted@example.test',email_confirmed_at:'2026-10-31T08:00:00Z',is_anonymous:false}};
@@ -65,6 +65,7 @@ async function loadAuthPage({
  };
  const sandbox={
   createClient:()=>({auth}),
+  authFeedback:(error,operation)=>({signup:'Échec de l’inscription',login:'Échec de connexion',reset:'Échec de récupération',recover:'Échec de mise à jour'})[operation],
   URLSearchParams,
   location:{search:url,hash,origin:'https://offrya-app.onrender.com',replace:path=>redirects.push(path)},
   document:{getElementById:id=>dom[id],querySelectorAll:()=>tabButtons},
