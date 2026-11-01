@@ -13,7 +13,7 @@ const deletedSession={user:{id:'user-deleted',email:'deleted@example.test',email
 
 async function loadAuthPage({
  session=null,user=null,authError=null,url='?mode=signup&next=%2Fdeposer-une-mission',
- simulateSignedIn=false
+ simulateSignedIn=false,hash=''
 }={}){
  const redirects=[],signOutCalls=[],signupCalls=[],loginCalls=[],dom={};
  const fields={
@@ -66,7 +66,7 @@ async function loadAuthPage({
  const sandbox={
   createClient:()=>({auth}),
   URLSearchParams,
-  location:{search:url,origin:'https://offrya-app.onrender.com',replace:path=>redirects.push(path)},
+  location:{search:url,hash,origin:'https://offrya-app.onrender.com',replace:path=>redirects.push(path)},
   document:{getElementById:id=>dom[id],querySelectorAll:()=>tabButtons},
   fetch:async()=>({ok:true,json:async()=>({supabaseUrl:'https://example.supabase.co',supabaseKey:'publishable-key'})}),
   setTimeout,console
@@ -99,7 +99,7 @@ test('Après la suppression du compte, un clic Créer mon compte gratuit fonctio
  assert.equal(page.signupCalls.length,1);
  assert.equal(page.signupCalls[0].email,'new@example.test');
  assert.equal(page.signupCalls[0].options.emailRedirectTo,
-  'https://offrya-app.onrender.com/connexion?next=%2Fdeposer-une-mission');
+  'https://offrya-app.onrender.com/connexion?confirmation=1');
  assert.match(page.dom.loginStatus.textContent,/Consultez votre boîte e-mail/);
  assert.deepEqual(page.redirects,[]);
 });
@@ -140,4 +140,34 @@ test('Une session absente affiche l’inscription sans créer un invité',async(
  assert.deepEqual(page.redirects,[]);
  assert.equal(page.signOutCalls.length,0);
  assert.equal(page.dom.authHeading.textContent,'Créer mon compte gratuit');
+});
+
+test('Confirmation e-mail : la session valide est reprise avant retour à l’accueil public',async()=>{
+ const page=await loadAuthPage({
+  session:{user:validUser},user:validUser,
+  url:'?confirmation=1'
+ });
+ assert.deepEqual(page.redirects,['/']);
+ assert.equal(page.signOutCalls.length,0);
+ assert.equal(page.dom.authHeading.textContent,'Confirmation de votre inscription');
+});
+test('Confirmation e-mail : un ancien lien #type=signup retourne aussi à l’accueil',async()=>{
+ const page=await loadAuthPage({
+  session:{user:validUser},user:validUser,
+  url:'?next=%2Fdeposer-une-mission',
+  hash:'#access_token=simulated&type=signup'
+ });
+ assert.deepEqual(page.redirects,['/']);
+});
+test('Un lien de confirmation sans session vérifiée ne simule pas de connexion',async()=>{
+ const page=await loadAuthPage({url:'?confirmation=1',session:null,user:null});
+ assert.deepEqual(page.redirects,[]);
+ assert.equal(page.signOutCalls.length,0);
+});
+test('Lien magique : la destination demandée reste la page privée',async()=>{
+ const page=await loadAuthPage({
+  session:{user:validUser},user:validUser,
+  url:'?next=%2Fespace%2Fmissions'
+ });
+ assert.deepEqual(page.redirects,['/espace/missions']);
 });
