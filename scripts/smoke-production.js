@@ -41,6 +41,24 @@ async function run(){
  }
  assert.ok(releaseVisible,'La version Render ne présente pas encore Connexion / Inscription et les deux parcours du compte');
  console.log('PASS: nouvelle version OFFRYA (connexion, inscription, 2 parcours) visible en production');
+ // Design approuvé : vérifier les éléments réellement servis, sans toucher
+ // aux données clients ni appeler un paiement.
+ let designVisible=false;
+ for(let attempt=0;attempt<16;attempt++){
+  const [landing,styles]=await Promise.all([request('/',{headers:{'Cache-Control':'no-cache'}}),request('/public.css',{headers:{'Cache-Control':'no-cache'}})]);
+  designVisible=landing.status===200&&styles.status===200
+   &&landing.text.includes('class="home-hero-portrait"')
+   &&landing.text.includes('Votre projet mérite <span>le bon professionnel.</span>')
+   &&landing.text.includes('id="publicActivity"')
+   &&landing.text.includes('id="choisir-compte"')
+   &&styles.text.includes('home-hero-portrait')
+   &&styles.text.includes('images.pexels.com/photos/34670926/');
+  if(designVisible)break;
+  if(attempt<15)await new Promise(resolve=>setTimeout(resolve,12000));
+ }
+ assert.ok(designVisible,'Render ne présente pas encore le design photographique approuvé');
+ console.log('PASS: nouvelle vitrine professionnelle approuvée visible sur Render');
+
 
  // Les routes doivent être vraies, pas un fallback global HTTP 200.
  const publicPaths=['/professionnels','/deposer-une-mission','/connexion','/secteurs/batiment','/secteurs/nettoyage','/secteurs/espaces-verts','/secteurs/transport','/secteurs/informatique','/secteurs/autres-prestations'];
