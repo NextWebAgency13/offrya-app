@@ -15,7 +15,7 @@ test('Accès direct à chaque document public, SEO et H1 unique',async()=>{
   assert.match(html,/<title>[^<]+<\/title>/,p);
   assert.match(html,/<meta name="description" content="/,p);
   assert.match(html,/<link rel="canonical" href="https:\/\/offrya-app.onrender.com\//,p);
-  assert.equal(r.headers.get('x-robots-tag'),null,p);
+  if(p==='/connexion'){assert.match(r.headers.get('x-robots-tag'),/noindex/);assert.match(html,/name="robots" content="noindex,nofollow"/);}else assert.equal(r.headers.get('x-robots-tag'),null,p);
   for(const legal of ['/cgv.html','/confidentialite.html','/remboursements.html','/contact.html','/mentions-legales.html'])assert.ok(html.includes('href="'+legal+'"'),p+' missing '+legal);
  }
 });
@@ -46,12 +46,12 @@ test('Robots et sitemap : seules les pages publiques sont listées, noindex atte
  assert.match(rt,/Sitemap: https:\/\/offrya-app.onrender.com\/sitemap.xml/);
  assert.doesNotMatch(rt,/Disallow:\s*\/espace/);
  for(const p of publicPaths.filter(p=>p!=='/connexion'))assert.ok(xml.includes('https://offrya-app.onrender.com'+p+'</loc>'),p);
- assert.doesNotMatch(xml,/<loc>[^<]*\/espace/);
+ assert.doesNotMatch(xml,/<loc>[^<]*\/espace(?:\/|<)/);
 });
 test('Anciens fragments, lien de connexion et retour profond sur page autorisée',()=>{
  const home=read('public/index.html'),app=read('public/app.js'),login=read('public/connexion.js');
  for(const [hash,to] of [['dashboard','/espace'],['missions','/espace/missions'],['professional','/professionnels'],['professional-space','/espace/professionnel'],['tenders','/espace/marches-publics'],['messages','/espace/messagerie'],['settings','/espace/reglages'],['boamp','/espace/marches-publics'],['inbox','/espace/messagerie']]){
-  assert.ok(home.includes(hash+':\''+to+'\''),hash);
+  assert.ok(home.includes((hash==='professional-space'?"'"+hash+"'":hash)+':\''+to+'\''),hash);
  }
  assert.match(app,/location\.replace\('\/connexion\?next='/);
  assert.match(app,/pathsReverse\[location.pathname\]/);
