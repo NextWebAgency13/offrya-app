@@ -38,7 +38,7 @@
 <section class="mock-container mock-activity" id="activite" aria-labelledby="activityHeading">
   <div class="mock-activity-title"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect x="3" y="19" width="5" height="10" rx="2" fill="#a48af7"/><rect x="11" y="12" width="5" height="17" rx="2" fill="#7947dc"/><rect x="19" y="6" width="5" height="23" rx="2" fill="#5720b5"/><path d="M2 30h25" stroke="#6941d7" stroke-width="2"/></svg><h2 id="activityHeading">L’activité OFFRYA<br>en temps réel</h2></div>
   <div id="publicActivity" aria-live="polite" aria-atomic="true"><p class="activity-loading">Chargement des statistiques réelles…</p></div>
-  <a class="mock-stat-button" href="/#activite">Voir les statistiques<br>détaillées <span aria-hidden="true">›</span></a>
+  <button class="mock-stat-button" id="activityDetailsButton" type="button" aria-controls="publicActivity" aria-expanded="false">Voir les statistiques<br>détaillées <span aria-hidden="true">›</span></button>
 </section>
 <script src="/activity.js" defer></script>
 <section class="mock-container mock-choice" id="choisir-compte" aria-labelledby="account-heading">
