@@ -715,3 +715,8 @@
 @media(min-width:821px){
  .mock-home .mock-sector-picture{background-size:cover}
 }
+
+/* En-tête de l'accueil : seulement le logo OFFRYA et Se connecter. */
+.mock-home .mock-top nav{justify-content:space-between}
+.mock-home .mock-top .public-nav-actions{margin-left:auto}
+.mock-home .mock-top .header-signin{white-space:nowrap}
