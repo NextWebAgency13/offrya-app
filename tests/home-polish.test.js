@@ -16,7 +16,7 @@ test('Navigation publique : seulement Mon espace, dépôt accessible depuis le c
 test('Accueil : texte revu, offre claire, aucun portrait chargé et CTAs uniformes',()=>{
  assert.match(home,/<h1>Votre projet mérite le bon professionnel\.<\/h1>/);
  assert.equal((home.match(/<h1\b/g)||[]).length,1);
- assert.match(home,/Nouveau professionnel \?/);
+ assert.match(home,/Vous êtes professionnel \?/);
  assert.doesNotMatch(home,/Nouvel professionnel \?|Les opportunités prennent forme|Des entreprises contrôlées et abonnées/);
  assert.match(home,/Entreprise et dirigeant vérifiés/);
  assert.doesNotMatch(home,/Je suis professionnel|Vous êtes un professionnel \?/);
