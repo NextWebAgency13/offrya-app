@@ -29,7 +29,7 @@ test('Maquette : huit blocs dans le bon ordre et un seul H1',()=>{
 test('Sécurité et parcours : aucun faux avis ni mission publique',()=>{
  assert.match(home,/href="\/deposer-une-mission"/);
  assert.match(home,/href="\/professionnels"/);
- assert.match(home,/Publication après confirmation de l’e-mail/);
+ assert.match(home,/Publiez votre mission après confirmation de l’e-mail/);
  assert.match(home,/Entreprise et dirigeant vérifiés/);
  assert.match(home,/34,99 €/);
  assert.match(pro,/Sans engagement, résiliable à tout moment\./);
