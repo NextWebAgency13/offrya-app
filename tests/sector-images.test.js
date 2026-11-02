@@ -22,7 +22,6 @@ test('Chaque secteur affiche une photo du métier correspondant, sans réutilisa
   const section=html.match(new RegExp('<a class="mock-sector"[^>]*><span class="mock-sector-picture mock-sector-'+item.cls+'"[^>]*><\\/span><strong>([\\s\\S]*?)<\\/strong>'));
   assert.ok(section,'Tuile '+item.cls);
   assert.ok(section[1].includes(item.name),'Libellé '+item.name);
-  const selector='.mock-home .mock-sector-'+item.cls;
   const selector='.mock-home .mock-sector-'+item.cls+'{background-image:url("';
   const pos=css.indexOf(selector);
   assert.ok(pos>=0,'CSS de secteur '+item.cls);
