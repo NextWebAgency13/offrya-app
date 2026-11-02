@@ -27,6 +27,8 @@ test('Maquette : huit blocs dans le bon ordre et un seul H1',()=>{
  assert.match(home,/class="mock-pro-price"/);
  assert.match(home,/34,99 € TTC \/ mois/);
  assert.equal((home.match(/class="mock-sector(?: mock-sector-other)?"/g)||[]).length,8);
+ const sectorPosition=cls=>home.indexOf('class="mock-sector-picture mock-sector-'+cls+'"');
+ assert.ok(sectorPosition("building")>=0 && sectorPosition("building")<sectorPosition("tech") && sectorPosition("tech")<sectorPosition("green"),"Informatique & Tech doit être entre Bâtiment et Espaces verts");
  assert.doesNotMatch(home,/mock-activity|id="publicActivity"|src="\/activity\.js" defer/);
  assert.ok(home.indexOf('class="mock-hero"')<home.indexOf('class="mock-container mock-choice"'));
  assert.match(home,/Photographie d’illustration/);
