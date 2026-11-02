@@ -43,7 +43,7 @@ function change(v){
  if($('authExistingAccount'))$('authExistingAccount').hidden=v!=='signup';
  if($('resetLinkWrap'))$('resetLinkWrap').hidden=v!=='login';
  if($('authModeFootnote'))$('authModeFootnote').textContent=
-  v==='signup'?(next==='/espace/professionnel'?'Création du compte sans paiement. Offre professionnelle : 34,99 € TTC/mois après vérification et activation.':query.has('next')&&next==='/deposer-une-mission'?'Compte demandeur gratuit : aucun abonnement nécessaire pour déposer une mission.':'Choisissez le type de compte adapté à votre besoin. Aucun paiement à cette étape.'):
+  v==='signup'?((query.get('role')==='pro'||next==='/espace/professionnel')?'Création du compte sans paiement. Offre professionnelle : 34,99 € TTC/mois après vérification et activation.':(query.get('role')==='client'||query.has('next')&&next==='/deposer-une-mission')?'Compte demandeur gratuit : aucun abonnement nécessaire pour déposer une mission.':'Choisissez le type de compte adapté à votre besoin. Aucun paiement à cette étape.'):
   v==='reset'?'Si un compte est associé à cette adresse, consultez votre boîte e-mail.':
   v==='recover'?'Après modification, vous pourrez revenir à votre espace.':
   'Connexion sécurisée. Aucun paiement n’est déclenché ici.';
@@ -51,7 +51,7 @@ function change(v){
  if(choice){
   // Un choix explicite depuis l'accueil ouvre directement son formulaire.
   // L'écran générique conserve le sélecteur lorsqu'aucun parcours n'a été choisi.
-  const selectedSignup=query.has('next')&&(next==='/deposer-une-mission'||next==='/espace/professionnel');
+  const selectedSignup=(query.get('role')==='client'||query.get('role')==='pro')||query.has('next')&&(next==='/deposer-une-mission'||next==='/espace/professionnel');
   choice.hidden=v!=='signup'||selectedSignup;
   // En inscription générique : choisir d'abord le rôle, ne pas présenter
   // un formulaire qui risquerait de créer un compte du mauvais type.
@@ -65,7 +65,7 @@ function change(v){
    $('authCardLead').textContent='Sélectionnez votre parcours pour accéder directement au formulaire adapté.';
   }
   if(v==='signup'&&choice.hidden){
-   const professional=next==='/espace/professionnel';
+   const professional=query.get('role')==='pro'||next==='/espace/professionnel';
    $('authHeading').textContent=professional?'Créez votre compte professionnel':'Créez votre compte demandeur gratuit';
    $('authCardEyebrow').textContent=professional?'COMPTE PROFESSIONNEL':'COMPTE DEMANDEUR · GRATUIT';
    $('authLead').textContent=professional?'Créez votre compte, confirmez votre e-mail puis vérifiez votre entreprise et votre identité avant de souscrire.':'Créez gratuitement votre compte et confirmez votre e-mail pour publier et suivre vos missions.';
@@ -73,7 +73,7 @@ function change(v){
    $('authCardLead').textContent=professional?'Vérifiez votre e-mail, puis complétez les étapes SIRET, identité du dirigeant et abonnement. Aucun paiement à cette étape.':'Créez votre compte gratuit pour publier une mission après confirmation de votre e-mail.';
   }
   for(const option of choice.querySelectorAll('[data-signup-type]')){
-   const selected=option.dataset.signupType===(next==='/espace/professionnel'?'pro':'client');
+   const selected=option.dataset.signupType===((query.get('role')==='pro'||next==='/espace/professionnel')?'pro':'client');
    option.classList.toggle('chosen',selected);
    if(selected)option.setAttribute('aria-current','true');else option.removeAttribute('aria-current');
   }
@@ -115,7 +115,7 @@ function resume(session){
    if(confirmationReturn&&!query.has('next')){
     // Simple indication de parcours, jamais un droit d'accès.
     const intent=user.user_metadata?.offrya_signup_intent;
-    location.replace(intent==='pro'?'/espace/professionnel':intent==='client'?'/deposer-une-mission':'/');
+    location.replace(intent==='pro'?'/espace/professionnel':intent==='client'?'/espace':'/');
    }else if(!query.has('next')&&!confirmationReturn){
     // Après une connexion générique, se baser sur le rôle stocké en base.
     // Ne jamais utiliser les métadonnées utilisateur pour attribuer des droits.
@@ -124,7 +124,7 @@ function resume(session){
       if(!profile.error&&profile.data?.role==='pro')destination='/espace/professionnel';
     }catch(_error){/* L'espace privé gère une indisponibilité ponctuelle. */}
     location.replace(destination);
-   }else location.replace(next);
+   }else location.replace(confirmationReturn&&next==='/deposer-une-mission'?'/espace':next);
    return;
   }
   // L'authentification a changé pendant la vérification : ne pas

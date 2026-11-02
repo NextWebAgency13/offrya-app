@@ -11,7 +11,7 @@ test('Navigation : en-tête minimal avec logo et seul bouton Se connecter',()=>{
  assert.match(header,/class="header-signin" href="\/connexion\?next=%2Fespace">Se connecter<\/a>/);
  assert.equal((header.match(/<a /g)||[]).length,2,'Seulement le logo et la connexion sont cliquables');
  assert.doesNotMatch(header,/header-signup|home-nav-links|mock-nav-links|mock-brand-tagline|S’inscrire|<button/);
- assert.match(home,/href="\/connexion\?mode=signup&amp;next=%2Fdeposer-une-mission"/,'Inscription gratuite conservée dans la carte Demandeur');
+ assert.match(home,/href="\/connexion\?mode=signup&amp;role=client&amp;next=%2Fespace"/,'Inscription gratuite conservée dans la carte Demandeur');
  for(const p of otherPages.filter(p=>p!=='public/connexion.html'&&p!=='public/professionnels.html'))assert.match(read(p),/class="account-link" href="\/espace"/,p);
  assert.match(read('public/professionnels.html'),/class="account-link" href="\/connexion\?next=%2Fespace"/);
  assert.match(read('public/connexion.html'),/class="auth-home-link" href="\/"/,'La page d’authentification retourne à l’accueil, sans lien vers un espace encore inaccessible');

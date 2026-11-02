@@ -12,7 +12,7 @@ const validUser={id:'user-confirmed',email:'client@example.test',email_confirmed
 const deletedSession={user:{id:'user-deleted',email:'deleted@example.test',email_confirmed_at:'2026-10-31T08:00:00Z',is_anonymous:false}};
 
 async function loadAuthPage({
- session=null,user=null,authError=null,url='?mode=signup&next=%2Fdeposer-une-mission',
+ session=null,user=null,authError=null,url='?mode=signup&role=client&next=%2Fespace',
  simulateSignedIn=false,hash=''
 }={}){
  const redirects=[],signOutCalls=[],signupCalls=[],loginCalls=[],dom={};
@@ -108,16 +108,16 @@ test('Après la suppression du compte, un clic Créer mon compte gratuit fonctio
  assert.equal(page.signupCalls.length,1);
  assert.equal(page.signupCalls[0].email,'new@example.test');
  assert.equal(page.signupCalls[0].options.emailRedirectTo,
-  'https://offrya-app.onrender.com/connexion?confirmation=1&next=%2Fdeposer-une-mission');
+  'https://offrya-app.onrender.com/connexion?confirmation=1&next=%2Fespace');
  assert.equal(page.signupCalls[0].options.data.offrya_signup_intent,'client');
  assert.match(page.dom.loginStatus.textContent,/Consultez votre boîte e-mail/);
  assert.deepEqual(page.redirects,[]);
 });
-test('Une session authentifiée et confirmée autorise le retour au dépôt',async()=>{
+test('Une session authentifiée et confirmée autorise le retour au tableau de bord',async()=>{
  const page=await loadAuthPage({
   session:{user:validUser},user:validUser
  });
- assert.deepEqual(page.redirects,['/deposer-une-mission']);
+ assert.deepEqual(page.redirects,['/espace']);
  assert.equal(page.signOutCalls.length,0);
 });
 test('Un compte sans e-mail confirmé ne peut pas être redirigé vers la publication',async()=>{
@@ -161,13 +161,13 @@ test('Confirmation e-mail : la session valide est reprise avant retour à l’ac
  assert.equal(page.signOutCalls.length,0);
  assert.equal(page.dom.authHeading.textContent,'Confirmation de votre inscription');
 });
-test('Confirmation e-mail : un ancien lien #type=signup retourne aussi à l’accueil',async()=>{
+test('Confirmation e-mail : ancien lien revient à l’espace demandeur',async()=>{
  const page=await loadAuthPage({
   session:{user:validUser},user:validUser,
   url:'?next=%2Fdeposer-une-mission',
   hash:'#access_token=simulated&type=signup'
  });
- assert.deepEqual(page.redirects,['/deposer-une-mission']);
+ assert.deepEqual(page.redirects,['/espace']);
 });
 test('Un lien de confirmation sans session vérifiée ne simule pas de connexion',async()=>{
  const page=await loadAuthPage({url:'?confirmation=1',session:null,user:null});
@@ -207,9 +207,9 @@ test('Confirmation e-mail : le parcours professionnel est conservé',async()=>{
  const page=await loadAuthPage({session:{user:validUser},user:validUser,url:'?confirmation=1&next=%2Fespace%2Fprofessionnel'});
  assert.deepEqual(page.redirects,['/espace/professionnel']);
 });
-test('Confirmation e-mail : le parcours de dépôt est conservé',async()=>{
+test('Confirmation e-mail : inscription demandeur revient au tableau de bord',async()=>{
  const page=await loadAuthPage({session:{user:validUser},user:validUser,url:'?confirmation=1&next=%2Fdeposer-une-mission'});
- assert.deepEqual(page.redirects,['/deposer-une-mission']);
+ assert.deepEqual(page.redirects,['/espace']);
 });
 
 test('Confirmation e-mail : type pro dans les métadonnées dirige vers le dossier professionnel',async()=>{
@@ -220,17 +220,17 @@ test('Confirmation e-mail : type pro dans les métadonnées dirige vers le dossi
  });
  assert.deepEqual(page.redirects,['/espace/professionnel']);
 });
-test('Confirmation e-mail : type demandeur dans les métadonnées dirige vers le dépôt gratuit',async()=>{
+test('Confirmation e-mail : type demandeur dans les métadonnées ouvre son espace',async()=>{
  const page=await loadAuthPage({
   session:{user:validUser},
   user:{...validUser,user_metadata:{offrya_signup_intent:'client'}},
   url:'?confirmation=1'
  });
- assert.deepEqual(page.redirects,['/deposer-une-mission']);
+ assert.deepEqual(page.redirects,['/espace']);
 });
 
 test('Inscription : le lien « Mot de passe oublié » est masqué et le mot de passe reste obligatoire',async()=>{
- const page=await loadAuthPage({url:'?mode=signup&next=%2Fdeposer-une-mission'});
+ const page=await loadAuthPage({url:'?mode=signup&role=client&next=%2Fespace'});
  assert.equal(page.dom.resetLinkWrap.hidden,true);
  assert.equal(page.dom.authTabs.hidden,false);
  assert.equal(page.dom.authBack.hidden,true);

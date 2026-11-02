@@ -30,7 +30,7 @@ test('CSS : masquage réel du mot de passe pour le reset et de l’e-mail pour r
  assert.doesNotMatch(html,/id="accountTypeChoice"[^>]*style=/);
 });
 test('Accès dépôt de mission et professionnel : destinations autorisées et confirmations conservées',()=>{
- assert.match(html,/href="\/connexion\?mode=signup&amp;next=%2Fdeposer-une-mission"/);
+ assert.match(html,/href="\/connexion\?mode=signup&amp;role=client&amp;next=%2Fespace"/);
  assert.match(html,/href="\/connexion\?mode=signup&amp;next=%2Fespace%2Fprofessionnel"/);
  assert.match(js,/emailRedirectTo:location\.origin\+'\/connexion\?confirmation=1&next='/);
  assert.match(js,/offrya_signup_intent/);

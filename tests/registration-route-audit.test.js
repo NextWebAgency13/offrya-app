@@ -2,9 +2,9 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const read=p=>fs.readFileSync(p,'utf8');
 const home=read('public/index.html'),pro=read('public/professionnels.html'),deposit=read('public/deposer-une-mission.html'),auth=read('public/connexion.js'),login=read('public/connexion.html'),privateDoc=read('public/espace.html'),app=read('public/app.js');
-const client='/connexion?mode=signup&amp;next=%2Fdeposer-une-mission',professional='/connexion?mode=signup&amp;next=%2Fespace%2Fprofessionnel';
+const client='/connexion?mode=signup&amp;role=client&amp;next=%2Fespace',professional='/connexion?mode=signup&amp;next=%2Fespace%2Fprofessionnel';
 test('audit : appels d’inscription des pages publiques vers le bon formulaire',()=>{
- assert.match(home,/href="\/connexion\?mode=signup&amp;next=%2Fdeposer-une-mission"/);
+ assert.match(home,/href="\/connexion\?mode=signup&amp;role=client&amp;next=%2Fespace"/);
  assert.match(home,/href="\/connexion\?mode=signup&amp;next=%2Fespace%2Fprofessionnel"/);
  assert.ok(pro.includes('href="'+professional+'"'));
  assert.ok(deposit.includes('href="'+client+'"'));
