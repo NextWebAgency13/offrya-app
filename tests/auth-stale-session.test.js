@@ -108,7 +108,7 @@ test('Après la suppression du compte, un clic Créer mon compte gratuit fonctio
  assert.equal(page.signupCalls.length,1);
  assert.equal(page.signupCalls[0].email,'new@example.test');
  assert.equal(page.signupCalls[0].options.emailRedirectTo,
-  'https://offrya-app.onrender.com/connexion?confirmation=1');
+  'https://offrya-app.onrender.com/connexion?confirmation=1&next=%2Fdeposer-une-mission');
  assert.equal(page.signupCalls[0].options.data.offrya_signup_intent,'client');
  assert.match(page.dom.loginStatus.textContent,/Consultez votre boîte e-mail/);
  assert.deepEqual(page.redirects,[]);
@@ -167,7 +167,7 @@ test('Confirmation e-mail : un ancien lien #type=signup retourne aussi à l’ac
   url:'?next=%2Fdeposer-une-mission',
   hash:'#access_token=simulated&type=signup'
  });
- assert.deepEqual(page.redirects,['/']);
+ assert.deepEqual(page.redirects,['/deposer-une-mission']);
 });
 test('Un lien de confirmation sans session vérifiée ne simule pas de connexion',async()=>{
  const page=await loadAuthPage({url:'?confirmation=1',session:null,user:null});
@@ -200,7 +200,7 @@ test('Inscription professionnelle : le lien e-mail permet de revenir sur le parc
  const page=await loadAuthPage({url:'?mode=signup&next=%2Fespace%2Fprofessionnel'});
  await page.submit();
  assert.equal(page.signupCalls.length,1);
- assert.equal(page.signupCalls[0].options.emailRedirectTo,'https://offrya-app.onrender.com/connexion?confirmation=1');
+ assert.equal(page.signupCalls[0].options.emailRedirectTo,'https://offrya-app.onrender.com/connexion?confirmation=1&next=%2Fdeposer-une-mission');
  assert.equal(page.signupCalls[0].options.data.offrya_signup_intent,'pro');
 });
 test('Confirmation e-mail : le parcours professionnel est conservé',async()=>{
