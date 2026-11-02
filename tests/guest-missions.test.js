@@ -14,13 +14,18 @@ const premiumSql=read('sql/legal_representative_only.sql');
 test('Publication : inscription et e-mail confirmé AVANT d’afficher le formulaire',()=>{
  assert.match(form,/id="accountGate"/);
  assert.match(form,/id="publishArea" hidden/);
- assert.match(form,/id="missionForm"/);
+ assert.doesNotMatch(form,/<form id="missionForm"/);
+ assert.match(submit,/const publicationFormHtml=/);
+ assert.match(submit,/area\.innerHTML=publicationFormHtml/);
+ assert.match(submit,/initCommunePicker\(form\)/);
+ assert.match(submit,/form\.addEventListener\('submit',submitMission\)/);
  assert.match(form,/href="\/connexion\?mode=signup&amp;next=%2Fdeposer-une-mission"/);
  assert.match(form,/href="\/connexion\?next=%2Fdeposer-une-mission"/);
  assert.match(submit,/auth\.getUser\(\)/);
  assert.match(submit,/email_confirmed_at/);
  assert.match(submit,/user\.is_anonymous/);
- assert.match(submit,/\$\('publishArea'\)\.hidden=!user/);
+ assert.match(submit,/area\.hidden=true/);
+ assert.match(submit,/area\.hidden=false/);
  assert.match(submit,/from\('offrya_missions'\)\.insert/);
  assert.doesNotMatch(submit,/signInAnonymously|followupOptIn|auth\.updateUser\(\{email:|turnstile/i);
  assert.doesNotMatch(form,/followupOptIn|guestCaptcha|session invitée/i);
@@ -28,7 +33,8 @@ test('Publication : inscription et e-mail confirmé AVANT d’afficher le formul
 test('Connexion : retour sûr au dépôt après inscription ou confirmation par e-mail',()=>{
  assert.match(login,/value==='\/deposer-une-mission'/);
  assert.match(login,/query\.get\('mode'\)==='signup'/);
- assert.match(login,/if\(mode==='signup'\).*emailRedirectTo:location\.origin\+'\/connexion\?confirmation=1'/);
+ assert.match(login,/if\(mode==='signup'\)/);
+ assert.match(login,/emailRedirectTo:location\.origin\+'\/connexion\?confirmation=1'/);
  assert.match(login,/offrya_signup_intent/);
  assert.match(login,/resetPasswordForEmail/);
  assert.match(login,/if\(confirmationReturn&&!query\.has\('next'\)\)/);

@@ -8,6 +8,7 @@ const value=query.get('next')||'/espace',next=(value==='/deposer-une-mission'||/
 const linkHash=new URLSearchParams((location.hash||'').replace(/^#/,''));
 const confirmationReturn=query.get('confirmation')==='1'||query.get('type')==='signup'||linkHash.get('type')==='signup';
 let db,mode='login',redirected=false,verificationQueue=Promise.resolve();
+let captchaRequired=false,captchaToken=null,captchaWidgetId=null;
 const invalidatedSessionIds=new Set();
 const labels={login:'Se connecter',signup:'Créer mon compte',reset:'Recevoir le lien de réinitialisation',recover:'Enregistrer le mot de passe'};
 const titles={login:'Connectez-vous à votre espace',signup:'Créez votre compte gratuit',reset:'Mot de passe oublié ?',recover:'Choisissez un nouveau mot de passe'};
@@ -41,6 +42,7 @@ function change(v){
  if($('authTabs'))$('authTabs').hidden=v==='reset'||v==='recover';
  if($('authBack'))$('authBack').hidden=v==='login'||v==='signup';
  if($('resetLinkWrap'))$('resetLinkWrap').hidden=v!=='login';
+ if($('signupCaptcha'))$('signupCaptcha').hidden=v!=='signup'||!captchaRequired;
  if($('authModeFootnote'))$('authModeFootnote').textContent=
   v==='signup'?'Inscription gratuite. L’abonnement professionnel est proposé uniquement après vérification.':
   v==='reset'?'Si un compte est associé à cette adresse, consultez votre boîte e-mail.':
@@ -132,6 +134,19 @@ async function init(){
  else if(query.get('mode')==='signup')change('signup');
  const r=await fetch('/api/config');if(!r.ok)throw Error('Connexion indisponible');const c=await r.json();
  if(!c.supabaseUrl||!c.supabaseKey)throw Error('Configuration de connexion indisponible');
+ captchaRequired=Boolean(c.signupCaptchaEnabled);
+ if(captchaRequired){
+  if(!c.signupCaptchaSiteKey)throw Error('CAPTCHA inscription activé sans clé publique.');
+  await new Promise((resolve,reject)=>{
+   const script=document.createElement('script');
+   script.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+   script.onload=resolve;script.onerror=()=>reject(new Error('Protection antibot indisponible.'));
+   document.head.append(script);
+  });
+  captchaWidgetId=window.turnstile.render('signupCaptcha',{sitekey:c.signupCaptchaSiteKey,callback:token=>{captchaToken=token;},
+   'expired-callback':()=>{captchaToken=null;},'error-callback':()=>{captchaToken=null;}});
+  if(mode==='signup')$('signupCaptcha').hidden=false;
+ }
  db=createClient(c.supabaseUrl,c.supabaseKey,{auth:{detectSessionInUrl:true}});
  db.auth.onAuthStateChange((event,session)=>{
   if(event==='PASSWORD_RECOVERY'){change('recover');return;}
@@ -153,7 +168,15 @@ $('loginForm').addEventListener('submit',async e=>{
  e.preventDefault();if(!db)return say('Connexion indisponible',true);
  const f=e.currentTarget,email=f.elements.email.value.trim(),password=f.elements.password.value,b=$('loginSubmit');b.disabled=true;
  try{
-  let r;if(mode==='signup')r=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/connexion?confirmation=1',data:{offrya_signup_intent:next==='/espace/professionnel'?'pro':'client'}}});
+  let r;if(mode==='signup'){
+   if(captchaRequired&&!captchaToken)throw Error('Complétez la vérification antirobot avant de créer le compte.');
+   r=await db.auth.signUp({email,password,options:{
+    emailRedirectTo:location.origin+'/connexion?confirmation=1',
+    data:{offrya_signup_intent:next==='/espace/professionnel'?'pro':'client'},
+    ...(captchaRequired?{captchaToken}:{})
+   }});
+   if(captchaRequired&&captchaWidgetId!==null){captchaToken=null;window.turnstile.reset(captchaWidgetId);}
+  }
   else if(mode==='reset')r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/connexion?mode=reset-password&next='+encodeURIComponent(next)});
   else if(mode==='recover')r=await db.auth.updateUser({password});
   else r=await db.auth.signInWithPassword({email,password});

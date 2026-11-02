@@ -8,8 +8,9 @@ const {lookupCompany,verifyProfessional}=require('./lib/company');
 const {beginIdentity,processIdentityEvent,configured:identityConfigured,identityConfigChecks}=require('./lib/identity');
 const {billingEnabled,startCheckout,verifyStripeSignature,syncSubscription,portal}=require('./lib/billing');
 const {verifyToken}=require('./lib/unsubscribe');
+const {verifyAdmin,overview,moderationAction}=require('./lib/moderation');
 const staticMap=new Map([
- ['/public.css','text/css; charset=utf-8'],['/auth.css','text/css; charset=utf-8'],['/activity.js','text/javascript; charset=utf-8'],['/deposer.js','text/javascript; charset=utf-8'],['/connexion.js','text/javascript; charset=utf-8'],['/auth-feedback.mjs','text/javascript; charset=utf-8'],['/legacy-redirect.js','text/javascript; charset=utf-8'],
+ ['/public.css','text/css; charset=utf-8'],['/auth.css','text/css; charset=utf-8'],['/activity.js','text/javascript; charset=utf-8'],['/deposer.js','text/javascript; charset=utf-8'],['/mission-fields.mjs','text/javascript; charset=utf-8'],['/connexion.js','text/javascript; charset=utf-8'],['/auth-feedback.mjs','text/javascript; charset=utf-8'],['/moderation.js','text/javascript; charset=utf-8'],['/legacy-redirect.js','text/javascript; charset=utf-8'],
  ['/index.html','text/html; charset=utf-8'],['/app.js','text/javascript; charset=utf-8'],
  ['/styles.css','text/css; charset=utf-8'],['/home.css','text/css; charset=utf-8'],['/pro.css','text/css; charset=utf-8'],['/favicon.svg','image/svg+xml'],
  ['/confidentialite.html','text/html; charset=utf-8'],['/mentions-legales.html','text/html; charset=utf-8'],
@@ -33,6 +34,17 @@ async function unsubscribe(id){const url=process.env.SUPABASE_URL, key=process.e
 async function handle(req,res){
  try{const u=new URL(req.url,'http://localhost'),p=u.pathname;
   if(p==='/api/health'&&req.method==='GET')return json(res,200,{ok:true,version:'4.0.0',paymentsEnabled:billingEnabled(),emailsConfigured:Boolean(process.env.RESEND_API_KEY)});
+  if(p==='/api/moderation'&&(req.method==='GET'||req.method==='POST')){
+   if(!rateLimit(req,12))return json(res,429,{error:'Trop de requêtes de modération.'});
+   try{
+    const access=await verifyAdmin(req.headers.authorization);
+    if(!access.allowed)return json(res,access.status,{error:access.error});
+    if(req.method==='GET')return json(res,200,await overview());
+    const payload=JSON.parse(await readBody(req,850));
+    const result=await moderationAction(payload,access.adminId);
+    return json(res,result.status,result.error?{error:result.error}:{updated:true});
+   }catch(err){console.error('Modération:',err.message);return json(res,503,{error:'Modération indisponible.'});}
+  }
   if(p==='/api/company/lookup'&&req.method==='GET'){
    if(!rateLimit(req,12))return json(res,429,{error:'Trop de demandes de vérification.'});
    try{
@@ -91,7 +103,7 @@ async function handle(req,res){
     return json(res,200,{received:true});
    }catch(e){console.error('Identity webhook:',e.message);return json(res,503,{error:'Traitement de vérification indisponible.'});}
   }
-  if(p==='/api/config'&&req.method==='GET')return json(res,200,{identityEnabled:identityConfigured(),supabaseUrl:process.env.SUPABASE_URL||null,supabaseKey:process.env.SUPABASE_PUBLISHABLE_KEY||null,paymentsEnabled:billingEnabled(),billingEnabled:billingEnabled(),premiumPriceEuros:34.99,guestCaptchaSiteKey:process.env.OFFRYA_TURNSTILE_SITE_KEY||null});
+  if(p==='/api/config'&&req.method==='GET')return json(res,200,{identityEnabled:identityConfigured(),supabaseUrl:process.env.SUPABASE_URL||null,supabaseKey:process.env.SUPABASE_PUBLISHABLE_KEY||null,paymentsEnabled:billingEnabled(),billingEnabled:billingEnabled(),premiumPriceEuros:34.99,guestCaptchaSiteKey:process.env.OFFRYA_TURNSTILE_SITE_KEY||null,signupCaptchaEnabled:process.env.OFFRYA_SIGNUP_CAPTCHA_ENABLED==='true',signupCaptchaSiteKey:process.env.OFFRYA_SIGNUP_CAPTCHA_ENABLED==='true'?(process.env.OFFRYA_TURNSTILE_SITE_KEY||null):null});
   if(p==='/api/billing/checkout'&&req.method==='POST'){
    if(!rateLimit(req,5))return json(res,429,{error:'Trop de tentatives.'});
    if(!billingEnabled())return json(res,503,{error:'Paiements OFFRYA non configurés.'});
@@ -145,9 +157,9 @@ async function handle(req,res){
   }
   if(p.startsWith('/api/'))return json(res,404,{error:'Route inconnue'});
   if(!['GET','HEAD'].includes(req.method))return json(res,405,{error:'Méthode non autorisée'});
-  const publicPages=new Map([['/','index.html'],['/deposer-une-mission','deposer-une-mission.html'],['/professionnels','professionnels.html'],['/connexion','connexion.html'],['/secteurs/batiment','secteurs/batiment.html'],['/secteurs/nettoyage','secteurs/nettoyage.html'],['/secteurs/espaces-verts','secteurs/espaces-verts.html'],['/secteurs/transport','secteurs/transport.html'],['/secteurs/informatique','secteurs/informatique.html'],['/secteurs/autres-prestations','secteurs/autres-prestations.html']]);
-  const privatePage=new Set(['/espace','/espace/missions','/espace/marches-publics','/espace/messagerie','/espace/reglages','/espace/professionnel']).has(p);
-  const pageFile=privatePage?'espace.html':publicPages.get(p);
+  const publicPages=new Map([['/','index.html'],['/deposer-une-mission','deposer-une-mission.html'],['/professionnels','professionnels.html'],['/connexion','connexion.html'],['/moderation','moderation.html'],['/secteurs/batiment','secteurs/batiment.html'],['/secteurs/nettoyage','secteurs/nettoyage.html'],['/secteurs/espaces-verts','secteurs/espaces-verts.html'],['/secteurs/transport','secteurs/transport.html'],['/secteurs/informatique','secteurs/informatique.html'],['/secteurs/autres-prestations','secteurs/autres-prestations.html']]);
+  const privatePage=new Set(['/moderation','/espace','/espace/missions','/espace/marches-publics','/espace/messagerie','/espace/reglages','/espace/professionnel']).has(p);
+  const pageFile=p==='/moderation'?'moderation.html':privatePage?'espace.html':publicPages.get(p);
   const mime=pageFile?'text/html; charset=utf-8':p==='/robots.txt'?'text/plain; charset=utf-8':p==='/sitemap.xml'?'application/xml; charset=utf-8':staticMap.get(p);
   if(!mime){
     const missing=await fs.readFile(path.join(__dirname,'public','404.html'));
@@ -156,7 +168,7 @@ async function handle(req,res){
   }
   const asset=path.join(__dirname,'public',pageFile||p.slice(1));
   const buf=await fs.readFile(asset);
-  res.writeHead(200,{'Content-Type':mime,...((privatePage||p==='/connexion')?{'X-Robots-Tag':'noindex, nofollow'}:{}),'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','X-Frame-Options':'DENY','Permissions-Policy':'camera=(), microphone=(), geolocation=()','Content-Security-Policy':"default-src 'self'; connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://images.pexels.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",'Cache-Control':(privatePage||p==='/connexion')?'private, no-store':'public,max-age=60'});
+  res.writeHead(200,{'Content-Type':mime,...((privatePage||p==='/connexion')?{'X-Robots-Tag':'noindex, nofollow'}:{}),'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','X-Frame-Options':'DENY','Permissions-Policy':'camera=(), microphone=(), geolocation=()','Content-Security-Policy':"default-src 'self'; connect-src 'self' https://*.supabase.co https://geo.api.gouv.fr https://challenges.cloudflare.com; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://images.pexels.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",'Cache-Control':(privatePage||p==='/connexion')?'private, no-store':'public,max-age=60'});
   return res.end(req.method==='HEAD'?undefined:buf);
  }catch(e){console.error('OFFRYA',e.message);if(!res.headersSent)json(res,500,{error:'Erreur interne'});}
 }
