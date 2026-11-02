@@ -878,3 +878,28 @@
 .mock-home .mock-assurance>div:not(.mock-trust-heading) small{display:block;font-size:12px;line-height:1.5;margin-top:4px}
 @media(max-width:900px){.mock-home .mock-assurance{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.mock-home .mock-assurance{grid-template-columns:1fr;margin-top:20px;margin-bottom:32px;gap:10px}.mock-home .mock-assurance>div:not(.mock-trust-heading){padding:16px}.mock-home .mock-trust-heading h2{font-size:24px}}
+
+/* OFFRYA — finition premium : rythme, profondeur et interactions accessibles. */
+@media (prefers-reduced-motion:no-preference){
+ .mock-home .mock-choice-card,.mock-home .mock-sector,.mock-home .mock-assurance>div:not(.mock-trust-heading),body:not(.mock-home) .card{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+ .mock-home .mock-card-cta,.mock-home .mock-button,.mock-home .mock-sector,.premium-hero .btn{transition:transform .18s ease,background-color .18s ease,box-shadow .18s ease}
+}
+@media (hover:hover) and (pointer:fine){
+ .mock-home .mock-choice-card:hover,.mock-home .mock-assurance>div:not(.mock-trust-heading):hover,body:not(.mock-home) .card:hover{transform:translateY(-3px);box-shadow:0 13px 34px #2c174116;border-color:#dacbed}
+ .mock-home .mock-sector:hover{transform:translateY(-4px);box-shadow:0 14px 28px #36214c20;border-color:#cdbde8}
+ .mock-home .mock-card-cta:hover,.mock-home .mock-button:hover,.premium-hero .btn:hover{transform:translateY(-2px)}
+}
+.mock-home .mock-card-cta:focus-visible,.mock-home .mock-button:focus-visible,.mock-home .mock-sector:focus-visible,.premium-hero .btn:focus-visible{outline:3px solid #e58c51;outline-offset:4px}
+.mock-home .mock-choice-card,.mock-home .mock-sector{box-shadow:0 5px 22px #2713420d}
+.mock-home .mock-sector strong{overflow-wrap:break-word;text-wrap:balance}
+.mock-home .mock-trust-heading h2,.mock-home .mock-how-intro h2{text-wrap:balance}
+@media(max-width:600px){
+ .mock-home .mock-sector-grid{gap:12px}
+ .mock-home .mock-choice-card{box-shadow:0 7px 26px #2815420e}
+ .mock-home .mock-assurance>div:not(.mock-trust-heading){box-shadow:0 3px 14px #2c17410a}
+ .premium-hero .actions{display:flex;flex-direction:column;align-items:stretch}
+ .premium-hero .actions>.btn{width:100%;min-height:50px;text-align:center}
+}
+@media(prefers-reduced-motion:reduce){
+ .mock-home .mock-choice-card,.mock-home .mock-sector,.mock-home .mock-card-cta,.mock-home .mock-button,.premium-hero .btn{transition:none!important;transform:none!important}
+}
