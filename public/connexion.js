@@ -43,7 +43,7 @@ function change(v){
  if($('authExistingAccount'))$('authExistingAccount').hidden=v!=='signup';
  if($('resetLinkWrap'))$('resetLinkWrap').hidden=v!=='login';
  if($('authModeFootnote'))$('authModeFootnote').textContent=
-  v==='signup'?(next==='/espace/professionnel'?'Création du compte sans paiement. Offre professionnelle : 34,99 € TTC/mois après vérification et activation.':'Compte demandeur gratuit : aucun abonnement nécessaire pour déposer une mission.'):
+  v==='signup'?(next==='/espace/professionnel'?'Création du compte sans paiement. Offre professionnelle : 34,99 € TTC/mois après vérification et activation.':query.has('next')&&next==='/deposer-une-mission'?'Compte demandeur gratuit : aucun abonnement nécessaire pour déposer une mission.':'Choisissez le type de compte adapté à votre besoin. Aucun paiement à cette étape.'):
   v==='reset'?'Si un compte est associé à cette adresse, consultez votre boîte e-mail.':
   v==='recover'?'Après modification, vous pourrez revenir à votre espace.':
   'Connexion sécurisée. Aucun paiement n’est déclenché ici.';
@@ -51,7 +51,11 @@ function change(v){
  if(choice){
   // Un choix explicite depuis l'accueil ouvre directement son formulaire.
   // L'écran générique conserve le sélecteur lorsqu'aucun parcours n'a été choisi.
-  choice.hidden=v!=='signup'||(query.has('next')&&(next==='/deposer-une-mission'||next==='/espace/professionnel'));
+  const selectedSignup=query.has('next')&&(next==='/deposer-une-mission'||next==='/espace/professionnel');
+  choice.hidden=v!=='signup'||selectedSignup;
+  // En inscription générique : choisir d'abord le rôle, ne pas présenter
+  // un formulaire qui risquerait de créer un compte du mauvais type.
+  $('loginForm').hidden=v==='signup'&&!selectedSignup;
   if(v==='signup'&&choice.hidden){
    const professional=next==='/espace/professionnel';
    $('authHeading').textContent=professional?'Créez votre compte professionnel':'Créez votre compte demandeur gratuit';
