@@ -14,7 +14,8 @@ const sectors=[
  {cls:'clean',name:'Nettoyage',id:'4440537'},
  {cls:'restaurant',name:'Restauration',id:'3951656'},
  {cls:'beauty',name:'Bien-être',id:'3985332'},
- {cls:'taxi',name:'Transport',id:'5835272'}
+ {cls:'taxi',name:'Transport',id:'5835272'},
+ {cls:'tech',name:'Informatique',id:'7639370'}
 ];
 test('Chaque secteur affiche une photo du métier correspondant, sans réutilisation trompeuse',()=>{
  const ids=new Set();
@@ -32,7 +33,7 @@ test('Chaque secteur affiche une photo du métier correspondant, sans réutilisa
  }
 });
 test('Maquette et parcours conservés sans modifier les missions',()=>{
- assert.equal(sectors.length,6);
+ assert.equal(sectors.length,7);
  assert.match(html,/Votre projet mérite<br>le bon <span>professionnel/);
  assert.match(html,/id="choisir-compte"/);
  assert.match(html,/href="\/deposer-une-mission"/);
