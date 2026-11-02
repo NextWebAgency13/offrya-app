@@ -290,3 +290,9 @@
 #dashboard .role-client-view .role-recent-title p{margin:3px 0 0;color:#756981;font-size:12px}
 @media(max-width:880px){#dashboard .client-dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr))}#dashboard .client-dashboard-publish{flex-direction:column;align-items:stretch}#dashboard .client-dashboard-publish .role-primary{width:100%}}
 @media(max-width:620px){#dashboard .client-dashboard-stats{gap:10px}#dashboard .client-dashboard-stats button{padding:14px;min-height:116px}#dashboard .client-dashboard-stats strong{font-size:23px}#dashboard .client-dashboard-heading h2{font-size:25px}}
+
+/* Accueil personnel commun : le dossier Pro ne remplace jamais les missions personnelles. */
+#dashboard .role-client-view{display:block}
+#dashboard .role-premium-view,#dashboard .pro-verification-banner,#dashboard .home-private>.stats{display:none!important}
+@media(max-width:930px){.app-shell{min-width:0}.main-content,.main,.content{min-width:0}}
+@media(max-width:620px){.app-shell{display:block;width:100%;max-width:100%;overflow-x:clip}.sidebar{width:100%;min-width:0}.main-content,.main,.content{width:100%;max-width:100%;min-width:0}#dashboard{min-width:0}#dashboard .client-dashboard-publish{min-width:0}}

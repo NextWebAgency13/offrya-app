@@ -405,10 +405,10 @@ function render(){
  const yes=Boolean(state.session);
  $('dashboardLoading').classList.toggle('hidden',state.loaded);
  $('homePrivateDashboard').classList.toggle('hidden',!state.loaded||!yes);
- document.querySelector('#dashboard .stats').classList.toggle('hidden',!state.loaded||!yes||!canUsePremium());
+ document.querySelector('#dashboard .stats').classList.add('hidden');
  const eligiblePro=canUsePremium(),hasProProfile=state.profile?.role==='pro',proPending=hasProProfile&&!eligiblePro;
- $('roleClientView').classList.toggle('hidden',Boolean(hasProProfile));
- $('rolePremiumView').classList.toggle('hidden',!hasProProfile);
+ $('roleClientView').classList.remove('hidden');
+ $('rolePremiumView').classList.add('hidden');
  $('roleOnboarding').classList.toggle('hidden',!proPending);
  document.querySelector('#rolePremiumView .role-premium-stats').classList.toggle('hidden',!eligiblePro);
  document.querySelector('#rolePremiumView .role-pro-links').classList.toggle('hidden',!eligiblePro);
@@ -442,7 +442,7 @@ function render(){
  if(bottomPro){bottomPro.classList.toggle('mobile-pro-replaced',eligiblePro);bottomPro.dataset.action=!eligiblePro&&!proPending?'publish':'';const label=bottomPro.querySelector('span');if(label)label.textContent=!eligiblePro&&!proPending?'Déposer':'Espace pro';const icon=bottomPro.querySelector('use');if(icon)icon.setAttribute('href',!eligiblePro&&!proPending?'#ic-plus':'#ic-shield');}
 
  const banner=$('proVerificationBanner');const pro=state.profile?.role==='pro';
- banner.classList.toggle('hidden',!pro);
+ banner.classList.add('hidden');
  if(pro){const p=state.premium;banner.textContent='Entreprise : '+(p?.legal_name||'à vérifier')+' · Identité : '+(p?.identity_status==='verified'?'vérifiée':'en cours')+' · Dirigeant : '+(p?.authority_status==='verified'?'confirmé':'en attente')+' · Abonnement : '+(canUsePremium()?'actif':'inactif');}
 $('homePrivateDashboard').classList.toggle('hidden',!yes);$('statOpenLabel').textContent=canUsePremium()?'Missions accessibles':'Mes annonces actives';$('homeMissionHeading').textContent=canUsePremium()?'Missions accessibles':'Mes annonces publiées';$('authOpen').textContent=!yes?'Se connecter':isGuest()?'Suivi invité':(state.session.user.email?.split('@')[0]||'Mon compte');$('logout').classList.toggle('hidden',!yes||isGuest());$('avatar').textContent=state.profile?.display_name?.[0]?.toUpperCase()||'V';
  $('statOpen').textContent=state.missions.filter(x=>x.status==='open'&&(canUsePremium()||x.owner_id===state.session?.user.id)).length;$('statMissions').textContent=state.missions.filter(x=>x.owner_id===state.session?.user.id).length;$('statConvos').textContent=state.conversations.length;$('statFavorites').textContent=state.favorites.length;
