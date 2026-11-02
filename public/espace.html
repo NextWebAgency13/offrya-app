@@ -49,7 +49,7 @@
  <div class="role-company"><svg class="nav-icon"><use href="#ic-shield"/></svg><div><strong id="roleBusinessName">Entreprise</strong><small>✓ Compte vérifié</small></div><span class="role-validity" id="rolePremiumUntil">Abonnement actif</span></div>
  <div class="role-premium-stats">
   <button type="button" data-tab="missions"><svg class="nav-icon"><use href="#ic-missions"/></svg><strong id="roleAvailableCount">0</strong><small>Missions accessibles</small></button>
-  <button type="button" data-tab="missions"><svg class="nav-icon"><use href="#ic-check"/></svg><strong id="roleOwnCount">0</strong><small>Mes missions publiées</small></button>
+  <button type="button" data-tab="missions"><svg class="nav-icon"><use href="#ic-check"/></svg><strong id="roleOwnCount">0</strong><small>Mes annonces</small></button>
   <button type="button" data-tab="inbox"><svg class="nav-icon"><use href="#ic-inbox"/></svg><strong id="roleConversationCount">0</strong><small>Mes discussions</small></button>
   <button type="button" data-tab="settings"><svg class="nav-icon"><use href="#ic-bolt"/></svg><strong id="roleAlertCount">0</strong><small>Alertes prioritaires</small></button>
  </div>
@@ -68,7 +68,7 @@
           <p class="muted tiny">Les nouvelles demandes correspondant à vos filtres apparaissent ici. Les alertes e-mail sont facultatives et configurables dans Mon compte.</p>
           <div id="priorityAlertsList" class="data-list"><div class="empty">Aucune nouvelle opportunité pour le moment. <a href="/espace/reglages">Définir mes filtres</a>.</div></div>
         </div>
-        <div class="two-col">
+        <div class="two-col role-legacy-details hidden" id="roleLegacyDetails">
           <div class="panel"><div class="panel-heading"><h3 id="homeMissionHeading">Mes missions en cours</h3><button class="text-button" type="button" data-tab="missions">Accéder aux missions →</button></div><div id="dashMissions" class="data-list"><div class="empty">Vous n’avez pas encore publié de mission. <a href="/deposer-une-mission">Publier ma première mission</a>.</div></div></div>
           <div class="panel"><div class="panel-heading"><h3>Mon activité</h3><span class="tag">Espace privé</span></div><div id="dashActivity" class="data-list"><div class="empty">Aucune activité récente. <a href="/deposer-une-mission">Publier une mission</a>.</div></div><div class="small-note">Les anciennes missions publiées en invité restent liées à leur navigateur d'origine ; effacer ses données peut rendre leur suivi inaccessible. OFFRYA ne gère pas le règlement des prestations.</div></div>
         </div>
