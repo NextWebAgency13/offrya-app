@@ -44,9 +44,9 @@
  <div class="role-recent-title"><h3>Mes missions récentes</h3><button type="button" class="role-text-link" data-tab="missions">Tout voir →</button></div>
  <div id="roleRecentMissions" class="role-recent-list"><p>Aucune mission publiée pour le moment.</p></div>
 </div>
-<div class="role-premium-view hidden" id="rolePremiumView">
+<div class="role-premium-view hidden" id="rolePremiumView"><div class="role-onboarding hidden" id="roleOnboarding"><div class="role-onboarding-heading"><span>COMPTE PROFESSIONNEL</span><h2>Activez votre accès professionnel</h2><p>Votre espace professionnel est créé. Terminez les étapes ci-dessous pour consulter les missions et les marchés publics.</p></div><div class="role-onboarding-steps"><div><span class="role-step-number">1</span><span><strong>Vérification de l’entreprise</strong><small id="roleCompanyStep">SIRET et informations officielles à vérifier</small></span></div><div><span class="role-step-number">2</span><span><strong>Vérification du dirigeant</strong><small id="roleIdentityStep">Identité et qualité de dirigeant à confirmer</small></span></div><div><span class="role-step-number">3</span><span><strong>Abonnement professionnel</strong><small id="roleBillingStep">34,99 € TTC/mois après validation</small></span></div></div><button type="button" class="role-primary" data-tab="professional">Continuer mon inscription professionnelle →</button><p>Les missions d’autrui et les marchés publics restent réservés aux comptes vérifiés et abonnés.</p></div>
  <div class="role-premium-top"><span class="role-crown" aria-hidden="true">♛</span><strong>Compte Professionnel</strong><span class="role-premium-pill">Premium</span></div>
- <div class="role-company"><svg class="nav-icon"><use href="#ic-shield"/></svg><div><strong id="roleBusinessName">Entreprise</strong><small>✓ Compte vérifié</small></div><span class="role-validity" id="rolePremiumUntil">Abonnement actif</span></div>
+ <div class="role-company"><svg class="nav-icon"><use href="#ic-shield"/></svg><div><strong id="roleBusinessName">Entreprise</strong><small id="roleCompanyVerifiedText">Compte vérifié</small></div><span class="role-validity" id="rolePremiumUntil">Abonnement actif</span></div>
  <div class="role-premium-stats">
   <button type="button" data-tab="missions"><svg class="nav-icon"><use href="#ic-missions"/></svg><strong id="roleAvailableCount">0</strong><small>Missions accessibles</small></button>
   <button type="button" data-tab="missions"><svg class="nav-icon"><use href="#ic-check"/></svg><strong id="roleOwnCount">0</strong><small>Mes réponses</small></button>
@@ -61,7 +61,7 @@
   <button type="button" data-tab="professional"><svg class="nav-icon"><use href="#ic-settings"/></svg><span><strong>Mon profil pro</strong><small>Entreprise, documents et abonnement</small></span><b aria-hidden="true">›</b></button>
  </div>
 </div>
-<div class="role-pending-view hidden" id="rolePendingView"><div class="role-hero role-pending-hero"><div><span class="role-eyebrow">VÉRIFICATION PROFESSIONNELLE</span><h2>Finalisez votre espace Pro</h2><p>Vérifiez l’entreprise et l’identité du dirigeant, puis activez votre abonnement pour accéder aux missions et marchés publics.</p><button class="role-primary" type="button" data-tab="professional">Reprendre la vérification →</button></div></div><div class="role-pending-tip" id="rolePendingSummary">Les missions d’autres utilisateurs restent indisponibles tant que la validation et l’abonnement ne sont pas terminés.</div></div>
+
 </div>
         <div class="panel hidden" id="priorityAlertsPanel" aria-live="polite">
           <div class="panel-heading"><h3>Mes opportunités prioritaires <span class="tag" id="priorityAlertCount">0</span></h3><span class="tag">OFFRYA Professionnel</span></div>
