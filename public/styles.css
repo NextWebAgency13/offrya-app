@@ -258,3 +258,18 @@
 .app-shell .mission-detail-description{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.8;color:#564b61}
 .app-shell .mission-detail-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:25px}
 @media(max-width:620px){.app-shell .mission-detail-meta{flex-direction:column;gap:9px}.app-shell .mission-detail-actions>.button{width:100%;min-height:48px}}
+
+/* Messagerie OFFRYA : conversations rattachées à une mission, mobile first. */
+#inbox .inbox-hint,#inbox .inbox-thread-context{margin:4px 0 15px;color:#70657e;font-size:12px;line-height:1.55}
+#inbox .offrya-conversation{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:15px 12px;border:1px solid transparent;border-radius:13px;background:transparent;min-width:0}
+#inbox .offrya-conversation+.offrya-conversation{margin-top:6px}
+#inbox .offrya-conversation.selected{background:#f3edff;border-color:#dcccfa}
+#inbox .offrya-conversation-icon{display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;border-radius:12px;background:#eee6ff;color:#5a32a5;font-weight:800}
+#inbox .offrya-conversation-body{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+#inbox .offrya-conversation-body strong{font-size:13px;line-height:1.4;color:#2d203d;overflow-wrap:anywhere}
+#inbox .offrya-conversation-body small,#inbox .offrya-conversation-body time{font-size:11px;color:#706781;line-height:1.5}
+#inbox .offrya-conversation-chevron{font-size:22px;color:#785cac}
+#inbox .inbox-mobile-back{display:none;background:transparent;color:#6941d7;border:0;padding:8px 0 16px;font-weight:750}
+#inbox .message-panel{min-width:0}
+#inbox .messages{overflow-wrap:anywhere}
+@media(max-width:760px){#inbox .inbox-grid{display:block}#inbox .inbox-conversations,#inbox .message-panel{width:100%;min-width:0}#inbox .message-panel{display:none}#inbox.has-active-thread .inbox-conversations{display:none}#inbox.has-active-thread .message-panel{display:block}#inbox .inbox-mobile-back{display:inline-flex}#inbox .send-form{display:flex;gap:8px}#inbox .send-form input{min-width:0;flex:1;font-size:16px}#inbox .offrya-conversation{min-height:72px;padding:14px 9px}}
