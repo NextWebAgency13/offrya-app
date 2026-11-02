@@ -8,7 +8,9 @@ const {lookupCompany,verifyProfessional}=require('./lib/company');
 const {beginIdentity,processIdentityEvent,configured:identityConfigured,identityConfigChecks}=require('./lib/identity');
 const {billingEnabled,startCheckout,verifyStripeSignature,syncSubscription,portal}=require('./lib/billing');
 const {verifyToken}=require('./lib/unsubscribe');
+const FINGERPRINTED_PUBLIC_CSS='/public.9246cf2a6d12.css';
 const staticMap=new Map([
+ [FINGERPRINTED_PUBLIC_CSS,'text/css; charset=utf-8'],['/logo-offrya.svg','image/svg+xml'],['/images/pexels-34670926-1250.jpg','image/jpeg'],['/images/pexels-7587880-550.jpg','image/jpeg'],['/images/pexels-33531813-550.jpg','image/jpeg'],['/images/pexels-34670926-400.jpg','image/jpeg'],['/images/pexels-4239146-400.jpg','image/jpeg'],['/images/pexels-38936350-400.jpg','image/jpeg'],['/images/pexels-12081250-400.jpg','image/jpeg'],['/images/pexels-1181676-400.jpg','image/jpeg'],['/images/pexels-7587880-400.jpg','image/jpeg'],['/images/pexels-4509089-800.jpg','image/jpeg'],['/images/pexels-38936350-800.jpg','image/jpeg'],['/images/pexels-4440537-800.jpg','image/jpeg'],['/images/pexels-3951656-800.jpg','image/jpeg'],['/images/pexels-3985332-800.jpg','image/jpeg'],['/images/pexels-5835272-800.jpg','image/jpeg'],
  ['/public.css','text/css; charset=utf-8'],['/auth.css','text/css; charset=utf-8'],['/activity.js','text/javascript; charset=utf-8'],['/deposer.js','text/javascript; charset=utf-8'],['/connexion.js','text/javascript; charset=utf-8'],['/auth-feedback.mjs','text/javascript; charset=utf-8'],['/legacy-redirect.js','text/javascript; charset=utf-8'],
  ['/index.html','text/html; charset=utf-8'],['/app.js','text/javascript; charset=utf-8'],
  ['/styles.css','text/css; charset=utf-8'],['/home.css','text/css; charset=utf-8'],['/pro.css','text/css; charset=utf-8'],['/favicon.svg','image/svg+xml'],
@@ -154,9 +156,9 @@ async function handle(req,res){
     res.writeHead(404,{'Content-Type':'text/html; charset=utf-8','X-Robots-Tag':'noindex, nofollow','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});
     return res.end(req.method==='HEAD'?undefined:missing);
   }
-  const asset=path.join(__dirname,'public',pageFile||p.slice(1));
+  const asset=path.join(__dirname,'public',pageFile||(p===FINGERPRINTED_PUBLIC_CSS?'public.css':p.slice(1)));
   const buf=await fs.readFile(asset);
-  res.writeHead(200,{'Content-Type':mime,...((privatePage||p==='/connexion')?{'X-Robots-Tag':'noindex, nofollow'}:{}),'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','X-Frame-Options':'DENY','Permissions-Policy':'camera=(), microphone=(), geolocation=()','Content-Security-Policy':"default-src 'self'; connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://images.pexels.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",'Cache-Control':(privatePage||p==='/connexion')?'private, no-store':'public,max-age=60'});
+  res.writeHead(200,{'Content-Type':mime,...((privatePage||p==='/connexion')?{'X-Robots-Tag':'noindex, nofollow'}:{}),'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','X-Frame-Options':'DENY','Permissions-Policy':'camera=(), microphone=(), geolocation=()','Content-Security-Policy':"default-src 'self'; connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",'Cache-Control':(privatePage||p==='/connexion')?'private, no-store':(p===FINGERPRINTED_PUBLIC_CSS||/^\/images\/pexels-\d+-\d+\.jpg$/.test(p))?'public, max-age=31536000, immutable':'public,max-age=60'});
   return res.end(req.method==='HEAD'?undefined:buf);
  }catch(e){console.error('OFFRYA',e.message);if(!res.headersSent)json(res,500,{error:'Erreur interne'});}
 }

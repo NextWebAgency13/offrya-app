@@ -22,11 +22,18 @@ test('Chaque secteur affiche une photo du métier correspondant, sans réutilisa
   const section=html.match(new RegExp('<a class="mock-sector"[^>]*><span class="mock-sector-picture mock-sector-'+item.cls+'"[^>]*><\\/span><strong>([\\s\\S]*?)<\\/strong>'));
   assert.ok(section,'Tuile '+item.cls);
   assert.ok(section[1].includes(item.name),'Libellé '+item.name);
-  const selector='.mock-home .mock-sector-'+item.cls;
-  const cssSelector=css.match(new RegExp('\\.mock-home \\.mock-sector-'+item.cls+'\\{background-image:url\\("https:\\/\\/images\\.pexels\\.com\\/photos\\/(\\d+)\\/pexels-photo-\\1\\.jpeg\\?auto=compress&cs=tinysrgb&w=(\\d+)"\\)\\}'));
-  assert.ok(cssSelector,'Photo sécurisée sur Pexels '+item.cls);
-  assert.equal(cssSelector[1],item.id,'Photo correspondant au bon secteur');
-  assert.ok(Number(cssSelector[2])>=650,'Photo suffisamment nette');
+  const selector='.mock-home .mock-sector-'+item.cls+'{background-image:url("';
+  const pos=css.indexOf(selector);
+  assert.ok(pos>=0,'CSS de secteur '+item.cls);
+  const photoUrl=css.slice(pos+selector.length).split('"')[0];
+  const local='/images/pexels-'+item.id+'-800.jpg';
+  const remote='https://images.pexels.com/photos/'+item.id+'/pexels-photo-'+item.id+'.jpeg?auto=compress&cs=tinysrgb&w=800';
+  assert.ok(photoUrl===remote||photoUrl===local,'Photo de la bonne profession : '+item.cls);
+  if(photoUrl===local){
+   const file=path.join(__dirname,'../public',local);
+   const bytes=fs.readFileSync(file);
+   assert.ok(bytes.length>1000&&bytes[0]===255&&bytes[1]===216,'JPEG local valide '+item.cls);
+  }
   assert.ok(!ids.has(item.id),'Chaque secteur a sa propre photo');
   ids.add(item.id);
  }

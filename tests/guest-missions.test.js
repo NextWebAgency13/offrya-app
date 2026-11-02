@@ -14,13 +14,19 @@ const premiumSql=read('sql/legal_representative_only.sql');
 test('Publication : inscription et e-mail confirmé AVANT d’afficher le formulaire',()=>{
  assert.match(form,/id="accountGate"/);
  assert.match(form,/id="publishArea" hidden/);
- assert.match(form,/id="missionForm"/);
+ assert.doesNotMatch(form,/<form id="missionForm"|<input name="title"|<textarea name="description"/);
+ assert.match(submit,/const publisherFormHtml=/);
+ assert.match(submit,/area\.innerHTML=publisherFormHtml/);
+ assert.match(submit,/area\.querySelector\('#missionForm'\)\.addEventListener\('submit',submitMission\)/);
+ assert.match(submit,/area\.replaceChildren\(\)/);
  assert.match(form,/href="\/connexion\?mode=signup&amp;next=%2Fdeposer-une-mission"/);
  assert.match(form,/href="\/connexion\?next=%2Fdeposer-une-mission"/);
  assert.match(submit,/auth\.getUser\(\)/);
  assert.match(submit,/email_confirmed_at/);
  assert.match(submit,/user\.is_anonymous/);
- assert.match(submit,/\$\('publishArea'\)\.hidden=!user/);
+ assert.match(submit,/area\.hidden=true/);
+ assert.match(submit,/area\.hidden=false/);
+ assert.match(submit,/const user=await currentPublisher\(\)/);
  assert.match(submit,/from\('offrya_missions'\)\.insert/);
  assert.doesNotMatch(submit,/signInAnonymously|followupOptIn|auth\.updateUser\(\{email:|turnstile/i);
  assert.doesNotMatch(form,/followupOptIn|guestCaptcha|session invitée/i);
@@ -71,4 +77,60 @@ test('Accueil : communication cohérente et FAQ HTML / JSON-LD identiques',()=>{
   assert.match(page,/gratuite après création d'un compte et confirmation/);
   assert.doesNotMatch(page,/sans inscription obligatoire/);
  }
+});
+
+test('La politique de confidentialité indique les règles en vigueur et distingue les anciens invités',()=>{
+ const privacy=read('public/confidentialite.html');
+ assert.match(privacy,/Publication après confirmation du compte/);
+ assert.match(privacy,/crée un compte OFFRYA gratuit, confirme son adresse e-mail/);
+ assert.match(privacy,/Cette méthode n’est plus proposée pour les nouveaux dépôts/);
+ assert.doesNotMatch(privacy,/La publication de missions est accessible sans compte personnel à créer/);
+ assert.match(sql,/as restrictive for insert to authenticated/);
+ assert.match(sql,/u.email_confirmed_at is not null/);
+ // Les anciens scripts SQL restent présents pour historique, pas pour une nouvelle activation.
+ assert.match(oldSql,/missions_guest_owner_only/);
+});
+
+test('Le formulaire n’est créé dans le DOM qu’après confirmation réelle du compte',async()=>{
+ const vm=require('node:vm');
+ const source=submit
+  .replace(/^import \{createClient\} from [^\n]+\n/,'')
+  .replace(/\ninit\(\)\.catch\([\s\S]*$/,'\nglobalThis.__ready=init();');
+ async function scenario(user){
+  let mounted='',submits=0;
+  const formNode={addEventListener(type,callback){if(type==='submit'&&typeof callback==='function')submits++}};
+  const area={
+   hidden:true,
+   replaceChildren(){mounted=''},
+   querySelector(id){return id==='#missionForm'&&mounted?formNode:null},
+   set innerHTML(value){mounted=value},
+   get innerHTML(){return mounted}
+  };
+  const gate={hidden:false},gateStatus={textContent:''};
+  const nodes={publishArea:area,accountGate:gate,gateStatus};
+  const db={auth:{getUser:async()=>({data:{user},error:null})}};
+  const context={
+   document:{getElementById:id=>nodes[id]},
+   fetch:async()=>({ok:true,json:async()=>({supabaseUrl:'https://example.supabase.co',supabaseKey:'test'})}),
+   createClient:()=>db,
+   console
+  };
+  vm.runInNewContext(source,context);
+  await context.__ready;
+  return {area,gate,gateStatus,form:mounted,submits};
+ }
+ for(const user of [null,{id:'invited',is_anonymous:true,email:'guest@example.fr',email_confirmed_at:'2026-11-01'},
+  {id:'pending',is_anonymous:false,email:'client@example.fr',email_confirmed_at:null}]){
+  const r=await scenario(user);
+  assert.equal(r.form,'');
+  assert.equal(r.area.hidden,true);
+  assert.equal(r.gate.hidden,false);
+  assert.equal(r.submits,0);
+  assert.match(r.gateStatus.textContent,/adresse e-mail confirmée/);
+ }
+ const valid=await scenario({id:'confirmed',is_anonymous:false,email:'client@example.fr',email_confirmed_at:'2026-11-01T10:00:00Z'});
+ assert.match(valid.form,/<form id="missionForm" class="form">/);
+ assert.equal(valid.area.hidden,false);
+ assert.equal(valid.gate.hidden,true);
+ assert.equal(valid.submits,1);
 });
