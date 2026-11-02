@@ -793,3 +793,65 @@
  .mock-home .mock-choice-card .mock-card-cta,.mock-home .mock-pro .mock-card-cta{width:100%;min-height:44px;padding:9px 17px;font-size:12px}
  .mock-home .mock-pro-details{max-width:100%;overflow-wrap:anywhere}
 }
+
+/* Proposition mobile OFFRYA — isolée en PR, sans impact sur les droits d'accès. */
+@media(max-width:900px){
+ body:not(.mock-home) .simple-hero{padding:52px 24px 30px}
+ body:not(.mock-home) .section{padding:37px 24px}
+ body:not(.mock-home) .section .grid.three{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body:not(.mock-home) .section .card{padding:23px}
+ body:not(.mock-home) .section .card h3{font-size:18px}
+}
+@media(max-width:600px){
+ body:not(.mock-home) .top nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px}
+ body:not(.mock-home) .top nav .brand{margin:0}
+ body:not(.mock-home) .top nav .public-nav-actions{display:flex;align-items:center}
+ body:not(.mock-home) .breadcrumb{padding:19px 20px 0;font-size:13px}
+ body:not(.mock-home) .simple-hero{padding:35px 20px 25px}
+ body:not(.mock-home) .simple-hero h1{font-size:clamp(29px,8vw,39px);line-height:1.15;max-width:23ch;letter-spacing:-.04em}
+ body:not(.mock-home) .simple-hero .lead{font-size:16px;line-height:1.6;font-weight:500}
+ body:not(.mock-home) .simple-hero .btn{width:100%;max-width:370px;min-height:50px}
+ body:not(.mock-home) .section{padding:24px 20px 34px}
+ body:not(.mock-home) .section h2{font-size:24px;line-height:1.22;margin-bottom:18px}
+ body:not(.mock-home) .section .grid.three{grid-template-columns:1fr;gap:12px}
+ body:not(.mock-home) .section .card{padding:21px 22px;border-radius:17px}
+ body:not(.mock-home) .section .card .number{width:43px;height:43px;margin-bottom:10px;font-size:16px}
+ body:not(.mock-home) .section .card h3{font-size:19px;margin:6px 0}
+ body:not(.mock-home) .section .card p{font-size:15px;margin:9px 0 0}
+ body:not(.mock-home) .section.faq details{padding:17px 0}
+ body:not(.mock-home) .footer{padding:28px 20px}
+ .mock-home .mock-top nav{min-height:58px}
+ .mock-home .mock-hero-text{padding:37px 0 46px}
+ .mock-home .mock-hero h1{font-size:clamp(32px,8vw,42px)}
+ .mock-home .mock-hero-lead{font-size:15px}
+ .mock-home .mock-actions{flex-direction:column;align-items:stretch}
+ .mock-home .mock-actions .mock-button{width:100%;font-size:14px;min-height:54px;justify-content:center}
+ .mock-home .mock-actions .mock-button small{font-size:11px}
+ .mock-home .mock-container{width:calc(100% - 32px)}
+ .mock-home .mock-choice-grid{gap:16px}
+ .mock-home .mock-choice-card{min-height:0;padding:22px 19px;border-radius:18px}
+ .mock-home .mock-choice-card ul{gap:12px;margin:18px 0}
+ .mock-home .mock-choice-card li{font-size:14px;line-height:1.45}
+ .mock-home .mock-card-heading h3{font-size:21px}
+ .mock-home .mock-card-heading p{font-size:13px}
+ .mock-home .mock-pro .mock-card-cta,.mock-home .mock-client .mock-card-cta{width:100%;min-height:49px;font-size:13px;margin-top:16px}
+ .mock-home .mock-pro-details{max-width:100%;font-size:13px;line-height:1.45;margin-top:15px}
+ .mock-home .mock-pro-price{font-size:12px}
+ .mock-home .mock-sector-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+ .mock-home .mock-sector{min-height:0;border-radius:15px}
+ .mock-home .mock-sector-picture{height:134px}
+ .mock-home .mock-sector strong{min-height:60px;font-size:14px;line-height:1.3;padding:11px 8px}
+ .mock-home .mock-sector-note{font-size:12px;line-height:1.5}
+ .mock-home .mock-how-step p{font-size:13px}
+ .mock-home .mock-how-step h3{font-size:15px}
+ .mock-home .mock-assurance strong{font-size:12px}
+ .mock-home .mock-assurance small{font-size:11px}
+ .mock-home .mock-end h2{font-size:21px}
+ .mock-home .mock-end p{font-size:13px}
+ .mock-home .mock-end-actions a{font-size:12px;min-height:42px}
+}
+@media(max-width:380px){
+ .mock-home .mock-sector-picture{height:113px}
+ .mock-home .mock-sector strong{font-size:13px}
+ .mock-home .mock-choice-card li{font-size:13px}
+}
