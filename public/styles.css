@@ -247,3 +247,14 @@
 .app-shell .mission-listing-actions .button{min-height:40px;border-radius:11px}
 @media(max-width:620px){.app-shell .mission-listing{padding:17px 16px;border-radius:16px;margin-bottom:11px}.app-shell .mission-listing-title{font-size:17px}.app-shell .mission-listing-meta{flex-direction:column;gap:7px}.app-shell .mission-listing-actions{display:grid;grid-template-columns:1fr}.app-shell .mission-listing-actions .button{width:100%;min-height:44px;white-space:normal}}
 @media(prefers-reduced-motion:no-preference) and (hover:hover){.app-shell .mission-listing{transition:box-shadow .2s ease,border-color .2s ease}.app-shell .mission-listing:hover{box-shadow:0 12px 32px #2c1b4217;border-color:#d5c5e9}}
+
+/* Page détaillée d'annonce dans l'espace privé : mêmes règles de lecture que la liste. */
+.app-shell .mission-detail{padding:clamp(19px,3vw,34px);background:#fff;border:1px solid #e8e0f0;border-radius:19px;box-shadow:0 10px 28px #28194210}
+.app-shell .mission-detail-back{border:0;background:transparent;color:#6941d7;font-weight:750;padding:6px 0;margin-bottom:20px;text-align:left}
+.app-shell .mission-detail-head{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.app-shell .mission-detail h3{font:800 clamp(22px,3vw,32px)/1.25 'Plus Jakarta Sans',sans-serif;letter-spacing:-.04em;margin:18px 0;color:#291b3d}
+.app-shell .mission-detail-meta{display:flex;gap:9px 22px;flex-wrap:wrap;padding:14px 0 20px;border-bottom:1px solid #eee7f4;color:#6d607a;font-size:13px}
+.app-shell .mission-detail h4{font-weight:800;font-size:16px;margin:25px 0 8px}
+.app-shell .mission-detail-description{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.8;color:#564b61}
+.app-shell .mission-detail-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:25px}
+@media(max-width:620px){.app-shell .mission-detail-meta{flex-direction:column;gap:9px}.app-shell .mission-detail-actions>.button{width:100%;min-height:48px}}
