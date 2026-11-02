@@ -68,10 +68,8 @@ function row(m,actions=''){
  const specs=[m.area_sqm?`Surface/quantité : ${esc(m.area_sqm)}`:null,m.desired_date?`Date souhaitée : ${esc(m.desired_date)}`:null,
   m.urgency==='urgent'?'Urgent':m.urgency==='soon'?'Sous quelques semaines':null,
   m.place_type?`Lieu : ${esc(m.place_type)}`:null].filter(Boolean).join(' · ');
- return `<article class="data-item"><div class="item-top"><span class="tag">${esc(m.category)}</span><span class="muted tiny">${date(m.created_at)}</span></div><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.description).slice(0,270)}</div><div class="meta-row"><span>⌖ ${esc(m.city)} (${esc(m.department)})</span><span>Budget : ${m.budget_cents?euro(m.budget_cents):'À définir'}</span><span>${(m.expires_at&&new Date(m.expires_at)<new Date()&&m.status==='open')||m.status==='expired'?'Expirée':m.status==='open'?'Ouverte':m.status==='awarded'?'Pourvue':'Clôturée'}</span></div>${specs?`<div class="tiny muted">${specs}</div>`:''}${actions?`<div class="item-actions">${actions}</div>`:''}</article>`;}
+ return `<article class="data-item"><div class="item-top"><span class="tag">${esc(m.category)}</span><span class="muted tiny">${date(m.created_at)}</span></div><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.description).slice(0,270)}</div><div class="meta-row"><span>⌖ ${esc(m.city)} (${esc(m.department)})</span><span>Budget : ${m.budget_cents?euro(m.budget_cents):'À définir'}</span><span>${(m.expires_at&&new Date(m.expires_at)<new Date()&&m.status==='open')||m.status==='expired'?'Expirée':m.status==='open'?'Ouverte':m.status==='awarded'?'Pourvue':'Clôturée'}</span></div>${specs?`<div class="tiny muted">${specs}</div>`:''}${actions?`<div class="item-actions">${actions}</div>`:''}</article>`;
 }
-}
-
 function renderMissions(){
  const uid=state.session?.user.id,canBrowse=canUsePremium();
  const visible=state.missions.filter(m=>m.owner_id===uid||canBrowse);
