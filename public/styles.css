@@ -203,3 +203,22 @@
 
 /* Un seul tableau de bord professionnel, étapes intégrées avant activation. */
 .role-onboarding{margin:16px 0 22px;border:1px solid #dfcced;border-radius:20px;padding:20px;background:linear-gradient(150deg,#fcf9ff,#f4eafa)}.role-onboarding-heading>span{font-weight:800;font-size:11px;letter-spacing:.15em;color:#7938b0}.role-onboarding h2{color:#351247;font-size:23px;line-height:1.15;margin:9px 0}.role-onboarding p{font-size:13px;color:#59466a;line-height:1.5}.role-onboarding-steps{display:grid;gap:10px;margin:17px 0}.role-onboarding-steps>div{display:flex;align-items:center;gap:13px;padding:14px;background:white;border:1px solid #eee5f3;border-radius:15px}.role-onboarding-steps strong,.role-onboarding-steps small{display:block}.role-onboarding-steps strong{color:#2f1545;font-size:14px}.role-onboarding-steps small{color:#70637d;font-size:12px;margin-top:4px}.role-step-number{background:#692ab9;color:white;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:800;flex:none}.role-onboarding .role-primary{width:100%;max-width:100%}#roleOnboarding.hidden{display:none!important}@media(max-width:620px){body[data-offrya-role="professional"]:has(#dashboard.active) #dashboard .role-company{border-radius:0 0 16px 16px}body[data-offrya-role="professional"]:has(#dashboard.active) #dashboard .role-onboarding{padding:16px;margin-top:14px}body[data-offrya-role="professional"]:has(#dashboard.active) #dashboard .role-premium-top{margin:0 -16px}body[data-offrya-role="professional"]:has(#dashboard.active) #dashboard .role-company{margin:0 -16px}}
+
+/* OFFRYA Marketplace — design system coherent for dashboard, missions and inbox. */
+:root{--offrya-focus:#e58c51;--offrya-interactive:#6941d7;--offrya-border:#e7e1ef;--offrya-radius:18px}
+.app-shell{min-width:0}
+.app-shell .main-content,.app-shell main{min-width:0}
+.app-shell :is(.card,.stat-card,.mission-card,.message-card,.conversation-card,.panel){overflow-wrap:anywhere}
+.app-shell :is(input,select,textarea){max-width:100%;min-width:0}
+.app-shell :is(button,a,input,select,textarea):focus-visible{outline:3px solid var(--offrya-focus);outline-offset:3px}
+.app-shell :is(.card,.stat-card,.mission-card,.message-card,.conversation-card){border-color:var(--offrya-border)}
+@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+ .app-shell :is(.card,.stat-card,.mission-card,.message-card,.conversation-card){transition:box-shadow .2s ease,border-color .2s ease}
+ .app-shell :is(.card,.stat-card,.mission-card,.message-card,.conversation-card):hover{box-shadow:0 12px 32px #27183c12;border-color:#d7c7ed}
+}
+@media(max-width:720px){
+ .app-shell :is(.card,.stat-card,.mission-card,.message-card,.conversation-card,.panel){min-width:0;max-width:100%}
+ .app-shell :is(input,select,textarea){font-size:16px}
+ .app-shell :is(.button,.btn,button[type="submit"]){min-height:44px}
+ .app-shell :is(.mission-title,.conversation-title,.card-title){overflow-wrap:anywhere}
+}
