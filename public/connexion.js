@@ -21,7 +21,7 @@ const cardTitles={login:'Bienvenue sur OFFRYA',signup:'Créons votre compte',res
 const cardEyebrows={login:'CONNEXION',signup:'INSCRIPTION GRATUITE',reset:'RÉCUPÉRATION DU COMPTE',recover:'SÉCURISER VOTRE COMPTE'};
 const cardDescriptions={
  login:'Saisissez vos identifiants pour poursuivre.',
- signup:'Renseignez vos identifiants pour créer votre compte.',
+ signup:'Sélectionnez votre type de compte, puis renseignez vos identifiants.',
  reset:'Seule votre adresse e-mail est nécessaire. Aucun mot de passe ne vous sera demandé.',
  recover:'Choisissez un mot de passe d’au moins huit caractères.'
 };
