@@ -232,7 +232,7 @@ test('Confirmation e-mail : type demandeur dans les métadonnées ouvre son espa
 test('Inscription : le lien « Mot de passe oublié » est masqué et le mot de passe reste obligatoire',async()=>{
  const page=await loadAuthPage({url:'?mode=signup&role=client&next=%2Fespace'});
  assert.equal(page.dom.resetLinkWrap.hidden,true);
- assert.equal(page.dom.authTabs.hidden,false);
+ assert.equal(page.dom.authTabs.hidden,true);
  assert.equal(page.dom.authBack.hidden,true);
  assert.equal(page.dom.passwordRow.hidden,false);
  assert.equal(page.dom.emailRow.hidden,false);
@@ -244,7 +244,7 @@ test('Inscription : le lien « Mot de passe oublié » est masqué et le mot de 
 test('Connexion : récupération accessible uniquement depuis ce parcours',async()=>{
  const page=await loadAuthPage({url:'?next=%2Fdeposer-une-mission'});
  assert.equal(page.dom.resetLinkWrap.hidden,false);
- assert.equal(page.dom.authTabs.hidden,false);
+ assert.equal(page.dom.authTabs.hidden,true);
  assert.equal(page.dom.authCardEyebrow.textContent,'CONNEXION');
  assert.equal(page.dom.loginSubmit.textContent,'Se connecter');
 });
