@@ -33,16 +33,16 @@
         </div>
         <div class="role-dashboard" id="roleDashboard">
 <div class="role-client-view" id="roleClientView">
- <div class="role-hero role-client-hero"><div><h2>Bienvenue sur OFFRYA</h2><p>Publiez vos missions et recevez des réponses de professionnels vérifiés, près de chez vous.</p><a class="role-primary" href="/deposer-une-mission"><span aria-hidden="true">＋</span> Déposer une mission</a></div></div>
- <div class="role-section-heading"><div><span class="role-section-eyebrow">TABLEAU DE BORD DEMANDEUR</span><h3>Vos projets, au même endroit</h3><p>Retrouvez vos annonces, vos échanges et vos préférences.</p></div></div>
- <div class="role-quick-grid">
-  <button type="button" data-tab="missions"><svg class="nav-icon"><use href="#ic-missions"/></svg><strong>Mes missions</strong><small id="roleClientMissionCount">Mes annonces</small><span class="role-arrow" aria-hidden="true">›</span></button>
-  <button type="button" data-tab="inbox"><svg class="nav-icon"><use href="#ic-inbox"/></svg><strong>Mes échanges</strong><small id="roleClientMessageCount">Mes messages</small><span class="role-arrow" aria-hidden="true">›</span></button>
-  <button type="button" data-tab="settings"><svg class="nav-icon"><use href="#ic-bolt"/></svg><strong>Notifications</strong><small>Gérer mes alertes</small><span class="role-arrow" aria-hidden="true">›</span></button>
-  <button type="button" data-tab="settings"><svg class="nav-icon"><use href="#ic-user"/></svg><strong>Mon profil</strong><small>Gérer mon compte</small><span class="role-arrow" aria-hidden="true">›</span></button>
+ <div class="client-dashboard-heading"><span class="client-dashboard-eyebrow">ESPACE DEMANDEUR · OFFRYA</span><h2>Bonjour, bienvenue sur votre espace</h2><p>Publiez vos projets et suivez les échanges avec les professionnels.</p></div>
+ <section class="client-dashboard-publish" aria-labelledby="clientProjectHeading"><div><span class="client-dashboard-eyebrow">NOUVELLE MISSION</span><h3 id="clientProjectHeading">Vous avez un projet ?</h3><p>Décrivez votre besoin pour être contacté par des professionnels qualifiés.</p></div><a class="role-primary" href="/deposer-une-mission"><span aria-hidden="true">＋</span> Déposer une mission gratuitement</a></section>
+ <div class="client-dashboard-stats" aria-label="Votre activité">
+  <button type="button" data-tab="missions"><svg class="nav-icon" aria-hidden="true"><use href="#ic-missions"/></svg><strong id="clientStatPublished">—</strong><span>Missions publiées</span></button>
+  <button type="button" data-tab="missions"><svg class="nav-icon" aria-hidden="true"><use href="#ic-calendar"/></svg><strong id="clientStatOpen">—</strong><span>Missions en cours</span></button>
+  <button type="button" data-tab="inbox"><svg class="nav-icon" aria-hidden="true"><use href="#ic-inbox"/></svg><strong id="clientStatConversations">—</strong><span>Conversations</span></button>
+  <button type="button" data-tab="missions"><svg class="nav-icon" aria-hidden="true"><use href="#ic-check"/></svg><strong id="clientStatClosed">—</strong><span>Missions terminées</span></button>
  </div>
- <div class="role-recent-title"><h3>Mes missions récentes</h3><button type="button" class="role-text-link" data-tab="missions">Tout voir →</button></div>
- <div id="roleRecentMissions" class="role-recent-list"><p>Aucune mission publiée pour le moment.</p></div>
+ <div class="role-recent-title"><div><h3>Mes missions récentes</h3><p>Suivez leur statut et les échanges avec les professionnels.</p></div><button type="button" class="role-text-link" data-tab="missions">Tout voir →</button></div>
+ <div id="roleRecentMissions" class="role-recent-list"><p class="role-empty">Retrouvez vos annonces ici.</p></div>
 </div>
 <div class="role-premium-view hidden" id="rolePremiumView"><div class="role-premium-top"><span class="role-crown" aria-hidden="true">♛</span><strong>Tableau de bord professionnel</strong><span class="role-premium-pill">OFFRYA Pro</span></div>
  <div class="role-company"><svg class="nav-icon"><use href="#ic-shield"/></svg><div><strong id="roleBusinessName">Entreprise</strong><small id="roleCompanyVerifiedText">Compte vérifié</small></div><span class="role-validity" id="rolePremiumUntil">Abonnement actif</span></div>
