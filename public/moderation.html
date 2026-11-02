@@ -1,0 +1,15 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Modération privée | OFFRYA</title><link rel="stylesheet" href="/public.css"><style>
+body{background:#f7f5fa;color:#241738;font-family:system-ui,sans-serif}main{max-width:1100px;margin:auto;padding:28px 18px 70px}
+h1{font-size:clamp(25px,4vw,37px)}section{background:#fff;border:1px solid #e5dceb;border-radius:15px;padding:20px;margin:20px 0}
+.mod-table{display:grid;gap:9px}.mod-entry{border:1px solid #eee7f6;border-radius:10px;padding:13px;display:grid;gap:8px;overflow-wrap:anywhere}
+.mod-entry button{margin-right:8px;border:1px solid #6941d7;color:#582aad;background:#fff;padding:8px 12px;border-radius:8px;cursor:pointer}
+.mod-entry button:focus-visible{outline:3px solid #6941d7}
+#modStatus{padding:8px 0;font-weight:bold}
+</style></head><body><header class="top"><nav><a href="/" class="brand" aria-label="OFFRYA accueil">OFFRYA.</a><a href="/espace">Mon espace</a></nav></header>
+<main><p class="eyebrow">OUTIL INTERNE · ACCÈS RESTREINT</p><h1>Modération OFFRYA</h1><p>Seuls les administrateurs explicitement autorisés peuvent consulter et traiter les dossiers. Une action sur un dossier ne vérifie jamais automatiquement une identité.</p>
+<p id="modStatus" role="status">Vérification de votre accès…</p>
+<div id="modContent" hidden>
+<section><h2>Signalements</h2><div class="mod-table" id="reports"></div></section>
+<section><h2>Missions</h2><div class="mod-table" id="missions"></div></section>
+<section><h2>Dossiers professionnels</h2><p>Les contrôles Stripe Identity et les preuves de qualité de dirigeant restent obligatoires. Cette page ne peut pas approuver un dossier.</p><div class="mod-table" id="dossiers"></div></section>
+</div></main><script type="module" src="/moderation.js"></script></body></html>
