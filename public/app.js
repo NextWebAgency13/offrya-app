@@ -422,9 +422,11 @@ function render(){
 
  document.getElementById('roleLegacyDetails')?.classList.add('hidden');
  const own=state.missions.filter(m=>m.owner_id===state.session?.user?.id);
- $('roleClientMissionCount').textContent=own.length+' mission(s) publiée(s)';
- $('roleClientMessageCount').textContent=state.conversations.length+' discussion(s)';
- $('roleRecentMissions').innerHTML=own.length?own.slice(0,3).map(m=>'<button type="button" class="role-mission-row" data-tab="missions"><span class="role-mission-icon">▣</span><span><strong>'+esc(m.title)+'</strong><small>'+esc(m.city||'France')+' · '+esc(m.status==='open'?'En cours':'Clôturée')+'</small></span><b aria-hidden="true">›</b></button>').join(''):'<p class="role-empty">Aucune mission publiée. Utilisez « Déposer une mission » pour commencer.</p>';
+ $('clientStatPublished').textContent=String(own.length);
+ $('clientStatOpen').textContent=String(own.filter(m=>m.status==='open').length);
+ $('clientStatConversations').textContent=String(state.conversations.filter(c=>own.some(m=>m.id===c.mission_id)).length);
+ $('clientStatClosed').textContent=String(own.filter(m=>m.status==='closed'||m.status==='awarded').length);
+ $('roleRecentMissions').innerHTML=own.length?own.slice(0,3).map(m=>'<button type="button" class="role-mission-row" data-tab="missions"><span class="role-mission-icon">▣</span><span><strong>'+esc(m.title)+'</strong><small>'+esc(m.city||'France')+' · '+esc(m.status==='open'?'En cours':'Clôturée')+'</small></span><b aria-hidden="true">›</b></button>').join(''):'<p class="role-empty">Retrouvez vos annonces ici. Publiez votre première mission pour suivre son statut et les échanges avec les professionnels.</p>';
  $('roleBusinessName').textContent=state.premium?.legal_name||'Entreprise à vérifier';
  $('rolePremiumUntil').textContent=eligiblePro?(state.subscription?.paid_through?'Actif jusqu’au '+date(state.subscription.paid_through):'Abonnement actif'):'Accès en cours';
  $('roleCompanyVerifiedText').textContent=eligiblePro?'✓ Compte vérifié':'Vérification en cours';

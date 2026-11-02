@@ -273,3 +273,20 @@
 #inbox .message-panel{min-width:0}
 #inbox .messages{overflow-wrap:anywhere}
 @media(max-width:760px){#inbox .inbox-grid{display:block}#inbox .inbox-conversations,#inbox .message-panel{width:100%;min-width:0}#inbox .message-panel{display:none}#inbox.has-active-thread .inbox-conversations{display:none}#inbox.has-active-thread .message-panel{display:block}#inbox .inbox-mobile-back{display:inline-flex}#inbox .send-form{display:flex;gap:8px}#inbox .send-form input{min-width:0;flex:1;font-size:16px}#inbox .offrya-conversation{min-height:72px;padding:14px 9px}}
+
+/* Tableau de bord Demandeur : accueil réellement dédié aux projets. */
+#dashboard .client-dashboard-heading{margin:0 0 23px;min-width:0}
+#dashboard .client-dashboard-eyebrow{display:block;color:#6b40b7;font-size:11px;font-weight:850;letter-spacing:.11em;margin-bottom:9px}
+#dashboard .client-dashboard-heading h2{font:800 clamp(23px,3vw,34px)/1.2 'Plus Jakarta Sans',sans-serif;color:#2c1d3d;letter-spacing:-.045em;margin:0 0 8px}
+#dashboard .client-dashboard-heading p,#dashboard .client-dashboard-publish p{margin:0;color:#6d607b;font-size:14px;line-height:1.65}
+#dashboard .client-dashboard-publish{background:linear-gradient(120deg,#f2eaff,#fff8f5);border:1px solid #e6d9f5;border-radius:20px;display:flex;align-items:center;justify-content:space-between;gap:22px;padding:clamp(20px,3vw,30px);margin-bottom:20px}
+#dashboard .client-dashboard-publish h3{font:800 22px/1.2 'Plus Jakarta Sans',sans-serif;letter-spacing:-.03em;margin:0 0 7px;color:#352044}
+#dashboard .client-dashboard-publish .role-primary{flex:0 0 auto;text-align:center;text-decoration:none}
+#dashboard .client-dashboard-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin:0 0 30px}
+#dashboard .client-dashboard-stats button{display:flex;flex-direction:column;align-items:flex-start;gap:9px;background:white;border:1px solid #e9e2f0;border-radius:17px;text-align:left;padding:19px;min-width:0;box-shadow:0 7px 25px #2915410a}
+#dashboard .client-dashboard-stats .nav-icon{width:22px;height:22px;color:#6941d7}
+#dashboard .client-dashboard-stats strong{font:800 26px/1.1 'Plus Jakarta Sans',sans-serif;color:#30203f}
+#dashboard .client-dashboard-stats span{color:#685b76;font-size:12px;font-weight:650;overflow-wrap:anywhere}
+#dashboard .role-client-view .role-recent-title p{margin:3px 0 0;color:#756981;font-size:12px}
+@media(max-width:880px){#dashboard .client-dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr))}#dashboard .client-dashboard-publish{flex-direction:column;align-items:stretch}#dashboard .client-dashboard-publish .role-primary{width:100%}}
+@media(max-width:620px){#dashboard .client-dashboard-stats{gap:10px}#dashboard .client-dashboard-stats button{padding:14px;min-height:116px}#dashboard .client-dashboard-stats strong{font-size:23px}#dashboard .client-dashboard-heading h2{font-size:25px}}
