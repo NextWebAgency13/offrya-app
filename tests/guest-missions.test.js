@@ -28,7 +28,7 @@ test('Publication : inscription et e-mail confirmé AVANT d’afficher le formul
 test('Connexion : retour sûr au dépôt après inscription ou confirmation par e-mail',()=>{
  assert.match(login,/value==='\/deposer-une-mission'/);
  assert.match(login,/query\.get\('mode'\)==='signup'/);
- assert.match(login,/if\(mode==='signup'\).*emailRedirectTo:location\.origin\+'\/connexion\?confirmation=1'/);
+ assert.match(login,/if\(mode==='signup'\).*emailRedirectTo:location\.origin\+'\/connexion\?confirmation=1&next='/);
  assert.match(login,/offrya_signup_intent/);
  assert.match(login,/resetPasswordForEmail/);
  assert.match(login,/if\(confirmationReturn&&!query\.has\('next'\)\)/);

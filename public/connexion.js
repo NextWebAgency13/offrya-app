@@ -93,8 +93,7 @@ function resume(session){
     // Simple indication de parcours, jamais un droit d'accès.
     const intent=user.user_metadata?.offrya_signup_intent;
     location.replace(intent==='pro'?'/espace/professionnel':intent==='client'?'/deposer-une-mission':'/');
-   }else if(confirmationReturn&&linkHash.get('type')==='signup')location.replace('/');
-   else location.replace(next);
+   }else location.replace(next);
    return;
   }
   // L'authentification a changé pendant la vérification : ne pas
@@ -153,12 +152,12 @@ $('loginForm').addEventListener('submit',async e=>{
  e.preventDefault();if(!db)return say('Connexion indisponible',true);
  const f=e.currentTarget,email=f.elements.email.value.trim(),password=f.elements.password.value,b=$('loginSubmit');b.disabled=true;
  try{
-  let r;if(mode==='signup')r=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/connexion?confirmation=1',data:{offrya_signup_intent:next==='/espace/professionnel'?'pro':'client'}}});
+  let r;if(mode==='signup')r=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/connexion?confirmation=1&next='+encodeURIComponent(next),data:{offrya_signup_intent:next==='/espace/professionnel'?'pro':'client'}}});
   else if(mode==='reset')r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/connexion?mode=reset-password&next='+encodeURIComponent(next)});
   else if(mode==='recover')r=await db.auth.updateUser({password});
   else r=await db.auth.signInWithPassword({email,password});
   if(r.error)throw r.error;
-  if(mode==='signup')say('Consultez votre boîte e-mail et confirmez votre inscription. Vous pourrez ensuite poursuivre le parcours choisi.');
+  if(mode==='signup')say('Consultez votre boîte e-mail et confirmez votre inscription. Votre lien vous ramènera au parcours choisi.');
   else if(mode==='reset')say('Consultez votre boîte e-mail et ouvrez le lien sécurisé de réinitialisation. Aucun abonnement ni alerte n’est activé.');
   else if(mode==='recover'){say('Mot de passe modifié');location.replace(next);}
   else await resume(r.data?.session);
