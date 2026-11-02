@@ -56,6 +56,7 @@ function change(v){
   // En inscription générique : choisir d'abord le rôle, ne pas présenter
   // un formulaire qui risquerait de créer un compte du mauvais type.
   $('loginForm').hidden=v==='signup'&&!selectedSignup;
+  // Une entrée ciblée ne doit jamais reproposer le choix du compte.
   if(v==='signup'&&choice.hidden){
    const professional=next==='/espace/professionnel';
    $('authHeading').textContent=professional?'Créez votre compte professionnel':'Créez votre compte demandeur gratuit';
