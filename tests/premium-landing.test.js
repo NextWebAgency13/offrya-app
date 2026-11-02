@@ -9,16 +9,16 @@ test('OFFRYA Professionnel : vitrine et offre unique cohérentes',()=>{
  assert.match(premium,/<title>OFFRYA Professionnel \| 34,99 € TTC\/mois<\/title>/);
  assert.match(premium,/rel="canonical" href="https:\/\/offrya-app\.onrender\.com\/professionnels"/);
  assert.doesNotMatch(premium,/>Devenir professionnel<\/a>/);
- assert.equal((premium.match(/href="\/connexion\?mode=signup&amp;next=%2Fespace%2Fprofessionnel">Créer mon compte professionnel<\/a>/g)||[]).length,2);
+ assert.equal((premium.match(/href="\/connexion\?mode=signup&amp;next=%2Fespace%2Fprofessionnel">Créer mon compte professionnel<\/a>/g)||[]).length,1);
  assert.match(premium,/class="account-link" href="\/connexion\?next=%2Fespace"/);
 });
 test('Le paiement reste conditionné à la vérification du dirigeant',()=>{
  for(const value of ['SIRET','Stripe Identity','dirigeant inscrit au registre officiel','Après vérification et approbation','34,99 €','TTC / mois','Sans engagement, résiliable à tout moment.']){
   assert.ok(premium.includes(value),value);
  }
- assert.match(premium,/Un salarié ou un mandataire non inscrit comme dirigeant ne peut pas souscrire/);
+ assert.match(premium,/Les salariés ne sont pas éligibles/);
  assert.match(premium,/Aucun accès aux missions privées et aucun paiement avant l'approbation de votre dossier/);
- assert.match(premium,/href="\/espace\/reglages"/);
+ assert.doesNotMatch(premium,/class="premium-eligibility"/);
  assert.match(premium,/href="\/cgv.html"/);
  for(const link of ['/cgv.html','/confidentialite.html','/remboursements.html','/contact.html','/mentions-legales.html'])assert.ok(premium.includes('href="'+link+'"'));
 });
