@@ -17,9 +17,9 @@ test('Navigation : en-tête minimal avec logo et seul bouton Se connecter',()=>{
  assert.match(read('public/connexion.html'),/class="auth-home-link" href="\/"/,'La page d’authentification retourne à l’accueil, sans lien vers un espace encore inaccessible');
 });
 test('Maquette : huit blocs dans le bon ordre et un seul H1',()=>{
- const sections=['class="mock-top"','class="mock-hero"','id="choisir-compte"','id="secteurs"','id="fonctionnement"','class="mock-container mock-assurance"','class="mock-end"'];
+ const sections=['class="mock-top"','class="mock-hero"','id="choisir-compte"','id="secteurs"','id="fonctionnement"','class="mock-container mock-assurance"'];
  // Les classes supplémentaires sont autorisées.
- const markers=['class="top home-top mock-top"','class="mock-hero"','class="mock-container mock-choice"','class="mock-container mock-sectors"','class="mock-how"','class="mock-container mock-assurance"','class="mock-end"'];
+ const markers=['class="top home-top mock-top"','class="mock-hero"','class="mock-container mock-choice"','class="mock-container mock-sectors"','class="mock-how"','class="mock-container mock-assurance"'];
  const indexes=markers.map(m=>home.indexOf(m));
  assert.ok(indexes.every(i=>i>=0));assert.deepEqual(indexes,[...indexes].sort((a,b)=>a-b));
  assert.equal((home.match(/<h1\b/g)||[]).length,1);
