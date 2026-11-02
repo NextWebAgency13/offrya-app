@@ -176,6 +176,23 @@ async function run(){
 
 
 
+ // Contrôle de livraison des fonctions récentes (présence du code réellement servi).
+ const [appLatest,privateLatest,styleLatest]=await Promise.all([
+  request('/app.js',{headers:{'Cache-Control':'no-cache'}}),
+  request('/espace/messagerie',{headers:{'Cache-Control':'no-cache'}}),
+  request('/styles.css',{headers:{'Cache-Control':'no-cache'}})
+ ]);
+ assert.equal(appLatest.status,200,'JavaScript métier actuel accessible');
+ assert.equal(privateLatest.status,200,'Espace privé actuel accessible');
+ assert.equal(styleLatest.status,200,'Feuille de style actuelle accessible');
+ for(const marker of ['function renderMissionDetail(m)','data-view-mission','mission-listing','offrya-conversation','inboxBackToList'])
+  assert.ok(appLatest.text.includes(marker),'Fonction récente absente de la production : '+marker);
+ for(const marker of ['id="roleClientView"','id="rolePremiumView"','id="inboxBackToList"','id="threadContext"'])
+  assert.ok(privateLatest.text.includes(marker),'Interface récente absente de la production : '+marker);
+ for(const marker of ['mission-detail-description','mission-listing-actions','offrya-conversation','has-active-thread'])
+  assert.ok(styleLatest.text.includes(marker),'Style récent absent de la production : '+marker);
+ console.log('PASS: tableaux de bord, fiches de mission et messagerie mobile servis en production');
+
  // Les routes doivent être vraies, pas un fallback global HTTP 200.
  const publicPaths=['/professionnels','/deposer-une-mission','/connexion','/secteurs/batiment','/secteurs/nettoyage','/secteurs/espaces-verts','/secteurs/transport','/secteurs/informatique','/secteurs/restauration-hotellerie','/secteurs/bien-etre-beaute','/secteurs/autres-prestations'];
  for(const route of publicPaths){
