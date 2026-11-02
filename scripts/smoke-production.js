@@ -84,7 +84,7 @@ async function run(){
    &&!landing.text.includes('src="/activity.js"')
    &&landing.text.includes('class="mock-choice-grid"')
    &&landing.text.includes('class="mock-sector-grid"')
-   &&landing.text.includes('class="mock-end"')
+   &&landing.text.includes('class="footer mock-legal"')
    &&styles.text.includes('.mock-home .mock-hero')
    &&styles.text.includes('@media(max-width:560px)');
   if(designVisible)break;
@@ -93,10 +93,10 @@ async function run(){
  assert.ok(designVisible,'Render ne présente pas encore le design photographique approuvé');
  console.log('PASS: maquette OFFRYA desktop/mobile fidèle servie sur Render');
 
- // Preuve de déploiement de cette PR : les huit pictogrammes professionnels
+ // Preuve de déploiement de cette PR : les sept pictogrammes professionnels
  // doivent être présents dans le HTML réellement servi par Render.
  let professionalIconsVisible=false;
- const names=['file-text','message-square','circle-check','shield-check','award','lock-keyhole','headset','map-pin'];
+ const names=['file-text','message-square','circle-check','shield-check','award','lock-keyhole','headset'];
  for(let attempt=0;attempt<16;attempt++){
   const [page,styles]=await Promise.all([
    request('/',{headers:{'Cache-Control':'no-cache'}}),
@@ -107,12 +107,12 @@ async function run(){
     &&!page.text.includes('<div class="mock-how-glyph" aria-hidden="true">▤</div>')
     &&!page.text.includes('<span aria-hidden="true">♢</span>')
     &&styles.text.includes('.mock-home .mock-assurance-icon .mock-icon-svg')
-    &&styles.text.includes('.mock-home .mock-end .mock-location-icon')
+    &&styles.text.includes('.mock-home .mock-legal')
     &&styles.text.includes('.mock-home .mock-how-glyph .mock-icon-svg');
   if(professionalIconsVisible)break;
   if(attempt<15)await new Promise(resolve=>setTimeout(resolve,12000));
  }
- assert.ok(professionalIconsVisible,'Les huit pictogrammes SVG ne sont pas encore visibles sur le site Render');
+ assert.ok(professionalIconsVisible,'Les sept pictogrammes SVG ne sont pas encore visibles sur le site Render');
  console.log('PASS: huit pictogrammes SVG professionnels réellement servis par Render');
 
 
