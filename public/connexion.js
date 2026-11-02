@@ -48,7 +48,15 @@ function change(v){
   'Connexion sécurisée. Aucun paiement n’est déclenché ici.';
  const choice=$('accountTypeChoice');
  if(choice){
-  choice.hidden=v!=='signup';
+  // Un choix explicite depuis l'accueil ouvre directement son formulaire.
+  // L'écran générique conserve le sélecteur lorsqu'aucun parcours n'a été choisi.
+  choice.hidden=v!=='signup'||(query.has('next')&&(next==='/deposer-une-mission'||next==='/espace/professionnel'));
+  if(v==='signup'&&choice.hidden){
+   const professional=next==='/espace/professionnel';
+   $('authHeading').textContent=professional?'Créez votre compte professionnel':'Créez votre compte demandeur gratuit';
+   $('authCardHeading').textContent=professional?'Inscription professionnelle':'Inscription demandeur';
+   $('authCardLead').textContent=professional?'Vérifiez votre e-mail, puis complétez les étapes SIRET, identité du dirigeant et abonnement. Aucun paiement à cette étape.':'Créez votre compte gratuit pour publier une mission après confirmation de votre e-mail.';
+  }
   for(const option of choice.querySelectorAll('[data-signup-type]')){
    const selected=option.dataset.signupType===(next==='/espace/professionnel'?'pro':'client');
    option.classList.toggle('chosen',selected);
