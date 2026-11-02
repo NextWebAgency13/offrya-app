@@ -406,7 +406,7 @@ function render(){
  if(navPro){navPro.dataset.action=!eligiblePro&&!proPending?'publish':'';const l=navPro.querySelector('span');if(l)l.textContent=!eligiblePro&&!proPending?'Déposer':'Espace pro';const u=navPro.querySelector('use');if(u)u.setAttribute('href',!eligiblePro&&!proPending?'#ic-plus':'#ic-shield');}
  if(navBoamp)navBoamp.classList.toggle('hidden',!eligiblePro);
 
- document.getElementById('roleLegacyDetails')?.classList.toggle('hidden',!proPending);
+ document.getElementById('roleLegacyDetails')?.classList.add('hidden');
  const own=state.missions.filter(m=>m.owner_id===state.session?.user?.id);
  $('roleClientMissionCount').textContent=own.length+' mission(s) publiée(s)';
  $('roleClientMessageCount').textContent=state.conversations.length+' discussion(s)';
