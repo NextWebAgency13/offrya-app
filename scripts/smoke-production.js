@@ -151,6 +151,29 @@ async function run(){
  }
  console.log('PASS: six photographies sectorielles pertinentes visibles dans le CSS Render');
 
+ // Vérifie que le nouveau domaine est réellement déployé : route existante,
+ // photo de dépannage informatique et disposition responsive des 8 cartes.
+ let techDeployed=false;
+ for(let attempt=0;attempt<16;attempt++){
+  const [home,styles,category]=await Promise.all([
+   request('/',{headers:{'Cache-Control':'no-cache'}}),
+   request('/public.css',{headers:{'Cache-Control':'no-cache'}}),
+   request('/secteurs/informatique',{headers:{'Cache-Control':'no-cache'}})
+  ]);
+  techDeployed=home.status===200&&styles.status===200&&category.status===200
+   &&home.text.includes('href="/secteurs/informatique"><span class="mock-sector-picture mock-sector-tech"')
+   &&home.text.includes('<strong>Informatique<br>&amp; Tech</strong>')
+   &&styles.text.includes('.mock-home .mock-sector-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr))')
+   &&styles.text.includes('.mock-home .mock-sector-tech{background-image:url("https://images.pexels.com/photos/7639370/pexels-photo-7639370.jpeg?auto=compress&cs=tinysrgb&w=800")}')
+   &&styles.text.includes('.mock-home .mock-sector-grid{grid-template-columns:repeat(4,minmax(0,1fr))}')
+   &&styles.text.includes('.mock-home .mock-sector-grid{grid-template-columns:repeat(2,minmax(0,1fr))}');
+  if(techDeployed)break;
+  if(attempt<15)await new Promise(resolve=>setTimeout(resolve,12000));
+ }
+ assert.ok(techDeployed,'La carte Informatique & Tech ou sa mise en page ne sont pas encore visibles sur Render');
+ console.log('PASS: carte Informatique & Tech servie par Render avec sa photo et ses formats responsive');
+
+
 
 
  // Les routes doivent être vraies, pas un fallback global HTTP 200.

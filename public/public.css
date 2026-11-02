@@ -514,7 +514,7 @@
 .mock-home .mock-pro-price small{font-size:9px}
 .mock-home .mock-pro .mock-card-cta{background:linear-gradient(95deg,#faf6ff,#e8dcff);color:#240b5a}
 .mock-home .mock-sectors{padding-top:10px;padding-bottom:37px}
-.mock-home .mock-sector-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:11px;margin-top:19px}
+.mock-home .mock-sector-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:11px;margin-top:19px}
 .mock-home .mock-sector{display:flex;flex-direction:column;text-align:center;border:1px solid #eae6f0;border-radius:11px;overflow:hidden;min-width:0;background:#fff;color:#1c0c43;text-decoration:none;box-shadow:0 3px 9px #3b216410;min-height:148px}
 .mock-home .mock-sector-picture{height:91px;display:block;background-color:#eee8f7;background-size:cover;background-position:center}
 .mock-home .mock-sector-building{background-image:url("https://images.pexels.com/photos/4509089/pexels-photo-4509089.jpeg?auto=compress&cs=tinysrgb&w=800")}
@@ -523,6 +523,8 @@
 .mock-home .mock-sector-restaurant{background-image:url("https://images.pexels.com/photos/3951656/pexels-photo-3951656.jpeg?auto=compress&cs=tinysrgb&w=800")}
 .mock-home .mock-sector-beauty{background-image:url("https://images.pexels.com/photos/3985332/pexels-photo-3985332.jpeg?auto=compress&cs=tinysrgb&w=800")}
 .mock-home .mock-sector-taxi{background-image:url("https://images.pexels.com/photos/5835272/pexels-photo-5835272.jpeg?auto=compress&cs=tinysrgb&w=800")}
+.mock-home .mock-sector-tech{background-image:url("https://images.pexels.com/photos/7639370/pexels-photo-7639370.jpeg?auto=compress&cs=tinysrgb&w=800")}
+.mock-home .mock-sector-tech{background-position:center 48%}
 .mock-home .mock-sector strong{font-size:11px;line-height:1.28;padding:9px 4px;min-height:53px;display:grid;place-items:center}
 .mock-home .mock-sector-other{background:#f1eafb;border-color:#eee2fb;align-items:center;justify-content:center}
 .mock-home .mock-sector-other-glyph{font-size:38px;line-height:1;color:#6427ca;margin-top:5px}
