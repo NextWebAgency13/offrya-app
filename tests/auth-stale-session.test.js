@@ -200,7 +200,7 @@ test('Inscription professionnelle : le lien e-mail permet de revenir sur le parc
  const page=await loadAuthPage({url:'?mode=signup&next=%2Fespace%2Fprofessionnel'});
  await page.submit();
  assert.equal(page.signupCalls.length,1);
- assert.equal(page.signupCalls[0].options.emailRedirectTo,'https://offrya-app.onrender.com/connexion?confirmation=1&next=%2Fdeposer-une-mission');
+ assert.equal(page.signupCalls[0].options.emailRedirectTo,'https://offrya-app.onrender.com/connexion?confirmation=1&next=%2Fespace%2Fprofessionnel');
  assert.equal(page.signupCalls[0].options.data.offrya_signup_intent,'pro');
 });
 test('Confirmation e-mail : le parcours professionnel est conservé',async()=>{
