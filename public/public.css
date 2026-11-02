@@ -865,3 +865,16 @@
  .mock-home .mock-client .mock-card-cta{margin-bottom:35px}
  .mock-home .mock-pro-details{margin-top:14px;min-height:21px}
 }
+
+/* Bas de page institutionnel : sans répétition d'appels à inscription. */
+.mock-home .mock-assurance{margin-top:26px;margin-bottom:48px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;align-items:stretch}
+.mock-home .mock-assurance .mock-trust-heading{grid-column:1/-1;display:block;border:0;padding:8px 0 15px;background:transparent}
+.mock-home .mock-trust-heading p{font-size:11px;font-weight:800;letter-spacing:.13em;color:#7f50ab;margin:0 0 7px}
+.mock-home .mock-trust-heading h2{font-size:clamp(23px,2.8vw,34px);letter-spacing:-.045em;line-height:1.15;color:#311846;margin:0 0 10px}
+.mock-home .mock-trust-heading>span{font-size:14px;line-height:1.55;color:#70647b}
+.mock-home .mock-assurance>div:not(.mock-trust-heading){border:1px solid #e9e1f0;border-radius:17px;padding:21px 16px;background:#fff;box-shadow:0 5px 20px #32144708;display:flex;align-items:flex-start;gap:13px;min-width:0}
+.mock-home .mock-assurance>div:not(.mock-trust-heading) p{margin:0;min-width:0}
+.mock-home .mock-assurance>div:not(.mock-trust-heading) strong{display:block;font-size:13px;line-height:1.4}
+.mock-home .mock-assurance>div:not(.mock-trust-heading) small{display:block;font-size:12px;line-height:1.5;margin-top:4px}
+@media(max-width:900px){.mock-home .mock-assurance{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.mock-home .mock-assurance{grid-template-columns:1fr;margin-top:20px;margin-bottom:32px;gap:10px}.mock-home .mock-assurance>div:not(.mock-trust-heading){padding:16px}.mock-home .mock-trust-heading h2{font-size:24px}}
