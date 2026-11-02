@@ -200,5 +200,3 @@
  body:has(#dashboard.active) .sidebar .nav-link{min-width:0}
  body:has(#dashboard.active) .sidebar .nav-link span{font-size:9px;overflow-wrap:anywhere}
 }
-
-.role-switch-note{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:14px 16px;margin:0 0 14px;border:1px solid #dac8f0;border-radius:15px;background:#f6efff;color:#3c215c;font-size:13px;font-weight:700}.role-switch-note button{border:0;background:#6626bb;color:#fff;padding:10px 14px;border-radius:10px;font-weight:800;min-height:44px;cursor:pointer}@media(max-width:620px){.role-switch-note{margin:12px 0;padding:13px}.role-switch-note button{width:100%}}
