@@ -145,7 +145,7 @@ async function handle(req,res){
   }
   if(p.startsWith('/api/'))return json(res,404,{error:'Route inconnue'});
   if(!['GET','HEAD'].includes(req.method))return json(res,405,{error:'Méthode non autorisée'});
-  const publicPages=new Map([['/','index.html'],['/deposer-une-mission','deposer-une-mission.html'],['/professionnels','professionnels.html'],['/connexion','connexion.html'],['/secteurs/batiment','secteurs/batiment.html'],['/secteurs/nettoyage','secteurs/nettoyage.html'],['/secteurs/espaces-verts','secteurs/espaces-verts.html'],['/secteurs/transport','secteurs/transport.html'],['/secteurs/informatique','secteurs/informatique.html'],['/secteurs/autres-prestations','secteurs/autres-prestations.html']]);
+  const publicPages=new Map([['/','index.html'],['/deposer-une-mission','deposer-une-mission.html'],['/professionnels','professionnels.html'],['/connexion','connexion.html'],['/secteurs/batiment','secteurs/batiment.html'],['/secteurs/nettoyage','secteurs/nettoyage.html'],['/secteurs/espaces-verts','secteurs/espaces-verts.html'],['/secteurs/transport','secteurs/transport.html'],['/secteurs/informatique','secteurs/informatique.html'],['/secteurs/restauration-hotellerie','secteurs/restauration-hotellerie.html'],['/secteurs/bien-etre-beaute','secteurs/bien-etre-beaute.html'],['/secteurs/autres-prestations','secteurs/autres-prestations.html']]);
   const privatePage=new Set(['/espace','/espace/missions','/espace/marches-publics','/espace/messagerie','/espace/reglages','/espace/professionnel']).has(p);
   const pageFile=privatePage?'espace.html':publicPages.get(p);
   const mime=pageFile?'text/html; charset=utf-8':p==='/robots.txt'?'text/plain; charset=utf-8':p==='/sitemap.xml'?'application/xml; charset=utf-8':staticMap.get(p);

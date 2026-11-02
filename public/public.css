@@ -362,7 +362,7 @@
 .home-landing .home-path-card:before{content:"";position:absolute;right:0;top:0;bottom:0;width:40%;background-size:cover;background-position:center;z-index:0}
 .home-landing .home-path-client:before{background-image:linear-gradient(90deg,rgba(251,250,252,.95),rgba(251,250,252,.1)),url("https://images.pexels.com/photos/7587880/pexels-photo-7587880.jpeg?auto=compress&cs=tinysrgb&w=550")}
 .home-landing .home-path-business{background:linear-gradient(115deg,#3a2467,#351e56 70%);color:#fff;border-color:#4c3276}
-.home-landing .home-path-business:before{width:42%;opacity:.8;background-image:linear-gradient(90deg,#351e56,rgba(53,30,86,.45)),url("https://images.pexels.com/photos/33531813/pexels-photo-33531813.jpeg?auto=compress&cs=tinysrgb&w=550")}
+.home-landing .home-path-business:before{width:42%;opacity:.8;background-image:linear-gradient(90deg,#351e56,rgba(53,30,86,.45)),url("https://images.pexels.com/photos/13821194/pexels-photo-13821194.jpeg?auto=compress&cs=tinysrgb&w=550")}
 .home-landing .home-path-card h3,.home-landing .home-path-card>p,.home-landing .home-path-card ul,.home-landing .home-path-card .home-text-link{max-width:77%}
 .home-landing .home-path-business h3,.home-landing .home-path-business .home-path-label,.home-landing .home-path-business li,.home-landing .home-path-business .home-text-link{color:#fff}
 .home-landing .home-path-business>p{color:#eadcf9}
@@ -784,4 +784,12 @@
   }
   .mock-home .mock-assurance-icon .mock-icon-svg{width:20px;height:20px}
   .mock-home .mock-end .mock-location-icon{width:48px;height:48px}
+}
+
+/* Ajustement validé : même échelle de CTA gratuit/pro et lien secondaire fluide. */
+.mock-home .mock-pro .mock-card-cta{width:88.9%;min-height:40px;padding:9px 17px;font-size:12px;margin-top:16px;text-align:left}
+.mock-home .mock-pro-details{max-width:88.9%;overflow-wrap:break-word;font-size:12px;line-height:1.45;text-wrap:balance}
+@media(max-width:560px){
+ .mock-home .mock-choice-card .mock-card-cta,.mock-home .mock-pro .mock-card-cta{width:100%;min-height:44px;padding:9px 17px;font-size:12px}
+ .mock-home .mock-pro-details{max-width:100%;overflow-wrap:anywhere}
 }

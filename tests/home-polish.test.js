@@ -3,7 +3,7 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 const home=read('public/index.html'),css=read('public/public.css'),pro=read('public/professionnels.html');
 const otherPages=['public/professionnels.html','public/deposer-une-mission.html','public/connexion.html',
- ...['batiment','nettoyage','espaces-verts','transport','informatique','autres-prestations'].map(x=>'public/secteurs/'+x+'.html')];
+ ...['batiment','nettoyage','espaces-verts','transport','informatique','restauration-hotellerie','bien-etre-beaute','autres-prestations'].map(x=>'public/secteurs/'+x+'.html')];
 test('Navigation : en-tête minimal avec logo et seul bouton Se connecter',()=>{
  const header=home.match(/<header class="top home-top mock-top">([\s\S]*?)<\/header>/)?.[1];
  assert.ok(header,'En-tête accueil présent');
@@ -60,4 +60,17 @@ test('Maquette 16:9 : le bandeau est supprimé et le contenu commence directemen
  assert.match(css,/\.mock-home \.mock-choice\{padding-top:34px/);
  assert.match(css,/\.mock-home \.mock-hero-wave\{/);
  assert.match(css,/@media\(max-width:560px\)/);
+});
+
+test('Les secteurs restauration et beauté ont leurs propres aperçus publics',()=>{
+ const sectors=[['restaurant','restauration-hotellerie','Restauration &amp; Hôtellerie'],['beauty','bien-etre-beaute','Bien-être &amp; Beauté']];
+ for(const [cls,slug,title] of sectors){
+  assert.match(home,new RegExp('href="/secteurs/'+slug+'"><span class="mock-sector-picture mock-sector-'+cls+'"'));
+  const page=read('public/secteurs/'+slug+'.html');
+  assert.ok(page.includes('<h1>'+title+':'),slug+' a son titre dédié');
+  assert.ok(page.includes('https://offrya-app.onrender.com/secteurs/'+slug),slug+' a sa balise canonique');
+  assert.match(page,/href="\\/deposer-une-mission"/);
+ }
+ assert.match(css,/mock-home \\.mock-pro \\.mock-card-cta\{width:88\\.9%;min-height:40px/);
+ assert.match(css,/mock-home \\.mock-pro-details\{max-width:88\\.9%/);
 });

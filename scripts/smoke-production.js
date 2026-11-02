@@ -177,7 +177,7 @@ async function run(){
 
 
  // Les routes doivent être vraies, pas un fallback global HTTP 200.
- const publicPaths=['/professionnels','/deposer-une-mission','/connexion','/secteurs/batiment','/secteurs/nettoyage','/secteurs/espaces-verts','/secteurs/transport','/secteurs/informatique','/secteurs/autres-prestations'];
+ const publicPaths=['/professionnels','/deposer-une-mission','/connexion','/secteurs/batiment','/secteurs/nettoyage','/secteurs/espaces-verts','/secteurs/transport','/secteurs/informatique','/secteurs/restauration-hotellerie','/secteurs/bien-etre-beaute','/secteurs/autres-prestations'];
  for(const route of publicPaths){
   const r=await request(route);assert.equal(r.status,200,route);assert.match(r.text,/<h1[^>]*>/i,route);
  }
