@@ -27,7 +27,7 @@ test('Routage explicite, chargement et responsive',()=>{
  assert.match(server,/privatePage\?'espace.html'/);
  assert.match(server,/X-Robots-Tag/);
  assert.match(server,/res\.writeHead\(404/);
- assert.match(home,/href="\/public.css"/);
+ assert.match(home,/href="\/public\.[0-9a-f]{12}\.css"/);
  assert.match(read('public/public.css'),/@media\(max-width:600px\)/);
  assert.match(read('public/home.css'),/dashboard-skeleton/);
 });
