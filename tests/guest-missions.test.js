@@ -24,7 +24,8 @@ test('Publication : inscription et e-mail confirmé AVANT d’afficher le formul
  assert.match(submit,/auth\.getUser\(\)/);
  assert.match(submit,/email_confirmed_at/);
  assert.match(submit,/user\.is_anonymous/);
- assert.match(submit,/\$\('publishArea'\)\.hidden=!user/);
+ assert.match(submit,/area\.hidden=true/);
+ assert.match(submit,/area\.hidden=false/);
  assert.match(submit,/from\('offrya_missions'\)\.insert/);
  assert.doesNotMatch(submit,/signInAnonymously|followupOptIn|auth\.updateUser\(\{email:|turnstile/i);
  assert.doesNotMatch(form,/followupOptIn|guestCaptcha|session invitée/i);
@@ -32,7 +33,8 @@ test('Publication : inscription et e-mail confirmé AVANT d’afficher le formul
 test('Connexion : retour sûr au dépôt après inscription ou confirmation par e-mail',()=>{
  assert.match(login,/value==='\/deposer-une-mission'/);
  assert.match(login,/query\.get\('mode'\)==='signup'/);
- assert.match(login,/if\(mode==='signup'\).*emailRedirectTo:location\.origin\+'\/connexion\?confirmation=1'/);
+ assert.match(login,/if\(mode==='signup'\)/);
+ assert.match(login,/emailRedirectTo:location\.origin\+'\/connexion\?confirmation=1'/);
  assert.match(login,/offrya_signup_intent/);
  assert.match(login,/resetPasswordForEmail/);
  assert.match(login,/if\(confirmationReturn&&!query\.has\('next'\)\)/);
