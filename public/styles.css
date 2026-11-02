@@ -63,3 +63,13 @@
  .sidebar .nav-link span{font-size:clamp(8px,2.3vw,10px);white-space:normal;text-align:center;overflow-wrap:anywhere}
  .sidebar{height:calc(74px + env(safe-area-inset-bottom,0px));padding-bottom:calc(5px + env(safe-area-inset-bottom,0px))}
 }
+
+/* Barre mobile validée : toujours cinq entrées, sans emplacement vide. */
+@media(max-width:620px){
+ .sidebar nav,.sidebar nav:has(.nav-link[data-tab="boamp"]:not(.hidden)){grid-template-columns:repeat(5,minmax(0,1fr))}
+ .sidebar .nav-link[data-tab="settings"]{display:flex}
+ .sidebar .nav-link{min-width:0;gap:4px;padding:6px 1px 3px}
+ .sidebar .nav-link span{font-size:clamp(8px,2.35vw,10px);line-height:1.2;white-space:normal;text-align:center}
+}
+
+@media(max-width:620px){.sidebar .nav-link.mobile-pro-replaced{display:none}}
