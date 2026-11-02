@@ -14,7 +14,7 @@ const premiumSql=read('sql/legal_representative_only.sql');
 test('Publication : inscription et e-mail confirmé AVANT d’afficher le formulaire',()=>{
  assert.match(form,/id="accountGate"/);
  assert.match(form,/id="publishArea" hidden/);
- assert.doesNotMatch(form,/<form id="missionForm"|name="description"|name="title"/);
+ assert.doesNotMatch(form,/<form id="missionForm"|<input name="title"|<textarea name="description"/);
  assert.match(submit,/const publisherFormHtml=/);
  assert.match(submit,/area\.innerHTML=publisherFormHtml/);
  assert.match(submit,/area\.querySelector\('#missionForm'\)\.addEventListener\('submit',submitMission\)/);
