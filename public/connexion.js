@@ -118,6 +118,9 @@ function resume(session){
  return work;
 }
 async function init(){
+ // Initialiser l’interface AVANT tout appel réseau : aucun affichage furtif
+ // du lien de récupération en inscription ou des champs d’un autre mode.
+ change('login');
  if(query.get('mode')==='reset-password')change('recover');
  else if(query.get('mode')==='reset')change('reset');
  else if(confirmationReturn){
