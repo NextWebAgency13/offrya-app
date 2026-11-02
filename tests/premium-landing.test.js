@@ -9,8 +9,8 @@ test('OFFRYA Professionnel : vitrine et offre unique cohérentes',()=>{
  assert.match(premium,/<title>OFFRYA Professionnel \| 34,99 € TTC\/mois<\/title>/);
  assert.match(premium,/rel="canonical" href="https:\/\/offrya-app\.onrender\.com\/professionnels"/);
  assert.doesNotMatch(premium,/>Devenir professionnel<\/a>/);
- assert.equal((premium.match(/href="\/espace\/professionnel">Rejoindre OFFRYA Professionnel<\/a>/g)||[]).length,2);
- assert.match(premium,/class="account-link" href="\/espace"/);
+ assert.equal((premium.match(/href="\/connexion\?mode=signup&amp;next=%2Fespace%2Fprofessionnel">Créer mon compte professionnel<\/a>/g)||[]).length,2);
+ assert.match(premium,/class="account-link" href="\/connexion\?next=%2Fespace"/);
 });
 test('Le paiement reste conditionné à la vérification du dirigeant',()=>{
  for(const value of ['SIRET','Stripe Identity','dirigeant inscrit au registre officiel','Après vérification et approbation','34,99 €','TTC / mois','Sans engagement, résiliable à tout moment.']){
