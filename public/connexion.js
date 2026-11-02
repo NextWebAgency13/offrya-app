@@ -21,7 +21,7 @@ const cardTitles={login:'Bienvenue sur OFFRYA',signup:'Créons votre compte',res
 const cardEyebrows={login:'CONNEXION',signup:'INSCRIPTION GRATUITE',reset:'RÉCUPÉRATION DU COMPTE',recover:'SÉCURISER VOTRE COMPTE'};
 const cardDescriptions={
  login:'Saisissez vos identifiants pour poursuivre.',
- signup:'Sélectionnez votre type de compte, puis renseignez vos identifiants.',
+ signup:'Renseignez vos identifiants pour créer votre compte.',
  reset:'Seule votre adresse e-mail est nécessaire. Aucun mot de passe ne vous sera demandé.',
  recover:'Choisissez un mot de passe d’au moins huit caractères.'
 };
@@ -101,6 +101,14 @@ function resume(session){
     // Simple indication de parcours, jamais un droit d'accès.
     const intent=user.user_metadata?.offrya_signup_intent;
     location.replace(intent==='pro'?'/espace/professionnel':intent==='client'?'/deposer-une-mission':'/');
+   }else if(!query.has('next')&&!confirmationReturn){
+    // Après une connexion générique, se baser sur le rôle stocké en base.
+    // Ne jamais utiliser les métadonnées utilisateur pour attribuer des droits.
+    let destination='/espace';
+    try{const profile=await db.from('offrya_profiles').select('role').eq('id',user.id).maybeSingle();
+      if(!profile.error&&profile.data?.role==='pro')destination='/espace/professionnel';
+    }catch(_error){/* L'espace privé gère une indisponibilité ponctuelle. */}
+    location.replace(destination);
    }else location.replace(next);
    return;
   }
