@@ -31,6 +31,26 @@
           <div class="stat"><div class="stat-icon"><svg class="nav-icon" aria-hidden="true"><use href="#ic-inbox"/></svg></div><div class="stat-value" id="statConvos">—</div><div class="stat-label">Mes discussions</div></div>
           <div class="stat"><div class="stat-icon"><svg class="nav-icon" aria-hidden="true"><use href="#ic-check"/></svg></div><div class="stat-value" id="statFavorites">—</div><div class="stat-label">Mes favoris</div></div>
         </div>
+        <div class="role-dashboard" id="roleDashboard" aria-live="polite">
+ <div class="role-hero" id="roleClientHero">
+  <div><span class="role-eyebrow">ESPACE DEMANDEUR · GRATUIT</span><h2>Bienvenue sur OFFRYA</h2><p>Publiez vos missions et échangez avec des professionnels vérifiés, partout en France.</p><a class="role-primary" href="/deposer-une-mission">＋ Déposer une mission</a></div>
+ </div>
+ <div class="role-hero role-pro-hero hidden" id="roleProHero"><div><span class="role-eyebrow">OFFRYA PROFESSIONNEL · PREMIUM</span><h2>Développez votre activité</h2><p id="roleBusinessName">Compte professionnel vérifié</p><div class="role-pro-badge">Compte vérifié · Abonnement actif</div></div></div>
+ <div class="role-hero role-pending-hero hidden" id="rolePendingHero"><div><span class="role-eyebrow">VÉRIFICATION PROFESSIONNELLE</span><h2>Finalisez votre espace Pro</h2><p>Entreprise, identité du dirigeant et abonnement : suivez les étapes pour débloquer les missions et les marchés publics.</p><button type="button" class="role-primary" data-tab="professional">Reprendre ma vérification</button></div></div>
+ <h3 id="roleDashboardHeading">Mon espace demandeur</h3>
+ <div class="role-quick-grid" id="roleClientQuick">
+  <button type="button" data-tab="missions"><svg class="nav-icon"><use href="#ic-missions"/></svg><strong>Mes missions</strong><small>Mes annonces et leur suivi</small></button>
+  <button type="button" data-tab="inbox"><svg class="nav-icon"><use href="#ic-inbox"/></svg><strong>Mes échanges</strong><small>Messages des professionnels</small></button>
+  <a href="/deposer-une-mission"><svg class="nav-icon"><use href="#ic-plus"/></svg><strong>Déposer</strong><small>Publier gratuitement</small></a>
+  <button type="button" data-tab="settings"><svg class="nav-icon"><use href="#ic-user"/></svg><strong>Mon profil</strong><small>Compte et préférences</small></button>
+ </div>
+ <div class="role-pro-links hidden" id="roleProQuick">
+  <button data-tab="missions"><svg class="nav-icon"><use href="#ic-search"/></svg><span><strong>Consulter les missions</strong><small>Rechercher les demandes disponibles</small></span>→</button>
+  <button data-tab="boamp"><svg class="nav-icon"><use href="#ic-boamp"/></svg><span><strong>Marchés publics</strong><small>Rechercher les avis BOAMP</small></span>→</button>
+  <button data-tab="inbox"><svg class="nav-icon"><use href="#ic-inbox"/></svg><span><strong>Mes messages</strong><small>Échanger avec les demandeurs</small></span>→</button>
+  <button data-tab="professional"><svg class="nav-icon"><use href="#ic-shield"/></svg><span><strong>Mon profil Pro</strong><small>Vérification et abonnement</small></span>→</button>
+ </div>
+ </div>
         <div class="panel hidden" id="priorityAlertsPanel" aria-live="polite">
           <div class="panel-heading"><h3>Mes opportunités prioritaires <span class="tag" id="priorityAlertCount">0</span></h3><span class="tag">OFFRYA Professionnel</span></div>
           <p class="muted tiny">Les nouvelles demandes correspondant à vos filtres apparaissent ici. Les alertes e-mail sont facultatives et configurables dans Mon compte.</p>

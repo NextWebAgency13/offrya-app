@@ -393,7 +393,16 @@ function render(){
  const yes=Boolean(state.session);
  $('dashboardLoading').classList.toggle('hidden',state.loaded);
  $('homePrivateDashboard').classList.toggle('hidden',!state.loaded||!yes);
- document.querySelector('#dashboard .stats').classList.toggle('hidden',!state.loaded||!yes);
+ document.querySelector('#dashboard .stats').classList.toggle('hidden',!state.loaded||!yes||!canUsePremium());
+ const eligiblePro=canUsePremium(),proPending=state.profile?.role==='pro'&&!eligiblePro;
+ $('roleClientHero').classList.toggle('hidden',eligiblePro||proPending);
+ $('roleProHero').classList.toggle('hidden',!eligiblePro);
+ $('rolePendingHero').classList.toggle('hidden',!proPending);
+ $('roleClientQuick').classList.toggle('hidden',eligiblePro||proPending);
+ $('roleProQuick').classList.toggle('hidden',!eligiblePro);
+ $('roleDashboardHeading').textContent=eligiblePro?'Accès rapide':proPending?'Votre inscription professionnelle':'Mon espace demandeur';
+ $('roleBusinessName').textContent=state.premium?.legal_name||'Entreprise vérifiée';
+ document.body.dataset.offryaRole=eligiblePro?'premium':proPending?'pending':'client';
  const banner=$('proVerificationBanner');const pro=state.profile?.role==='pro';
  banner.classList.toggle('hidden',!pro);
  if(pro){const p=state.premium;banner.textContent='Entreprise : '+(p?.legal_name||'à vérifier')+' · Identité : '+(p?.identity_status==='verified'?'vérifiée':'en cours')+' · Dirigeant : '+(p?.authority_status==='verified'?'confirmé':'en attente')+' · Abonnement : '+(canUsePremium()?'actif':'inactif');}
