@@ -38,7 +38,7 @@ function change(v){
  if($('authCardHeading'))$('authCardHeading').textContent=cardTitles[v];
  if($('authCardLead'))$('authCardLead').textContent=cardDescriptions[v];
  if($('authCardEyebrow'))$('authCardEyebrow').textContent=cardEyebrows[v];
- if($('authTabs'))$('authTabs').hidden=v==='reset'||v==='recover';
+ if($('authTabs'))$('authTabs').hidden=true; // Connexion et inscription restent deux parcours séparés.
  if($('authBack'))$('authBack').hidden=v==='login'||v==='signup';
  if($('authExistingAccount'))$('authExistingAccount').hidden=v!=='signup';
  if($('resetLinkWrap'))$('resetLinkWrap').hidden=v!=='login';
