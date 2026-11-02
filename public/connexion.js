@@ -176,7 +176,7 @@ $('loginForm').addEventListener('submit',async e=>{
   else if(mode==='recover')r=await db.auth.updateUser({password});
   else r=await db.auth.signInWithPassword({email,password});
   if(r.error)throw r.error;
-  if(mode==='signup')say('Si votre demande peut être traitée, consultez votre boîte e-mail pour confirmer votre inscription. Si vous possédez déjà un compte, utilisez « Connexion ».');
+  if(mode==='signup')say('Consultez votre boîte e-mail si un message de confirmation vous est envoyé. Si vous possédez déjà un compte, utilisez « Connexion ».');
   else if(mode==='reset')say('Consultez votre boîte e-mail et ouvrez le lien sécurisé de réinitialisation. Aucun abonnement ni alerte n’est activé.');
   else if(mode==='recover'){say('Mot de passe modifié');location.replace(next);}
   else await resume(r.data?.session);
