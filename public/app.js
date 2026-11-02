@@ -4,7 +4,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login',blocks:[],photoUrls:{},reportTarget:null};
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
@@ -29,7 +29,7 @@ function titleForMission(id){return state.missions.find(m=>m.id===id)?.title||'M
 function profileName(id){return state.profiles.find(p=>p.id===id)?.display_name||'Utilisateur OFFRYA';}
 async function refresh(){
  if(!state.db){render();return;}
- if(!state.session){state.draft=null;state.proStep=1;state.proStepUserId=null;state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.manualIdentity=null;state.boamp=[];state.priorityAlerts=[];state.lastPriorityIds=null;render();return;}
+ if(!state.session){state.draft=null;state.proStep=1;state.proStepUserId=null;state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.manualIdentity=null;state.boamp=[];state.priorityAlerts=[];state.lastPriorityIds=null;state.blocks=[];state.photoUrls={};render();return;}
  const uid=state.session.user.id;
  // Par défaut : ne charger que les annonces dont ce compte est propriétaire.
  // Les annonces des tiers ne sont interrogées qu'après contrôle professionnel.
@@ -58,6 +58,25 @@ async function refresh(){
   for(const mission of opportunities.data||[])byId.set(mission.id,mission);
   state.missions=Array.from(byId.values()).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
  }
+ // Photos privées : n’interroger que les missions autorisées par la RLS.
+ state.photoUrls={};
+ try{
+  const ids=state.missions.slice(0,30).map(m=>m.id);
+  if(ids.length){
+   const pic=await state.db.from('offrya_mission_photos').select('mission_id,object_path').in('mission_id',ids).limit(80);
+   if(!pic.error)for(const item of pic.data||[]){
+    const signed=await state.db.storage.from('offrya-mission-photos').createSignedUrl(item.object_path,300);
+    if(!signed.error&&signed.data?.signedUrl){
+     if(!state.photoUrls[item.mission_id])state.photoUrls[item.mission_id]=[];
+     state.photoUrls[item.mission_id].push(signed.data.signedUrl);
+    }
+   }
+  }
+ }catch(error){console.warn('Aperçus photo indisponibles:',error.message);}
+ try{
+  const blockQuery=await state.db.from('offrya_contact_blocks').select('blocked_id').eq('blocker_id',uid);
+  state.blocks=blockQuery.error?[]:(blockQuery.data||[]).map(x=>x.blocked_id);
+ }catch(error){state.blocks=[];}
  if(state.proStepUserId!==uid){state.proStepUserId=uid;state.proStep=Math.max(1,Math.min(3,Number(state.draft?.step||1)));}
  if(state.thread&&!state.conversations.find(x=>x.id===state.thread))state.thread=null;
  if(state.thread)await loadMessages(state.thread,false);
@@ -65,10 +84,11 @@ async function refresh(){
  state.loaded=true;render();
 }
 function row(m,actions=''){
+ const previews=(state.photoUrls[m.id]||[]).slice(0,3).map(url=>`<img src="${esc(url)}" alt="Photo de la mission" loading="lazy" width="125" height="95">`).join('');
  const specs=[m.area_sqm?`Surface/quantité : ${esc(m.area_sqm)}`:null,m.desired_date?`Date souhaitée : ${esc(m.desired_date)}`:null,
   m.urgency==='urgent'?'Urgent':m.urgency==='soon'?'Sous quelques semaines':null,
   m.place_type?`Lieu : ${esc(m.place_type)}`:null].filter(Boolean).join(' · ');
- return `<article class="data-item"><div class="item-top"><span class="tag">${esc(m.category)}</span><span class="muted tiny">${date(m.created_at)}</span></div><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.description).slice(0,270)}</div><div class="meta-row"><span>⌖ ${esc(m.city)} (${esc(m.department)})</span><span>Budget : ${m.budget_cents?euro(m.budget_cents):'À définir'}</span><span>${(m.expires_at&&new Date(m.expires_at)<new Date()&&m.status==='open')||m.status==='expired'?'Expirée':m.status==='open'?'Ouverte':m.status==='awarded'?'Pourvue':'Clôturée'}</span></div>${specs?`<div class="tiny muted">${specs}</div>`:''}${actions?`<div class="item-actions">${actions}</div>`:''}</article>`;
+ return `<article class="data-item"><div class="item-top"><span class="tag">${esc(m.category)}</span><span class="muted tiny">${date(m.created_at)}</span></div><div class="item-title">${esc(m.title)}</div>${previews?`<div class="mission-photo-row">${previews}</div>`:''}<div class="item-desc">${esc(m.description).slice(0,270)}</div><div class="meta-row"><span>⌖ ${esc(m.city)} (${esc(m.department)})</span><span>Budget : ${m.budget_cents?euro(m.budget_cents):'À définir'}</span><span>${(m.expires_at&&new Date(m.expires_at)<new Date()&&m.status==='open')||m.status==='expired'?'Expirée':m.status==='open'?'Ouverte':m.status==='awarded'?'Pourvue':'Clôturée'}</span></div>${specs?`<div class="tiny muted">${specs}</div>`:''}${actions?`<div class="item-actions">${actions}</div>`:''}</article>`;
 }
 function renderMissions(){
  const uid=state.session?.user.id,canBrowse=canUsePremium();
@@ -85,7 +105,7 @@ function renderMissions(){
  $('missionList').innerHTML=matches.length?matches.map(m=>{
   const own=m.owner_id===uid;
   const actions=own?`<span class="tag">Votre annonce</span> ${m.status==='open'?`<button class="button secondary micro-button" data-close-mission="${esc(m.id)}">Clôturer</button>`:''}`:
-   canBrowse?`<button class="button secondary micro-button" data-favorite="${esc(m.id)}" aria-pressed="${state.favorites.includes(m.id)}">${state.favorites.includes(m.id)?'★ Enregistrée':'☆ Favori'}</button> <button class="button primary micro-button" data-contact="${esc(m.id)}">Contacter le client</button>`:'';
+   canBrowse?`<button class="button secondary micro-button" data-favorite="${esc(m.id)}" aria-pressed="${state.favorites.includes(m.id)}">${state.favorites.includes(m.id)?'★ Enregistrée':'☆ Favori'}</button> <button class="button primary micro-button" data-contact="${esc(m.id)}">Contacter le client</button> <button class="button secondary micro-button" data-report-mission="${esc(m.id)}">Signaler</button>`:'';
   return row(m,actions);
  }).join(''):'<div class="empty">Vous n’avez pas encore publié de mission, ou aucun résultat ne correspond à vos critères. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
  const preview=canBrowse?visible:visible.filter(m=>m.owner_id===uid);
