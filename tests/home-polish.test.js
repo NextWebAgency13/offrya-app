@@ -16,9 +16,9 @@ test('Navigation : en-tête minimal avec logo et seul bouton Se connecter',()=>{
  assert.match(read('public/connexion.html'),/class="auth-home-link" href="\/"/,'La page d’authentification retourne à l’accueil, sans lien vers un espace encore inaccessible');
 });
 test('Maquette : huit blocs dans le bon ordre et un seul H1',()=>{
- const sections=['class="mock-top"','class="mock-hero"','id="choisir-compte"','id="secteurs"','id="fonctionnement"','class="mock-container mock-assurance"','class="mock-end"'];
+ const sections=['class="mock-top"','class="mock-hero"','id="secteurs"','id="choisir-compte"','id="fonctionnement"','class="mock-container mock-assurance"','class="mock-end"'];
  // Les classes supplémentaires sont autorisées.
- const markers=['class="top home-top mock-top"','class="mock-hero"','class="mock-container mock-choice"','class="mock-container mock-sectors"','class="mock-how"','class="mock-container mock-assurance"','class="mock-end"'];
+ const markers=['class="top home-top mock-top"','class="mock-hero"','class="mock-container mock-sectors"','class="mock-container mock-choice"','class="mock-how"','class="mock-container mock-assurance"','class="mock-end"'];
  const indexes=markers.map(m=>home.indexOf(m));
  assert.ok(indexes.every(i=>i>=0));assert.deepEqual(indexes,[...indexes].sort((a,b)=>a-b));
  assert.equal((home.match(/<h1\b/g)||[]).length,1);
@@ -53,9 +53,26 @@ test('Responsive et isolation de la vitrine',()=>{
 test('Maquette 16:9 : le bandeau est supprimé et le contenu commence directement après le héros',()=>{
  const heroEnd=home.indexOf('</section>',home.indexOf('<section class="mock-hero"'));
  const nextSection=home.slice(heroEnd+10).trimStart();
- assert.match(nextSection,/^<section class="mock-container mock-choice"/);
+ assert.match(nextSection,/^<section class="mock-container mock-sectors"/);
  assert.doesNotMatch(home,/L’activité OFFRYA|Voir les statistiques|id="activite"|mock-activity/);
  assert.match(css,/\.mock-home \.mock-choice\{padding-top:34px/);
  assert.match(css,/\.mock-home \.mock-hero-wave\{/);
  assert.match(css,/@media\(max-width:560px\)/);
+});
+
+test('Nouvel ordre de la vitrine : secteurs entre le premier encart et le choix du compte',()=>{
+ const hero=home.indexOf('<section class="mock-hero"');
+ const sectors=home.indexOf('<section class="mock-container mock-sectors"');
+ const accounts=home.indexOf('<section class="mock-container mock-choice"');
+ const how=home.indexOf('<section class="mock-how"');
+ assert.ok(hero>=0&&hero<sectors&&sectors<accounts&&accounts<how);
+ assert.equal((home.match(/id="secteurs"/g)||[]).length,1);
+ assert.equal((home.match(/id="choisir-compte"/g)||[]).length,1);
+ assert.match(home,/TOUS LES SECTEURS, PARTOUT EN FRANCE/);
+ assert.match(home,/Des missions dans de nombreux domaines/);
+ assert.equal((home.match(/class="mock-sector(?: mock-sector-other)?"/g)||[]).length,7);
+ assert.match(home,/Créer un compte gratuit/);
+ assert.match(home,/Créer un compte professionnel/);
+ assert.match(css,/\.mock-home \.mock-hero \+ \.mock-sectors\{padding-top:40px\}/);
+ assert.match(css,/@media\(max-width:560px\)\{[\s\S]*?\.mock-home \.mock-hero \+ \.mock-sectors\{padding-top:28px\}/);
 });
