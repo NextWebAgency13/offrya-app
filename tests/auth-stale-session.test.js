@@ -174,11 +174,13 @@ test('Connexion classique : la destination demandée reste la page privée',asyn
  assert.deepEqual(page.redirects,['/espace/missions']);
 });
 
-test('Interface de connexion : trois onglets, aucun lien magique de connexion',()=>{
+test('Interface de connexion : deux onglets et récupération secondaire, sans lien magique',()=>{
  const html=fs.readFileSync(path.join(__dirname,'../public/connexion.html'),'utf8');
  const tabs=[...html.matchAll(/<button type="button" data-mode="([^"]+)"[^>]*>([^<]+)<\/button>/g)];
- assert.deepEqual(tabs.map(t=>t[1]),['login','signup','reset']);
- assert.deepEqual(tabs.map(t=>t[2]),['Connexion','Inscription','Mot de passe oublié']);
+ assert.deepEqual(tabs.map(t=>t[1]),['login','signup']);
+ assert.deepEqual(tabs.map(t=>t[2]),['Connexion','Créer un compte']);
+ assert.match(html,/class="auth-text-button" data-mode="reset">Mot de passe oublié \?<\/button>/);
+ assert.match(html,/id="authBack"[^>]* data-mode="login" hidden/);
  assert.doesNotMatch(html,/Lien e-mail|data-mode="magic"/);
  assert.doesNotMatch(source,/signInWithOtp|mode==='magic'|magic:'Envoyer un lien'/);
  assert.match(source,/signUp\(/);
