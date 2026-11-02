@@ -168,3 +168,35 @@
  body:has(#dashboard.active) .sidebar .nav-link span{color:inherit;font-size:9px;white-space:normal;text-align:center}
  body:has(#dashboard.active) .sidebar .nav-icon{width:22px;height:22px}
 }
+
+/* Maquette mobile de référence : écrans plein format 390px, éléments hiérarchisés. */
+@media(max-width:620px){
+ body:has(#dashboard.active) .main-content{padding:0 0 90px!important}
+ body:has(#dashboard.active) #dashboard .home-private{margin:0;padding:0!important}
+ body:has(#dashboard.active) #dashboard .role-dashboard{padding:0 16px!important}
+ body:has(#dashboard.active) #dashboard .role-client-hero{margin:0 -16px 0;min-height:253px;border-radius:0 0 18px 18px;padding:26px 21px;background-position:60% center}
+ body:has(#dashboard.active) #dashboard .role-client-hero>div{max-width:100%}
+ body:has(#dashboard.active) #dashboard .role-client-hero h2{max-width:280px;font-size:28px;margin-bottom:10px}
+ body:has(#dashboard.active) #dashboard .role-client-hero p{max-width:258px;font-size:14px;line-height:1.5}
+ body:has(#dashboard.active) #dashboard .role-client-hero .role-primary{width:100%;max-width:276px}
+ body:has(#dashboard.active) #dashboard .role-dashboard h3{font-size:21px;margin:20px 0 13px}
+ body:has(#dashboard.active) #dashboard .role-quick-grid{gap:10px}
+ body:has(#dashboard.active) #dashboard .role-quick-grid button{min-height:127px;padding:14px;border-radius:17px}
+ body:has(#dashboard.active) #dashboard .role-premium-top{background:#3c1857;padding:17px 19px;border-radius:0}
+ body:has(#dashboard.active) #dashboard .role-company{margin:0 -16px;padding:0 16px 17px;background:#3c1857;color:#301548;display:flex;gap:0;border-radius:0}
+ body:has(#dashboard.active) #dashboard .role-company>svg{width:47px;height:70px;flex:none;background:#fff;border-radius:15px 0 0 15px;padding:12px;color:#7231c0}
+ body:has(#dashboard.active) #dashboard .role-company>div{flex:1;min-height:70px;justify-content:center;padding:10px 5px;background:#fff;border-radius:0}
+ body:has(#dashboard.active) #dashboard .role-company>div strong{font-size:15px}
+ body:has(#dashboard.active) #dashboard .role-company .role-validity{height:70px;min-width:85px;max-width:100px;display:flex;align-items:center;justify-content:center;background:#f2faf5;color:#116536;border-radius:0 15px 15px 0;font-size:10px}
+ body:has(#dashboard.active) #dashboard .role-premium-stats{margin:17px 0 21px;gap:6px}
+ body:has(#dashboard.active) #dashboard .role-premium-stats button{min-height:124px;border-radius:17px;padding:13px 3px 10px}
+ body:has(#dashboard.active) #dashboard .role-premium-stats button strong{font-size:22px}
+ body:has(#dashboard.active) #dashboard .role-pro-links button{min-height:73px;padding:12px;border-radius:18px}
+ body:has(#dashboard.active) #dashboard .role-pro-links button svg{flex:0 0 42px}
+ body:has(#dashboard.active) .sidebar{background:#351046;bottom:0;border-radius:16px 16px 0 0}
+ body:has(#dashboard.active) .sidebar nav{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important}
+ body:has(#dashboard.active) .sidebar .nav-link[data-tab="settings"]{display:flex!important}
+ body:has(#dashboard.active) .sidebar .nav-link.hidden,body:has(#dashboard.active) .sidebar .nav-link.mobile-pro-replaced{display:none!important}
+ body:has(#dashboard.active) .sidebar .nav-link{min-width:0}
+ body:has(#dashboard.active) .sidebar .nav-link span{font-size:9px;overflow-wrap:anywhere}
+}
