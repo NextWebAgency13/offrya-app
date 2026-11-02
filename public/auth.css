@@ -98,3 +98,5 @@
 
 /* Parcours mobile : un seul panneau de connexion prioritaire. */
 @media(max-width:700px){.auth-page .auth-layout{display:flex;flex-direction:column;gap:0;padding:20px 16px 42px;max-width:520px}.auth-page .auth-intro{order:2;margin-top:20px}.auth-page .auth-workspace{order:1;width:100%;margin-top:0}.auth-page .auth-intro h1{font-size:22px;max-width:none}.auth-page .auth-intro-lead{font-size:13px;margin:0}.auth-page .auth-eyebrow{display:none}.auth-page .auth-card{padding:21px 17px;border-radius:18px}.auth-page .auth-card-intro{margin-bottom:16px}.auth-page .auth-tabs{margin-bottom:18px}.auth-page .account-type-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}.auth-page .account-type-option{padding:14px;border-radius:14px}.auth-page .account-type-option span{font-size:12px}.auth-page .auth-form input{font-size:16px;min-height:52px}.auth-page .auth-submit{width:100%;min-height:54px}.auth-page .auth-intro h1{display:none}.auth-page .auth-intro-footnote{display:none}}
+
+.auth-page .auth-existing-account{margin:10px 0 0;text-align:center;font-size:13px;color:#6d6179}.auth-page .auth-existing-account .auth-text-button{font-size:13px;margin-left:4px}

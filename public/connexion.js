@@ -40,9 +40,10 @@ function change(v){
  if($('authCardEyebrow'))$('authCardEyebrow').textContent=cardEyebrows[v];
  if($('authTabs'))$('authTabs').hidden=v==='reset'||v==='recover';
  if($('authBack'))$('authBack').hidden=v==='login'||v==='signup';
+ if($('authExistingAccount'))$('authExistingAccount').hidden=v!=='signup';
  if($('resetLinkWrap'))$('resetLinkWrap').hidden=v!=='login';
  if($('authModeFootnote'))$('authModeFootnote').textContent=
-  v==='signup'?'Inscription gratuite. L’abonnement professionnel est proposé uniquement après vérification.':
+  v==='signup'?(next==='/espace/professionnel'?'Création du compte sans paiement. Offre professionnelle : 34,99 € TTC/mois après vérification et activation.':'Compte demandeur gratuit : aucun abonnement nécessaire pour déposer une mission.'):
   v==='reset'?'Si un compte est associé à cette adresse, consultez votre boîte e-mail.':
   v==='recover'?'Après modification, vous pourrez revenir à votre espace.':
   'Connexion sécurisée. Aucun paiement n’est déclenché ici.';
@@ -54,6 +55,8 @@ function change(v){
   if(v==='signup'&&choice.hidden){
    const professional=next==='/espace/professionnel';
    $('authHeading').textContent=professional?'Créez votre compte professionnel':'Créez votre compte demandeur gratuit';
+   $('authCardEyebrow').textContent=professional?'COMPTE PROFESSIONNEL':'COMPTE DEMANDEUR · GRATUIT';
+   $('authLead').textContent=professional?'Créez votre compte, confirmez votre e-mail puis vérifiez votre entreprise et votre identité avant de souscrire.':'Créez gratuitement votre compte et confirmez votre e-mail pour publier et suivre vos missions.';
    $('authCardHeading').textContent=professional?'Inscription professionnelle':'Inscription demandeur';
    $('authCardLead').textContent=professional?'Vérifiez votre e-mail, puis complétez les étapes SIRET, identité du dirigeant et abonnement. Aucun paiement à cette étape.':'Créez votre compte gratuit pour publier une mission après confirmation de votre e-mail.';
   }
@@ -173,7 +176,7 @@ $('loginForm').addEventListener('submit',async e=>{
   else if(mode==='recover')r=await db.auth.updateUser({password});
   else r=await db.auth.signInWithPassword({email,password});
   if(r.error)throw r.error;
-  if(mode==='signup')say('Consultez votre boîte e-mail et confirmez votre inscription. Votre lien vous ramènera au parcours choisi.');
+  if(mode==='signup')say('Consultez votre boîte e-mail si un message de confirmation vous est envoyé. Si vous possédez déjà un compte, utilisez « Connexion ».');
   else if(mode==='reset')say('Consultez votre boîte e-mail et ouvrez le lien sécurisé de réinitialisation. Aucun abonnement ni alerte n’est activé.');
   else if(mode==='recover'){say('Mot de passe modifié');location.replace(next);}
   else await resume(r.data?.session);
