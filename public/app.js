@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,draft:null,proStep:1,proStepUserId:null,signupForPro:false,dashboardMode:'auto',loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
@@ -395,18 +395,21 @@ function render(){
  $('homePrivateDashboard').classList.toggle('hidden',!state.loaded||!yes);
  document.querySelector('#dashboard .stats').classList.toggle('hidden',!state.loaded||!yes||!canUsePremium());
  const eligiblePro=canUsePremium(),proPending=state.profile?.role==='pro'&&!eligiblePro;
- $('roleClientView').classList.toggle('hidden',eligiblePro||proPending);
- $('rolePremiumView').classList.toggle('hidden',!eligiblePro);
- $('rolePendingView').classList.toggle('hidden',!proPending);
- document.body.dataset.offryaRole=eligiblePro?'premium':proPending?'pending':'client';
+ const hasProProfile=state.profile?.role==='pro';
+ const clientMode=hasProProfile&&state.dashboardMode==='client';
+ $('roleClientView').classList.toggle('hidden',hasProProfile&&!clientMode);
+ $('rolePremiumView').classList.toggle('hidden',!eligiblePro||clientMode);
+ $('rolePendingView').classList.toggle('hidden',!proPending||clientMode);
+ $('clientModeProNote').classList.toggle('hidden',!clientMode);
+ document.body.dataset.offryaRole=clientMode||!hasProProfile?'client':eligiblePro?'premium':'pending';
  const navMission=document.querySelector('.sidebar .nav-link[data-tab="missions"]');
  const navPro=document.querySelector('.sidebar .nav-link[data-tab="professional"]');
  const navBoamp=document.querySelector('.sidebar .nav-link[data-tab="boamp"]');
  if(navMission){const l=navMission.querySelector('span');if(l)l.textContent=eligiblePro?'Missions':'Mes missions';}
- if(navPro){navPro.dataset.action=!eligiblePro&&!proPending?'publish':'';const l=navPro.querySelector('span');if(l)l.textContent=!eligiblePro&&!proPending?'Déposer':'Espace pro';const u=navPro.querySelector('use');if(u)u.setAttribute('href',!eligiblePro&&!proPending?'#ic-plus':'#ic-shield');}
+ if(navPro){navPro.dataset.action=clientMode||!hasProProfile?'publish':'';const l=navPro.querySelector('span');if(l)l.textContent=clientMode||!hasProProfile?'Déposer':'Espace pro';const u=navPro.querySelector('use');if(u)u.setAttribute('href',clientMode||!hasProProfile?'#ic-plus':'#ic-shield');}
  if(navBoamp)navBoamp.classList.toggle('hidden',!eligiblePro);
 
- document.getElementById('roleLegacyDetails')?.classList.toggle('hidden',!proPending);
+ document.getElementById('roleLegacyDetails')?.classList.add('hidden');
  const own=state.missions.filter(m=>m.owner_id===state.session?.user?.id);
  $('roleClientMissionCount').textContent=own.length+' mission(s) publiée(s)';
  $('roleClientMessageCount').textContent=state.conversations.length+' discussion(s)';
@@ -521,3 +524,7 @@ async function init(){
   if(p.has('identity'))toast('Retour de Stripe Identity : consultez le statut de votre dossier.');
 }
 init().catch(showError);
+
+// Le choix d'affichage n'accorde aucun droit Premium et ne modifie jamais le rôle de compte.
+for(const id of ['useClientMode','useClientModePremium'])document.getElementById(id)?.addEventListener('click',()=>{state.dashboardMode='client';render();tab('dashboard');});
+document.getElementById('returnProMode')?.addEventListener('click',()=>{state.dashboardMode='auto';render();tab('dashboard');});
