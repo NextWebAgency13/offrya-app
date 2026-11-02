@@ -36,6 +36,9 @@ function renderRows(id,rows,kind){
    div.append(el('strong',item.legal_name+' · '+item.status),
      el('small','SIRET : '+item.siret+' · Identité : '+item.identity_status+' · Autorité : '+item.authority_status));
    div.append(el('p','Vérification documentaire manuelle requise : aucune approbation automatique.'));
+   if(item.manual_request_status&&item.manual_request_status!=='needs_information'&&item.manual_request_status!=='completed'&&item.manual_request_status!=='rejected'){
+    div.append(action('Demander des informations complémentaires',item.user_id,'dossier','needs_information'));
+   }
   }
   root.append(div);
  }
