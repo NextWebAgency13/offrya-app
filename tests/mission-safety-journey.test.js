@@ -63,6 +63,8 @@ test('Authentification inscription CAPTCHA facultative et sécurisée côté Sup
 });
 test('Les scripts du client et du serveur conservent une syntaxe valide',()=>{
  for(const name of ['public/app.js','public/deposer.js','public/connexion.js','public/mission-fields.mjs','public/moderation.js','lib/moderation.js','server.js']){
-  assert.doesNotThrow(()=>execFileSync(process.execPath,['--check',path.join(root,name)]),name);
+  assert.doesNotThrow(()=>execFileSync(process.execPath,name.endsWith('server.js')||name.startsWith('lib/')?['--check',path.join(root,name)]:['--input-type=module','--check'],{
+   ...(name.endsWith('server.js')||name.startsWith('lib/')?{}:{input:read(name)})
+  }),name);
  }
 });
