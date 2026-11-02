@@ -64,6 +64,13 @@ async function refresh(){
  state.loaded=true;render();
 }
 function row(m,actions=''){const status=m.status==='open'?'Ouverte':m.status==='awarded'?'Attribuée':'Clôturée';const place=[m.city,m.department].filter(Boolean).map(esc).join(' · ')||'Localisation à préciser';const summary=String(m.description||'').trim();return `<article class="data-item mission-listing" aria-label="Annonce : ${esc(m.title)}"><div class="item-top"><span class="tag mission-category">${esc(m.category||'Prestation')}</span><span class="mission-status ${m.status==='open'?'is-open':'is-closed'}">${status}</span></div><h3 class="item-title mission-listing-title">${esc(m.title)}</h3><p class="item-desc mission-listing-desc">${esc(summary.slice(0,260))}${summary.length>260?'…':''}</p><div class="meta-row mission-listing-meta"><span>⌖ ${place}</span><span>Budget : ${m.budget_cents?euro(m.budget_cents):'À définir'}</span><span>Publiée le ${date(m.created_at)}</span></div>${actions?`<div class="item-actions mission-listing-actions">${actions}</div>`:''}</article>`;}
+function renderMissionDetail(m){
+ const own=m.owner_id===state.session?.user?.id;
+ if(!own&&!canUsePremium())return '<div class="empty">Accès réservé aux professionnels vérifiés et abonnés.</div>';
+ const status=m.status==='open'?'Ouverte':m.status==='awarded'?'Attribuée':'Clôturée';
+ const controls=own?'<span class="tag">Votre annonce</span>':m.status==='open'?`<button type="button" class="button primary" data-contact="${esc(m.id)}">Contacter le demandeur</button>`:'';
+ return `<div class="mission-detail"><button type="button" class="mission-detail-back" data-back-missions>← Retour aux annonces</button><div class="mission-detail-head"><span class="tag mission-category">${esc(m.category||'Prestation')}</span><span class="mission-status ${m.status==='open'?'is-open':'is-closed'}">${status}</span></div><h3>${esc(m.title)}</h3><div class="mission-detail-meta"><span>⌖ ${esc([m.city,m.department].filter(Boolean).join(' · ')||'Localisation à préciser')}</span><span>Budget : ${m.budget_cents?euro(m.budget_cents):'À définir'}</span><span>Publiée le ${date(m.created_at)}</span></div><h4>Description de la mission</h4><p class="mission-detail-description">${esc(m.description||'Aucune description renseignée.')}</p><div class="mission-detail-actions">${controls}</div></div>`;
+}
 function renderMissions(){
  const uid=state.session?.user.id,canBrowse=canUsePremium();
  const visible=state.missions.filter(m=>m.owner_id===uid||canBrowse);
@@ -76,11 +83,13 @@ function renderMissions(){
  const publisherReady=Boolean(state.session&&!isGuest()&&state.session.user.email_confirmed_at);
  $('missionForm').classList.toggle('hidden',!publisherReady);
  $('missionAccountNotice').classList.toggle('hidden',publisherReady);
- $('missionList').innerHTML=matches.length?matches.map(m=>{
+ const detail=state.selectedMissionId?visible.find(m=>m.id===state.selectedMissionId&&(m.owner_id===uid||canBrowse)&& (m.owner_id===uid||m.status==='open')):null;
+ if(state.selectedMissionId&&!detail)state.selectedMissionId=null;
+ $('missionList').innerHTML=detail?renderMissionDetail(detail):matches.length?matches.map(m=>{
   const own=m.owner_id===uid;
   const actions=own?`<span class="tag">Votre annonce</span> ${m.status==='open'?`<button class="button secondary micro-button" data-close-mission="${esc(m.id)}">Clôturer</button>`:''}`:
    canBrowse?`<button class="button secondary micro-button" data-favorite="${esc(m.id)}" aria-pressed="${state.favorites.includes(m.id)}">${state.favorites.includes(m.id)?'★ Enregistrée':'☆ Favori'}</button> <button class="button primary micro-button" data-contact="${esc(m.id)}">Contacter le client</button>`:'';
-  return row(m,actions);
+  return row(m,`<button type="button" class="button secondary micro-button" data-view-mission="${esc(m.id)}">Voir l’annonce</button> ${actions}`);
  }).join(''):'<div class="empty">Vous n’avez pas encore publié de mission, ou aucun résultat ne correspond à vos critères. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
  const preview=canBrowse?visible:visible.filter(m=>m.owner_id===uid);
  $('dashMissions').innerHTML=preview.filter(m=>m.status==='open').slice(0,3).map(m=>row(m)).join('')||'<div class="empty">Vous n’avez pas encore publié de mission. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
@@ -482,7 +491,9 @@ $('missionForm').onsubmit=async e=>{
  finally{delete f.dataset.sending;button.disabled=false;}
 };
 $('missionList').onclick=async e=>{
- const btn=e.target.closest('[data-contact],[data-close-mission],[data-favorite]');if(!btn)return;
+ const btn=e.target.closest('[data-back-missions],[data-view-mission],[data-contact],[data-close-mission],[data-favorite]');if(!btn)return;
+ if(btn.hasAttribute('data-back-missions')){state.selectedMissionId=null;renderMissions();return;}
+ if(btn.hasAttribute('data-view-mission')){const id=btn.dataset.viewMission;const mission=state.missions.find(m=>m.id===id);if(!mission||!(mission.owner_id===state.session?.user?.id||canUsePremium()&&mission.status==='open'))return;state.selectedMissionId=id;renderMissions();$('missionList').scrollIntoView({block:'start',behavior:'smooth'});return;}
  if(btn.dataset.favorite){if(!requireAuth())return;const id=btn.dataset.favorite;try{const result=state.favorites.includes(id)?await state.db.from('offrya_favorites').delete().eq('user_id',state.session.user.id).eq('mission_id',id):await state.db.from('offrya_favorites').insert({user_id:state.session.user.id,mission_id:id});if(result.error)throw result.error;await refresh();toast(state.favorites.includes(id)?'Mission ajoutée aux favoris.':'Favori retiré.');}catch(err){showError(err);}return;}
  if(btn.dataset.closeMission){if(!confirm('Clôturer cette mission ? Elle ne sera plus visible dans les recherches, mais vos conversations resteront accessibles.'))return;try{const r=await state.db.rpc('offrya_close_mission',{p_id:btn.dataset.closeMission});if(r.error)throw r.error;await refresh();toast('Mission clôturée');}catch(err){showError(err);}return;}
  if(!requireRole('pro'))return;const mission=state.missions.find(m=>m.id===btn.dataset.contact);if(!mission)return;
