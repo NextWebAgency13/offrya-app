@@ -42,3 +42,5 @@ jobs:
           git diff --cached --quiet && { echo "Nothing to commit"; exit 1; }
           git commit -m "perf(images): héberger localement les mêmes JPEG Pexels (15 fichiers)"
           git push origin HEAD:refs/heads/"$GIT_BRANCH"
+
+# Nouvelle tentative : test du sélecteur corrigé avant intégration.
