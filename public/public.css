@@ -736,3 +736,12 @@
  .mock-home .mock-pro .mock-card-cta{min-height:54px;margin-top:20px;padding:12px 15px;font-size:13px;text-align:left}
  .mock-home .mock-pro-details{font-size:12px;margin-top:14px}
 }
+
+/* L'ordre éditorial est désormais Hero → Secteurs → Choisissez votre espace.
+   N'affecte ni les visuels des cartes ni le parcours d'inscription. */
+.mock-home .mock-hero + .mock-sectors{padding-top:40px}
+.mock-home .mock-sectors + .mock-choice{padding-top:24px}
+@media(max-width:560px){
+ .mock-home .mock-hero + .mock-sectors{padding-top:28px}
+ .mock-home .mock-sectors + .mock-choice{padding-top:20px}
+}
