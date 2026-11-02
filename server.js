@@ -8,8 +8,9 @@ const {lookupCompany,verifyProfessional}=require('./lib/company');
 const {beginIdentity,processIdentityEvent,configured:identityConfigured,identityConfigChecks}=require('./lib/identity');
 const {billingEnabled,startCheckout,verifyStripeSignature,syncSubscription,portal}=require('./lib/billing');
 const {verifyToken}=require('./lib/unsubscribe');
+const {verifyAdmin,overview,moderationAction}=require('./lib/moderation');
 const staticMap=new Map([
- ['/public.css','text/css; charset=utf-8'],['/auth.css','text/css; charset=utf-8'],['/activity.js','text/javascript; charset=utf-8'],['/deposer.js','text/javascript; charset=utf-8'],['/mission-fields.mjs','text/javascript; charset=utf-8'],['/connexion.js','text/javascript; charset=utf-8'],['/auth-feedback.mjs','text/javascript; charset=utf-8'],['/legacy-redirect.js','text/javascript; charset=utf-8'],
+ ['/public.css','text/css; charset=utf-8'],['/auth.css','text/css; charset=utf-8'],['/activity.js','text/javascript; charset=utf-8'],['/deposer.js','text/javascript; charset=utf-8'],['/mission-fields.mjs','text/javascript; charset=utf-8'],['/connexion.js','text/javascript; charset=utf-8'],['/auth-feedback.mjs','text/javascript; charset=utf-8'],['/moderation.js','text/javascript; charset=utf-8'],['/legacy-redirect.js','text/javascript; charset=utf-8'],
  ['/index.html','text/html; charset=utf-8'],['/app.js','text/javascript; charset=utf-8'],
  ['/styles.css','text/css; charset=utf-8'],['/home.css','text/css; charset=utf-8'],['/pro.css','text/css; charset=utf-8'],['/favicon.svg','image/svg+xml'],
  ['/confidentialite.html','text/html; charset=utf-8'],['/mentions-legales.html','text/html; charset=utf-8'],
@@ -33,6 +34,17 @@ async function unsubscribe(id){const url=process.env.SUPABASE_URL, key=process.e
 async function handle(req,res){
  try{const u=new URL(req.url,'http://localhost'),p=u.pathname;
   if(p==='/api/health'&&req.method==='GET')return json(res,200,{ok:true,version:'4.0.0',paymentsEnabled:billingEnabled(),emailsConfigured:Boolean(process.env.RESEND_API_KEY)});
+  if(p==='/api/moderation'&&(req.method==='GET'||req.method==='POST')){
+   if(!rateLimit(req,12))return json(res,429,{error:'Trop de requêtes de modération.'});
+   try{
+    const access=await verifyAdmin(req.headers.authorization);
+    if(!access.allowed)return json(res,access.status,{error:access.error});
+    if(req.method==='GET')return json(res,200,await overview());
+    const payload=JSON.parse(await readBody(req,850));
+    const result=await moderationAction(payload,access.adminId);
+    return json(res,result.status,result.error?{error:result.error}:{updated:true});
+   }catch(err){console.error('Modération:',err.message);return json(res,503,{error:'Modération indisponible.'});}
+  }
   if(p==='/api/company/lookup'&&req.method==='GET'){
    if(!rateLimit(req,12))return json(res,429,{error:'Trop de demandes de vérification.'});
    try{
