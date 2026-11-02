@@ -855,3 +855,13 @@
  .mock-home .mock-sector strong{font-size:13px}
  .mock-home .mock-choice-card li{font-size:13px}
 }
+
+/* Cartes de choix : les deux CTA doivent être sur une même ligne, même avec un lien Pro secondaire. */
+@media(min-width:721px){
+ .mock-home .mock-choice-grid{align-items:stretch}
+ .mock-home .mock-choice-card{display:flex;align-items:stretch}
+ .mock-home .mock-choice-content,.mock-home .mock-pro .mock-choice-content{height:auto;min-height:0;flex:1;display:flex;flex-direction:column}
+ .mock-home .mock-choice-card .mock-card-cta,.mock-home .mock-pro .mock-card-cta{margin-top:auto}
+ .mock-home .mock-client .mock-card-cta{margin-bottom:35px}
+ .mock-home .mock-pro-details{margin-top:14px;min-height:21px}
+}
