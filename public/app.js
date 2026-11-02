@@ -394,11 +394,13 @@ function render(){
  $('dashboardLoading').classList.toggle('hidden',state.loaded);
  $('homePrivateDashboard').classList.toggle('hidden',!state.loaded||!yes);
  document.querySelector('#dashboard .stats').classList.toggle('hidden',!state.loaded||!yes||!canUsePremium());
- const eligiblePro=canUsePremium(),proPending=state.profile?.role==='pro'&&!eligiblePro;
- $('roleClientView').classList.toggle('hidden',eligiblePro||proPending);
- $('rolePremiumView').classList.toggle('hidden',!eligiblePro);
- $('rolePendingView').classList.toggle('hidden',!proPending);
- document.body.dataset.offryaRole=eligiblePro?'premium':proPending?'pending':'client';
+ const eligiblePro=canUsePremium(),hasProProfile=state.profile?.role==='pro',proPending=hasProProfile&&!eligiblePro;
+ $('roleClientView').classList.toggle('hidden',Boolean(hasProProfile));
+ $('rolePremiumView').classList.toggle('hidden',!hasProProfile);
+ $('roleOnboarding').classList.toggle('hidden',!proPending);
+ document.querySelector('#rolePremiumView .role-premium-stats').classList.toggle('hidden',!eligiblePro);
+ document.querySelector('#rolePremiumView .role-pro-links').classList.toggle('hidden',!eligiblePro);
+ document.body.dataset.offryaRole=hasProProfile?'professional':'client';
  const navMission=document.querySelector('.sidebar .nav-link[data-tab="missions"]');
  const navPro=document.querySelector('.sidebar .nav-link[data-tab="professional"]');
  const navBoamp=document.querySelector('.sidebar .nav-link[data-tab="boamp"]');
@@ -411,13 +413,17 @@ function render(){
  $('roleClientMissionCount').textContent=own.length+' mission(s) publiée(s)';
  $('roleClientMessageCount').textContent=state.conversations.length+' discussion(s)';
  $('roleRecentMissions').innerHTML=own.length?own.slice(0,3).map(m=>'<button type="button" class="role-mission-row" data-tab="missions"><span class="role-mission-icon">▣</span><span><strong>'+esc(m.title)+'</strong><small>'+esc(m.city||'France')+' · '+esc(m.status==='open'?'En cours':'Clôturée')+'</small></span><b aria-hidden="true">›</b></button>').join(''):'<p class="role-empty">Aucune mission publiée. Utilisez « Déposer une mission » pour commencer.</p>';
- $('roleBusinessName').textContent=state.premium?.legal_name||'Entreprise vérifiée';
- $('rolePremiumUntil').textContent=state.subscription?.paid_through?'Actif jusqu’au '+date(state.subscription.paid_through):'Abonnement actif';
+ $('roleBusinessName').textContent=state.premium?.legal_name||'Entreprise à vérifier';
+ $('rolePremiumUntil').textContent=eligiblePro?(state.subscription?.paid_through?'Actif jusqu’au '+date(state.subscription.paid_through):'Abonnement actif'):'Accès en cours';
+ $('roleCompanyVerifiedText').textContent=eligiblePro?'✓ Compte vérifié':'Vérification en cours';
+ $('roleCompanyStep').textContent=state.premium?.siret?'SIRET enregistré — vérification en cours':'SIRET et informations officielles à vérifier';
+ $('roleIdentityStep').textContent=state.premium?.identity_status==='verified'?'Identité vérifiée':'Identité du dirigeant à confirmer';
+ $('roleBillingStep').textContent=state.subscription?.status==='active'?'Abonnement enregistré — validation en cours':'34,99 € TTC/mois après validation';
  $('roleAvailableCount').textContent=state.missions.filter(m=>m.status==='open').length;
  $('roleOwnCount').textContent=state.conversations.filter(x=>x.professional_id===state.session?.user?.id).length;
  $('roleConversationCount').textContent=state.conversations.length;
  $('roleAlertCount').textContent=state.priorityAlerts?.length||0;
- $('rolePendingSummary').textContent='Entreprise : '+(state.premium?.legal_name||'à vérifier')+' · Identité : '+(state.premium?.identity_status==='verified'?'vérifiée':'en attente')+' · Abonnement : '+(state.subscription?.status==='active'?'actif':'inactif');
+
  const bottomPro=document.querySelector('.sidebar .nav-link[data-tab="professional"]');
  if(bottomPro){bottomPro.classList.toggle('mobile-pro-replaced',eligiblePro);bottomPro.dataset.action=!eligiblePro&&!proPending?'publish':'';const label=bottomPro.querySelector('span');if(label)label.textContent=!eligiblePro&&!proPending?'Déposer':'Espace pro';const icon=bottomPro.querySelector('use');if(icon)icon.setAttribute('href',!eligiblePro&&!proPending?'#ic-plus':'#ic-shield');}
 
