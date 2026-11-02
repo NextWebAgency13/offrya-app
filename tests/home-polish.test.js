@@ -26,7 +26,7 @@ test('Maquette : huit blocs dans le bon ordre et un seul H1',()=>{
  assert.match(home,/class="mock-hero-wave"/);
  assert.match(home,/class="mock-pro-price"/);
  assert.match(home,/34,99 € TTC \/ mois/);
- assert.equal((home.match(/class="mock-sector(?: mock-sector-other)?"/g)||[]).length,7);
+ assert.equal((home.match(/class="mock-sector(?: mock-sector-other)?"/g)||[]).length,8);
  assert.doesNotMatch(home,/mock-activity|id="publicActivity"|src="\/activity\.js" defer/);
  assert.ok(home.indexOf('class="mock-hero"')<home.indexOf('class="mock-container mock-choice"'));
  assert.match(home,/Photographie d’illustration/);
