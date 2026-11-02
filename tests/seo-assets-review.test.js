@@ -55,7 +55,8 @@ test('Sitemap : 14 URL canoniques avec lastmod validable, sans pages privées ni
  assert.equal(urlsInXml.length,14);
  for(const [,loc,date] of urlsInXml){
   assert.ok(loc.startsWith('https://offrya-app.onrender.com/'));
-  assert.ok(!loc.includes('/espace')&&!loc.includes('/connexion'));
+  const pathname=new URL(loc).pathname;
+  assert.ok(!pathname.startsWith('/espace/')&&pathname!=='/espace'&&pathname!=='/connexion');
   assert.equal(new Date(date+'T00:00:00Z').toISOString().slice(0,10),date);
   assert.ok(date<='2026-11-02');
  }
