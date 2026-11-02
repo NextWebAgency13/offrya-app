@@ -54,3 +54,12 @@
 
 /* Indication facultative du budget d’une mission, sans distinction HT/TTC. */
 .field-hint{display:block;font-size:12px;line-height:1.5;color:var(--muted);font-weight:400;margin-top:7px}
+
+/* Espace privé : navigation 4 onglets pour demandeurs, 5 pour professionnels actifs. */
+@media(max-width:620px){
+ .sidebar nav{grid-template-columns:repeat(4,minmax(0,1fr));}
+ .sidebar nav:has(.nav-link[data-tab="boamp"]:not(.hidden)){grid-template-columns:repeat(5,minmax(0,1fr));}
+ .sidebar .nav-link{min-width:0;padding-inline:1px}
+ .sidebar .nav-link span{font-size:clamp(8px,2.3vw,10px);white-space:normal;text-align:center;overflow-wrap:anywhere}
+ .sidebar{height:calc(74px + env(safe-area-inset-bottom,0px));padding-bottom:calc(5px + env(safe-area-inset-bottom,0px))}
+}
