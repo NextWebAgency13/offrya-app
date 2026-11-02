@@ -9,7 +9,7 @@ before(async()=>{
 test('Supabase signale explicitement un e-mail déjà enregistré',()=>{
  for(const code of ['user_already_exists','email_exists','email_already_exists','identity_already_exists']){
   const result=authFeedback({code},'signup');
-  assert.match(result,/adresse e-mail est déjà associée à un compte/i);
+  assert.match(result,/si vous avez déjà un compte offrya/i);
   assert.match(result,/Connexion/);
   assert.match(result,/Mot de passe oublié/);
  }
