@@ -399,6 +399,13 @@ function render(){
  $('rolePremiumView').classList.toggle('hidden',!eligiblePro);
  $('rolePendingView').classList.toggle('hidden',!proPending);
  document.body.dataset.offryaRole=eligiblePro?'premium':proPending?'pending':'client';
+ const navMission=document.querySelector('.sidebar .nav-link[data-tab="missions"]');
+ const navPro=document.querySelector('.sidebar .nav-link[data-tab="professional"]');
+ const navBoamp=document.querySelector('.sidebar .nav-link[data-tab="boamp"]');
+ if(navMission){const l=navMission.querySelector('span');if(l)l.textContent=eligiblePro?'Missions':'Mes missions';}
+ if(navPro){navPro.dataset.action=!eligiblePro&&!proPending?'publish':'';const l=navPro.querySelector('span');if(l)l.textContent=!eligiblePro&&!proPending?'Déposer':'Espace pro';const u=navPro.querySelector('use');if(u)u.setAttribute('href',!eligiblePro&&!proPending?'#ic-plus':'#ic-shield');}
+ if(navBoamp)navBoamp.classList.toggle('hidden',!eligiblePro);
+
  document.getElementById('roleLegacyDetails')?.classList.toggle('hidden',!proPending);
  const own=state.missions.filter(m=>m.owner_id===state.session?.user?.id);
  $('roleClientMissionCount').textContent=own.length+' mission(s) publiée(s)';
@@ -407,7 +414,7 @@ function render(){
  $('roleBusinessName').textContent=state.premium?.legal_name||'Entreprise vérifiée';
  $('rolePremiumUntil').textContent=state.subscription?.paid_through?'Actif jusqu’au '+date(state.subscription.paid_through):'Abonnement actif';
  $('roleAvailableCount').textContent=state.missions.filter(m=>m.status==='open').length;
- $('roleOwnCount').textContent=own.length;
+ $('roleOwnCount').textContent=state.conversations.filter(x=>x.professional_id===state.session?.user?.id).length;
  $('roleConversationCount').textContent=state.conversations.length;
  $('roleAlertCount').textContent=state.priorityAlerts?.length||0;
  $('rolePendingSummary').textContent='Entreprise : '+(state.premium?.legal_name||'à vérifier')+' · Identité : '+(state.premium?.identity_status==='verified'?'vérifiée':'en attente')+' · Abonnement : '+(state.subscription?.status==='active'?'actif':'inactif');
