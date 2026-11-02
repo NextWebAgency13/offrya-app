@@ -114,12 +114,21 @@ function renderMissions(){
 function renderInbox(){
  const items=state.conversations;
  $('conversationList').innerHTML=items.length?items.map(c=>`<button class="conv-item ${state.thread===c.id?'selected':''}" data-thread="${esc(c.id)}">${esc(titleForMission(c.mission_id))}<small>${esc(profileName(c.client_id===state.session?.user.id?c.professional_id:c.client_id))} · ${date(c.created_at)}</small></button>`).join(''):'<div class="empty">Aucune conversation. <a href="/espace/missions">Consulter mes missions</a>.</div>';
- $('messageForm').querySelector('button').disabled=!state.thread;
+ const thread=items.find(c=>c.id===state.thread),other=thread?(thread.client_id===state.session?.user.id?thread.professional_id:thread.client_id):null;
+ const blocked=Boolean(other&&state.blocks.includes(other));
+ $('messageForm').querySelector('button').disabled=!state.thread||blocked;
+ $('blockStatus').textContent=blocked?'Vous avez bloqué ce contact. Les anciens messages restent consultables.':'';
+ $('reportContact').disabled=!other;
+ $('blockContact').disabled=!other;
+ $('blockContact').textContent=blocked?'Débloquer ce contact':'Bloquer ce contact';
+ const mission=thread&&state.missions.find(m=>m.id===thread.mission_id);
+ $('awardThread').hidden=!(mission&&mission.owner_id===state.session?.user.id&&mission.status==='open'&&mission.expires_at&&new Date(mission.expires_at)>new Date());
+ $('finishThread').hidden=!(mission&&mission.owner_id===state.session?.user.id&&mission.status==='awarded');
  $('threadTitle').textContent=state.thread?titleForMission(items.find(x=>x.id===state.thread)?.mission_id):'Sélectionnez une discussion';
  if(state.thread)renderMessages();else $('messageList').innerHTML='<div class="empty">Choisissez une discussion.</div>';
 }
 function renderMessages(){
- $('messageList').innerHTML=state.messages.length?state.messages.map(m=>`<div class="bubble ${m.sender_id===state.session?.user.id?'mine':''}">${esc(m.body)}<time>${date(m.created_at)} · ${new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time></div>`).join(''):'<div class="empty">Commencez la conversation.</div>';
+ $('messageList').innerHTML=state.messages.length?state.messages.map(m=>`<div class="bubble ${m.sender_id===state.session?.user.id?'mine':''}">${esc(m.body)}<time>${date(m.created_at)} · ${new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time><button type="button" class="button secondary micro-button" data-report-message="${esc(m.id)}">Signaler</button></div>`).join(''):'<div class="empty">Commencez la conversation.</div>';
  $('messageList').scrollTop=$('messageList').scrollHeight;
 }
 function renderSettings(){
@@ -474,8 +483,58 @@ $('missionForm').onsubmit=async e=>{
  }catch(err){showError(err);}
  finally{delete f.dataset.sending;button.disabled=false;}
 };
+function openReport(type,id){
+ if(!['mission','message','profile'].includes(type)||!/^[a-f0-9-]{36}$/i.test(id))return;
+ state.reportTarget={type,id};
+ $('reportForm').reset();$('reportStatus').textContent='';$('reportDialog').showModal();
+}
+$('cancelReport').onclick=()=>$('reportDialog').close();
+$('reportForm').onsubmit=async e=>{
+ e.preventDefault();if(!requireAuth()||!state.reportTarget)return;
+ const payload={reporter_id:state.session.user.id,target_type:state.reportTarget.type,target_id:state.reportTarget.id,
+  reason:e.currentTarget.elements.reason.value,details:e.currentTarget.elements.details.value.trim().slice(0,1000)};
+ const r=await state.db.from('offrya_reports').insert(payload);
+ if(r.error){$('reportStatus').textContent='Impossible de transmettre le signalement : '+r.error.message;return;}
+ $('reportDialog').close();state.reportTarget=null;toast('Signalement transmis à la modération.');
+};
+$('reportContact').onclick=()=>{
+ const c=state.conversations.find(x=>x.id===state.thread);
+ if(!c)return;const other=c.client_id===state.session.user.id?c.professional_id:c.client_id;
+ openReport('profile',other);
+};
+$('blockContact').onclick=async()=>{
+ const c=state.conversations.find(x=>x.id===state.thread);if(!c||!requireAuth())return;
+ const other=c.client_id===state.session.user.id?c.professional_id:c.client_id;
+ const blocked=state.blocks.includes(other);
+ if(!blocked&&!confirm('Bloquer ce contact ? Aucun nouveau message ne pourra être envoyé dans cette conversation.'))return;
+ const query=state.db.from('offrya_contact_blocks');
+ const r=blocked?await query.delete().eq('blocker_id',state.session.user.id).eq('blocked_id',other)
+  :await query.insert({blocker_id:state.session.user.id,blocked_id:other});
+ if(r.error)return showError(r.error);
+ await refresh();toast(blocked?'Contact débloqué.':'Contact bloqué.');
+};
+$('awardThread').onclick=async()=>{
+ const c=state.conversations.find(x=>x.id===state.thread);if(!c||!requireAuth())return;
+ const m=state.missions.find(x=>x.id===c.mission_id);
+ if(!m||m.owner_id!==state.session.user.id||m.status!=='open')return;
+ if(!confirm('Choisir ce professionnel pour la mission ? Elle ne sera plus ouverte aux autres professionnels.'))return;
+ const r=await state.db.rpc('offrya_award_mission',{p_mission:m.id,p_professional:c.professional_id});
+ if(r.error)return showError(r.error);
+ await refresh();toast('Mission pourvue : professionnel sélectionné.');
+};
+$('finishThread').onclick=async()=>{
+ const c=state.conversations.find(x=>x.id===state.thread);
+ const m=state.missions.find(x=>x.id===c?.mission_id);
+ if(!m||m.owner_id!==state.session?.user.id||m.status!=='awarded')return;
+ if(!confirm('Confirmer la fin de la mission pourvue ?'))return;
+ const r=await state.db.rpc('offrya_finish_mission',{p_mission:m.id});
+ if(r.error)return showError(r.error);
+ await refresh();toast('Mission clôturée.');
+};
+$('messageList').onclick=e=>{const button=e.target.closest('[data-report-message]');if(button)openReport('message',button.dataset.reportMessage);};
 $('missionList').onclick=async e=>{
- const btn=e.target.closest('[data-contact],[data-close-mission],[data-favorite]');if(!btn)return;
+ const btn=e.target.closest('[data-contact],[data-close-mission],[data-favorite],[data-report-mission]');if(!btn)return;
+ if(btn.dataset.reportMission){openReport('mission',btn.dataset.reportMission);return;}
  if(btn.dataset.favorite){if(!requireAuth())return;const id=btn.dataset.favorite;try{const result=state.favorites.includes(id)?await state.db.from('offrya_favorites').delete().eq('user_id',state.session.user.id).eq('mission_id',id):await state.db.from('offrya_favorites').insert({user_id:state.session.user.id,mission_id:id});if(result.error)throw result.error;await refresh();toast(state.favorites.includes(id)?'Mission ajoutée aux favoris.':'Favori retiré.');}catch(err){showError(err);}return;}
  if(btn.dataset.closeMission){if(!confirm('Clôturer cette mission ? Elle ne sera plus visible dans les recherches, mais vos conversations resteront accessibles.'))return;try{const r=await state.db.rpc('offrya_close_mission',{p_id:btn.dataset.closeMission});if(r.error)throw r.error;await refresh();toast('Mission clôturée');}catch(err){showError(err);}return;}
  if(!requireRole('pro'))return;const mission=state.missions.find(m=>m.id===btn.dataset.contact);if(!mission)return;
