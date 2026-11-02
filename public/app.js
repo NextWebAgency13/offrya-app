@@ -411,7 +411,7 @@ function render(){
  $('roleAlertCount').textContent=state.priorityAlerts?.length||0;
  $('rolePendingSummary').textContent='Entreprise : '+(state.premium?.legal_name||'à vérifier')+' · Identité : '+(state.premium?.identity_status==='verified'?'vérifiée':'en attente')+' · Abonnement : '+(state.subscription?.status==='active'?'actif':'inactif');
  const bottomPro=document.querySelector('.sidebar .nav-link[data-tab="professional"]');
- if(bottomPro){bottomPro.classList.toggle('mobile-pro-replaced',eligiblePro);bottomPro.classList.toggle('mobile-publish-entry',!eligiblePro);}
+ if(bottomPro){bottomPro.classList.toggle('mobile-pro-replaced',eligiblePro);bottomPro.dataset.action=!eligiblePro&&!proPending?'publish':'';const label=bottomPro.querySelector('span');if(label)label.textContent=!eligiblePro&&!proPending?'Déposer':'Espace pro';const icon=bottomPro.querySelector('use');if(icon)icon.setAttribute('href',!eligiblePro&&!proPending?'#ic-plus':'#ic-shield');}
 
  const banner=$('proVerificationBanner');const pro=state.profile?.role==='pro';
  banner.classList.toggle('hidden',!pro);
