@@ -14,7 +14,11 @@ const premiumSql=read('sql/legal_representative_only.sql');
 test('Publication : inscription et e-mail confirmé AVANT d’afficher le formulaire',()=>{
  assert.match(form,/id="accountGate"/);
  assert.match(form,/id="publishArea" hidden/);
- assert.match(form,/id="missionForm"/);
+ assert.doesNotMatch(form,/<form id="missionForm"/);
+ assert.match(submit,/const publicationFormHtml=/);
+ assert.match(submit,/area\.innerHTML=publicationFormHtml/);
+ assert.match(submit,/initCommunePicker\(form\)/);
+ assert.match(submit,/form\.addEventListener\('submit',submitMission\)/);
  assert.match(form,/href="\/connexion\?mode=signup&amp;next=%2Fdeposer-une-mission"/);
  assert.match(form,/href="\/connexion\?next=%2Fdeposer-une-mission"/);
  assert.match(submit,/auth\.getUser\(\)/);
