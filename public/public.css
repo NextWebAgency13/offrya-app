@@ -720,3 +720,19 @@
 .mock-home .mock-top nav{justify-content:space-between}
 .mock-home .mock-top .public-nav-actions{margin-left:auto}
 .mock-home .mock-top .header-signin{white-space:nowrap}
+
+
+/* CTA OFFRYA Professionnel : afficher l'inscription complète sur tout écran.
+   Évite qu'une hauteur à 100 % pousse le bouton hors de la carte mobile. */
+.mock-home .mock-pro{height:auto;min-height:310px}
+.mock-home .mock-pro .mock-choice-content{height:auto;min-height:0}
+.mock-home .mock-pro .mock-card-cta{margin-top:16px;box-sizing:border-box;width:100%;flex-shrink:0;min-height:48px;gap:12px}
+.mock-home .mock-pro-signup span{flex-shrink:0}
+.mock-home .mock-pro-details{display:inline-block;align-self:flex-start;color:#f0e5ff;font-size:12px;font-weight:700;line-height:1.5;margin-top:11px;text-decoration:underline;text-underline-offset:3px}
+.mock-home .mock-pro .mock-card-cta:focus-visible,.mock-home .mock-pro-details:focus-visible{outline:3px solid #ffcb83;outline-offset:3px}
+@media(max-width:560px){
+ .mock-home .mock-pro{height:auto;min-height:0;overflow:hidden;padding-bottom:20px}
+ .mock-home .mock-pro .mock-choice-content{height:auto;min-height:0;display:flex;flex-direction:column}
+ .mock-home .mock-pro .mock-card-cta{min-height:54px;margin-top:20px;padding:12px 15px;font-size:13px;text-align:left}
+ .mock-home .mock-pro-details{font-size:12px;margin-top:14px}
+}

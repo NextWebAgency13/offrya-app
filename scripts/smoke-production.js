@@ -93,6 +93,29 @@ async function run(){
  assert.ok(designVisible,'Render ne présente pas encore le design photographique approuvé');
  console.log('PASS: maquette OFFRYA desktop/mobile fidèle servie sur Render');
 
+ // Bouton professionnel explicitement demandé : confirmer le HTML réellement
+ // livré par Render, sa destination d'inscription et l'affichage responsive.
+ let proSignupVisible=false;
+ for(let attempt=0;attempt<16;attempt++){
+  const [landing,styles,auth]=await Promise.all([
+   request('/',{headers:{'Cache-Control':'no-cache'}}),
+   request('/public.css',{headers:{'Cache-Control':'no-cache'}}),
+   request('/connexion?mode=signup&next=%2Fespace%2Fprofessionnel',{headers:{'Cache-Control':'no-cache'}})
+  ]);
+  const proCard=landing.text.match(/<article class="mock-choice-card mock-pro">([\s\S]*?)<\/article>/)?.[1]||'';
+  proSignupVisible=landing.status===200&&styles.status===200&&auth.status===200
+   &&proCard.includes('href="/connexion?mode=signup&amp;next=%2Fespace%2Fprofessionnel">Créer un compte professionnel')
+   &&proCard.includes('href="/professionnels">Découvrir l’offre OFFRYA Professionnel')
+   &&styles.text.includes('.mock-home .mock-pro .mock-card-cta{margin-top:16px;')
+   &&styles.text.includes('.mock-home .mock-pro .mock-card-cta{min-height:54px;')
+   &&auth.text.includes('data-signup-type="pro"');
+  if(proSignupVisible)break;
+  if(attempt<15)await new Promise(resolve=>setTimeout(resolve,12000));
+ }
+ assert.ok(proSignupVisible,'Bouton création compte pro absent du site Render, ou styles mobiles non déployés');
+ console.log('PASS: bouton Créer un compte professionnel présent sur Render, avec styles mobiles et route Pro');
+
+
  // Vérifie les six photos précisément dans la feuille de style servie par Render.
  // Les liens de catégories et le contrôle de paiement sont testés séparément.
  const sectorStyles=await request('/public.css',{headers:{'Cache-Control':'no-cache'}});
