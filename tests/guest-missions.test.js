@@ -15,7 +15,7 @@ test('Publication : inscription et e-mail confirmé AVANT d’afficher le formul
  assert.match(form,/id="accountGate"/);
  assert.match(form,/id="publishArea" hidden/);
  assert.match(form,/id="missionForm"/);
- assert.match(form,/href="\/connexion\?mode=signup&amp;next=%2Fdeposer-une-mission"/);
+ assert.match(form,/href="\/connexion\?mode=signup&amp;role=client&amp;next=%2Fespace"/);
  assert.match(form,/href="\/connexion\?next=%2Fdeposer-une-mission"/);
  assert.match(submit,/auth\.getUser\(\)/);
  assert.match(submit,/email_confirmed_at/);
@@ -25,7 +25,7 @@ test('Publication : inscription et e-mail confirmé AVANT d’afficher le formul
  assert.doesNotMatch(submit,/signInAnonymously|followupOptIn|auth\.updateUser\(\{email:|turnstile/i);
  assert.doesNotMatch(form,/followupOptIn|guestCaptcha|session invitée/i);
 });
-test('Connexion : retour sûr au dépôt après inscription ou confirmation par e-mail',()=>{
+test('Connexion : retour sûr à l’espace demandeur après inscription',()=>{
  assert.match(login,/value==='\/deposer-une-mission'/);
  assert.match(login,/query\.get\('mode'\)==='signup'/);
  assert.match(login,/if\(mode==='signup'\).*emailRedirectTo:location\.origin\+'\/connexion\?confirmation=1&next='/);

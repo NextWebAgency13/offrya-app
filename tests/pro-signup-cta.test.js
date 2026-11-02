@@ -21,7 +21,7 @@ test('Redirection : inscription Pro pré-sélectionnée sans supprimer la vérif
  assert.match(auth,/query\.get\('mode'\)==='signup'\)change\('signup'\)/);
  assert.match(auth,/next==='\/espace\/professionnel'\?'pro':'client'/);
  assert.match(auth,/email_confirmed_at/);
- assert.match(html,/href="\/connexion\?mode=signup&amp;next=%2Fdeposer-une-mission"/);
+ assert.match(html,/href="\/connexion\?mode=signup&amp;role=client&amp;next=%2Fespace"/);
 });
 test('Carte Pro : le bouton reste visible sur smartphone même lorsque la liste grandit',()=>{
  assert.match(css,/\.mock-home \.mock-pro\{height:auto;min-height:310px\}/);
