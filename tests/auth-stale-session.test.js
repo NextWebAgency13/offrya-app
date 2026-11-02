@@ -37,6 +37,14 @@ async function loadAuthPage({
  dom.authHeading={textContent:'Connexion à votre espace'};
  dom.passwordRow={hidden:false,querySelector(){return fields.password;}};
  dom.emailRow={hidden:false,querySelector(){return fields.email;}};
+ dom.resetLinkWrap={hidden:true};
+ dom.authTabs={hidden:false};
+ dom.authBack={hidden:true};
+ dom.authLead={textContent:''};
+ dom.authCardHeading={textContent:''};
+ dom.authCardLead={textContent:''};
+ dom.authCardEyebrow={textContent:''};
+ dom.authModeFootnote={textContent:''};
  let authCallback;
  const auth={
   onAuthStateChange(cb){authCallback=cb;return{data:{subscription:{unsubscribe(){}}}};},
@@ -88,7 +96,7 @@ test('Une session d’un utilisateur supprimé n’ouvre pas le formulaire de pu
  assert.deepEqual(page.redirects,[]);
  assert.equal(page.signOutCalls.length,1);
  assert.equal(page.signOutCalls[0].scope,'local');
- assert.equal(page.dom.authHeading.textContent,'Créer mon compte gratuit');
+ assert.equal(page.dom.authHeading.textContent,'Créez votre compte gratuit');
  assert.match(page.dom.loginStatus.textContent,/ancienne session|compte a été supprimé/);
 });
 test('Après la suppression du compte, un clic Créer mon compte gratuit fonctionne',async()=>{
@@ -141,7 +149,7 @@ test('Une session absente affiche l’inscription sans créer un invité',async(
  const page=await loadAuthPage({session:null,user:null});
  assert.deepEqual(page.redirects,[]);
  assert.equal(page.signOutCalls.length,0);
- assert.equal(page.dom.authHeading.textContent,'Créer mon compte gratuit');
+ assert.equal(page.dom.authHeading.textContent,'Créez votre compte gratuit');
 });
 
 test('Confirmation e-mail : la session valide est reprise avant retour à l’accueil public',async()=>{
@@ -174,11 +182,13 @@ test('Connexion classique : la destination demandée reste la page privée',asyn
  assert.deepEqual(page.redirects,['/espace/missions']);
 });
 
-test('Interface de connexion : trois onglets, aucun lien magique de connexion',()=>{
+test('Interface de connexion : deux onglets et récupération secondaire, sans lien magique',()=>{
  const html=fs.readFileSync(path.join(__dirname,'../public/connexion.html'),'utf8');
  const tabs=[...html.matchAll(/<button type="button" data-mode="([^"]+)"[^>]*>([^<]+)<\/button>/g)];
- assert.deepEqual(tabs.map(t=>t[1]),['login','signup','reset']);
- assert.deepEqual(tabs.map(t=>t[2]),['Connexion','Inscription','Mot de passe oublié']);
+ assert.deepEqual(tabs.map(t=>t[1]),['login','signup']);
+ assert.deepEqual(tabs.map(t=>t[2]),['Connexion','Créer un compte']);
+ assert.match(html,/class="auth-text-button" data-mode="reset">Mot de passe oublié \?<\/button>/);
+ assert.match(html,/id="authBack"[^>]* data-mode="login" hidden/);
  assert.doesNotMatch(html,/Lien e-mail|data-mode="magic"/);
  assert.doesNotMatch(source,/signInWithOtp|mode==='magic'|magic:'Envoyer un lien'/);
  assert.match(source,/signUp\(/);
@@ -217,4 +227,43 @@ test('Confirmation e-mail : type demandeur dans les métadonnées dirige vers le
   url:'?confirmation=1'
  });
  assert.deepEqual(page.redirects,['/deposer-une-mission']);
+});
+
+test('Inscription : le lien « Mot de passe oublié » est masqué et le mot de passe reste obligatoire',async()=>{
+ const page=await loadAuthPage({url:'?mode=signup&next=%2Fdeposer-une-mission'});
+ assert.equal(page.dom.resetLinkWrap.hidden,true);
+ assert.equal(page.dom.authTabs.hidden,false);
+ assert.equal(page.dom.authBack.hidden,true);
+ assert.equal(page.dom.passwordRow.hidden,false);
+ assert.equal(page.dom.emailRow.hidden,false);
+ assert.equal(page.dom.loginSubmit.textContent,'Créer mon compte');
+ assert.equal(page.dom.authCardEyebrow.textContent,'INSCRIPTION GRATUITE');
+ assert.equal(page.dom.authCardLead.textContent,'Sélectionnez votre type de compte, puis renseignez vos identifiants.');
+ assert.deepEqual(page.redirects,[]);
+});
+test('Connexion : récupération accessible uniquement depuis ce parcours',async()=>{
+ const page=await loadAuthPage({url:'?next=%2Fdeposer-une-mission'});
+ assert.equal(page.dom.resetLinkWrap.hidden,false);
+ assert.equal(page.dom.authTabs.hidden,false);
+ assert.equal(page.dom.authCardEyebrow.textContent,'CONNEXION');
+ assert.equal(page.dom.loginSubmit.textContent,'Se connecter');
+});
+test('Demande de réinitialisation : e-mail seul et retour vers la connexion',async()=>{
+ const page=await loadAuthPage({url:'?mode=reset&next=%2Fdeposer-une-mission'});
+ assert.equal(page.dom.resetLinkWrap.hidden,true);
+ assert.equal(page.dom.authTabs.hidden,true);
+ assert.equal(page.dom.authBack.hidden,false);
+ assert.equal(page.dom.emailRow.hidden,false);
+ assert.equal(page.dom.passwordRow.hidden,true);
+ assert.equal(page.dom.loginSubmit.textContent,'Recevoir le lien de réinitialisation');
+ assert.equal(page.dom.authCardEyebrow.textContent,'RÉCUPÉRATION DU COMPTE');
+});
+test('Après un lien de récupération : pas de demande d’adresse e-mail, mot de passe seul',async()=>{
+ const page=await loadAuthPage({url:'?mode=reset-password&next=%2Fespace'});
+ assert.equal(page.dom.resetLinkWrap.hidden,true);
+ assert.equal(page.dom.authTabs.hidden,true);
+ assert.equal(page.dom.authBack.hidden,false);
+ assert.equal(page.dom.emailRow.hidden,true);
+ assert.equal(page.dom.passwordRow.hidden,false);
+ assert.equal(page.dom.loginSubmit.textContent,'Enregistrer le mot de passe');
 });

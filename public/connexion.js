@@ -9,12 +9,43 @@ const linkHash=new URLSearchParams((location.hash||'').replace(/^#/,''));
 const confirmationReturn=query.get('confirmation')==='1'||query.get('type')==='signup'||linkHash.get('type')==='signup';
 let db,mode='login',redirected=false,verificationQueue=Promise.resolve();
 const invalidatedSessionIds=new Set();
-const labels={login:'Se connecter',signup:'Créer un compte',reset:'Envoyer la réinitialisation',recover:'Enregistrer le mot de passe'};
-const titles={login:'Connexion à votre espace',signup:'Créer mon compte gratuit',reset:'Réinitialiser mon mot de passe',recover:'Choisir un nouveau mot de passe'};
+const labels={login:'Se connecter',signup:'Créer mon compte',reset:'Recevoir le lien de réinitialisation',recover:'Enregistrer le mot de passe'};
+const titles={login:'Connectez-vous à votre espace',signup:'Créez votre compte gratuit',reset:'Mot de passe oublié ?',recover:'Choisissez un nouveau mot de passe'};
+const descriptions={
+ login:'Connectez-vous avec votre adresse e-mail pour continuer vers votre espace.',
+ signup:'Créez votre compte gratuitement et confirmez votre e-mail avant de publier une mission.',
+ reset:'Indiquez votre adresse e-mail pour recevoir un lien sécurisé de réinitialisation.',
+ recover:'Définissez votre nouveau mot de passe pour retrouver votre espace.'
+};
+const cardTitles={login:'Bienvenue sur OFFRYA',signup:'Créons votre compte',reset:'Recevoir un lien sécurisé',recover:'Votre nouveau mot de passe'};
+const cardEyebrows={login:'CONNEXION',signup:'INSCRIPTION GRATUITE',reset:'RÉCUPÉRATION DU COMPTE',recover:'SÉCURISER VOTRE COMPTE'};
+const cardDescriptions={
+ login:'Saisissez vos identifiants pour poursuivre.',
+ signup:'Sélectionnez votre type de compte, puis renseignez vos identifiants.',
+ reset:'Seule votre adresse e-mail est nécessaire. Aucun mot de passe ne vous sera demandé.',
+ recover:'Choisissez un mot de passe d’au moins huit caractères.'
+};
 function say(s,error=false){$('loginStatus').textContent=s;$('loginStatus').style.color=error?'#ab294d':'#4e318a';}
 function change(v){
- mode=v;for(const b of document.querySelectorAll('[data-mode]'))b.setAttribute('aria-pressed',String(b.dataset.mode===v));
- $('loginSubmit').textContent=labels[v];$('authHeading').textContent=titles[v];
+ if(!Object.prototype.hasOwnProperty.call(labels,v))return;
+ mode=v;
+ for(const button of document.querySelectorAll('[data-mode]')){
+  if(button.hasAttribute?.('aria-pressed'))button.setAttribute('aria-pressed',String(button.dataset.mode===v));
+ }
+ $('loginSubmit').textContent=labels[v];
+ $('authHeading').textContent=titles[v];
+ if($('authLead'))$('authLead').textContent=descriptions[v];
+ if($('authCardHeading'))$('authCardHeading').textContent=cardTitles[v];
+ if($('authCardLead'))$('authCardLead').textContent=cardDescriptions[v];
+ if($('authCardEyebrow'))$('authCardEyebrow').textContent=cardEyebrows[v];
+ if($('authTabs'))$('authTabs').hidden=v==='reset'||v==='recover';
+ if($('authBack'))$('authBack').hidden=v==='login'||v==='signup';
+ if($('resetLinkWrap'))$('resetLinkWrap').hidden=v!=='login';
+ if($('authModeFootnote'))$('authModeFootnote').textContent=
+  v==='signup'?'Inscription gratuite. L’abonnement professionnel est proposé uniquement après vérification.':
+  v==='reset'?'Si un compte est associé à cette adresse, consultez votre boîte e-mail.':
+  v==='recover'?'Après modification, vous pourrez revenir à votre espace.':
+  'Connexion sécurisée. Aucun paiement n’est déclenché ici.';
  const choice=$('accountTypeChoice');
  if(choice){
   choice.hidden=v!=='signup';
@@ -25,10 +56,15 @@ function change(v){
   }
  }
  const ps=$('passwordRow'),em=$('emailRow');
- ps.hidden=v==='reset';ps.querySelector('input').required=!ps.hidden;ps.querySelector('input').autocomplete=v==='login'?'current-password':'new-password';
- em.hidden=v==='recover';em.querySelector('input').required=!em.hidden;
+ ps.hidden=v==='reset';
+ ps.querySelector('input').required=!ps.hidden;
+ ps.querySelector('input').autocomplete=v==='login'?'current-password':'new-password';
+ em.hidden=v==='recover';
+ em.querySelector('input').required=!em.hidden;
+ // Le masque CSS [hidden] est prioritaire à la grille des formulaires.
+ if($('loginStatus'))say('');
 }
-for(const b of document.querySelectorAll('[data-mode]'))b.addEventListener('click',()=>change(b.dataset.mode));
+for(const button of document.querySelectorAll('[data-mode]'))button.addEventListener('click',()=>change(button.dataset.mode));
 function invalidSessionError(error){
  const code=String(error?.code||'').toLowerCase();
  const message=String(error?.message||'').toLowerCase();
@@ -82,9 +118,15 @@ function resume(session){
  return work;
 }
 async function init(){
+ // Initialiser l’interface AVANT tout appel réseau : aucun affichage furtif
+ // du lien de récupération en inscription ou des champs d’un autre mode.
+ change('login');
  if(query.get('mode')==='reset-password')change('recover');
+ else if(query.get('mode')==='reset')change('reset');
  else if(confirmationReturn){
   $('authHeading').textContent='Confirmation de votre inscription';
+  if($('authLead'))$('authLead').textContent='Nous vérifions votre lien avant de poursuivre vers votre espace.';
+  if($('authCardLead'))$('authCardLead').textContent='Votre confirmation est en cours de vérification.';
   say('Vérification du lien de confirmation…');
  }
  else if(query.get('mode')==='signup')change('signup');
