@@ -54,3 +54,12 @@
 
 /* Indication facultative du budget d’une mission, sans distinction HT/TTC. */
 .field-hint{display:block;font-size:12px;line-height:1.5;color:var(--muted);font-weight:400;margin-top:7px}
+
+
+/* OFFRYA : recherche de commune et sécurité du parcours de publication. */
+.commune-results:not([hidden]){display:flex;flex-direction:column;gap:4px;padding:6px;background:#fff;border:1px solid #c9b7e9;border-radius:10px;max-height:220px;overflow:auto;box-shadow:0 8px 24px #331b551c;z-index:2}
+.commune-option{display:block;width:100%;border:0;border-radius:8px;padding:10px 12px;text-align:left;color:#2b1c43;background:#f6f2fd;cursor:pointer;font-size:14px}
+.commune-option:hover,.commune-option:focus-visible{background:#e4d9fa;outline:2px solid #6941d7}
+.commune-results p{margin:7px;font-size:13px;color:#643b85}
+input[readonly][name="department"]{background:#f1eef5;color:#554764}
+.safety-advice{background:#f9f4ff;border-left:4px solid #6941d7;padding:12px 15px;border-radius:9px;color:#3b2855;line-height:1.5}
