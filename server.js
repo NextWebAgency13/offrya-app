@@ -91,7 +91,7 @@ async function handle(req,res){
     return json(res,200,{received:true});
    }catch(e){console.error('Identity webhook:',e.message);return json(res,503,{error:'Traitement de vérification indisponible.'});}
   }
-  if(p==='/api/config'&&req.method==='GET')return json(res,200,{identityEnabled:identityConfigured(),supabaseUrl:process.env.SUPABASE_URL||null,supabaseKey:process.env.SUPABASE_PUBLISHABLE_KEY||null,paymentsEnabled:billingEnabled(),billingEnabled:billingEnabled(),premiumPriceEuros:34.99,guestCaptchaSiteKey:process.env.OFFRYA_TURNSTILE_SITE_KEY||null});
+  if(p==='/api/config'&&req.method==='GET')return json(res,200,{identityEnabled:identityConfigured(),supabaseUrl:process.env.SUPABASE_URL||null,supabaseKey:process.env.SUPABASE_PUBLISHABLE_KEY||null,paymentsEnabled:billingEnabled(),billingEnabled:billingEnabled(),premiumPriceEuros:34.99,guestCaptchaSiteKey:process.env.OFFRYA_TURNSTILE_SITE_KEY||null,signupCaptchaEnabled:process.env.OFFRYA_SIGNUP_CAPTCHA_ENABLED==='true',signupCaptchaSiteKey:process.env.OFFRYA_SIGNUP_CAPTCHA_ENABLED==='true'?(process.env.OFFRYA_TURNSTILE_SITE_KEY||null):null});
   if(p==='/api/billing/checkout'&&req.method==='POST'){
    if(!rateLimit(req,5))return json(res,429,{error:'Trop de tentatives.'});
    if(!billingEnabled())return json(res,503,{error:'Paiements OFFRYA non configurés.'});
