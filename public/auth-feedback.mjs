@@ -7,7 +7,7 @@ export function authFeedback(error, operation = 'login') {
   const duplicate = /^(user_already_exists|email_exists|email_already_exists|identity_already_exists)$/.test(code)
     || /(?:email|user) already (?:registered|exists)/.test(message);
   if (operation === 'signup' && duplicate) {
-    return 'Cette adresse e-mail est déjà associée à un compte. Utilisez « Connexion » ou « Mot de passe oublié ».';
+    return 'Si vous avez déjà un compte OFFRYA, utilisez « Connexion » ou « Mot de passe oublié ». Sinon, vérifiez votre boîte e-mail.';
   }
   if (code === 'email_not_confirmed') {
     return 'Votre adresse e-mail n’est pas encore confirmée. Vérifiez votre boîte de réception et vos courriers indésirables.';
