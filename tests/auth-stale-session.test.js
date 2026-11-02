@@ -37,6 +37,14 @@ async function loadAuthPage({
  dom.authHeading={textContent:'Connexion à votre espace'};
  dom.passwordRow={hidden:false,querySelector(){return fields.password;}};
  dom.emailRow={hidden:false,querySelector(){return fields.email;}};
+ dom.resetLinkWrap={hidden:true};
+ dom.authTabs={hidden:false};
+ dom.authBack={hidden:true};
+ dom.authLead={textContent:''};
+ dom.authCardHeading={textContent:''};
+ dom.authCardLead={textContent:''};
+ dom.authCardEyebrow={textContent:''};
+ dom.authModeFootnote={textContent:''};
  let authCallback;
  const auth={
   onAuthStateChange(cb){authCallback=cb;return{data:{subscription:{unsubscribe(){}}}};},
@@ -219,4 +227,43 @@ test('Confirmation e-mail : type demandeur dans les métadonnées dirige vers le
   url:'?confirmation=1'
  });
  assert.deepEqual(page.redirects,['/deposer-une-mission']);
+});
+
+test('Inscription : le lien « Mot de passe oublié » est masqué et le mot de passe reste obligatoire',async()=>{
+ const page=await loadAuthPage({url:'?mode=signup&next=%2Fdeposer-une-mission'});
+ assert.equal(page.dom.resetLinkWrap.hidden,true);
+ assert.equal(page.dom.authTabs.hidden,false);
+ assert.equal(page.dom.authBack.hidden,true);
+ assert.equal(page.dom.passwordRow.hidden,false);
+ assert.equal(page.dom.emailRow.hidden,false);
+ assert.equal(page.dom.loginSubmit.textContent,'Créer mon compte');
+ assert.equal(page.dom.authCardEyebrow.textContent,'INSCRIPTION GRATUITE');
+ assert.equal(page.dom.authCardLead.textContent,'Sélectionnez votre type de compte, puis renseignez vos identifiants.');
+ assert.deepEqual(page.redirects,[]);
+});
+test('Connexion : récupération accessible uniquement depuis ce parcours',async()=>{
+ const page=await loadAuthPage({url:'?next=%2Fdeposer-une-mission'});
+ assert.equal(page.dom.resetLinkWrap.hidden,false);
+ assert.equal(page.dom.authTabs.hidden,false);
+ assert.equal(page.dom.authCardEyebrow.textContent,'CONNEXION');
+ assert.equal(page.dom.loginSubmit.textContent,'Se connecter');
+});
+test('Demande de réinitialisation : e-mail seul et retour vers la connexion',async()=>{
+ const page=await loadAuthPage({url:'?mode=reset&next=%2Fdeposer-une-mission'});
+ assert.equal(page.dom.resetLinkWrap.hidden,true);
+ assert.equal(page.dom.authTabs.hidden,true);
+ assert.equal(page.dom.authBack.hidden,false);
+ assert.equal(page.dom.emailRow.hidden,false);
+ assert.equal(page.dom.passwordRow.hidden,true);
+ assert.equal(page.dom.loginSubmit.textContent,'Recevoir le lien de réinitialisation');
+ assert.equal(page.dom.authCardEyebrow.textContent,'RÉCUPÉRATION DU COMPTE');
+});
+test('Après un lien de récupération : pas de demande d’adresse e-mail, mot de passe seul',async()=>{
+ const page=await loadAuthPage({url:'?mode=reset-password&next=%2Fespace'});
+ assert.equal(page.dom.resetLinkWrap.hidden,true);
+ assert.equal(page.dom.authTabs.hidden,true);
+ assert.equal(page.dom.authBack.hidden,false);
+ assert.equal(page.dom.emailRow.hidden,true);
+ assert.equal(page.dom.passwordRow.hidden,false);
+ assert.equal(page.dom.loginSubmit.textContent,'Enregistrer le mot de passe');
 });
