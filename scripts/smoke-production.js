@@ -45,6 +45,32 @@ async function run(){
  }
  assert.ok(releaseVisible,'La version Render ne présente pas encore Connexion / Inscription et les deux parcours du compte');
  console.log('PASS: nouvelle version OFFRYA (connexion, inscription, 2 parcours) visible en production');
+
+ // Déploiement de la nouvelle connexion : attendre le vrai HTML/CSS/JS
+ // avant d'annoncer le succès, sans créer de compte ni envoyer de courriel.
+ let authRedesignReady=false;
+ for(let attempt=0;attempt<16;attempt++){
+  const [page,styles,script]=await Promise.all([
+   request('/connexion?next=%2Fdeposer-une-mission',{headers:{'Cache-Control':'no-cache'}}),
+   request('/auth.css',{headers:{'Cache-Control':'no-cache'}}),
+   request('/connexion.js',{headers:{'Cache-Control':'no-cache'}})
+  ]);
+  const tabs=page.text.match(/id="authTabs"[\s\S]*?<\/div>/)?.[0]||'';
+  authRedesignReady=page.status===200&&styles.status===200&&script.status===200
+   &&page.text.includes('class="auth-page"')
+   &&page.text.includes('id="resetLinkWrap" hidden')
+   &&tabs.includes('data-mode="login"')&&tabs.includes('data-mode="signup"')
+   &&!tabs.includes('data-mode="reset"')
+   &&page.text.includes('id="authBack"')
+   &&styles.text.includes('.auth-page [hidden]{display:none!important}')
+   &&script.text.includes("resetLinkWrap').hidden=v!=='login'")
+   &&script.text.includes("ps.hidden=v==='reset'");
+  if(authRedesignReady)break;
+  if(attempt<15)await new Promise(resolve=>setTimeout(resolve,12000));
+ }
+ assert.ok(authRedesignReady,'Nouvelle interface de connexion / inscription non encore visible sur Render');
+ console.log('PASS: connexion, inscription et recuperation distinctes deployee sur Render');
+
  // Design approuvé : vérifier les éléments réellement servis, sans toucher
  // aux données clients ni appeler un paiement.
  let designVisible=false;
