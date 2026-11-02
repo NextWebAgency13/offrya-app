@@ -115,6 +115,7 @@ function renderPremium(){
  const allowed=canUsePremium(),pro=Boolean(state.session&&state.profile?.role==='pro');
  $('boampGate').classList.toggle('hidden',allowed);
  document.querySelectorAll('.nav-link[data-tab="boamp"]').forEach(el=>el.classList.toggle('hidden',!allowed));
+ document.querySelectorAll('.nav-link[data-tab="professional"]').forEach(el=>el.classList.toggle('mobile-pro-replaced',allowed));
  $('premiumContent').classList.toggle('hidden',!allowed);
  $('proLanding').classList.toggle('hidden',pro);
  $('proWorkspace').classList.toggle('hidden',!pro);
