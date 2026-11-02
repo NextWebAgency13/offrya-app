@@ -170,6 +170,13 @@ async function init(){
    setTimeout(()=>resume(session).catch(error=>say(error.message,true)),0);
   }
  });
+ // Accepte les liens de confirmation Supabase avec token_hash, en plus du flux implicite.
+ const tokenHash=query.get('token_hash');
+ if(confirmationReturn&&tokenHash){
+  const type=query.get('type')==='email_change'?'email_change':'email';
+  const verification=await db.auth.verifyOtp({token_hash:tokenHash,type});
+  if(verification.error){say('Ce lien de confirmation est invalide ou expiré. Connectez-vous si votre adresse est déjà confirmée, sinon demandez un nouveau lien.',true);return;}
+ }
  const {data,error}=await db.auth.getSession();
  if(error&&invalidSessionError(error)){
   await db.auth.signOut({scope:'local'});
@@ -177,6 +184,11 @@ async function init(){
   return;
  }
  if(error){say('Vérification du compte temporairement indisponible. Réessayez.',true);return;}
+ if(confirmationReturn&&!data?.session){
+  say('Confirmation non terminée : aucun accès valide n’a été reçu. Vous pouvez vous connecter si votre adresse a été confirmée, sinon demander un nouveau lien.',true);
+  if($('authCardLead'))$('authCardLead').textContent='Le lien ne contient pas de session utilisable. Vérifiez votre e-mail ou connectez-vous.';
+  return;
+ }
  await resume(data?.session);
 }
 $('loginForm').addEventListener('submit',async e=>{
