@@ -25,7 +25,11 @@ async function main(){
   const file='pexels-'+id+'-'+width+'.jpg';
   return [match[0],{url:match[0],file,path:'/images/'+file,id,width}];
  })).values()];
- if(!sources.length)throw Error('Aucune image Pexels à intégrer ; rien à faire');
+ if(!sources.length){
+  if(css.includes(host))throw Error('Références CDN résiduelles, vérification requise');
+  console.log('DRY-RUN : images déjà intégrées localement, aucune modification.');
+  return;
+ }
  if(!process.argv.includes('--apply')){
   console.log('DRY-RUN : '+sources.length+' images à rapatrier, aucune modification.');
   for(const item of sources)console.log(item.path+' <- '+item.url);
@@ -48,6 +52,7 @@ async function main(){
   // Échec fermé si le CDN n'est pas accessible. Ne jamais substituer
   // une image vide, une autre photo, ni casser l'expérience en ligne.
   let total=0;
+  const manifest=[];
   for(const item of sources){
    const url=new URL(item.url);
    if(url.origin!==host)throw Error('Domaine inattendu');
@@ -61,11 +66,17 @@ async function main(){
    total+=bytes.length;
    if(total>15000000)throw Error('Assets trop volumineux (15 Mo maximum)');
    await fs.writeFile(path.join(tmp,item.file),bytes);
+   manifest.push({
+    path:item.path,source_url:item.url,sha256:crypto.createHash('sha256').update(bytes).digest('hex'),
+    size_bytes:bytes.length,license:'https://www.pexels.com/license/'
+   });
   }
   let newCss=css;
   for(const item of sources)newCss=newCss.replaceAll(item.url,item.path);
   if(newCss.includes(host))throw Error('Référence CDN restante');
   const newCssUrl='/public.'+fingerprint(newCss)+'.css';
+  // Les JPEG restent exactement ceux servis par le CDN Pexels, sans conversion.
+  if(manifest.length!==sources.length||manifest.length<6)throw Error('Téléchargement incomplet');
   let newServer=oldServer.replace(head[0],"const FINGERPRINTED_PUBLIC_CSS='"+newCssUrl+"';");
   const mapAnchor="['/logo-offrya.svg','image/svg+xml'],";
   if(!newServer.includes(mapAnchor))throw Error('Insertion de la liste blanche impossible');
@@ -83,6 +94,7 @@ async function main(){
   // fichiers dans l'arborescence de travail (jamais sur GitHub ni Render).
   await fs.mkdir(path.join(root,'public','images'),{recursive:true});
   for(const item of sources)await fs.copyFile(path.join(tmp,item.file),path.join(root,'public','images',item.file));
+  await fs.writeFile(path.join(root,'public','images','manifest.json'),JSON.stringify({source:'Pexels',preserved_original_url_params:true,images:manifest},null,2)+'\n');
   await fs.writeFile(cssPath,newCss);
   await fs.writeFile(serverPath,newServer);
   for(const [file,text] of html)await fs.writeFile(path.join(root,'public',file),text.replaceAll(head[1],newCssUrl));
