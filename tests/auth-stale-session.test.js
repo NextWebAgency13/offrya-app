@@ -108,16 +108,16 @@ test('Après la suppression du compte, un clic Créer mon compte gratuit fonctio
  assert.equal(page.signupCalls.length,1);
  assert.equal(page.signupCalls[0].email,'new@example.test');
  assert.equal(page.signupCalls[0].options.emailRedirectTo,
-  'https://offrya-app.onrender.com/connexion?confirmation=1&next=%2Fdeposer-une-mission');
+  'https://offrya-app.onrender.com/connexion?confirmation=1&next=%2Fespace');
  assert.equal(page.signupCalls[0].options.data.offrya_signup_intent,'client');
  assert.match(page.dom.loginStatus.textContent,/Consultez votre boîte e-mail/);
  assert.deepEqual(page.redirects,[]);
 });
-test('Une session authentifiée et confirmée autorise le retour au dépôt',async()=>{
+test('Une session authentifiée et confirmée autorise le retour au tableau de bord',async()=>{
  const page=await loadAuthPage({
   session:{user:validUser},user:validUser
  });
- assert.deepEqual(page.redirects,['/deposer-une-mission']);
+ assert.deepEqual(page.redirects,['/espace']);
  assert.equal(page.signOutCalls.length,0);
 });
 test('Un compte sans e-mail confirmé ne peut pas être redirigé vers la publication',async()=>{
