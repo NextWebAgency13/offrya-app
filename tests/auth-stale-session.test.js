@@ -88,7 +88,7 @@ test('Une session d’un utilisateur supprimé n’ouvre pas le formulaire de pu
  assert.deepEqual(page.redirects,[]);
  assert.equal(page.signOutCalls.length,1);
  assert.equal(page.signOutCalls[0].scope,'local');
- assert.equal(page.dom.authHeading.textContent,'Créer mon compte gratuit');
+ assert.equal(page.dom.authHeading.textContent,'Créez votre compte gratuit');
  assert.match(page.dom.loginStatus.textContent,/ancienne session|compte a été supprimé/);
 });
 test('Après la suppression du compte, un clic Créer mon compte gratuit fonctionne',async()=>{
@@ -141,7 +141,7 @@ test('Une session absente affiche l’inscription sans créer un invité',async(
  const page=await loadAuthPage({session:null,user:null});
  assert.deepEqual(page.redirects,[]);
  assert.equal(page.signOutCalls.length,0);
- assert.equal(page.dom.authHeading.textContent,'Créer mon compte gratuit');
+ assert.equal(page.dom.authHeading.textContent,'Créez votre compte gratuit');
 });
 
 test('Confirmation e-mail : la session valide est reprise avant retour à l’accueil public',async()=>{
