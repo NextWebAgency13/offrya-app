@@ -93,6 +93,29 @@ async function run(){
  assert.ok(designVisible,'Render ne présente pas encore le design photographique approuvé');
  console.log('PASS: maquette OFFRYA desktop/mobile fidèle servie sur Render');
 
+ // Preuve de déploiement de cette PR : les huit pictogrammes professionnels
+ // doivent être présents dans le HTML réellement servi par Render.
+ let professionalIconsVisible=false;
+ const names=['file-text','message-square','circle-check','shield-check','award','lock-keyhole','headset','map-pin'];
+ for(let attempt=0;attempt<16;attempt++){
+  const [page,styles]=await Promise.all([
+   request('/',{headers:{'Cache-Control':'no-cache'}}),
+   request('/public.css',{headers:{'Cache-Control':'no-cache'}})
+  ]);
+  professionalIconsVisible=page.status===200&&styles.status===200
+    &&names.every(name=>page.text.includes('data-icon="'+name+'"'))
+    &&!page.text.includes('<div class="mock-how-glyph" aria-hidden="true">▤</div>')
+    &&!page.text.includes('<span aria-hidden="true">♢</span>')
+    &&styles.text.includes('.mock-home .mock-assurance-icon .mock-icon-svg')
+    &&styles.text.includes('.mock-home .mock-end .mock-location-icon')
+    &&styles.text.includes('.mock-home .mock-how-glyph .mock-icon-svg');
+  if(professionalIconsVisible)break;
+  if(attempt<15)await new Promise(resolve=>setTimeout(resolve,12000));
+ }
+ assert.ok(professionalIconsVisible,'Les huit pictogrammes SVG ne sont pas encore visibles sur le site Render');
+ console.log('PASS: huit pictogrammes SVG professionnels réellement servis par Render');
+
+
  // Bouton professionnel explicitement demandé : confirmer le HTML réellement
  // livré par Render, sa destination d'inscription et l'affichage responsive.
  let proSignupVisible=false;

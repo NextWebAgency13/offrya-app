@@ -736,3 +736,50 @@
  .mock-home .mock-pro .mock-card-cta{min-height:54px;margin-top:20px;padding:12px 15px;font-size:13px;text-align:left}
  .mock-home .mock-pro-details{font-size:12px;margin-top:14px}
 }
+
+
+/* Icônes métier OFFRYA — SVG cohérents, indépendants des polices système. */
+.mock-home .mock-how-glyph{
+  display:grid;
+  place-items:center;
+  width:46px;
+  height:46px;
+  margin-bottom:10px;
+  border:1px solid #d9cbed;
+  border-radius:12px;
+  background:#ffffffb8;
+  color:#522f8e;
+  font-size:initial;
+}
+.mock-home .mock-how-glyph .mock-icon-svg{display:block;width:25px;height:25px;flex-shrink:0}
+.mock-home .mock-assurance>div>span.mock-assurance-icon{
+  display:grid;
+  place-items:center;
+  flex:0 0 40px;
+  width:40px;
+  height:40px;
+  border:1px solid #e8dff2;
+  border-radius:11px;
+  background:#f7f3fd;
+  color:#513080;
+  font-size:initial;
+  line-height:normal;
+}
+.mock-home .mock-assurance-icon .mock-icon-svg{display:block;width:23px;height:23px}
+.mock-home .mock-end .mock-location-icon{
+  display:block;
+  width:64px;
+  height:64px;
+  flex-shrink:0;
+  color:#e2d4ff;
+}
+@media(max-width:560px){
+  .mock-home .mock-how-step{grid-template-columns:48px minmax(0,1fr)}
+  .mock-home .mock-how-glyph{grid-row:span 2;align-self:start;width:42px;height:42px;margin:0}
+  .mock-home .mock-how-glyph .mock-icon-svg{width:23px;height:23px}
+  .mock-home .mock-assurance>div>span.mock-assurance-icon{
+    flex-basis:34px;width:34px;height:34px;border-radius:9px;
+  }
+  .mock-home .mock-assurance-icon .mock-icon-svg{width:20px;height:20px}
+  .mock-home .mock-end .mock-location-icon{width:48px;height:48px}
+}
