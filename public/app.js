@@ -399,6 +399,7 @@ function render(){
  $('rolePremiumView').classList.toggle('hidden',!eligiblePro);
  $('rolePendingView').classList.toggle('hidden',!proPending);
  document.body.dataset.offryaRole=eligiblePro?'premium':proPending?'pending':'client';
+ document.getElementById('roleLegacyDetails')?.classList.toggle('hidden',!proPending);
  const own=state.missions.filter(m=>m.owner_id===state.session?.user?.id);
  $('roleClientMissionCount').textContent=own.length+' mission(s) publiée(s)';
  $('roleClientMessageCount').textContent=state.conversations.length+' discussion(s)';
