@@ -117,3 +117,19 @@ create policy messages_write on public.offrya_messages for insert to authenticat
 -- select * from pg_policies where schemaname='storage' and tablename='objects';
 -- select * from pg_policies where tablename='offrya_contact_blocks';
 -- Contrôler avec les rôles anon, client, pro non vérifié, pro abonné.
+
+
+-- Journal de la modération (accessible exclusivement au serveur, via clé secrète).
+-- Ne pas ouvrir de politique SELECT / INSERT aux rôles du navigateur.
+create table if not exists public.offrya_moderation_audit(
+ id uuid primary key default gen_random_uuid(),
+ actor_id uuid not null references auth.users(id) on delete restrict,
+ target_type text not null check(target_type in ('report','mission','dossier')),
+ target_id uuid not null,
+ action text not null check(action in ('reviewing','closed','close','needs_information')),
+ created_at timestamptz not null default now()
+);
+alter table public.offrya_moderation_audit enable row level security;
+revoke all on public.offrya_moderation_audit from anon,authenticated;
+create index if not exists offrya_moderation_audit_created
+ on public.offrya_moderation_audit(created_at desc);
