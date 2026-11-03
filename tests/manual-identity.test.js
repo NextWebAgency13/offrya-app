@@ -32,7 +32,8 @@ test('Une demande ne peut pas approuver elle-même un dossier',()=>{
  assert.match(fn,/s.status='active'/);
 });
 test('Les dossiers en cours et le refus administratif sont visibles après reconnexion',()=>{
- assert.match(js,/state.manualIdentity=manualReview.data/);
+ assert.match(js,/\['manualIdentity',state\.db\.from\('offrya_manual_identity_requests'\)/);
+ assert.match(js,/else state\[key\]=res\?\.data\|\|null/);
  assert.match(js,/requested:'Demande reçue/);
  assert.match(js,/scheduled:'Contrôle manuel planifié/);
  assert.match(js,/rejected:'Demande non retenue/);

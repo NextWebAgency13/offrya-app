@@ -31,41 +31,68 @@ function requireRole(role){if(!requireAuth())return false;if(!state.profile){tab
 function titleForMission(id){return state.missions.find(m=>m.id===id)?.title||'Mission';}
 function profileName(id){return state.profiles.find(p=>p.id===id)?.display_name||'Utilisateur OFFRYA';}
 async function refresh(){
- if(!state.db){render();return;}
- if(!state.session){state.draft=null;state.proStep=1;state.proStepUserId=null;state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;state.subscription=null;state.manualIdentity=null;state.boamp=[];state.priorityAlerts=[];state.lastPriorityIds=null;render();return;}
+ if(!state.db){state.loaded=true;render();return;}
+ if(!state.session){
+  state.draft=null;state.proStep=1;state.proStepUserId=null;
+  state.missions=[];state.profile=null;state.conversations=[];state.messages=[];
+  state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;
+  state.subscription=null;state.manualIdentity=null;state.boamp=[];
+  state.priorityAlerts=[];state.lastPriorityIds=null;state.loaded=true;render();return;
+ }
  const uid=state.session.user.id;
- // Par défaut : ne charger que les annonces dont ce compte est propriétaire.
- // Les annonces des tiers ne sont interrogées qu'après contrôle professionnel.
- state.missions=[];
+ // Never expose a previous account's cached private rows during account switches.
+ if(state.currentUserId!==uid){
+  state.currentUserId=uid;state.missions=[];state.profile=null;state.premium=null;state.subscription=null;
+  state.conversations=[];state.messages=[];state.prefs=null;state.profiles=[];state.favorites=[];
+  state.draft=null;state.manualIdentity=null;state.priorityAlerts=[];state.loaded=false;
+ }
+ // Load the owner's missions first. RLS also independently enforces ownership.
+ // A failure in an unrelated module must never clear these missions.
  const owned=await state.db.from('offrya_missions').select('*').eq('owner_id',uid).order('created_at',{ascending:false}).limit(200);
- if(owned.error)throw owned.error;
- state.missions=owned.data||[];
- const [prof,conv,prefs,profiles,favorites,premium,subscription,draft,manualReview]=await Promise.all([
-  state.db.from('offrya_profiles').select('*').eq('id',uid).maybeSingle(),
-  state.db.from('offrya_conversations').select('*').order('created_at',{ascending:false}).limit(100),
-  state.db.from('offrya_alert_preferences').select('*').eq('user_id',uid).maybeSingle(),
-  state.db.from('offrya_profiles').select('id,display_name,role,city,specialty').limit(300),
-  state.db.from('offrya_favorites').select('mission_id'),
-  state.db.from('offrya_premium_requests').select('user_id,siret,legal_name,status,premium_until,identity_status,authority_status,representative_kind,registry_name_matched').eq('user_id',uid).maybeSingle(),
-  state.db.from('offrya_premium_subscriptions').select('status,paid_through,stripe_customer_id').eq('user_id',uid).maybeSingle(),
-   state.db.from('offrya_professional_drafts').select('step,siret,legal_name,representative_name,representative_capacity,representative_kind').eq('user_id',uid).maybeSingle(),
-   state.db.from('offrya_manual_identity_requests').select('status,requested_at,updated_at').eq('user_id',uid).maybeSingle()
- ]);
- for(const res of [prof,conv,prefs,profiles,favorites,premium,subscription,draft,manualReview])if(res.error)throw res.error;
- state.profile=prof.data;state.premium=premium.data;state.subscription=subscription.data;state.draft=draft.data;state.manualIdentity=manualReview.data;state.conversations=conv.data||[];state.prefs=prefs.data;state.profiles=profiles.data||[];state.favorites=(favorites.data||[]).map(x=>x.mission_id);
+ if(owned.error){
+  console.error('OFFRYA: owned missions query failed',owned.error);
+  state.missions=state.missions.filter(m=>m.owner_id===uid);
+  info('Impossible de mettre à jour vos missions. Réessayez depuis Mes missions.',true);
+ }else state.missions=owned.data||[];
+ const requests=[
+  ['profile',state.db.from('offrya_profiles').select('*').eq('id',uid).maybeSingle()],
+  ['conversations',state.db.from('offrya_conversations').select('*').order('created_at',{ascending:false}).limit(100)],
+  ['prefs',state.db.from('offrya_alert_preferences').select('*').eq('user_id',uid).maybeSingle()],
+  ['profiles',state.db.from('offrya_profiles').select('id,display_name,role,city,specialty').limit(300)],
+  ['favorites',state.db.from('offrya_favorites').select('mission_id')],
+  ['premium',state.db.from('offrya_premium_requests').select('user_id,siret,legal_name,status,premium_until,identity_status,authority_status,representative_kind,registry_name_matched').eq('user_id',uid).maybeSingle()],
+  ['subscription',state.db.from('offrya_premium_subscriptions').select('status,paid_through,stripe_customer_id').eq('user_id',uid).maybeSingle()],
+  ['draft',state.db.from('offrya_professional_drafts').select('step,siret,legal_name,representative_name,representative_capacity,representative_kind').eq('user_id',uid).maybeSingle()],
+  ['manualIdentity',state.db.from('offrya_manual_identity_requests').select('status,requested_at,updated_at').eq('user_id',uid).maybeSingle()]
+ ];
+ const results=await Promise.allSettled(requests.map(([,request])=>request));
+ for(let i=0;i<requests.length;i++){
+  const [key]=requests[i],answer=results[i];
+  const res=answer.status==='fulfilled'?answer.value:null;
+  if(answer.status==='rejected'||res?.error){
+   console.warn('OFFRYA: optional section unavailable:',key,answer.status==='rejected'?answer.reason:res.error);
+   continue;
+  }
+  if(key==='favorites')state.favorites=(res?.data||[]).map(x=>x.mission_id);
+  else if(key==='conversations'||key==='profiles')state[key]=res?.data||[];
+  else state[key]=res?.data||null;
+ }
  if(canUsePremium()){
-  // La base RLS reste l'autorité : vérification officielle + abonnement en cours.
-  const opportunities=await state.db.from('offrya_missions').select('*').eq('status','open').order('created_at',{ascending:false}).limit(200);
-  if(opportunities.error)throw opportunities.error;
-  const byId=new Map(state.missions.map(m=>[m.id,m]));
-  for(const mission of opportunities.data||[])byId.set(mission.id,mission);
-  state.missions=Array.from(byId.values()).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  try{
+   // The backend RLS remains the authority for viewing other users' missions.
+   const opportunities=await state.db.from('offrya_missions').select('*').eq('status','open').order('created_at',{ascending:false}).limit(200);
+   if(opportunities.error)throw opportunities.error;
+   const byId=new Map(state.missions.map(m=>[m.id,m]));
+   for(const mission of opportunities.data||[])byId.set(mission.id,mission);
+   state.missions=Array.from(byId.values()).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  }catch(error){console.warn('OFFRYA: professional mission discovery unavailable',error);}
  }
  if(state.proStepUserId!==uid){state.proStepUserId=uid;state.proStep=Math.max(1,Math.min(3,Number(state.draft?.step||1)));}
  if(state.thread&&!state.conversations.find(x=>x.id===state.thread))state.thread=null;
- if(state.thread)await loadMessages(state.thread,false);
- await loadPriorityAlerts(false);
- state.loaded=true;render();
+ if(state.thread)try{await loadMessages(state.thread,false);}catch(error){console.warn('OFFRYA: messages unavailable',error);}
+ try{await loadPriorityAlerts(false);}catch(error){console.warn('OFFRYA: priority alerts unavailable',error);}
+ state.loaded=true;
+ render();
 }
 function row(m,actions=''){const status=m.status==='open'?'Ouverte':m.status==='awarded'?'Attribuée':'Clôturée';const place=[m.city,m.department].filter(Boolean).map(esc).join(' · ')||'Localisation à préciser';const summary=String(m.description||'').trim();return `<article class="data-item mission-listing" aria-label="Annonce : ${esc(m.title)}"><div class="item-top"><span class="tag mission-category">${esc(m.category||'Prestation')}</span><span class="mission-status ${m.status==='open'?'is-open':'is-closed'}">${status}</span></div><h3 class="item-title mission-listing-title">${esc(m.title)}</h3><p class="item-desc mission-listing-desc">${esc(summary.slice(0,260))}${summary.length>260?'…':''}</p><div class="meta-row mission-listing-meta"><span>⌖ ${place}</span><span>Budget : ${m.budget_cents?euro(m.budget_cents):'À définir'}</span><span>Publiée le ${date(m.created_at)}</span></div>${actions?`<div class="item-actions mission-listing-actions">${actions}</div>`:''}</article>`;}
 function renderMissionDetail(m){
@@ -413,12 +440,12 @@ function render(){
  const yes=Boolean(state.session);
  $('dashboardLoading').classList.toggle('hidden',state.loaded);
  $('homePrivateDashboard').classList.toggle('hidden',!state.loaded||!yes);
- document.querySelector('#dashboard .stats').classList.add('hidden');
+ document.querySelector('#dashboard .stats')?.classList.add('hidden');
  const eligiblePro=canUsePremium(),hasProProfile=state.profile?.role==='pro',proPending=hasProProfile&&!eligiblePro;
  $('roleClientView').classList.remove('hidden');
  $('rolePremiumView').classList.add('hidden');
- document.querySelector('#rolePremiumView .role-premium-stats').classList.toggle('hidden',!eligiblePro);
- document.querySelector('#rolePremiumView .role-pro-links').classList.toggle('hidden',!eligiblePro);
+ document.querySelector('#rolePremiumView .role-premium-stats')?.classList.toggle('hidden',!eligiblePro);
+ document.querySelector('#rolePremiumView .role-pro-links')?.classList.toggle('hidden',!eligiblePro);
  document.body.dataset.offryaRole=hasProProfile?'professional':'client';
  const navMission=document.querySelector('.sidebar .nav-link[data-tab="missions"]');
  const navPro=document.querySelector('.sidebar .nav-link[data-tab="professional"]');
@@ -451,7 +478,13 @@ function render(){
 $('homePrivateDashboard').classList.toggle('hidden',!yes);$('statOpenLabel').textContent=canUsePremium()?'Missions accessibles':'Mes annonces actives';$('homeMissionHeading').textContent=canUsePremium()?'Missions accessibles':'Mes annonces publiées';$('authOpen').textContent=!yes?'Se connecter':isGuest()?'Suivi invité':(state.session.user.email?.split('@')[0]||'Mon compte');$('logout').classList.toggle('hidden',!yes||isGuest());$('avatar').textContent=state.profile?.display_name?.[0]?.toUpperCase()||'V';
  $('statOpen').textContent=state.missions.filter(x=>x.status==='open'&&(canUsePremium()||x.owner_id===state.session?.user.id)).length;$('statMissions').textContent=state.missions.filter(x=>x.owner_id===state.session?.user.id).length;$('statConvos').textContent=state.conversations.length;$('statFavorites').textContent=state.favorites.length;
  $('dashActivity').innerHTML=yes?`<div class="data-item"><div class="item-title">${esc(state.profile?.display_name||'Profil à compléter')}</div><div class="item-desc">${state.profile?.role==='client'?'Compte client':'Compte professionnel'} · ${state.conversations.length} discussion(s)</div></div><div class="data-item"><div class="item-title">Échanges directs entre utilisateurs</div><div class="item-desc">Échangez dans la messagerie, puis organisez librement votre accord, les tarifs et le règlement avec l'autre partie. OFFRYA n'intervient pas dans la transaction.</div></div>`:'<div class="empty">Connectez-vous pour voir vos contacts et vos missions.</div>';
- renderMissions();renderInbox();renderSettings();renderPremium();renderPriorityAlerts();
+ // An optional module must not interrupt the other views.
+ for(const [name,draw] of [
+  ['missions',renderMissions],['messagerie',renderInbox],['paramètres',renderSettings],
+  ['professionnel',renderPremium],['alertes',renderPriorityAlerts]
+ ]){
+  try{draw();}catch(error){console.error('OFFRYA: rendu '+name+' indisponible',error);}
+ }
 }
 async function loadMessages(id,doRender=true){
  const r=await state.db.from('offrya_messages').select('*').eq('conversation_id',id).order('created_at',{ascending:true}).limit(200);
