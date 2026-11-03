@@ -7,7 +7,7 @@ const html=fs.readFileSync('public/index.html','utf8');
 const server=fs.readFileSync('server.js','utf8');
 const auth=fs.readFileSync('public/connexion.js','utf8');
 test('L accueil public redirige seulement un compte vérifié',()=>{
- assert.match(html,/<script type="module" src="\/home-session\.js"><\/script>/);
+ assert.match(html,/<script src="\/home-session\.js" defer><\/script>/);
  assert.match(server,/\['\/home-session\.js','text\/javascript; charset=utf-8'\]/);
  assert.match(js,/db\.auth\.getSession\(\)/);
  assert.match(js,/db\.auth\.getUser\(\)/);
