@@ -72,3 +72,7 @@
 .pro-manual-verification .pro-note{margin:0;width:100%}
 .pro-manual-verification .button{max-width:100%;white-space:normal;text-align:center}
 @media(max-width:620px){.pro-manual-verification{padding:19px 16px}.pro-manual-verification .button{width:100%}}
+
+/* Espace professionnel : un en-tête et un seul parcours guidé. */
+.pro-entry-heading{margin:0 0 22px;padding:5px 0 0}.pro-entry-heading h2{margin:6px 0 7px;font:800 clamp(23px,3vw,33px)/1.2 'Plus Jakarta Sans',sans-serif;letter-spacing:-.04em;color:#302040}.pro-entry-heading p{margin:0;color:#71677d;line-height:1.6;font-size:13px;max-width:670px}
+@media(max-width:620px){.pro-entry-heading{margin-bottom:16px}.pro-entry-heading h2{font-size:25px}}
