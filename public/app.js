@@ -30,7 +30,7 @@ function tab(name,fromHistory=false,preserveMissionDetail=false){
  window.scrollTo({top:0,behavior:'smooth'});
 }
 window.addEventListener('popstate',()=>tab(pathsReverse[location.pathname]||'dashboard',true));
-for(const n of document.querySelectorAll('[data-tab]'))n.addEventListener('click',()=>{tab(n.dataset.tab);if(n.dataset.action==='publish')location.assign('/deposer-une-mission');});
+for(const n of document.querySelectorAll('[data-tab]'))n.addEventListener('click',()=>tab(n.dataset.tab));
 function isGuest(){return Boolean(state.session?.user?.is_anonymous);}
 function requireAuth(){if(!state.db){toast('Le service de connexion est momentanément indisponible.');return false;}if(!state.session){location.assign('/connexion?next='+encodeURIComponent(location.pathname));return false;}return true;}
 function requireRole(role){if(!requireAuth())return false;if(!state.profile){tab('settings');toast('Complétez votre profil avant de commencer.');return false;}if(role==='pro'&&(state.profile.role!=='pro'||!canUsePremium())){toast('Activez votre compte professionnel pour répondre aux missions.');tab('professional');return false;}return true;}
@@ -177,7 +177,6 @@ function renderPremium(){
  const allowed=canUsePremium(),pro=Boolean(state.session&&state.profile?.role==='pro');
  $('boampGate').classList.toggle('hidden',allowed);
  document.querySelectorAll('.nav-link[data-tab="boamp"]').forEach(el=>el.classList.toggle('hidden',!allowed));
- document.querySelectorAll('.nav-link[data-tab="professional"]').forEach(el=>el.classList.toggle('mobile-pro-replaced',allowed));
  $('premiumContent').classList.toggle('hidden',!allowed);
  $('proLanding').classList.toggle('hidden',Boolean(state.session));
  $('proWorkspace').classList.toggle('hidden',!pro);
@@ -461,7 +460,7 @@ function render(){
  $('dashboardLoading').classList.toggle('hidden',state.loaded);
  $('homePrivateDashboard').classList.toggle('hidden',!state.loaded||!yes);
  document.querySelector('#dashboard .stats')?.classList.add('hidden');
- const eligiblePro=canUsePremium(),hasProProfile=state.profile?.role==='pro',proPending=hasProProfile&&!eligiblePro;
+ const eligiblePro=canUsePremium(),hasProProfile=state.profile?.role==='pro';
  $('roleClientView').classList.remove('hidden');
  $('rolePremiumView').classList.add('hidden');
  document.querySelector('#rolePremiumView .role-premium-stats')?.classList.toggle('hidden',!eligiblePro);
@@ -470,8 +469,6 @@ function render(){
  const navMission=document.querySelector('.sidebar .nav-link[data-tab="missions"]');
  const navPro=document.querySelector('.sidebar .nav-link[data-tab="professional"]');
  const navBoamp=document.querySelector('.sidebar .nav-link[data-tab="boamp"]');
- if(navMission){const l=navMission.querySelector('span');if(l)l.textContent=eligiblePro?'Missions':'Mes missions';}
- if(navPro){navPro.dataset.action=!eligiblePro&&!proPending?'publish':'';const l=navPro.querySelector('span');if(l)l.textContent=!eligiblePro&&!proPending?'Déposer':'Espace pro';const u=navPro.querySelector('use');if(u)u.setAttribute('href',!eligiblePro&&!proPending?'#ic-plus':'#ic-shield');}
  if(navBoamp)navBoamp.classList.toggle('hidden',!eligiblePro);
 
  document.getElementById('roleLegacyDetails')?.classList.add('hidden');
@@ -490,8 +487,6 @@ function render(){
  $('roleConversationCount').textContent=state.conversations.length;
  $('roleAlertCount').textContent=state.priorityAlerts?.length||0;
 
- const bottomPro=document.querySelector('.sidebar .nav-link[data-tab="professional"]');
- if(bottomPro){bottomPro.classList.toggle('mobile-pro-replaced',eligiblePro);bottomPro.dataset.action=!eligiblePro&&!proPending?'publish':'';const label=bottomPro.querySelector('span');if(label)label.textContent=!eligiblePro&&!proPending?'Déposer':'Espace pro';const icon=bottomPro.querySelector('use');if(icon)icon.setAttribute('href',!eligiblePro&&!proPending?'#ic-plus':'#ic-shield');}
 
  const banner=$('proVerificationBanner');const pro=state.profile?.role==='pro';
  banner.classList.add('hidden');
