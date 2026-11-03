@@ -78,7 +78,6 @@ test('Recherche générale masquée avant certification, sans masquer les annonc
  vm.runInNewContext(renderSource,ctx);
  ctx.renderMissions();
  assert.equal($('missionSearchFilters').classList.states.get('hidden'),true);
- assert.equal($('missionAccessNotice').classList.states.get('hidden'),false);
  assert.equal($('missionsListHeading').textContent,'Mes annonces publiées');
  assert.match($('missionList').innerHTML,/own-open/);
  assert.match($('missionList').innerHTML,/own-closed/);
@@ -88,6 +87,6 @@ test('Recherche générale masquée avant certification, sans masquer les annonc
 });
 test('Le HTML ne montre pas la recherche avant activation par le code',()=>{
  assert.match(html,/class="panel filters hidden" id="missionSearchFilters"/);
- assert.match(html,/id="missionAccessNotice"/);
+ assert.doesNotMatch(html,/id="missionAccessNotice"/);
  assert.match(html,/id="missionsListHeading"/);
 });
