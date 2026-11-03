@@ -30,9 +30,8 @@ test('Connexion : retour sûr à l’espace demandeur après inscription',()=>{
  assert.match(login,/query\.get\('mode'\)==='signup'/);
  assert.match(login,/if\(mode==='signup'\).*emailRedirectTo:location\.origin\+'\/connexion\?confirmation=1&next='/);
  assert.match(login,/offrya_signup_intent/);
+ assert.match(login,/location\.replace\(confirmationReturn\?'\/espace':next\)/);
  assert.match(login,/resetPasswordForEmail/);
- assert.match(login,/if\(confirmationReturn&&!query\.has\('next'\)\)/);
- assert.match(login,/confirmationReturn&&next==='\/deposer-une-mission'\?'\/espace':next/);
  assert.match(login,/email_confirmed_at/);
  assert.doesNotMatch(login,/signInWithOtp|mode==='magic'/);
  assert.match(login,/resetPasswordForEmail/);
