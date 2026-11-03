@@ -81,6 +81,11 @@ function change(v){
    if(selected)option.setAttribute('aria-current','true');else option.removeAttribute('aria-current');
   }
  }
+ const userRow=$('usernameRow');
+ if(userRow){
+  userRow.hidden=v!=='signup';
+  userRow.querySelector('input').required=v==='signup'&&!$('loginForm').hidden;
+ }
  const ps=$('passwordRow'),em=$('emailRow');
  ps.hidden=v==='reset';
  ps.querySelector('input').required=!ps.hidden;
@@ -183,12 +188,28 @@ async function init(){
  }
  await resume(data?.session);
 }
+let usernameCheckSerial=0;
+$('usernameRow')?.querySelector('input')?.addEventListener('blur',async event=>{
+ const value=event.target.value.trim(),status=$('usernameStatus'),serial=++usernameCheckSerial;
+ if(!value||!db){status.textContent='';return;}
+ if(!/^[A-Za-z0-9_]{3,30}$/.test(value)){status.textContent='Utilisez 3 à 30 lettres, chiffres ou _. ';return;}
+ const result=await db.rpc('offrya_username_available',{p_username:value}).catch(()=>({error:true}));
+ if(serial!==usernameCheckSerial)return;
+ status.textContent=result.error?'Disponibilité indisponible.':result.data===true?'Pseudonyme disponible.':'Pseudonyme déjà utilisé.';
+});
 $('loginForm').addEventListener('submit',async e=>{
  e.preventDefault();if(!db)return say('Connexion indisponible',true);
  const f=e.currentTarget,email=f.elements.email.value.trim(),password=f.elements.password.value,b=$('loginSubmit');b.disabled=true;
  try{
   const captchaToken=authCaptcha.requiredToken();
-  let r;if(mode==='signup')r=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/connexion?confirmation=1&next='+encodeURIComponent(next),data:{offrya_signup_intent:next==='/espace/professionnel'?'pro':'client'},...(captchaToken?{captchaToken}:{})}});
+  let r;if(mode==='signup'){
+   const username=f.elements.username.value.trim();
+   if(!/^[A-Za-z0-9_]{3,30}$/.test(username))throw Error('Le pseudonyme doit contenir 3 à 30 lettres, chiffres ou caractères _.');
+   const availability=await db.rpc('offrya_username_available',{p_username:username});
+   if(availability.error)throw Error('Vérification du pseudonyme indisponible. Réessayez.');
+   if(availability.data!==true)throw Error('Ce pseudonyme est déjà utilisé. Choisissez-en un autre.');
+   r=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/connexion?confirmation=1&next='+encodeURIComponent(next),data:{offrya_signup_intent:next==='/espace/professionnel'?'pro':'client',offrya_username:username},...(captchaToken?{captchaToken}:{})}});
+  }
   else if(mode==='reset')r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/connexion?mode=reset-password&next='+encodeURIComponent(next),...(captchaToken?{captchaToken}:{})});
   else if(mode==='recover')r=await db.auth.updateUser({password});
   else r=await db.auth.signInWithPassword({email,password,...(captchaToken?{options:{captchaToken}}:{})});
@@ -197,6 +218,6 @@ $('loginForm').addEventListener('submit',async e=>{
   else if(mode==='reset')say('Consultez votre boîte e-mail et ouvrez le lien sécurisé de réinitialisation. Aucun abonnement ni alerte n’est activé.');
   else if(mode==='recover'){say('Mot de passe modifié');location.replace(next);}
   else await resume(r.data?.session);
- }catch(err){say(authFeedback(err,mode),true);}finally{authCaptcha.reset();b.disabled=false;}
+ }catch(err){const message=String(err?.message||'');say(mode==='signup'&&/^(Le pseudonyme|Ce pseudonyme|Vérification du pseudonyme)/.test(message)?message:authFeedback(err,mode),true);}finally{authCaptcha.reset();b.disabled=false;}
 });
 init().catch(e=>say(authFeedback(e,'login'),true));
