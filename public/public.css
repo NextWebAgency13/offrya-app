@@ -903,3 +903,31 @@
 @media(prefers-reduced-motion:reduce){
  .mock-home .mock-choice-card,.mock-home .mock-sector,.mock-home .mock-card-cta,.mock-home .mock-button,.premium-hero .btn{transition:none!important;transform:none!important}
 }
+
+
+/* OFFRYA — common mobile-first refinements for public pages and forms.
+   All existing brand colors and business workflows are preserved. */
+@media(max-width:720px){
+ html{overflow-x:clip}
+ body{overflow-wrap:break-word}
+ .top nav{max-width:100%;padding-inline:16px}
+ .hero,.simple-hero,.section,.breadcrumb{max-width:100%;min-width:0}
+ .hero,.simple-hero{padding-inline:20px}
+ .section{padding-inline:20px}
+ .grid,.grid>*,.form,.form>*{min-width:0}
+ .card,.sector,.form-wrap{max-width:100%;min-width:0}
+ .actions .btn,.form .btn,.form button[type="submit"]{min-height:48px}
+ .form :is(input,select,textarea){font-size:16px}
+ .top a,.top button,.footer a{touch-action:manipulation}
+}
+@media(max-width:600px){
+ .hero{grid-template-columns:minmax(0,1fr)}
+ .hero h1,.simple-hero h1{max-width:100%;overflow-wrap:break-word}
+ .actions{gap:10px}
+ .actions .btn{white-space:normal;text-align:center}
+ .section .grid.three,.section .grid.two,.section .grid.sectors{grid-template-columns:minmax(0,1fr)}
+ .form-wrap{padding:20px 16px}
+}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto}
+}
