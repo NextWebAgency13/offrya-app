@@ -9,13 +9,14 @@ const {beginIdentity,processIdentityEvent,configured:identityConfigured,identity
 const {billingEnabled,startCheckout,verifyStripeSignature,syncSubscription,portal}=require('./lib/billing');
 const {verifyToken}=require('./lib/unsubscribe');
 const staticMap=new Map([
+ ['/auth-captcha.mjs','text/javascript; charset=utf-8'],
  ['/public.css','text/css; charset=utf-8'],['/auth.css','text/css; charset=utf-8'],['/activity.js','text/javascript; charset=utf-8'],['/deposer.js','text/javascript; charset=utf-8'],['/connexion.js','text/javascript; charset=utf-8'],['/auth-feedback.mjs','text/javascript; charset=utf-8'],['/legacy-redirect.js','text/javascript; charset=utf-8'],
  ['/index.html','text/html; charset=utf-8'],['/app.js','text/javascript; charset=utf-8'],
  ['/styles.css','text/css; charset=utf-8'],['/home.css','text/css; charset=utf-8'],['/pro.css','text/css; charset=utf-8'],['/favicon.svg','image/svg+xml'],
  ['/confidentialite.html','text/html; charset=utf-8'],['/mentions-legales.html','text/html; charset=utf-8'],
  ['/cgv.html','text/html; charset=utf-8'],['/remboursements.html','text/html; charset=utf-8'],['/contact.html','text/html; charset=utf-8']]);
 const buckets=new Map();
-function json(res,status,data,extra={}){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...extra});res.end(JSON.stringify(data));}
+function json(res,status,data,extra={}){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Strict-Transport-Security':'max-age=15552000',...extra});res.end(JSON.stringify(data));}
 function rateLimit(req,max=50){const ip=req.socket.remoteAddress||'unknown',key=ip+':'+req.url.split('?')[0],now=Date.now();
  if(buckets.size>2000)for(const [k,v] of buckets)if(v.until<now)buckets.delete(k);
  let e=buckets.get(key);if(!e||e.until<now){e={count:0,until:now+60000};buckets.set(key,e);}return ++e.count<=max;}
@@ -156,7 +157,7 @@ async function handle(req,res){
   }
   const asset=path.join(__dirname,'public',pageFile||p.slice(1));
   const buf=await fs.readFile(asset);
-  res.writeHead(200,{'Content-Type':mime,...((privatePage||p==='/connexion')?{'X-Robots-Tag':'noindex, nofollow'}:{}),'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','X-Frame-Options':'DENY','Permissions-Policy':'camera=(), microphone=(), geolocation=()','Content-Security-Policy':"default-src 'self'; connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.pexels.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",'Cache-Control':(privatePage||p==='/connexion')?'private, no-store':'public,max-age=60'});
+  res.writeHead(200,{'Content-Type':mime,...((privatePage||p==='/connexion')?{'X-Robots-Tag':'noindex, nofollow'}:{}),'X-Content-Type-Options':'nosniff','Strict-Transport-Security':'max-age=15552000','Referrer-Policy':'strict-origin-when-cross-origin','X-Frame-Options':'DENY','Permissions-Policy':'camera=(), microphone=(), geolocation=()','Content-Security-Policy':"default-src 'self'; connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.pexels.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",'Cache-Control':(privatePage||p==='/connexion')?'private, no-store':'public,max-age=60'});
   return res.end(req.method==='HEAD'?undefined:buf);
  }catch(e){console.error('OFFRYA',e.message);if(!res.headersSent)json(res,500,{error:'Erreur interne'});}
 }
