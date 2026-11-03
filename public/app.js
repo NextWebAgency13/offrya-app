@@ -68,7 +68,7 @@ async function refresh(){
   ['favorites',state.db.from('offrya_favorites').select('mission_id')],
   ['premium',state.db.from('offrya_premium_requests').select('user_id,siret,legal_name,status,premium_until,identity_status,authority_status,representative_kind,registry_name_matched,registry_match_checked_at,registry_match_source,identity_live_verified,presence_verified_at,presence_method,identity_verified_at,authority_verified_at,authority_review_method').eq('user_id',uid).maybeSingle()],
   ['subscription',state.db.from('offrya_premium_subscriptions').select('status,paid_through,stripe_customer_id').eq('user_id',uid).maybeSingle()],
-  ['testPremiumUntil',state.db.rpc('offrya_test_premium_expires_at')],
+  ['testPremiumUntil',typeof state.db.rpc==='function'?state.db.rpc('offrya_test_premium_expires_at'):Promise.resolve({data:null})],
   ['draft',state.db.from('offrya_professional_drafts').select('step,siret,legal_name,representative_name,representative_capacity,representative_kind').eq('user_id',uid).maybeSingle()],
   ['manualIdentity',state.db.from('offrya_manual_identity_requests').select('status,requested_at,updated_at').eq('user_id',uid).maybeSingle()]
  ];
