@@ -37,14 +37,13 @@ test('Connexion : retour sûr à l’espace demandeur après inscription',()=>{
  assert.match(login,/resetPasswordForEmail/);
  assert.doesNotMatch(login,/signInAnonymously/);
 });
-test('Compte gratuit confirmé obligatoire aussi depuis le tableau de bord',()=>{
- assert.match(privatePage,/id="missionAccountNotice"/);
- assert.match(privatePage,/Gratuit · Compte confirmé/);
- assert.doesNotMatch(privatePage,/La publication est gratuite et sans inscription|Si vous publiez en invité/);
- assert.match(privateJs,/async function ensureMissionPublisher\(\)/);
- assert.match(privateJs,/auth\.getUser\(\)/);
- assert.match(privateJs,/user\.is_anonymous\|\|!user\.email\|\|!user\.email_confirmed_at/);
- assert.match(privateJs,/\$\('missionForm'\)\.classList\.toggle\('hidden',!publisherReady\)/);
+test('Publication accessible par une page dédiée après connexion et e-mail confirmé',()=>{
+ assert.doesNotMatch(privatePage,/id="missionAccountNotice"|id="missionForm"/);
+ assert.match(privatePage,/id="newMissionBtn"/);
+ assert.match(privateJs,/\$\('newMissionBtn'\)\.onclick=\(\)=>location\.assign\('\/deposer-une-mission'\)/);
+ assert.doesNotMatch(privateJs,/async function ensureMissionPublisher\(\)|\$\('missionForm'\)/);
+ assert.match(submit,/auth\.getUser\(\)/);
+ assert.match(submit,/email_confirmed_at/);
  assert.doesNotMatch(privateJs,/signInAnonymously|setupGuestCaptcha|guestCaptchaWidget/);
 });
 test('Protection SQL : mission INSERT restreint sans altérer les droits Premium et la lecture des anciennes missions',()=>{
