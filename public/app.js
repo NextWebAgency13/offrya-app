@@ -40,12 +40,18 @@ async function refresh(){
   state.priorityAlerts=[];state.lastPriorityIds=null;state.loaded=true;render();return;
  }
  const uid=state.session.user.id;
+ // Never expose a previous account's cached private rows during account switches.
+ if(state.currentUserId!==uid){
+  state.currentUserId=uid;state.missions=[];state.profile=null;state.premium=null;state.subscription=null;
+  state.conversations=[];state.messages=[];state.prefs=null;state.profiles=[];state.favorites=[];
+  state.draft=null;state.manualIdentity=null;state.priorityAlerts=[];state.loaded=false;
+ }
  // Load the owner's missions first. RLS also independently enforces ownership.
  // A failure in an unrelated module must never clear these missions.
  const owned=await state.db.from('offrya_missions').select('*').eq('owner_id',uid).order('created_at',{ascending:false}).limit(200);
  if(owned.error){
   console.error('OFFRYA: owned missions query failed',owned.error);
-  if(!state.loaded)state.missions=[];
+  state.missions=state.missions.filter(m=>m.owner_id===uid);
   info('Impossible de mettre à jour vos missions. Réessayez depuis Mes missions.',true);
  }else state.missions=owned.data||[];
  const requests=[
