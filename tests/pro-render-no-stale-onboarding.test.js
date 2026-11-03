@@ -6,7 +6,7 @@ const app=fs.readFileSync('public/app.js','utf8');
 const html=fs.readFileSync('public/espace.html','utf8');
 test('Pro : render ne référence plus les étapes supprimées de l’ancien panneau',()=>{
  for(const id of ['roleCompanyStep','roleIdentityStep','roleBillingStep']){
-  assert.doesNotMatch(app,new RegExp("\\\\$\\\\('"+id+"'\\\\)"));
+  assert.equal(app.includes("$('"+id+"')"),false);
   assert.doesNotMatch(html,new RegExp('id="'+id+'"'));
  }
 });
