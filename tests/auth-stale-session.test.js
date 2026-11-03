@@ -162,7 +162,7 @@ test('Confirmation e-mail : la session valide ouvre le tableau de bord privé',a
  assert.equal(page.signOutCalls.length,0);
  assert.equal(page.dom.authHeading.textContent,'Confirmation de votre inscription');
 });
-test('Confirmation e-mail : ancien lien revient à l’espace demandeur',async()=>{
+test('Confirmation e-mail : ancien lien revient au dashboard',async()=>{
  const page=await loadAuthPage({
   session:{user:validUser},user:validUser,
   url:'?next=%2Fdeposer-une-mission',
@@ -204,7 +204,7 @@ test('Inscription professionnelle : le lien e-mail permet de revenir sur le parc
  assert.equal(page.signupCalls[0].options.emailRedirectTo,'https://offrya-app.onrender.com/connexion?confirmation=1&next=%2Fespace%2Fprofessionnel');
  assert.equal(page.signupCalls[0].options.data.offrya_signup_intent,'pro');
 });
-test('Confirmation e-mail : le parcours professionnel est conservé',async()=>{
+test('Confirmation e-mail : inscription pro rejoint d’abord le dashboard',async()=>{
  const page=await loadAuthPage({session:{user:validUser},user:validUser,url:'?confirmation=1&next=%2Fespace%2Fprofessionnel'});
  assert.deepEqual(page.redirects,['/espace']);
 });
@@ -213,7 +213,7 @@ test('Confirmation e-mail : inscription demandeur revient au tableau de bord',as
  assert.deepEqual(page.redirects,['/espace']);
 });
 
-test('Confirmation e-mail : type pro dans les métadonnées dirige vers le dossier professionnel',async()=>{
+test('Confirmation e-mail : type pro dans les métadonnées rejoint le dashboard commun',async()=>{
  const page=await loadAuthPage({
   session:{user:validUser},
   user:{...validUser,user_metadata:{offrya_signup_intent:'pro'}},
