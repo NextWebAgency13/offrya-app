@@ -1,5 +1,3 @@
-import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm';
-
 // Public landing is for visitors. A confirmed existing account enters /espace.
 // getUser checks the account with Supabase instead of trusting local session data.
 // Never redirect anonymous/unconfirmed sessions or block the public page on errors.
@@ -9,6 +7,7 @@ async function redirectConfirmedAccount(){
   if(!response.ok)return;
   const config=await response.json();
   if(!config.supabaseUrl||!config.supabaseKey)return;
+  const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm');
   const db=createClient(config.supabaseUrl,config.supabaseKey);
   const {data:{session},error:sessionError}=await db.auth.getSession();
   if(sessionError||!session)return;
