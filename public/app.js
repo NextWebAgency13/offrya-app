@@ -432,9 +432,6 @@ function render(){
  $('roleBusinessName').textContent=state.premium?.legal_name||'Entreprise à vérifier';
  $('rolePremiumUntil').textContent=eligiblePro?(state.subscription?.paid_through?'Actif jusqu’au '+date(state.subscription.paid_through):'Abonnement actif'):'Accès en cours';
  $('roleCompanyVerifiedText').textContent=eligiblePro?'✓ Compte vérifié':'Vérification en cours';
- $('roleCompanyStep').textContent=state.premium?.siret?'SIRET enregistré — vérification en cours':'SIRET et informations officielles à vérifier';
- $('roleIdentityStep').textContent=state.premium?.identity_status==='verified'?'Identité vérifiée':'Identité du dirigeant à confirmer';
- $('roleBillingStep').textContent=state.subscription?.status==='active'?'Abonnement enregistré — validation en cours':'34,99 € TTC/mois après validation';
  $('roleAvailableCount').textContent=state.missions.filter(m=>m.status==='open').length;
  $('roleOwnCount').textContent=state.conversations.filter(x=>x.professional_id===state.session?.user?.id).length;
  $('roleConversationCount').textContent=state.conversations.length;
