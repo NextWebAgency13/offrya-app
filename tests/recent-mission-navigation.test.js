@@ -12,7 +12,7 @@ test('recent mission cards carry IDs instead of tab-only navigation',()=>{
 test('selecting a recent own mission opens its detail and clears filters',()=>{
  const source=clip("// Open the selected owner's mission, not merely the list tab.","$('missionList').onclick=");
  const calls={};
- const rows=[{id:'own-1',owner_id:'user-1',status:'closed'},{id:'other-1',owner_id:'other-user'}];
+ const rows=[{id:'own-1',owner_id:'user-1',status:'open'},{id:'other-1',owner_id:'other-user'}];
  const list={scrollIntoView:()=>{calls.scroll=true}};
  const wrap={contains:()=>true,addEventListener:(_name,fn)=>{calls.handler=fn}};
  const fields={missionQuery:{value:'previous'},missionCategory:{value:'Previous'},missionDept:{value:'75'}};
@@ -27,10 +27,11 @@ test('selecting a recent own mission opens its detail and clears filters',()=>{
  assert.equal(calls.tab,'missions');assert.equal(calls.preserve,true);assert.equal(calls.render,true);assert.equal(calls.scroll,true);
  for(const field of Object.values(fields))assert.equal(field.value,'');
 });
-test('existing mission detail remains available for closed owner missions',()=>{
+test('closed missions are excluded from direct detail and recent cards',()=>{
  assert.match(app,/const detail=state\.selectedMissionId\?visible\.find/);
- assert.match(app,/m\.owner_id===uid\|\|m\.status==='open'/);
+ assert.match(app,/m\.status==='open'&&\(m\.owner_id===uid\|\|canBrowse\)/);
  assert.match(app,/data-back-missions/);
+ assert.match(app,/activeOwn=own\.filter\(m=>m\.status==='open'\)/);
 });
 
 test('Missions tab resets a prior detail but explicit card selection preserves it',()=>{
