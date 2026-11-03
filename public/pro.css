@@ -76,3 +76,8 @@
 /* Espace professionnel : un en-tête et un seul parcours guidé. */
 .pro-entry-heading{margin:0 0 22px;padding:5px 0 0}.pro-entry-heading h2{margin:6px 0 7px;font:800 clamp(23px,3vw,33px)/1.2 'Plus Jakarta Sans',sans-serif;letter-spacing:-.04em;color:#302040}.pro-entry-heading p{margin:0;color:#71677d;line-height:1.6;font-size:13px;max-width:670px}
 @media(max-width:620px){.pro-entry-heading{margin-bottom:16px}.pro-entry-heading h2{font-size:25px}}
+
+/* Présentation Pro sans promotion répétée pour les utilisateurs connectés. */
+.pro-start-notice{padding:clamp(19px,3vw,30px);border:1px solid #e8ddf6;background:linear-gradient(120deg,#f6efff,#fff9f6);border-radius:20px;margin-bottom:22px}
+.pro-start-notice h2{font:800 clamp(21px,3vw,28px)/1.25 'Plus Jakarta Sans',sans-serif;margin:0 0 9px;color:#38214f}.pro-start-notice p{color:#665874;margin:0 0 19px;max-width:650px;line-height:1.65}
+@media(max-width:750px){.pro-hero{grid-template-columns:1fr!important}.pro-hero-main{padding:25px 20px}.pro-offer{min-width:0}.pro-layout{display:block}.pro-rail{width:100%;margin-bottom:16px}.pro-stage-card{min-width:0}.pro-start-notice .button{width:100%;white-space:normal;text-align:center}}
