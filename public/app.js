@@ -194,6 +194,9 @@ function renderPremium(){
  $('proBegin').textContent=state.session?'Démarrer mon inscription professionnelle →':'Créer mon compte professionnel →';
  $('premiumGate').classList.toggle('hidden',allowed);
  $('proDashboard').classList.toggle('hidden',!allowed);
+ // Approved accounts land directly on opportunity discovery, not the signup wizard.
+ // The four verification steps remain available for accounts still onboarding.
+ $('proWorkspace').classList.toggle('op-dashboard-active',allowed);
  if(!pro)return;
  const stage=allowed||state.premium?.status==='verified'?4:state.premium?3:Math.min(3,Math.max(1,state.proStep||1));
  $('proStatusPill').textContent=state.testPremiumUntil?'Accès de test':allowed?'Compte actif':stage===4?'Dossier approuvé':state.premium?(state.premium.status==='rejected'?'Dossier à régulariser':'Vérification en cours'):'Inscription en cours';
