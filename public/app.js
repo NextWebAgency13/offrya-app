@@ -129,8 +129,10 @@ function renderPremium(){
  document.querySelectorAll('.nav-link[data-tab="boamp"]').forEach(el=>el.classList.toggle('hidden',!allowed));
  document.querySelectorAll('.nav-link[data-tab="professional"]').forEach(el=>el.classList.toggle('mobile-pro-replaced',allowed));
  $('premiumContent').classList.toggle('hidden',!allowed);
- $('proLanding').classList.toggle('hidden',pro);
+ $('proLanding').classList.toggle('hidden',Boolean(state.session));
  $('proWorkspace').classList.toggle('hidden',!pro);
+ $('proEntryHeading').classList.toggle('hidden',Boolean(state.session));
+ $('proStartNotice').classList.toggle('hidden',!state.session||pro);
  $('premiumLogin').classList.toggle('hidden',Boolean(state.session));
  $('proBegin').textContent=state.session?'Démarrer mon inscription professionnelle →':'Créer mon compte professionnel →';
  $('premiumGate').classList.toggle('hidden',allowed);
@@ -206,6 +208,7 @@ function renderPremium(){
   $('premiumBillingStatus').textContent=state.billingEnabled?'Paiement sécurisé sur Stripe. L’accès s’active après confirmation du règlement.':'La souscription est momentanément indisponible. Le support peut vous renseigner.';
  }
 }
+$('proStartFromAccount').onclick=()=>{$('proBegin').click();};
 $('premiumLogin').onclick=()=>authModal(true);
 async function openStripePortal(){
  try{
