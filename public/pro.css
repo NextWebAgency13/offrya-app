@@ -81,3 +81,39 @@
 .pro-start-notice{padding:clamp(19px,3vw,30px);border:1px solid #e8ddf6;background:linear-gradient(120deg,#f6efff,#fff9f6);border-radius:20px;margin-bottom:22px}
 .pro-start-notice h2{font:800 clamp(21px,3vw,28px)/1.25 'Plus Jakarta Sans',sans-serif;margin:0 0 9px;color:#38214f}.pro-start-notice p{color:#665874;margin:0 0 19px;max-width:650px;line-height:1.65}
 @media(max-width:750px){.pro-hero{grid-template-columns:1fr!important}.pro-hero-main{padding:25px 20px}.pro-offer{min-width:0}.pro-layout{display:block}.pro-rail{width:100%;margin-bottom:16px}.pro-stage-card{min-width:0}.pro-start-notice .button{width:100%;white-space:normal;text-align:center}}
+
+/* OFFRYA unified opportunity dashboard — private missions + official BOAMP */
+.op-hero{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding:18px 0 22px}
+.op-hero h3{font:800 clamp(24px,3vw,32px)/1.18 'Plus Jakarta Sans',sans-serif;color:#301141;margin:9px 0}
+.op-hero p{color:#69708a;line-height:1.65;margin:0;max-width:650px}
+.op-pill{border-radius:30px;background:#efe4ff;color:#6630ad;padding:10px 15px;font-size:12px;font-weight:800;white-space:nowrap}
+.op-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:22px}
+.op-stat-grid>div{min-width:0;display:flex;flex-direction:column;gap:9px;background:linear-gradient(145deg,#fff,#f5f0fb);border:1px solid #e7d9f1;border-radius:16px;padding:17px}
+.op-stat-grid strong{font:800 30px/1.2 'Plus Jakarta Sans',sans-serif;color:#4a1771}
+.op-stat-grid span{font-size:12px;line-height:1.45;color:#67627c}
+.op-panel{border:1px solid #e5daee;background:#fff;border-radius:20px;padding:21px;margin:17px 0;box-shadow:0 9px 27px #48176c09}
+.op-panel-top{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:15px}
+.op-panel h4{font:800 clamp(18px,2vw,23px)/1.2 'Plus Jakarta Sans',sans-serif;color:#38134e;margin:0 0 7px}
+.op-panel p{line-height:1.55;margin:0;color:#6b6481}
+.op-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.op-form>fieldset{grid-column:1/-1;min-width:0;border:0;margin:0;padding:0}
+.op-form legend{font-weight:750;color:#32213f;margin-bottom:9px}
+.op-check-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.op-check-grid label,.op-check-alert{display:flex;align-items:center;gap:7px;background:#f7f1fd;border:1px solid #e8dbf4;border-radius:10px;padding:10px;font-size:12px;font-weight:650;color:#3f2553}
+.op-check-grid label:has(input:checked){background:#ede0ff;border-color:#8a5bd4}
+.op-form>label:not(.op-check-alert){display:flex;flex-direction:column;gap:6px;color:#473455;font-size:13px;font-weight:700}
+.op-form .op-check-alert,.op-form button,.op-form .muted{grid-column:1/-1}
+.op-form button{width:max-content;min-width:180px}
+.op-result-list{display:grid;gap:10px}
+.op-result{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #e8dff0;background:#fcfbff;border-radius:14px;padding:15px}
+.op-result>div{min-width:0;flex:1}
+.op-result h5{font:800 15px/1.38 'Plus Jakarta Sans',sans-serif;color:#321344;margin:7px 0}
+.op-result p{font-size:12px}
+.op-result a{font-size:12px;font-weight:700;color:#6830b0;text-decoration:underline}
+.op-result label{display:flex;flex-direction:column;gap:4px;font-size:12px}
+.op-result select{max-width:210px}
+.op-source{display:inline-block;color:#6b34ae;font-size:10px;font-weight:800;letter-spacing:.7px}
+.op-billing-foot{font-size:12px;color:#655a73;margin:21px 0 10px}
+.op-inline{color:#6931b9;font-weight:800;background:transparent;border:0;text-decoration:underline;cursor:pointer}
+@media(max-width:760px){.op-hero{display:block}.op-pill{display:inline-flex;margin-top:12px}.op-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.op-check-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.op-form{grid-template-columns:1fr}.op-panel{padding:16px}.op-panel-top{flex-direction:column}.op-result{align-items:stretch;flex-direction:column}.op-result button{align-self:flex-start}.op-form button{width:100%}}
+@media(max-width:370px){.op-stat-grid{gap:7px}.op-stat-grid>div{padding:11px}.op-check-grid{grid-template-columns:1fr}}

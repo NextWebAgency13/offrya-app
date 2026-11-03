@@ -1,12 +1,13 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm';
 import {createAuthCaptcha} from './auth-captcha.mjs';
+import {createOpportunityConsole} from './opportunity-console.js';
 const $=id=>document.getElementById(id);
 const authCaptcha=createAuthCaptcha($('modalAuthCaptcha'));
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,testPremiumUntil:null,draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,testPremiumUntil:null,opportunityPrefs:null,tenderTracking:[],opportunityAlerts:[],draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
@@ -42,14 +43,14 @@ async function refresh(){
   state.draft=null;state.proStep=1;state.proStepUserId=null;
   state.missions=[];state.profile=null;state.conversations=[];state.messages=[];
   state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;
-  state.subscription=null;state.testPremiumUntil=null;state.manualIdentity=null;state.boamp=[];
+  state.subscription=null;state.testPremiumUntil=null;state.opportunityPrefs=null;state.tenderTracking=[];state.opportunityAlerts=[];state.manualIdentity=null;state.boamp=[];
   state.priorityAlerts=[];state.lastPriorityIds=null;state.loaded=true;render();return;
  }
  const uid=state.session.user.id;
  // Never expose a previous account's cached private rows during account switches.
  if(state.currentUserId!==uid){
   state.currentUserId=uid;state.missions=[];state.profile=null;state.premium=null;state.subscription=null;state.testPremiumUntil=null;
-  state.conversations=[];state.messages=[];state.prefs=null;state.profiles=[];state.favorites=[];
+  state.conversations=[];state.messages=[];state.prefs=null;state.opportunityPrefs=null;state.tenderTracking=[];state.opportunityAlerts=[];state.profiles=[];state.favorites=[];
   state.draft=null;state.manualIdentity=null;state.priorityAlerts=[];state.loaded=false;
  }
  // Load the owner's missions first. RLS also independently enforces ownership.
@@ -69,6 +70,9 @@ async function refresh(){
   ['premium',state.db.from('offrya_premium_requests').select('user_id,siret,legal_name,status,premium_until,identity_status,authority_status,representative_kind,registry_name_matched,registry_match_checked_at,registry_match_source,identity_live_verified,presence_verified_at,presence_method,identity_verified_at,authority_verified_at,authority_review_method').eq('user_id',uid).maybeSingle()],
   ['subscription',state.db.from('offrya_premium_subscriptions').select('status,paid_through,stripe_customer_id').eq('user_id',uid).maybeSingle()],
   ['testPremiumUntil',typeof state.db.rpc==='function'?state.db.rpc('offrya_test_premium_expires_at'):Promise.resolve({data:null})],
+  ['opportunityPrefs',state.db.from('offrya_opportunity_preferences').select('*').eq('user_id',uid).maybeSingle()],
+  ['tenderTracking',state.db.from('offrya_tender_tracking').select('user_id,tender_id,title,url,stage,updated_at').eq('user_id',uid).limit(100)],
+  ['opportunityAlerts',state.db.from('offrya_tender_alerts').select('user_id,tender_id,title,url,deadline,detected_at,seen_at').eq('user_id',uid).order('detected_at',{ascending:false}).limit(50)],
   ['draft',state.db.from('offrya_professional_drafts').select('step,siret,legal_name,representative_name,representative_capacity,representative_kind').eq('user_id',uid).maybeSingle()],
   ['manualIdentity',state.db.from('offrya_manual_identity_requests').select('status,requested_at,updated_at').eq('user_id',uid).maybeSingle()]
  ];
@@ -81,6 +85,8 @@ async function refresh(){
    continue;
   }
   if(key==='favorites')state.favorites=(res?.data||[]).map(x=>x.mission_id);
+  else if(key==='tenderTracking')state.tenderTracking=res?.data||[];
+  else if(key==='opportunityAlerts')state.opportunityAlerts=res?.data||[];
   else if(key==='conversations'||key==='profiles')state[key]=res?.data||[];
   else state[key]=res?.data||null;
  }
@@ -499,7 +505,7 @@ $('homePrivateDashboard').classList.toggle('hidden',!yes);$('statOpenLabel').tex
  // An optional module must not interrupt the other views.
  for(const [name,draw] of [
   ['missions',renderMissions],['messagerie',renderInbox],['paramètres',renderSettings],
-  ['professionnel',renderPremium],['alertes',renderPriorityAlerts]
+  ['professionnel',renderPremium],['opportunités',()=>opportunityConsole.render()],['alertes',renderPriorityAlerts]
  ]){
   try{draw();}catch(error){console.error('OFFRYA: rendu '+name+' indisponible',error);}
  }
@@ -570,4 +576,6 @@ async function init(){
   if(p.has('checkout'))toast(p.get('checkout')==='success'?'Retour de Stripe : confirmation du paiement en cours.':'Paiement non finalisé.');
   if(p.has('identity'))toast('Retour de Stripe Identity : consultez le statut de votre dossier.');
 }
+const opportunityConsole=createOpportunityConsole({state,element:$,canUsePremium,tab,renderMissions,notify:toast});
+opportunityConsole.init();
 init().catch(showError);
