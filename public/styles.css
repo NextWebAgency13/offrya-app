@@ -296,3 +296,5 @@
 #dashboard .role-premium-view,#dashboard .pro-verification-banner,#dashboard .home-private>.stats{display:none!important}
 @media(max-width:930px){.app-shell{min-width:0}.main-content,.main,.content{min-width:0}}
 @media(max-width:620px){.app-shell{display:block;width:100%;max-width:100%;overflow-x:clip}.sidebar{width:100%;min-width:0}.main-content,.main,.content{width:100%;max-width:100%;min-width:0}#dashboard{min-width:0}#dashboard .client-dashboard-publish{min-width:0}}
+
+.auth-captcha{margin:12px 0;min-height:65px}.auth-captcha[hidden]{display:none!important}

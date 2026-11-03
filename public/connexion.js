@@ -1,5 +1,6 @@
 import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm';
 import {authFeedback} from './auth-feedback.mjs';
+import {createAuthCaptcha} from './auth-captcha.mjs';
 const $=id=>document.getElementById(id),query=new URLSearchParams(location.search);
 const value=query.get('next')||'/espace',next=(value==='/deposer-une-mission'||/^\/espace(?:\/(?:missions|marches-publics|messagerie|reglages|professionnel))?$/.test(value))?value:'/espace';
 // Les liens de confirmation finissent sur /connexion pour permettre à Supabase
@@ -8,6 +9,8 @@ const value=query.get('next')||'/espace',next=(value==='/deposer-une-mission'||/
 const linkHash=new URLSearchParams((location.hash||'').replace(/^#/,''));
 const confirmationReturn=query.get('confirmation')==='1'||query.get('type')==='signup'||linkHash.get('type')==='signup';
 let db,mode='login',redirected=false,verificationQueue=Promise.resolve();
+const authCaptcha=createAuthCaptcha(document.getElementById('authCaptcha'));
+
 const invalidatedSessionIds=new Set();
 const labels={login:'Se connecter',signup:'Créer mon compte',reset:'Recevoir le lien de réinitialisation',recover:'Enregistrer le mot de passe'};
 const titles={login:'Connectez-vous à votre espace',signup:'Créez votre compte gratuit',reset:'Mot de passe oublié ?',recover:'Choisissez un nouveau mot de passe'};
@@ -162,6 +165,7 @@ async function init(){
  else if(query.get('mode')==='signup')change('signup');
  const r=await fetch('/api/config');if(!r.ok)throw Error('Connexion indisponible');const c=await r.json();
  if(!c.supabaseUrl||!c.supabaseKey)throw Error('Configuration de connexion indisponible');
+ await authCaptcha.init(c.guestCaptchaSiteKey);
  db=createClient(c.supabaseUrl,c.supabaseKey,{auth:{detectSessionInUrl:true}});
  db.auth.onAuthStateChange((event,session)=>{
   if(event==='PASSWORD_RECOVERY'){change('recover');return;}
@@ -195,15 +199,16 @@ $('loginForm').addEventListener('submit',async e=>{
  e.preventDefault();if(!db)return say('Connexion indisponible',true);
  const f=e.currentTarget,email=f.elements.email.value.trim(),password=f.elements.password.value,b=$('loginSubmit');b.disabled=true;
  try{
-  let r;if(mode==='signup')r=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/connexion?confirmation=1&next='+encodeURIComponent(next),data:{offrya_signup_intent:next==='/espace/professionnel'?'pro':'client'}}});
-  else if(mode==='reset')r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/connexion?mode=reset-password&next='+encodeURIComponent(next)});
+  const captchaToken=authCaptcha.requiredToken();
+  let r;if(mode==='signup')r=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/connexion?confirmation=1&next='+encodeURIComponent(next),data:{offrya_signup_intent:next==='/espace/professionnel'?'pro':'client'},...(captchaToken?{captchaToken}:{})}});
+  else if(mode==='reset')r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/connexion?mode=reset-password&next='+encodeURIComponent(next),...(captchaToken?{captchaToken}:{})});
   else if(mode==='recover')r=await db.auth.updateUser({password});
-  else r=await db.auth.signInWithPassword({email,password});
+  else r=await db.auth.signInWithPassword({email,password,...(captchaToken?{options:{captchaToken}}:{})});
   if(r.error)throw r.error;
   if(mode==='signup')say('Consultez votre boîte e-mail si un message de confirmation vous est envoyé. Si vous possédez déjà un compte, utilisez « Connexion ».');
   else if(mode==='reset')say('Consultez votre boîte e-mail et ouvrez le lien sécurisé de réinitialisation. Aucun abonnement ni alerte n’est activé.');
   else if(mode==='recover'){say('Mot de passe modifié');location.replace(next);}
   else await resume(r.data?.session);
- }catch(err){say(authFeedback(err,mode),true);}finally{b.disabled=false;}
+ }catch(err){say(authFeedback(err,mode),true);}finally{authCaptcha.reset();b.disabled=false;}
 });
 init().catch(e=>say(authFeedback(e,'login'),true));
