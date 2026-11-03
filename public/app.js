@@ -110,16 +110,16 @@ function renderMissionDetail(m){
 }
 function renderMissions(){
  const uid=state.session?.user.id,canBrowse=canUsePremium();
- const visible=state.missions.filter(m=>m.owner_id===uid||canBrowse);
+ const visible=state.missions.filter(m=>m.status==='open'&&(m.owner_id===uid||canBrowse));
  let q=$('missionQuery').value.trim().toLowerCase(),c=$('missionCategory').value,d=$('missionDept').value.trim().toUpperCase();
- const matches=visible.filter(m=>(m.owner_id===uid||m.status==='open')&&(!q||(m.title+' '+m.description+' '+m.city).toLowerCase().includes(q))&&(!c||m.category===c)&&(!d||m.department===d));
+ const matches=visible.filter(m=>(!q||(m.title+' '+m.description+' '+m.city).toLowerCase().includes(q))&&(!c||m.category===c)&&(!d||m.department===d));
  $('missionsCount').textContent=matches.length+(canBrowse?' mission(s) accessible(s)':' annonce(s) personnelle(s)');
  $('missionsListHeading').textContent=canBrowse?'Missions accessibles à mon compte Pro':'Mes annonces publiées';
  $('missionSearchFilters').classList.toggle('hidden',!canBrowse);
  const publisherReady=Boolean(state.session&&!isGuest()&&state.session.user.email_confirmed_at);
  $('missionForm').classList.toggle('hidden',!publisherReady);
  $('missionAccountNotice').classList.toggle('hidden',publisherReady);
- const detail=state.selectedMissionId?visible.find(m=>m.id===state.selectedMissionId&&(m.owner_id===uid||canBrowse)&& (m.owner_id===uid||m.status==='open')):null;
+ const detail=state.selectedMissionId?visible.find(m=>m.id===state.selectedMissionId):null;
  if(state.selectedMissionId&&!detail)state.selectedMissionId=null;
  $('missionList').innerHTML=detail?renderMissionDetail(detail):matches.length?matches.map(m=>{
   const own=m.owner_id===uid;
@@ -462,11 +462,12 @@ function render(){
 
  document.getElementById('roleLegacyDetails')?.classList.add('hidden');
  const own=state.missions.filter(m=>m.owner_id===state.session?.user?.id);
+ const activeOwn=own.filter(m=>m.status==='open');
  $('clientStatPublished').textContent=String(own.length);
  $('clientStatOpen').textContent=String(own.filter(m=>m.status==='open').length);
  $('clientStatConversations').textContent=String(state.conversations.filter(c=>own.some(m=>m.id===c.mission_id)).length);
  $('clientStatClosed').textContent=String(own.filter(m=>m.status==='closed'||m.status==='awarded').length);
- $('roleRecentMissions').innerHTML=own.length?own.slice(0,3).map(m=>'<button type="button" class="role-mission-row" data-open-own-mission="'+esc(m.id)+'" aria-label="Consulter la mission '+esc(m.title)+'"><span class="role-mission-icon">▣</span><span><strong>'+esc(m.title)+'</strong><small>'+esc(m.city||'France')+' · '+esc(m.status==='open'?'En cours':'Clôturée')+'</small></span><b aria-hidden="true">›</b></button>').join(''):'<p class="role-empty">Retrouvez vos annonces ici. Publiez votre première mission pour suivre son statut et les échanges avec les professionnels.</p>';
+ $('roleRecentMissions').innerHTML=activeOwn.length?activeOwn.slice(0,3).map(m=>'<button type="button" class="role-mission-row" data-open-own-mission="'+esc(m.id)+'" aria-label="Consulter la mission '+esc(m.title)+'"><span class="role-mission-icon">▣</span><span><strong>'+esc(m.title)+'</strong><small>'+esc(m.city||'France')+' · '+esc(m.status==='open'?'En cours':'Clôturée')+'</small></span><b aria-hidden="true">›</b></button>').join(''):'<p class="role-empty">Retrouvez vos annonces ici. Publiez votre première mission pour suivre son statut et les échanges avec les professionnels.</p>';
  $('roleBusinessName').textContent=state.premium?.legal_name||'Entreprise à vérifier';
  $('rolePremiumUntil').textContent=eligiblePro?(state.subscription?.paid_through?'Actif jusqu’au '+date(state.subscription.paid_through):'Abonnement actif'):'Accès en cours';
  $('roleCompanyVerifiedText').textContent=eligiblePro?'✓ Compte vérifié':'Vérification en cours';
@@ -542,7 +543,7 @@ $('missionForm').onsubmit=async e=>{
 $('roleRecentMissions').addEventListener('click',event=>{
  const button=event.target.closest('[data-open-own-mission]');
  if(!button||!$('roleRecentMissions').contains(button))return;
- const mission=state.missions.find(m=>m.id===button.dataset.openOwnMission&&m.owner_id===state.session?.user?.id);
+ const mission=state.missions.find(m=>m.id===button.dataset.openOwnMission&&m.owner_id===state.session?.user?.id&&m.status==='open');
  if(!mission)return;
  state.selectedMissionId=mission.id;
  // Reset list filters so the detail is not hidden by an unrelated search.
@@ -554,7 +555,7 @@ $('roleRecentMissions').addEventListener('click',event=>{
 $('missionList').onclick=async e=>{
  const btn=e.target.closest('[data-back-missions],[data-view-mission],[data-contact],[data-close-mission],[data-favorite]');if(!btn)return;
  if(btn.hasAttribute('data-back-missions')){state.selectedMissionId=null;renderMissions();return;}
- if(btn.hasAttribute('data-view-mission')){const id=btn.dataset.viewMission;const mission=state.missions.find(m=>m.id===id);if(!mission||!(mission.owner_id===state.session?.user?.id||canUsePremium()&&mission.status==='open'))return;state.selectedMissionId=id;renderMissions();$('missionList').scrollIntoView({block:'start',behavior:'smooth'});return;}
+ if(btn.hasAttribute('data-view-mission')){const id=btn.dataset.viewMission;const mission=state.missions.find(m=>m.id===id);if(!mission||mission.status!=='open'||!(mission.owner_id===state.session?.user?.id||canUsePremium()))return;state.selectedMissionId=id;renderMissions();$('missionList').scrollIntoView({block:'start',behavior:'smooth'});return;}
  if(btn.dataset.favorite){if(!requireAuth())return;const id=btn.dataset.favorite;try{const result=state.favorites.includes(id)?await state.db.from('offrya_favorites').delete().eq('user_id',state.session.user.id).eq('mission_id',id):await state.db.from('offrya_favorites').insert({user_id:state.session.user.id,mission_id:id});if(result.error)throw result.error;await refresh();toast(state.favorites.includes(id)?'Mission ajoutée aux favoris.':'Favori retiré.');}catch(err){showError(err);}return;}
  if(btn.dataset.closeMission){if(!confirm('Clôturer cette mission ? Elle ne sera plus visible dans les recherches, mais vos conversations resteront accessibles.'))return;try{const r=await state.db.rpc('offrya_close_mission',{p_id:btn.dataset.closeMission});if(r.error)throw r.error;await refresh();toast('Mission clôturée');}catch(err){showError(err);}return;}
  if(!requireRole('pro'))return;const mission=state.missions.find(m=>m.id===btn.dataset.contact);if(!mission)return;
