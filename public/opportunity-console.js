@@ -43,7 +43,7 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
   $('opMissionList').innerHTML=ms.length?ms.slice(0,8).map(m=>
    '<article class="op-result"><div><span class="op-source">MISSION OFFRYA</span><h5>'+esc(m.title)+'</h5><p>'+esc(m.category)+' · '+esc(m.city)+' ('+esc(m.department)+') · '+esc(money(m.budget_cents))+'</p></div><button type="button" class="button secondary" data-op-mission="'+esc(m.id)+'">Consulter</button></article>'
   ).join(''):'<p class="muted">Aucune mission ouverte ne correspond à vos critères pour le moment. Les nouvelles annonces des particuliers et entreprises apparaîtront ici.</p>';
-  renderTenders();renderTracked();
+  renderTenders();renderTracked();renderAlerts();
   const fp=JSON.stringify([uid,p.sectors,p.department,p.keywords]);
   if(fp!==previousFingerprint){previousFingerprint=fp;lastSearch=0;tenders=[];scanError=null;}
   if(!lastSearch&&!searching&&!refreshInProgress&&uid)queueMicrotask(()=>refreshTenders());
@@ -58,6 +58,13 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
    '<article class="op-result"><div><span class="op-source">MARCHÉ PUBLIC · BOAMP</span><h5>'+esc(t.title)+'</h5><p>'+esc(t.buyer)+' · '+esc(t.departments||'France')+' · Échéance : '+esc(fmtDate(t.deadline))+'</p><a href="'+esc(t.url)+'" target="_blank" rel="noopener noreferrer">Avis officiel ↗</a></div><button type="button" class="button secondary" data-op-save="'+esc(t.id)+'" '+(tracked.has(t.id)?'disabled':'')+'>'+(tracked.has(t.id)?'Enregistré':'Suivre')+'</button></article>'
   ).join(''):'<p class="muted">Aucun marché ouvert correspondant à ces filtres dans les résultats interrogés. Élargissez votre zone ou vos secteurs.</p>';
   $('opTenderUpdated').textContent=lastSearch?'Dernière recherche : '+new Date(lastSearch).toLocaleString('fr-FR')+' · BOAMP / DILA · Résultats de recherche, non exhaustifs.':'Aucune recherche lancée.';
+ }
+ function renderAlerts(){
+  const node=$('opAlertsList');if(!node)return;
+  const rows=state.opportunityAlerts||[];
+  node.innerHTML=rows.length?rows.slice(0,15).map(a=>
+   '<article class="op-result"><div><span class="op-source">'+(a.seen_at?'AVIS DÉJÀ CONSULTÉ':'NOUVELLE ALERTE BOAMP')+'</span><h5>'+esc(a.title)+'</h5><p>Repéré le '+esc(fmtDate(a.detected_at))+' · Échéance : '+esc(fmtDate(a.deadline))+'</p><a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer">Consulter l’avis officiel ↗</a></div>'+(a.seen_at?'':'<button class="button secondary" data-op-seen="'+esc(a.tender_id)+'">Marquer comme lu</button>')+'</article>'
+  ).join(''):'<p class="muted">Aucune nouvelle alerte enregistrée. La veille est exécutée périodiquement pour les comptes qui ont activé cette option.</p>';
  }
  function renderTracked(){
   const rows=state.tenderTracking||[];
@@ -129,6 +136,14 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
   $('opTenderList')?.addEventListener('click',e=>{
    const target=e.target.closest('[data-op-save]');if(!target)return;
    const t=tenders.find(x=>x.id===target.dataset.opSave);if(t)trackTender(t).catch(console.error);
+  });
+  $('opAlertsList')?.addEventListener('click',async e=>{
+   const button=e.target.closest('[data-op-seen]');if(!button||!canUsePremium())return;
+   const id=button.dataset.opSeen;
+   const {error}=await state.db.from('offrya_tender_alerts').update({seen_at:new Date().toISOString()}).eq('user_id',current()).eq('tender_id',id);
+   if(error){notify('Impossible de mettre à jour cette alerte.');return;}
+   state.opportunityAlerts=(state.opportunityAlerts||[]).map(a=>a.tender_id===id?{...a,seen_at:new Date().toISOString()}:a);
+   renderAlerts();
   });
   $('opTrackedList')?.addEventListener('change',e=>{
    if(e.target.matches('[data-op-stage]'))changeStage(e.target.dataset.opStage,e.target.value).catch(console.error);
