@@ -66,7 +66,7 @@ async function refresh(){
   ['prefs',state.db.from('offrya_alert_preferences').select('*').eq('user_id',uid).maybeSingle()],
   ['profiles',state.db.from('offrya_profiles').select('id,display_name,role,city,specialty').limit(300)],
   ['favorites',state.db.from('offrya_favorites').select('mission_id')],
-  ['premium',state.db.from('offrya_premium_requests').select('user_id,siret,legal_name,status,premium_until,identity_status,authority_status,representative_kind,registry_name_matched').eq('user_id',uid).maybeSingle()],
+  ['premium',state.db.from('offrya_premium_requests').select('user_id,siret,legal_name,status,premium_until,identity_status,authority_status,representative_kind,registry_name_matched,registry_match_checked_at,registry_match_source,identity_live_verified,presence_verified_at,presence_method,identity_verified_at,authority_verified_at,authority_review_method').eq('user_id',uid).maybeSingle()],
   ['subscription',state.db.from('offrya_premium_subscriptions').select('status,paid_through,stripe_customer_id').eq('user_id',uid).maybeSingle()],
   ['draft',state.db.from('offrya_professional_drafts').select('step,siret,legal_name,representative_name,representative_capacity,representative_kind').eq('user_id',uid).maybeSingle()],
   ['manualIdentity',state.db.from('offrya_manual_identity_requests').select('status,requested_at,updated_at').eq('user_id',uid).maybeSingle()]
@@ -144,7 +144,12 @@ function renderMessages(){
 function renderSettings(){
  const yes=Boolean(state.session),has=Boolean(state.profile);
  $('accountState').textContent=!yes?'Un compte gratuit avec adresse e-mail confirmée est requis pour publier.':isGuest()?'Ancien suivi invité : vos missions publiées restent consultables sur cet appareil. Créez un compte gratuit pour publier de nouvelles missions.':`Compte : ${state.session.user.email}${canUsePremium()?' · Professionnel vérifié et abonné':''}`;
- const f=$('profileForm');f.elements.display_name.value=state.profile?.display_name||'';f.elements.role.value=state.profile?.role||'client';f.elements.role.disabled=isGuest()||(has&&state.profile?.role==='pro');f.elements.city.value=state.profile?.city||'';f.elements.specialty.value=state.profile?.specialty||'';
+ const verified=hasVerifiedProfessionalIdentity();
+ const proJourney=state.profile?.role==='pro'||Boolean(state.premium||state.draft||state.manualIdentity);
+ const roleStatus=canUsePremium()?'Professionnel actif — abonnement en cours':verified?'Professionnel vérifié — abonnement à activer':proJourney?'Vérification professionnelle en cours':'Demandeur';
+ $('accountRoleStatus').textContent=roleStatus;
+ $('accountRoleHelp').textContent=canUsePremium()?'Vous pouvez consulter les missions et marchés publics réservés aux abonnés.':verified?'Votre dossier est vérifié. Un abonnement actif à 34,99 € TTC/mois est nécessaire pour consulter les missions et marchés publics.':proJourney?'Terminez la vérification de votre entreprise et de votre identité dans l’Espace pro. L’abonnement sera proposé après validation.':'Pour devenir professionnel, commencez la vérification dans l’Espace pro. L’accès aux missions des autres utilisateurs et aux marchés publics exige également un abonnement actif.';
+ const f=$('profileForm');f.elements.display_name.value=state.profile?.display_name||'';f.elements.city.value=state.profile?.city||'';f.elements.specialty.value=state.profile?.specialty||'';
  $('filterStatus').textContent=state.prefs?.department||state.prefs?.category?'Filtres enregistrés.':'Aucun filtre défini. Sélectionnez un secteur ou un département.';
  const p=$('preferencesForm');p.elements.missions_enabled.checked=state.prefs?.missions_enabled||false;p.elements.messages_enabled.checked=state.prefs?.messages_enabled||false;p.elements.department.value=state.prefs?.department||'';p.elements.category.value=state.prefs?.category||'';
  const canManage=Boolean(state.session&&!isGuest()&&state.subscription?.stripe_customer_id);
@@ -152,9 +157,21 @@ function renderSettings(){
  $('accountBillingInfo').textContent=!state.session?'Connectez-vous pour gérer votre abonnement.':canManage?'Votre abonnement est associé à un compte Stripe.':'Aucun abonnement Stripe associé à ce compte. En cas de difficulté, contactez le support.';
 }
 
+function hasVerifiedProfessionalIdentity(){
+ const v=state.premium;
+ return Boolean(state.profile?.role==='pro'&&v?.status==='verified'
+  &&v.identity_status==='verified'&&v.identity_verified_at
+  &&v.authority_status==='verified'&&v.authority_verified_at
+  &&v.representative_kind==='dirigeant'&&v.registry_name_matched===true
+  &&v.registry_match_checked_at
+  &&['official_search_rne','inpi_rne_review'].includes(v.registry_match_source)
+  &&v.identity_live_verified===true&&v.presence_verified_at
+  &&v.presence_method==='stripe_selfie'
+  &&v.authority_review_method==='registry_representative');
+}
 function canUsePremium(){
  const paid=state.subscription?.status==='active'&&Date.parse(state.subscription?.paid_through||'')>Date.now();
- return Boolean(state.session&&state.profile?.role==='pro'&&state.premium?.status==='verified'&&state.premium?.identity_status==='verified'&&state.premium?.authority_status==='verified'&&state.premium?.representative_kind==='dirigeant'&&state.premium?.registry_name_matched===true&&paid);
+ return Boolean(state.session&&!state.session.user?.is_anonymous&&hasVerifiedProfessionalIdentity()&&paid);
 }
 function renderPremium(){
  const allowed=canUsePremium(),pro=Boolean(state.session&&state.profile?.role==='pro');
@@ -521,7 +538,7 @@ $('missionList').onclick=async e=>{
 $('inboxBackToList').onclick=()=>{$('inbox').classList.remove('has-active-thread');};
 $('conversationList').onclick=async e=>{const btn=e.target.closest('[data-thread]');if(!btn)return;state.thread=btn.dataset.thread;renderInbox();try{await loadMessages(state.thread);}catch(err){showError(err);}};
 $('messageForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth()||!state.thread)return;const f=e.currentTarget,body=f.elements.body.value.trim();if(!body)return;try{const r=await state.db.from('offrya_messages').insert({conversation_id:state.thread,sender_id:state.session.user.id,body});if(r.error)throw r.error;f.reset();await loadMessages(state.thread);}catch(err){showError(err);}};
-$('profileForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget,x=Object.fromEntries(new FormData(f)),id=state.session.user.id;try{const r=state.profile?await state.db.from('offrya_profiles').update({display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim(),...(state.profile.role==='client'&&x.role==='pro'?{role:'pro'}:{})}).eq('id',id):await state.db.from('offrya_profiles').insert({id,role:x.role,display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim()});if(r.error)throw r.error;toast('Profil enregistré');await refresh();}catch(err){showError(err);}};
+$('profileForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget,x=Object.fromEntries(new FormData(f)),id=state.session.user.id;try{const r=state.profile?await state.db.from('offrya_profiles').update({display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim()}).eq('id',id):await state.db.from('offrya_profiles').insert({id,role:'client',display_name:x.display_name.trim(),city:x.city.trim(),specialty:x.specialty.trim()});if(r.error)throw r.error;toast('Profil enregistré');await refresh();}catch(err){showError(err);}};
 $('preferencesForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget;const payload={user_id:state.session.user.id,missions_enabled:f.elements.missions_enabled.checked,messages_enabled:f.elements.messages_enabled.checked,department:f.elements.department.value.trim().toUpperCase(),category:f.elements.category.value};try{let r;if(state.prefs){delete payload.user_id;r=await state.db.from('offrya_alert_preferences').update(payload).eq('user_id',state.session.user.id);}else r=await state.db.from('offrya_alert_preferences').insert(payload);if(r.error)throw r.error;toast('Préférences enregistrées.');await refresh();}catch(err){showError(err);}};
 async function loadBoamp(append=false){if(!canUsePremium()){renderPremium();return;}if(!append){state.boampOffset=0;state.boamp=[];}$('boampCount').textContent='Recherche en cours';$('boampList').innerHTML='<div class="boamp-skeleton" aria-hidden="true"><div></div><div></div></div>';try{const qs=new URLSearchParams({q:$('boampKeyword').value.trim(),dept:$('boampDept').value.trim(),offset:String(state.boampOffset)});const {data:{session}}=await state.db.auth.getSession();if(!session)throw Error('Session expirée.');
 const r=await fetch('/api/annonces?'+qs,{headers:{Authorization:'Bearer '+session.access_token}});const data=await r.json();if(!r.ok)throw Error(data.error||'Source indisponible');state.boamp.push(...data.items);state.boampOffset+=data.items.length;state.boampTotal=data.total;$('boampCount').textContent=`${data.total} avis officiels`;$('boampList').innerHTML=state.boamp.map(m=>`<article class="data-item"><span class="tag">BOAMP OFFICIEL</span><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.buyer)}</div><div class="meta-row"><span>Dépt. : ${esc(m.departments)}</span><span>Publié : ${date(m.published)}</span><span>Échéance : ${date(m.deadline)}</span></div><a class="button secondary micro-button" href="${esc(m.url)}" target="_blank" rel="noopener noreferrer">Consulter l'avis officiel ↗</a></article>`).join('')||'<div class="empty">Aucune annonce correspondante.</div>';$('boampMore').classList.toggle('hidden',state.boampOffset>=data.total||!data.items.length);}catch(err){$('boampCount').textContent='Indisponible';$('boampList').innerHTML='<div class="empty">Le service officiel ne répond pas. Aucune donnée fictive n’est affichée.</div>';console.error(err);}}
