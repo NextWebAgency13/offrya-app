@@ -4,7 +4,7 @@ import {createAuthCaptcha} from './auth-captcha.mjs';
 const $=id=>document.getElementById(id),query=new URLSearchParams(location.search);
 const value=query.get('next')||'/espace',next=(value==='/deposer-une-mission'||/^\/espace(?:\/(?:missions|marches-publics|messagerie|reglages|professionnel))?$/.test(value))?value:'/espace';
 // Les liens de confirmation finissent sur /connexion pour permettre à Supabase
-// de lire les jetons d'authentification. L'utilisateur revient ensuite sur /.
+// de lire les jetons d'authentification. L'utilisateur rejoint ensuite son dashboard.
 // Prend aussi en charge les anciens liens implicites contenant #type=signup.
 const linkHash=new URLSearchParams((location.hash||'').replace(/^#/,''));
 const confirmationReturn=query.get('confirmation')==='1'||query.get('type')==='signup'||linkHash.get('type')==='signup';
@@ -113,21 +113,9 @@ function resume(session){
     return;
    }
    redirected=true;
-   // Une confirmation moderne conserve la destination sélectionnée.
-   // Les anciens liens sans destination gardent le retour historique.
-   if(confirmationReturn&&!query.has('next')){
-    // Simple indication de parcours, jamais un droit d'accès.
-    const intent=user.user_metadata?.offrya_signup_intent;
-    location.replace(intent==='pro'?'/espace/professionnel':intent==='client'?'/espace':'/');
-   }else if(!query.has('next')&&!confirmationReturn){
-    // Après une connexion générique, se baser sur le rôle stocké en base.
-    // Ne jamais utiliser les métadonnées utilisateur pour attribuer des droits.
-    let destination='/espace';
-    try{const profile=await db.from('offrya_profiles').select('role').eq('id',user.id).maybeSingle();
-      if(!profile.error&&profile.data?.role==='pro')destination='/espace/professionnel';
-    }catch(_error){/* L'espace privé gère une indisponibilité ponctuelle. */}
-    location.replace(destination);
-   }else location.replace(confirmationReturn&&next==='/deposer-une-mission'?'/espace':next);
+   // Toute confirmation de compte débouche sur le tableau de bord privé.
+   // Les liens profonds restent disponibles après une connexion ordinaire.
+   location.replace(confirmationReturn?'/espace':next);
    return;
   }
   // L'authentification a changé pendant la vérification : ne pas
