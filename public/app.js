@@ -7,7 +7,7 @@ const authCaptcha=createAuthCaptcha($('modalAuthCaptcha'));
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,testPremiumUntil:null,opportunityPrefs:null,tenderTracking:[],draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,testPremiumUntil:null,opportunityPrefs:null,tenderTracking:[],opportunityAlerts:[],draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
@@ -43,14 +43,14 @@ async function refresh(){
   state.draft=null;state.proStep=1;state.proStepUserId=null;
   state.missions=[];state.profile=null;state.conversations=[];state.messages=[];
   state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;
-  state.subscription=null;state.testPremiumUntil=null;state.opportunityPrefs=null;state.tenderTracking=[];state.manualIdentity=null;state.boamp=[];
+  state.subscription=null;state.testPremiumUntil=null;state.opportunityPrefs=null;state.tenderTracking=[];state.opportunityAlerts=[];state.manualIdentity=null;state.boamp=[];
   state.priorityAlerts=[];state.lastPriorityIds=null;state.loaded=true;render();return;
  }
  const uid=state.session.user.id;
  // Never expose a previous account's cached private rows during account switches.
  if(state.currentUserId!==uid){
   state.currentUserId=uid;state.missions=[];state.profile=null;state.premium=null;state.subscription=null;state.testPremiumUntil=null;
-  state.conversations=[];state.messages=[];state.prefs=null;state.opportunityPrefs=null;state.tenderTracking=[];state.profiles=[];state.favorites=[];
+  state.conversations=[];state.messages=[];state.prefs=null;state.opportunityPrefs=null;state.tenderTracking=[];state.opportunityAlerts=[];state.profiles=[];state.favorites=[];
   state.draft=null;state.manualIdentity=null;state.priorityAlerts=[];state.loaded=false;
  }
  // Load the owner's missions first. RLS also independently enforces ownership.
@@ -72,6 +72,7 @@ async function refresh(){
   ['testPremiumUntil',typeof state.db.rpc==='function'?state.db.rpc('offrya_test_premium_expires_at'):Promise.resolve({data:null})],
   ['opportunityPrefs',state.db.from('offrya_opportunity_preferences').select('*').eq('user_id',uid).maybeSingle()],
   ['tenderTracking',state.db.from('offrya_tender_tracking').select('user_id,tender_id,title,url,stage,updated_at').eq('user_id',uid).limit(100)],
+  ['opportunityAlerts',state.db.from('offrya_tender_alerts').select('user_id,tender_id,title,url,deadline,detected_at,seen_at').eq('user_id',uid).order('detected_at',{ascending:false}).limit(50)],
   ['draft',state.db.from('offrya_professional_drafts').select('step,siret,legal_name,representative_name,representative_capacity,representative_kind').eq('user_id',uid).maybeSingle()],
   ['manualIdentity',state.db.from('offrya_manual_identity_requests').select('status,requested_at,updated_at').eq('user_id',uid).maybeSingle()]
  ];
@@ -85,6 +86,7 @@ async function refresh(){
   }
   if(key==='favorites')state.favorites=(res?.data||[]).map(x=>x.mission_id);
   else if(key==='tenderTracking')state.tenderTracking=res?.data||[];
+  else if(key==='opportunityAlerts')state.opportunityAlerts=res?.data||[];
   else if(key==='conversations'||key==='profiles')state[key]=res?.data||[];
   else state[key]=res?.data||null;
  }
