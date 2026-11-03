@@ -29,7 +29,7 @@ test('audit : confirmation email et destinations autorisées',()=>{
 test('audit : séparation des deux comptes et accès professionnel validé',()=>{
  assert.match(app,/const eligiblePro=canUsePremium\(\)/);
  assert.match(app,/state.profile\?\.role==='pro'/);
- assert.match(app,/roleOnboarding/);
+ assert.match(privateDoc,/id="proWorkspace"/);
  assert.match(privateDoc,/id="roleClientView"/);
  assert.match(privateDoc,/id="rolePremiumView"/);
  assert.doesNotMatch(privateDoc,/id="rolePendingView"/);
