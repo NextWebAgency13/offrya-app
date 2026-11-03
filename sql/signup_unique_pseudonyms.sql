@@ -17,14 +17,16 @@ revoke all on function public.offrya_username_available(text) from public;
 grant execute on function public.offrya_username_available(text) to anon,authenticated;
 
 -- Reserve the username immediately when an Auth account is created.
--- The legacy signup path without metadata is left intact for compatibility.
+-- Existing users are preserved; every newly created Auth account must choose a username.
 create or replace function offrya_private.reserve_signup_username()
 returns trigger language plpgsql security definer set search_path=''
 as $$
 declare chosen text;
 begin
  chosen := new.raw_user_meta_data ->> 'offrya_username';
- if chosen is null then return new; end if;
+ if chosen is null then
+   raise exception 'OFFRYA username required at signup' using errcode='23514';
+ end if;
  if chosen !~ '^[A-Za-z0-9_]{3,30}$' then
    raise exception 'Invalid OFFRYA username' using errcode='23514';
  end if;
