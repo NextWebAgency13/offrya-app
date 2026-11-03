@@ -409,7 +409,6 @@ function render(){
  const eligiblePro=canUsePremium(),hasProProfile=state.profile?.role==='pro',proPending=hasProProfile&&!eligiblePro;
  $('roleClientView').classList.remove('hidden');
  $('rolePremiumView').classList.add('hidden');
- $('roleOnboarding').classList.toggle('hidden',!proPending);
  document.querySelector('#rolePremiumView .role-premium-stats').classList.toggle('hidden',!eligiblePro);
  document.querySelector('#rolePremiumView .role-pro-links').classList.toggle('hidden',!eligiblePro);
  document.body.dataset.offryaRole=hasProProfile?'professional':'client';
