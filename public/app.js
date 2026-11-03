@@ -83,7 +83,6 @@ function renderMissions(){
  $('missionsCount').textContent=matches.length+(canBrowse?' mission(s) accessible(s)':' annonce(s) personnelle(s)');
  $('missionsListHeading').textContent=canBrowse?'Missions accessibles à mon compte Pro':'Mes annonces publiées';
  $('missionSearchFilters').classList.toggle('hidden',!canBrowse);
- $('missionAccessNotice').classList.toggle('hidden',canBrowse);
  const publisherReady=Boolean(state.session&&!isGuest()&&state.session.user.email_confirmed_at);
  $('missionForm').classList.toggle('hidden',!publisherReady);
  $('missionAccountNotice').classList.toggle('hidden',publisherReady);

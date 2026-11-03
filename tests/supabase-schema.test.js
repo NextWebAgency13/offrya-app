@@ -29,6 +29,7 @@ test('La migration sécurise les missions et impose représentant et paiement',(
  assert.match(migration,/s\.status='active' and s\.paid_through>now\(\)/);
  assert.match(migration,/representative_name/);
  assert.match(migration,/revoke insert on public\.offrya_premium_requests from authenticated/);
- assert.match(app,/missionAccessNotice/);
+ assert.match(app,/missionSearchFilters/);
+ assert.doesNotMatch(app,/missionAccessNotice/);
  assert.match(app,/verification-request/);
 });
