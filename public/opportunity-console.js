@@ -7,6 +7,22 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
  const search={Nettoyage:'nettoyage', 'Espaces verts':'espaces verts',Bâtiment:'travaux',Informatique:'informatique',Transport:'transport','Restauration & Hôtellerie':'restauration','Bien-être & Beauté':'beauté',Autre:''};
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\x27':'&#39;'}[c]));
  let ready=false,loadedUser=null,lastSearch=0,searching=false,tenders=[],scanError=null,previousFingerprint='',refreshInProgress=false;
+ let activeView='missions';
+ function selectView(view){
+  if(view!=='missions'&&view!=='tenders')return;
+  activeView=view;
+  for(const button of document.querySelectorAll('[data-op-view]')){
+   const selected=button.dataset.opView===view;
+   button.classList.toggle('is-active',selected);
+   button.setAttribute('aria-selected',String(selected));
+  }
+  for(const [key,id] of [['missions','opMissionPane'],['tenders','opTenderPane']]){
+   const panel=$(id);if(!panel)continue;
+   panel.hidden=key!==view;
+   panel.classList.toggle('hidden',key!==view);
+  }
+ }
+
  const current=()=>state.session?.user?.id;
  function prefs(){return state.opportunityPrefs||{sectors:[],department:'',keywords:'',alerts_enabled:false};}
  function matchMission(m,p){
@@ -44,6 +60,7 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
    '<article class="op-result"><div><span class="op-source">MISSION OFFRYA</span><h5>'+esc(m.title)+'</h5><p>'+esc(m.category)+' · '+esc(m.city)+' ('+esc(m.department)+') · '+esc(money(m.budget_cents))+'</p></div><button type="button" class="button secondary" data-op-mission="'+esc(m.id)+'">Consulter</button></article>'
   ).join(''):'<p class="muted">Aucune mission ouverte ne correspond à vos critères pour le moment. Les nouvelles annonces des particuliers et entreprises apparaîtront ici.</p>';
   renderTenders();renderTracked();renderAlerts();
+  selectView(activeView);
   const fp=JSON.stringify([uid,p.sectors,p.department,p.keywords]);
   if(fp!==previousFingerprint){previousFingerprint=fp;lastSearch=0;tenders=[];scanError=null;}
   if(!lastSearch&&!searching&&!refreshInProgress&&uid)queueMicrotask(()=>refreshTenders());
@@ -122,6 +139,13 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
   notify('Suivi mis à jour.');
  }
  function init(){
+  document.querySelectorAll('[data-op-view]').forEach(button=>button.addEventListener('click',()=>selectView(button.dataset.opView)));
+  $('opOpenWatch')?.addEventListener('click',()=>{
+   const details=$('opWatchDetails');if(!details)return;
+   details.open=true;
+   details.scrollIntoView({block:'start',behavior:'smooth'});
+  });
+  $('opGoMessages')?.addEventListener('click',()=>tab('inbox'));
   $('opWatchForm')?.addEventListener('submit',saveWatch);
   $('opTenderRefresh')?.addEventListener('click',()=>refreshTenders());
   $('opAllMissions')?.addEventListener('click',()=>tab('missions'));
