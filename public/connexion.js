@@ -218,6 +218,6 @@ $('loginForm').addEventListener('submit',async e=>{
   else if(mode==='reset')say('Consultez votre boîte e-mail et ouvrez le lien sécurisé de réinitialisation. Aucun abonnement ni alerte n’est activé.');
   else if(mode==='recover'){say('Mot de passe modifié');location.replace(next);}
   else await resume(r.data?.session);
- }catch(err){say(authFeedback(err,mode),true);}finally{authCaptcha.reset();b.disabled=false;}
+ }catch(err){const message=String(err?.message||'');say(mode==='signup'&&/^(Le pseudonyme|Ce pseudonyme|Vérification du pseudonyme)/.test(message)?message:authFeedback(err,mode),true);}finally{authCaptcha.reset();b.disabled=false;}
 });
 init().catch(e=>say(authFeedback(e,'login'),true));
