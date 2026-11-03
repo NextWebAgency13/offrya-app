@@ -183,11 +183,49 @@
      </div>
     </div>
     <div id="proDashboard" class="hidden">
-     <span class="pro-stage-label">COMPTE PROFESSIONNEL ACTIF</span><h3>Votre activité sur OFFRYA</h3>
-     <p class="pro-stage-desc">Entreprise et identité vérifiées, habilitation contrôlée et abonnement actif.</p>
-     <div class="pro-checklist"><div><span>Identité et mandat</span><strong>Validés</strong></div><div><span>Abonnement</span><strong id="proSubscriptionState">Actif</strong></div></div>
-     <div class="pro-actions"><button class="button primary" type="button" data-tab="missions">Consulter les missions</button><button class="button secondary" type="button" data-tab="boamp">Marchés publics</button><button class="button outline" type="button" id="premiumPortal">Gérer / résilier mon abonnement</button></div>
-    
+      <div class="op-hero">
+        <div><span class="pro-stage-label">OFFRYA · VOTRE ACTIVITÉ</span><h3>Vos opportunités professionnelles</h3>
+        <p>Deux sources, une même veille : missions de particuliers et entreprises sur OFFRYA, et appels d'offres officiels du BOAMP.</p></div>
+        <span class="op-pill" id="opAccessStatus">Accès actif</span>
+      </div>
+      <div class="op-stat-grid" aria-label="Indicateurs réels">
+        <div><strong id="opMissionCount">—</strong><span>Missions ciblées</span></div>
+        <div><strong id="opTenderCount">—</strong><span>Marchés officiels détectés</span></div>
+        <div><strong id="opMessagesCount">—</strong><span>Conversations</span></div>
+        <div><strong id="opSavedCount">—</strong><span>Marchés suivis</span></div>
+      </div>
+      <div class="op-panel">
+        <div class="op-panel-top"><div><h4>Ma recherche automatisée</h4><p>Définissez vos secteurs et votre zone. OFFRYA recherche des opportunités correspondantes parmi les deux sources.</p></div></div>
+        <form id="opWatchForm" class="op-form">
+          <fieldset><legend>Secteurs surveillés</legend><div class="op-check-grid" id="opSectorChoices">
+          <label><input type="checkbox" value="Nettoyage"> Nettoyage</label><label><input type="checkbox" value="Espaces verts"> Espaces verts</label>
+          <label><input type="checkbox" value="Bâtiment"> Bâtiment</label><label><input type="checkbox" value="Informatique"> Informatique</label>
+          <label><input type="checkbox" value="Transport"> Transport</label><label><input type="checkbox" value="Restauration &amp; Hôtellerie"> Restauration / Hôtellerie</label>
+          <label><input type="checkbox" value="Bien-être &amp; Beauté"> Bien-être / Beauté</label><label><input type="checkbox" value="Autre"> Autre</label>
+          </div></fieldset>
+          <label>Département (vide = France entière)<input class="field" name="department" maxlength="3" placeholder="Ex. 13" autocomplete="off"></label>
+          <label>Mots-clés complémentaires<input class="field" name="keywords" maxlength="180" placeholder="Ex. entretien bureaux"></label>
+          <label class="op-check-alert"><input type="checkbox" name="alerts_enabled"> Activer la veille dans mon espace (notifications e-mail séparées, désactivées par défaut)</label>
+          <button class="button primary" type="submit">Enregistrer ma veille</button>
+          <p class="tiny muted" id="opWatchFeedback" role="status">Choisissez vos secteurs pour personnaliser les résultats.</p>
+        </form>
+      </div>
+      <div class="op-panel">
+        <div class="op-panel-top"><div><h4>Missions des particuliers et entreprises</h4><p>Demandes publiées sur OFFRYA, visibles uniquement aux professionnels autorisés.</p></div><button class="button secondary" type="button" id="opAllMissions">Toutes les missions</button></div>
+        <div class="op-result-list" id="opMissionList"><p class="muted">Chargement de vos recommandations…</p></div>
+      </div>
+      <div class="op-panel">
+        <div class="op-panel-top"><div><h4>Assistant marchés publics</h4><p>Recherche sectorielle BOAMP ; avis à vérifier sur le site officiel avant de candidater.</p></div><button class="button secondary" type="button" id="opTenderRefresh">Actualiser</button></div>
+        <p class="tiny muted" id="opTenderUpdated" role="status">Aucune recherche lancée.</p>
+        <div class="op-result-list" id="opTenderList"><p class="muted">Les avis officiels correspondant à votre veille apparaîtront ici.</p></div>
+        <button class="button outline" type="button" id="opAllTenders">Recherche avancée BOAMP</button>
+      </div>
+      <div class="op-panel">
+        <div class="op-panel-top"><div><h4>Suivi des marchés publics</h4><p>Vos favoris et dossiers à analyser ou à préparer. La candidature s'effectue sur la plateforme officielle.</p></div></div>
+        <div id="opTrackedList" class="op-result-list"><p class="muted">Aucun marché enregistré.</p></div>
+      </div>
+      <p class="op-billing-foot">Statut : <span id="proSubscriptionState">Accès actif</span>. La vérification administrative et le paiement se gèrent depuis <button type="button" class="op-inline" id="opGoSettings">Mon compte</button>.</p>
+      <button class="button outline" type="button" id="premiumPortal">Gérer / résilier mon abonnement</button>
     </div>
    </div>
   </div>
