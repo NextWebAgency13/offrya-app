@@ -23,7 +23,7 @@ test('audit : confirmation email et destinations autorisées',()=>{
  assert.match(auth,/email_confirmed_at/);
  assert.match(auth,/offrya_signup_intent/);
  assert.match(auth,/value==='\/deposer-une-mission'/);
- assert.match(auth,/profile.data\?\.role==='pro'/);
+ assert.match(auth,/location\.replace\(confirmationReturn\?'\/espace':next\)/);
  assert.doesNotMatch(auth,/location.replace\(value\)/);
 });
 test('audit : séparation des deux comptes et accès professionnel validé',()=>{
