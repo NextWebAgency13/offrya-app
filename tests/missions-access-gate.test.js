@@ -84,7 +84,7 @@ test('Recherche générale masquée avant certification, sans masquer les annonc
  assert.doesNotMatch($('missionList').innerHTML,/other-open/);
  assert.doesNotMatch($('dashMissions').innerHTML,/other-open/);
  assert.doesNotMatch($('dashMissions').innerHTML,/own-closed/);
- assert.equal($('missionForm').classList.states.get('hidden'),false);
+ assert.doesNotMatch(html,/id="missionForm"/);
 });
 test('Le HTML ne montre pas la recherche avant activation par le code',()=>{
  assert.match(html,/class="panel filters hidden" id="missionSearchFilters"/);
