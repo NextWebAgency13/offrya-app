@@ -219,7 +219,7 @@ test('Confirmation e-mail : type pro dans les métadonnées rejoint le dashboard
   user:{...validUser,user_metadata:{offrya_signup_intent:'pro'}},
   url:'?confirmation=1'
  });
- assert.deepEqual(page.redirects,['/espace/professionnel']);
+ assert.deepEqual(page.redirects,['/espace']);
 });
 test('Confirmation e-mail : type demandeur dans les métadonnées ouvre son espace',async()=>{
  const page=await loadAuthPage({
