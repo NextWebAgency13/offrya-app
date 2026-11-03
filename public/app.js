@@ -116,9 +116,6 @@ function renderMissions(){
  $('missionsCount').textContent=matches.length+(canBrowse?' mission(s) accessible(s)':' annonce(s) personnelle(s)');
  $('missionsListHeading').textContent=canBrowse?'Missions accessibles à mon compte Pro':'Mes annonces publiées';
  $('missionSearchFilters').classList.toggle('hidden',!canBrowse);
- const publisherReady=Boolean(state.session&&!isGuest()&&state.session.user.email_confirmed_at);
- $('missionForm').classList.toggle('hidden',!publisherReady);
- $('missionAccountNotice').classList.toggle('hidden',publisherReady);
  const detail=state.selectedMissionId?visible.find(m=>m.id===state.selectedMissionId):null;
  if(state.selectedMissionId&&!detail)state.selectedMissionId=null;
  $('missionList').innerHTML=detail?renderMissionDetail(detail):matches.length?matches.map(m=>{
@@ -499,46 +496,6 @@ async function loadMessages(id,doRender=true){
 }
 $('missionSearch').onclick=renderMissions;
 $('newMissionBtn').onclick=()=>location.assign('/deposer-une-mission');
-async function ensureMissionPublisher(){
- if(!state.db)throw Error('Publication momentanément indisponible.');
- const {data,error}=await state.db.auth.getUser();
- const user=data?.user;
- if(error||!user||user.is_anonymous||!user.email||!user.email_confirmed_at)
-  throw Error('Créez un compte gratuit et confirmez votre adresse e-mail avant de publier une mission.');
- const uid=user.id;
- const profile=await state.db.from('offrya_profiles').select('id').eq('id',uid).maybeSingle();
- if(profile.error)throw profile.error;
- if(!profile.data){
-  const inserted=await state.db.from('offrya_profiles').insert({
-   id:uid,role:'client',display_name:'Auteur de mission',city:'',specialty:''
-  });
-  if(inserted.error&&inserted.error.code!=='23505')throw inserted.error;
- }
- return uid;
-}
-$('missionForm').onsubmit=async e=>{
- e.preventDefault();
- const f=e.currentTarget;
- if(f.dataset.sending==='true')return;
- const x=Object.fromEntries(new FormData(f));
- const amount=x.budget?Math.round(Number(x.budget)*100):null;
- const button=f.querySelector('button[type="submit"]');
- f.dataset.sending='true';button.disabled=true;
- try{
-  const uid=await ensureMissionPublisher();
-  const r=await state.db.from('offrya_missions').insert({
-   owner_id:uid,title:x.title.trim(),description:x.description.trim(),
-   category:x.category,department:x.department.trim().toUpperCase(),
-   city:x.city.trim(),budget_cents:amount
-  });
-  if(r.error)throw r.error;
-  f.reset();await refresh();
-  toast('Mission publiée gratuitement.');
-  $('missionStatus').textContent='Mission publiée. Retrouvez-la dans Mes missions.';
-  $('missionStatus').classList.remove('hidden');
- }catch(err){showError(err);}
- finally{delete f.dataset.sending;button.disabled=false;}
-};
 // Open the selected owner's mission, not merely the list tab.
 $('roleRecentMissions').addEventListener('click',event=>{
  const button=event.target.closest('[data-open-own-mission]');

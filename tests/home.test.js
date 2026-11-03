@@ -17,7 +17,7 @@ test('Vitrine publique autonome : accroche unique, contenu SEO et aucun tableau 
 });
 test('Tableau privé indépendant : aucun marketing dans le document ni donnée sensible HTML',()=>{
  assert.match(privatePage,/name="robots" content="noindex,nofollow"/);
- for(const x of ['homePrivateDashboard','dashMissions','priorityAlertsList','statOpen','missionForm','premiumRequestForm','boampList'])assert.ok(privatePage.includes('id="'+x+'"'),x);
+ for(const x of ['homePrivateDashboard','dashMissions','priorityAlertsList','statOpen','newMissionBtn','premiumRequestForm','boampList'])assert.ok(privatePage.includes('id="'+x+'"'),x);
  assert.doesNotMatch(privatePage,/Votre projet mérite le bon professionnel|LES OPPORTUNITÉS PRENNENT FORME/);
  assert.match(app,/location\.replace\('\/connexion\?next='/);
  assert.match(app,/state\.loaded=true;render\(\)/);

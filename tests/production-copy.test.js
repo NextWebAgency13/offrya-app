@@ -16,8 +16,9 @@ test('Aucune liste d’attente affichée ; les tables historiques restent en bas
  assert.match(home,/href="\/cgv\.html"/);
 });
 test('Les fonctions professionnelles existent encore dans l’espace privé',()=>{
- for(const id of ['missionForm','premiumRequestForm','premiumSubscribe','premiumTermsAck','accountBillingPortal','proSubmitRequest','boampList'])assert.ok(privateDoc.includes('id="'+id+'"'),id);
+ for(const id of ['newMissionBtn','premiumRequestForm','premiumSubscribe','premiumTermsAck','accountBillingPortal','proSubmitRequest','boampList'])assert.ok(privateDoc.includes('id="'+id+'"'),id);
  for(const fn of ['loadBoamp','loadPriorityAlerts','openStripePortal','premiumRequestForm','premiumSubscribe'])assert.ok(app.includes(fn),fn);
+ assert.doesNotMatch(privateDoc,/id="missionForm"/);
  assert.match(app,/34,99 € TTC par mois/);
  assert.match(get('public/cgv.html'),/34,99 € TTC par mois/);
 });
