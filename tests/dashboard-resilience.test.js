@@ -43,3 +43,10 @@ test('navigation and reload stay mapped to five mobile destinations',()=>{
  assert.match(app,/tab\(pathsReverse\[location\.pathname\]\|\|'dashboard',true\)/);
  assert.match(app,/if\(!state\.session\)\{location\.replace\('\/connexion/);
 });
+
+test('account switch clears cached private mission data',()=>{
+ const refreshSource=slice('async function refresh(){','function row(m,');
+ assert.match(refreshSource,/if\(state\.currentUserId!==uid\)/);
+ assert.match(refreshSource,/state\.currentUserId=uid;state\.missions=\[\]/);
+ assert.match(refreshSource,/state\.missions=state\.missions\.filter\(m=>m\.owner_id===uid\)/);
+});
