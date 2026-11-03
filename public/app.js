@@ -12,8 +12,14 @@ function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
 const paths={dashboard:'/espace',missions:'/espace/missions',boamp:'/espace/marches-publics',professional:'/espace/professionnel',inbox:'/espace/messagerie',settings:'/espace/reglages'};
 const pathsReverse=Object.fromEntries(Object.entries(paths).map(([name,p])=>[p,name]));
-function tab(name,fromHistory=false){
+function tab(name,fromHistory=false,preserveMissionDetail=false){
  if(!$(name))return;
+ // Selecting the Missions tab means "show the list"; opening a specific card
+ // explicitly preserves its detail. Other tabs never mutate this selection.
+ if(name==='missions'&&!preserveMissionDetail&&state.selectedMissionId){
+  state.selectedMissionId=null;
+  renderMissions();
+ }
  document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.id===name));
  document.querySelectorAll('.nav-link').forEach(el=>el.classList.toggle('active',el.dataset.tab===name));
  document.getElementById('accountMenu')?.removeAttribute('open');
@@ -542,7 +548,7 @@ $('roleRecentMissions').addEventListener('click',event=>{
  // Reset list filters so the detail is not hidden by an unrelated search.
  $('missionQuery').value='';$('missionCategory').value='';$('missionDept').value='';
  renderMissions();
- tab('missions');
+ tab('missions',false,true);
  $('missionList').scrollIntoView({block:'start',behavior:'auto'});
 });
 $('missionList').onclick=async e=>{
