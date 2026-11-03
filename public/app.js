@@ -6,7 +6,7 @@ const authCaptcha=createAuthCaptcha($('modalAuthCaptcha'));
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,testPremiumUntil:null,draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
@@ -42,13 +42,13 @@ async function refresh(){
   state.draft=null;state.proStep=1;state.proStepUserId=null;
   state.missions=[];state.profile=null;state.conversations=[];state.messages=[];
   state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;
-  state.subscription=null;state.manualIdentity=null;state.boamp=[];
+  state.subscription=null;state.testPremiumUntil=null;state.manualIdentity=null;state.boamp=[];
   state.priorityAlerts=[];state.lastPriorityIds=null;state.loaded=true;render();return;
  }
  const uid=state.session.user.id;
  // Never expose a previous account's cached private rows during account switches.
  if(state.currentUserId!==uid){
-  state.currentUserId=uid;state.missions=[];state.profile=null;state.premium=null;state.subscription=null;
+  state.currentUserId=uid;state.missions=[];state.profile=null;state.premium=null;state.subscription=null;state.testPremiumUntil=null;
   state.conversations=[];state.messages=[];state.prefs=null;state.profiles=[];state.favorites=[];
   state.draft=null;state.manualIdentity=null;state.priorityAlerts=[];state.loaded=false;
  }
@@ -68,6 +68,7 @@ async function refresh(){
   ['favorites',state.db.from('offrya_favorites').select('mission_id')],
   ['premium',state.db.from('offrya_premium_requests').select('user_id,siret,legal_name,status,premium_until,identity_status,authority_status,representative_kind,registry_name_matched,registry_match_checked_at,registry_match_source,identity_live_verified,presence_verified_at,presence_method,identity_verified_at,authority_verified_at,authority_review_method').eq('user_id',uid).maybeSingle()],
   ['subscription',state.db.from('offrya_premium_subscriptions').select('status,paid_through,stripe_customer_id').eq('user_id',uid).maybeSingle()],
+  ['testPremiumUntil',typeof state.db.rpc==='function'?state.db.rpc('offrya_test_premium_expires_at'):Promise.resolve({data:null})],
   ['draft',state.db.from('offrya_professional_drafts').select('step,siret,legal_name,representative_name,representative_capacity,representative_kind').eq('user_id',uid).maybeSingle()],
   ['manualIdentity',state.db.from('offrya_manual_identity_requests').select('status,requested_at,updated_at').eq('user_id',uid).maybeSingle()]
  ];
@@ -143,12 +144,12 @@ function renderMessages(){
 }
 function renderSettings(){
  const yes=Boolean(state.session),has=Boolean(state.profile);
- $('accountState').textContent=!yes?'Un compte gratuit avec adresse e-mail confirmée est requis pour publier.':isGuest()?'Ancien suivi invité : vos missions publiées restent consultables sur cet appareil. Créez un compte gratuit pour publier de nouvelles missions.':`Compte : ${state.session.user.email}${canUsePremium()?' · Professionnel vérifié et abonné':''}`;
+ $('accountState').textContent=!yes?'Un compte gratuit avec adresse e-mail confirmée est requis pour publier.':isGuest()?'Ancien suivi invité : vos missions publiées restent consultables sur cet appareil. Créez un compte gratuit pour publier de nouvelles missions.':`Compte : ${state.session.user.email}${state.testPremiumUntil?' · Accès de test':canUsePremium()?' · Professionnel vérifié et abonné':''}`;
  const verified=hasVerifiedProfessionalIdentity();
  const proJourney=state.profile?.role==='pro'||Boolean(state.premium||state.draft||state.manualIdentity);
- const roleStatus=canUsePremium()?'Professionnel actif — abonnement en cours':verified?'Professionnel vérifié — abonnement à activer':proJourney?'Vérification professionnelle en cours':'Demandeur';
+ const roleStatus=Date.parse(state.testPremiumUntil||'')>Date.now()?'Premium de test — accès temporaire':canUsePremium()?'Professionnel actif — abonnement en cours':verified?'Professionnel vérifié — abonnement à activer':proJourney?'Vérification professionnelle en cours':'Demandeur';
  $('accountRoleStatus').textContent=roleStatus;
- $('accountRoleHelp').textContent=canUsePremium()?'Vous pouvez consulter les missions et marchés publics réservés aux abonnés.':verified?'Votre dossier est vérifié. Un abonnement actif à 34,99 € TTC/mois est nécessaire pour consulter les missions et marchés publics.':proJourney?'Terminez la vérification de votre entreprise et de votre identité dans l’Espace pro. L’abonnement sera proposé après validation.':'Pour devenir professionnel, commencez la vérification dans l’Espace pro. L’accès aux missions des autres utilisateurs et aux marchés publics exige également un abonnement actif.';
+ $('accountRoleHelp').textContent=state.testPremiumUntil?'Accès de test autorisé jusqu’au '+date(state.testPremiumUntil)+'. Aucun paiement Stripe ni vérification d’identité n’est simulé.':canUsePremium()?'Vous pouvez consulter les missions et marchés publics réservés aux abonnés.':verified?'Votre dossier est vérifié. Un abonnement actif à 34,99 € TTC/mois est nécessaire pour consulter les missions et marchés publics.':proJourney?'Terminez la vérification de votre entreprise et de votre identité dans l’Espace pro. L’abonnement sera proposé après validation.':'Pour devenir professionnel, commencez la vérification dans l’Espace pro. L’accès aux missions des autres utilisateurs et aux marchés publics exige également un abonnement actif.';
  $('accountPseudonym').textContent=state.profile?.display_name||state.session?.user?.user_metadata?.offrya_username||'Non renseigné';
  $('filterStatus').textContent=state.prefs?.department||state.prefs?.category?'Filtres enregistrés.':'Aucun filtre défini. Sélectionnez un secteur ou un département.';
  const p=$('preferencesForm');p.elements.missions_enabled.checked=state.prefs?.missions_enabled||false;p.elements.messages_enabled.checked=state.prefs?.messages_enabled||false;p.elements.department.value=state.prefs?.department||'';p.elements.category.value=state.prefs?.category||'';
@@ -171,10 +172,11 @@ function hasVerifiedProfessionalIdentity(){
 }
 function canUsePremium(){
  const paid=state.subscription?.status==='active'&&Date.parse(state.subscription?.paid_through||'')>Date.now();
- return Boolean(state.session&&!state.session.user?.is_anonymous&&hasVerifiedProfessionalIdentity()&&paid);
+ const trial=Date.parse(state.testPremiumUntil||'')>Date.now();
+ return Boolean(state.session&&!state.session.user?.is_anonymous&&((hasVerifiedProfessionalIdentity()&&paid)||trial));
 }
 function renderPremium(){
- const allowed=canUsePremium(),pro=Boolean(state.session&&state.profile?.role==='pro');
+ const allowed=canUsePremium(),pro=Boolean(state.session&&(state.profile?.role==='pro'||Date.parse(state.testPremiumUntil||'')>Date.now()));
  $('boampGate').classList.toggle('hidden',allowed);
  document.querySelectorAll('.nav-link[data-tab="boamp"]').forEach(el=>el.classList.toggle('hidden',!allowed));
  $('premiumContent').classList.toggle('hidden',!allowed);
@@ -188,9 +190,9 @@ function renderPremium(){
  $('proDashboard').classList.toggle('hidden',!allowed);
  if(!pro)return;
  const stage=allowed||state.premium?.status==='verified'?4:state.premium?3:Math.min(3,Math.max(1,state.proStep||1));
- $('proStatusPill').textContent=allowed?'Compte actif':stage===4?'Dossier approuvé':state.premium?(state.premium.status==='rejected'?'Dossier à régulariser':'Vérification en cours'):'Inscription en cours';
- $('proProgressTitle').textContent=allowed?'Compte professionnel actif':state.premium?.status==='rejected'?'Dossier à régulariser':state.premium?'Vérification en cours':'Inscription en cours';
- $('proProgressStep').textContent=allowed?'Accès activé':'Étape '+stage+' / 4';
+ $('proStatusPill').textContent=state.testPremiumUntil?'Accès de test':allowed?'Compte actif':stage===4?'Dossier approuvé':state.premium?(state.premium.status==='rejected'?'Dossier à régulariser':'Vérification en cours'):'Inscription en cours';
+ $('proProgressTitle').textContent=state.testPremiumUntil?'Fonctionnalités Premium en test':allowed?'Compte professionnel actif':state.premium?.status==='rejected'?'Dossier à régulariser':state.premium?'Vérification en cours':'Inscription en cours';
+ $('proProgressStep').textContent=state.testPremiumUntil?'Accès temporaire':allowed?'Accès activé':'Étape '+stage+' / 4';
  for(const el of document.querySelectorAll('#proSteps li')){
   const n=Number(el.dataset.step);
   el.classList.toggle('active',n===stage&&!allowed);
@@ -198,7 +200,7 @@ function renderPremium(){
   if(n===stage&&!allowed)el.setAttribute('aria-current','step');else el.removeAttribute('aria-current');
  }
  if(allowed){
-  $('proSubscriptionState').textContent='Actif jusqu’au '+date(state.subscription.paid_through);
+  $('proSubscriptionState').textContent=state.testPremiumUntil?'Accès de test, sans paiement — expiration le '+date(state.testPremiumUntil):'Abonnement actif jusqu’au '+date(state.subscription?.paid_through);
   return;
  }
  $('premiumGateText').textContent=stage<=3&&!state.premium?'Votre progression est sauvegardée dans votre espace privé. Vous pourrez reprendre votre demande plus tard.':'';
@@ -481,7 +483,7 @@ function render(){
  $('roleRecentMissions').innerHTML=activeOwn.length?activeOwn.slice(0,3).map(m=>'<button type="button" class="role-mission-row" data-open-own-mission="'+esc(m.id)+'" aria-label="Consulter la mission '+esc(m.title)+'"><span class="role-mission-icon">▣</span><span><strong>'+esc(m.title)+'</strong><small>'+esc(m.city||'France')+' · '+esc(m.status==='open'?'En cours':'Clôturée')+'</small></span><b aria-hidden="true">›</b></button>').join(''):'<p class="role-empty">Retrouvez vos annonces ici. Publiez votre première mission pour suivre son statut et les échanges avec les professionnels.</p>';
  $('roleBusinessName').textContent=state.premium?.legal_name||'Entreprise à vérifier';
  $('rolePremiumUntil').textContent=eligiblePro?(state.subscription?.paid_through?'Actif jusqu’au '+date(state.subscription.paid_through):'Abonnement actif'):'Accès en cours';
- $('roleCompanyVerifiedText').textContent=eligiblePro?'✓ Compte vérifié':'Vérification en cours';
+ $('roleCompanyVerifiedText').textContent=state.testPremiumUntil?'Accès de test temporaire':eligiblePro?'✓ Compte vérifié':'Vérification en cours';
  $('roleAvailableCount').textContent=state.missions.filter(m=>m.status==='open').length;
  $('roleOwnCount').textContent=state.conversations.filter(x=>x.professional_id===state.session?.user?.id).length;
  $('roleConversationCount').textContent=state.conversations.length;
