@@ -14,10 +14,11 @@ test('Un seul en-tête privé avec avatar et menu de compte accessible',()=>{
  assert.match(html,/class="account-menu-action" data-tab="professional"/);
  assert.match(js,/getElementById\('accountMenu'\)\?\.removeAttribute\('open'\)/);
 });
-test('Missions : un accès professionnel violet et explicite',()=>{
- assert.match(html,/class="button primary mission-upgrade-cta" data-tab="professional"/);
- assert.match(html,/Activer mon accès professionnel/);
- assert.match(css,/\.mission-upgrade-cta,\.pro-verify-cta/);
+test('Missions : encart de promotion supprimé et navigation pro conservée',()=>{
+ assert.doesNotMatch(html,/id="missionAccessNotice"/);
+ assert.match(html,/id="missionsListHeading"/);
+ assert.match(html,/data-tab="professional"/);
+ assert.match(css,/\.pro-verify-cta/);
 });
 test('Vérification professionnelle intégrée sans supprimer les étapes',()=>{
  for(let i=1;i<=4;i++)assert.match(html,new RegExp('data-step="'+i+'"'));
