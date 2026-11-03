@@ -16,7 +16,8 @@ test('account type cannot be selected or escalated from settings',()=>{
  assert.match(html,/id="accountRoleStatus"/);
  assert.match(html,/data-tab="professional">Accéder à l’Espace pro/);
  assert.doesNotMatch(app,/f\.elements\.role\.value|x\.role==='pro'/);
- assert.match(app,/insert\(\{id,role:'client'/);
+ assert.doesNotMatch(app,/\$\('profileForm'\)\.onsubmit/);
+ assert.match(app,/\$\('accountPseudonym'\)\.textContent/);
 });
 test('verified professional without an active subscription cannot browse opportunities',()=>{
  const a=access(verified,null);
