@@ -7,7 +7,7 @@ const key=process.env.SUPABASE_SECRET_KEY;
 const searches={'Nettoyage':'nettoyage','Espaces verts':'espaces verts','Bâtiment':'travaux','Informatique':'informatique','Transport':'transport','Restauration & Hôtellerie':'restauration','Bien-être & Beauté':'beauté','Autre':''};
 async function rest(path,options={}){
  const response=await fetch(base+'/rest/v1/'+path,{
-  ...options,headers:{apikey:key,Authorization:'Bearer '+key,Accept:'application/json',...(options.body?{'Content-Type':'application/json'}:{}),...(options.headers||{})},
+  ...options,headers:{apikey:key,Accept:'application/json',...(options.body?{'Content-Type':'application/json'}:{}),...(options.headers||{})},
   signal:AbortSignal.timeout(14000)
  });
  if(!response.ok)throw Error('Supabase watch HTTP '+response.status+' '+path.split('?')[0]);
