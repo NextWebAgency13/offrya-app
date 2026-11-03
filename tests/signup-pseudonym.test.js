@@ -29,7 +29,7 @@ test('database controls unique signup pseudonym without rewriting existing users
  assert.match(sql,/create unique index if not exists offrya_profiles_username_unique/);
  assert.match(sql,/lower\(display_name\)/);
  assert.match(sql,/create trigger offrya_signup_username after insert on auth\.users/);
- assert.match(sql,/if chosen is null then return new/);
+ assert.match(sql,/OFFRYA username required at signup/);
  assert.match(sql,/insert into public\.offrya_profiles\(id,role,display_name,city,specialty\)/);
  assert.match(sql,/values\(new\.id,'client',chosen,'',''\)/);
  assert.match(sql,/offrya_immutable_username before update of display_name/);
