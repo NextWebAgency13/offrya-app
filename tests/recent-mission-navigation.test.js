@@ -18,17 +18,42 @@ test('selecting a recent own mission opens its detail and clears filters',()=>{
  const fields={missionQuery:{value:'previous'},missionCategory:{value:'Previous'},missionDept:{value:'75'}};
  const $=id=>id==='roleRecentMissions'?wrap:id==='missionList'?list:fields[id];
  const state={session:{user:{id:'user-1'}},missions:rows,selectedMissionId:null};
- const ctx={state,$,renderMissions:()=>{calls.render=true},tab:name=>{calls.tab=name}};
+ const ctx={state,$,renderMissions:()=>{calls.render=true},tab:(name,fromHistory,preserve)=>{calls.tab=name;calls.preserve=preserve}};
  vm.runInNewContext(source,ctx);
  const click=id=>calls.handler({target:{closest:()=>({dataset:{openOwnMission:id}})}});
  click('other-1');assert.equal(state.selectedMissionId,null);
  click('own-1');
  assert.equal(state.selectedMissionId,'own-1');
- assert.equal(calls.tab,'missions');assert.equal(calls.render,true);assert.equal(calls.scroll,true);
+ assert.equal(calls.tab,'missions');assert.equal(calls.preserve,true);assert.equal(calls.render,true);assert.equal(calls.scroll,true);
  for(const field of Object.values(fields))assert.equal(field.value,'');
 });
 test('existing mission detail remains available for closed owner missions',()=>{
  assert.match(app,/const detail=state\.selectedMissionId\?visible\.find/);
  assert.match(app,/m\.owner_id===uid\|\|m\.status==='open'/);
  assert.match(app,/data-back-missions/);
+});
+
+test('Missions tab resets a prior detail but explicit card selection preserves it',()=>{
+ const source=clip('function tab(name,','window.addEventListener(\'popstate\'');
+ const calls={render:0};
+ const state={selectedMissionId:'mission-1',boamp:[]};
+ const nodes=new Map();
+ const $=id=>{
+  if(!nodes.has(id))nodes.set(id,{id,classList:{toggle(){}}});
+  return nodes.get(id);
+ };
+ const doc={querySelectorAll:()=>[],getElementById:()=>({removeAttribute(){}})};
+ const ctx={state,$,document:doc,history:{pushState(){}},location:{pathname:'/espace/missions'},window:{scrollTo(){}},paths:{missions:'/espace/missions'},canUsePremium:()=>false,loadBoamp:()=>{},renderMissions:()=>{calls.render++}};
+ vm.runInNewContext(source,ctx);
+ ctx.tab('missions');
+ assert.equal(state.selectedMissionId,null);
+ assert.equal(calls.render,1);
+ state.selectedMissionId='mission-2';
+ ctx.tab('missions',false,true);
+ assert.equal(state.selectedMissionId,'mission-2');
+ assert.equal(calls.render,1);
+ state.selectedMissionId='mission-3';
+ ctx.tab('missions',true);
+ assert.equal(state.selectedMissionId,null);
+ assert.equal(calls.render,2);
 });
