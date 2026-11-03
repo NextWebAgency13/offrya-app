@@ -18,7 +18,8 @@ async function loadAuthPage({
  const redirects=[],signOutCalls=[],signupCalls=[],loginCalls=[],dom={};
  const fields={
   email:{value:'new@example.test',required:true,autocomplete:'email'},
-  password:{value:'strongpassword123',required:true,autocomplete:'current-password'}
+  password:{value:'strongpassword123',required:true,autocomplete:'current-password'},
+  username:{value:'new_member_2026',required:false,addEventListener(){}}
  };
  const handlers={};
  const form={
@@ -36,6 +37,8 @@ async function loadAuthPage({
  dom.loginStatus={textContent:'',style:{}};
  dom.authHeading={textContent:'Connexion à votre espace'};
  dom.passwordRow={hidden:false,querySelector(){return fields.password;}};
+ dom.usernameRow={hidden:true,querySelector(){return fields.username;}};
+ dom.usernameStatus={textContent:''};
  dom.emailRow={hidden:false,querySelector(){return fields.email;}};
  dom.resetLinkWrap={hidden:true};
  dom.authTabs={hidden:false};
@@ -72,7 +75,7 @@ async function loadAuthPage({
   }
  };
  const sandbox={
-  createClient:()=>({auth}),
+  createClient:()=>({auth,rpc:async()=>({data:true,error:null})}),
   createAuthCaptcha:()=>({init:async()=>{},requiredToken:()=>undefined,reset:()=>{}}),
   authFeedback:(error,operation)=>({signup:'Échec de l’inscription',login:'Échec de connexion',reset:'Échec de récupération',recover:'Échec de mise à jour'})[operation],
   URLSearchParams,
