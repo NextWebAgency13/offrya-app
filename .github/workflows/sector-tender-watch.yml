@@ -1,5 +1,10 @@
 name: OFFRYA — veille sectorielle des marchés publics
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/watch-sector-tenders.js'
+      - '.github/workflows/sector-tender-watch.yml'
   schedule:
     - cron: '23 * * * *'
   workflow_dispatch:
