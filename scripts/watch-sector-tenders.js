@@ -20,7 +20,7 @@ function cleanRow(item,user){
  return {user_id:user,tender_id:String(item.id).slice(0,80),title:String(item.title).slice(0,500),url:item.url.slice(0,800),deadline:item.deadline};
 }
 async function run(){
- if(!/^https:\/\/[a-z0-9.-]+\.supabase\.co$/.test(base)||!key){console.log('Veille BOAMP désactivée : configuration absente.');return;}
+ if(!/^https:\/\/[a-z0-9.-]+\.supabase\.co$/.test(base)||!key){throw Error('Veille BOAMP inactive : renseigner OFFRYA_SUPABASE_URL et OFFRYA_SUPABASE_SECRET_KEY dans les secrets GitHub Actions.');}
  const targets=await rest('rpc/offrya_watch_targets',{method:'POST',body:'{}'});
  if(!Array.isArray(targets))throw Error('Invalid watch targets response');
  let detected=0,processed=0,errors=0;
