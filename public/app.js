@@ -16,6 +16,7 @@ function tab(name,fromHistory=false){
  if(!$(name))return;
  document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.id===name));
  document.querySelectorAll('.nav-link').forEach(el=>el.classList.toggle('active',el.dataset.tab===name));
+ document.getElementById('accountMenu')?.removeAttribute('open');
  const titles={dashboard:'Tableau de bord',missions:'Mes missions',boamp:'Marchés publics',professional:'Espace professionnel',inbox:'Messagerie',settings:'Mon compte'};
  $('pageTitle').textContent=titles[name];$('breadcrumb').textContent='OFFRYA / '+titles[name].toUpperCase();
  if(!fromHistory&&location.pathname!==paths[name])history.pushState({tab:name},'',paths[name]);
@@ -143,6 +144,8 @@ function renderPremium(){
  if(!pro)return;
  const stage=allowed||state.premium?.status==='verified'?4:state.premium?3:Math.min(3,Math.max(1,state.proStep||1));
  $('proStatusPill').textContent=allowed?'Compte actif':stage===4?'Dossier approuvé':state.premium?(state.premium.status==='rejected'?'Dossier à régulariser':'Vérification en cours'):'Inscription en cours';
+ $('proProgressTitle').textContent=allowed?'Compte professionnel actif':state.premium?.status==='rejected'?'Dossier à régulariser':state.premium?'Vérification en cours':'Inscription en cours';
+ $('proProgressStep').textContent=allowed?'Accès activé':'Étape '+stage+' / 4';
  for(const el of document.querySelectorAll('#proSteps li')){
   const n=Number(el.dataset.step);
   el.classList.toggle('active',n===stage&&!allowed);

@@ -347,3 +347,74 @@
 @media (prefers-reduced-motion:reduce){
  .app-shell *, .app-shell *::before, .app-shell *::after{scroll-behavior:auto!important;transition-duration:0.01ms!important;animation-duration:0.01ms!important}
 }
+
+
+/* OFFRYA 2026 — premium unified private mobile interface */
+.account-menu{position:relative;flex:none}
+.account-menu summary{display:flex;align-items:center;justify-content:center;gap:10px;list-style:none;cursor:pointer;padding:5px 8px;border:1px solid #e7dff2;border-radius:15px;min-height:48px}
+.account-menu summary::-webkit-details-marker{display:none}
+.account-menu summary:focus-visible{outline:3px solid #e58c51;outline-offset:3px}
+.account-menu-glyph{width:20px;height:20px;flex:none}
+.account-menu .avatar{border-radius:50%;width:36px;height:36px;box-shadow:none}
+.account-menu-panel{position:absolute;top:calc(100% + 9px);right:0;width:min(280px,calc(100vw - 32px));background:white;color:#30203e;border:1px solid #e3d8ee;box-shadow:0 18px 48px #31134030;border-radius:17px;padding:8px;z-index:30}
+.account-menu-action{width:100%;min-height:48px;text-align:left;border:0;border-radius:11px;background:transparent;color:#352448;padding:11px 14px;font-size:14px;font-weight:750}
+.account-menu-action:hover,.account-menu-action:focus-visible{background:#f2ecff;color:#5832a8}
+.pro-progress-summary{display:flex;align-items:center;gap:12px;background:linear-gradient(115deg,#f3eaff,#faf6ff);border:1px solid #e9d9f8;border-radius:18px;padding:17px 19px;margin:0 0 18px}
+.pro-progress-icon{flex:0 0 42px;height:42px;display:grid;place-items:center;background:#e8d9ff;border-radius:14px;color:#6637bf;font-weight:900;font-size:22px}
+.pro-progress-summary>div{flex:1;min-width:0}
+.pro-progress-summary strong{display:block;font:800 15px/1.35 'Plus Jakarta Sans',sans-serif;color:#341d4b}
+.pro-progress-summary small{display:block;color:#655875;line-height:1.5;font-size:12px;margin-top:4px}
+.pro-progress-step{flex:none;border-radius:99px;padding:7px 10px;background:#fff;color:#6037ad;font-size:12px;font-weight:800}
+.mission-upgrade-cta,.pro-verify-cta{background:#6941d7!important;color:#fff!important;border-color:#6941d7!important;min-height:48px;padding-inline:20px}
+@media(max-width:620px){
+ body:has(.app-shell) .header{background:linear-gradient(110deg,#351045,#4b1662)!important;border-bottom:1px solid #5c3170;color:#fff;padding:0 16px;height:76px}
+ body:has(.app-shell) .header .mobile-brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-.6px}
+ body:has(.app-shell) .header .mobile-brand .dot{color:#ffae9e}
+ body:has(.app-shell) .header .header-actions{gap:4px}
+ body:has(.app-shell) .header .header-actions>.header-shortcut{display:none!important}
+ body:has(.app-shell) .header .header-actions>.live-dot{display:none!important}
+ body:has(.app-shell) .account-menu summary{border:0;gap:11px;padding:3px 0;background:transparent;color:white}
+ body:has(.app-shell) .account-menu .avatar{display:grid!important;width:39px;height:39px;background:#70409c;color:#fff;border:2px solid #e3c9fb;box-shadow:none;font-size:16px}
+ body:has(.app-shell) .account-menu-glyph{width:24px;height:24px;color:#fff}
+ body:has(.app-shell) .main-content{background:linear-gradient(180deg,#fcf9ff,#f9f7fc 190px);padding-top:22px}
+ body:has(.app-shell) :is(.section-top h2,.pro-head h2,.client-dashboard-heading h2){color:#311b45;letter-spacing:-.035em}
+ body:has(.app-shell) .section-top>div>p:not(.eyebrow){color:#62566d;font-size:14px;line-height:1.65}
+ body:has(.app-shell) .section-top{gap:15px}
+ body:has(.app-shell) .section-top .button{min-height:50px;font-size:14px}
+ body:has(.app-shell) #missionAccessNotice{padding:22px 19px!important;border:1px solid #e9dff2;border-radius:20px}
+ body:has(.app-shell) #missionAccessNotice strong{display:block;font-size:17px;line-height:1.45;color:#302040}
+ body:has(.app-shell) #missionAccessNotice p{font-size:14px;line-height:1.7;color:#675c71}
+ body:has(.app-shell) .mission-upgrade-cta{display:flex;width:100%;font-size:14px;white-space:normal}
+ body:has(.app-shell) #missions .panel{border-radius:19px}
+ body:has(.app-shell) #missions .panel-heading h3{font-size:19px}
+ body:has(.app-shell) .pro-head{margin:8px 0 16px;gap:8px}
+ body:has(.app-shell) .pro-head h2{font-size:clamp(23px,6vw,28px);line-height:1.2}
+ body:has(.app-shell) .pro-head p{font-size:14px;line-height:1.55}
+ body:has(.app-shell) .pro-progress-summary{padding:14px;gap:10px}
+ body:has(.app-shell) .pro-progress-icon{flex-basis:35px;height:35px;font-size:18px}
+ body:has(.app-shell) .pro-progress-step{font-size:11px;padding:6px 8px}
+ body:has(.app-shell) .pro-rail{overflow:visible;border:0;box-shadow:none;background:transparent;padding:0;margin:0 0 13px}
+ body:has(.app-shell) .pro-rail ol{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;min-width:0}
+ body:has(.app-shell) .pro-rail li{display:flex;min-width:0;flex-direction:column;gap:6px;justify-content:center;align-items:center;text-align:center;padding:9px 1px 11px;background:transparent}
+ body:has(.app-shell) .pro-rail li>span{border-radius:50%;width:36px;height:36px}
+ body:has(.app-shell) .pro-rail li strong{font-size:10px;line-height:1.2;overflow-wrap:anywhere}
+ body:has(.app-shell) .pro-rail li.active{border-bottom:3px solid #6941d7;border-radius:10px 10px 0 0;background:#f3eafa}
+ body:has(.app-shell) .pro-rail li small,.pro-rail-foot{display:none}
+ body:has(.app-shell) .pro-stage-card{padding:22px 18px;min-height:0;border-radius:20px}
+ body:has(.app-shell) .pro-stage-card h3{font-size:22px;line-height:1.3}
+ body:has(.app-shell) .pro-stage-desc{font-size:14px;line-height:1.7}
+ body:has(.app-shell) .pro-form label{font-size:14px;gap:9px}
+ body:has(.app-shell) .pro-form :is(input,select,textarea){min-height:50px;font-size:16px}
+ body:has(.app-shell) .pro-verify-cta{width:100%;font-size:15px}
+ body:has(.app-shell) #proStartNotice{border-radius:20px}
+ body:has(.app-shell) #proStartNotice p{font-size:14px;line-height:1.7}
+ body:has(.app-shell) .sidebar{background:#351045!important;border-top:1px solid #5b2a6e;box-shadow:0 -9px 30px #230c3322}
+ body:has(.app-shell) .sidebar .nav-link{color:#e1cde9}
+ body:has(.app-shell) .sidebar .nav-link.active{background:#7432ba;color:#fff;border-radius:13px}
+ body:has(.app-shell) .sidebar .nav-link span{font-size:10px!important;letter-spacing:0!important}
+}
+@media(max-width:370px){
+ body:has(.app-shell) .sidebar .nav-link span{font-size:9px!important}
+ body:has(.app-shell) .pro-progress-summary{flex-wrap:wrap}
+ body:has(.app-shell) .pro-progress-step{margin-left:auto}
+}
