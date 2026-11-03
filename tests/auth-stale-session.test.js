@@ -153,12 +153,12 @@ test('Une session absente affiche l’inscription sans créer un invité',async(
  assert.equal(page.dom.authHeading.textContent,'Créez votre compte gratuit');
 });
 
-test('Confirmation e-mail : la session valide est reprise avant retour à l’accueil public',async()=>{
+test('Confirmation e-mail : la session valide ouvre le tableau de bord privé',async()=>{
  const page=await loadAuthPage({
   session:{user:validUser},user:validUser,
   url:'?confirmation=1'
  });
- assert.deepEqual(page.redirects,['/']);
+ assert.deepEqual(page.redirects,['/espace']);
  assert.equal(page.signOutCalls.length,0);
  assert.equal(page.dom.authHeading.textContent,'Confirmation de votre inscription');
 });
@@ -206,7 +206,7 @@ test('Inscription professionnelle : le lien e-mail permet de revenir sur le parc
 });
 test('Confirmation e-mail : le parcours professionnel est conservé',async()=>{
  const page=await loadAuthPage({session:{user:validUser},user:validUser,url:'?confirmation=1&next=%2Fespace%2Fprofessionnel'});
- assert.deepEqual(page.redirects,['/espace/professionnel']);
+ assert.deepEqual(page.redirects,['/espace']);
 });
 test('Confirmation e-mail : inscription demandeur revient au tableau de bord',async()=>{
  const page=await loadAuthPage({session:{user:validUser},user:validUser,url:'?confirmation=1&next=%2Fdeposer-une-mission'});
