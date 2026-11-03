@@ -11,7 +11,8 @@ async function rest(path,options={}){
   signal:AbortSignal.timeout(14000)
  });
  if(!response.ok)throw Error('Supabase watch HTTP '+response.status+' '+path.split('?')[0]);
- return response.status===204?null:response.json();
+ const payload=await response.text();
+ return payload?JSON.parse(payload):null;
 }
 function cleanRow(item,user){
  if(!item||!item.id||!item.title||!/^https:\/\/(www\.)?boamp\.fr\//.test(item.url||''))return null;
