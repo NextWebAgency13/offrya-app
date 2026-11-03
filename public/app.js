@@ -496,6 +496,19 @@ async function loadMessages(id,doRender=true){
 }
 $('missionSearch').onclick=renderMissions;
 $('newMissionBtn').onclick=()=>location.assign('/deposer-une-mission');
+// Open the selected owner's mission, not merely the list tab.
+$('roleRecentMissions').addEventListener('click',event=>{
+ const button=event.target.closest('[data-open-own-mission]');
+ if(!button||!$('roleRecentMissions').contains(button))return;
+ const mission=state.missions.find(m=>m.id===button.dataset.openOwnMission&&m.owner_id===state.session?.user?.id&&m.status==='open');
+ if(!mission)return;
+ state.selectedMissionId=mission.id;
+ // Reset list filters so the detail is not hidden by an unrelated search.
+ $('missionQuery').value='';$('missionCategory').value='';$('missionDept').value='';
+ renderMissions();
+ tab('missions',false,true);
+ $('missionList').scrollIntoView({block:'start',behavior:'auto'});
+});
 $('missionList').onclick=async e=>{
  const btn=e.target.closest('[data-back-missions],[data-view-mission],[data-contact],[data-close-mission],[data-favorite]');if(!btn)return;
  if(btn.hasAttribute('data-back-missions')){state.selectedMissionId=null;renderMissions();return;}
