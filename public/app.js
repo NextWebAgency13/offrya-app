@@ -3,6 +3,7 @@ import {createAuthCaptcha} from './auth-captcha.mjs';
 import {createOpportunityConsole} from './opportunity-console.js';
 import {createSalesWorkspace} from './pro-commercial.js';
 import {createProExperience} from './pro-experience.js';
+import {fetchMissionFeed} from './mission-feed.js';
 const $=id=>document.getElementById(id);
 const authCaptcha=createAuthCaptcha($('modalAuthCaptcha'));
 
@@ -38,6 +39,8 @@ function tab(name,fromHistory=false,preserveMissionDetail=false){
  if(!fromHistory&&location.pathname!==paths[name])history.pushState({tab:name},'',paths[name]);
  if(name==='boamp'&&canUsePremium()&&!state.boamp.length)loadBoamp();
  window.scrollTo({top:0,behavior:'smooth'});
+ if((name==='missions'||name==='professional')&&state.loaded&&state.session)
+  refreshLiveMissions().catch(error=>console.warn('OFFRYA: mission refresh unavailable',error));
 }
 window.addEventListener('popstate',()=>tab(pathsReverse[location.pathname]||'dashboard',true));
 for(const n of document.querySelectorAll('[data-tab]'))n.addEventListener('click',()=>tab(n.dataset.tab));
@@ -131,6 +134,27 @@ async function refresh(){
  try{await loadPriorityAlerts(false);}catch(error){console.warn('OFFRYA: priority alerts unavailable',error);}
  state.loaded=true;
  render();
+}
+// New missions may be posted from another browser after this session loaded.
+// Refresh the feed from Supabase; existing RLS, not this UI, grants visibility.
+let missionRefreshInFlight=null,missionRefreshAt=0,missionRefreshUser='';
+async function refreshLiveMissions(force=false){
+ if(!state.db||!state.session||!state.loaded)return false;
+ const uid=state.session.user.id,premium=canUsePremium();
+ if(!force&&missionRefreshUser===uid&&Date.now()-missionRefreshAt<5000)return false;
+ if(missionRefreshInFlight)return missionRefreshInFlight;
+ missionRefreshUser=uid;missionRefreshAt=Date.now();
+ const ongoing=(async()=>{
+  const latest=await fetchMissionFeed(state.db,uid,premium);
+  // Never show rows retrieved for a prior account or a revoked Pro entitlement.
+  if(uid!==state.session?.user?.id||uid!==state.currentUserId||premium!==canUsePremium())return false;
+  state.missions=latest;
+  render();
+  return true;
+ })();
+ missionRefreshInFlight=ongoing;
+ try{return await ongoing;}
+ finally{if(missionRefreshInFlight===ongoing)missionRefreshInFlight=null;}
 }
 function row(m,actions=''){const status=m.status==='open'?'Ouverte':m.status==='awarded'?'Attribuée':'Clôturée';const place=[m.city,m.department].filter(Boolean).map(esc).join(' · ')||'Localisation à préciser';const summary=String(m.description||'').trim();return `<article class="data-item mission-listing" aria-label="Annonce : ${esc(m.title)}"><div class="item-top"><span class="tag mission-category">${esc(m.category||'Prestation')}</span><span class="mission-status ${m.status==='open'?'is-open':'is-closed'}">${status}</span></div><h3 class="item-title mission-listing-title">${esc(m.title)}</h3><p class="item-desc mission-listing-desc">${esc(summary.slice(0,260))}${summary.length>260?'…':''}</p><div class="meta-row mission-listing-meta"><span>⌖ ${place}</span><span>Budget : ${m.budget_cents?euro(m.budget_cents):'À définir'}</span><span>Publiée le ${date(m.created_at)}</span></div>${actions?`<div class="item-actions mission-listing-actions">${actions}</div>`:''}</article>`;}
 function renderMissionDetail(m){
@@ -566,6 +590,15 @@ async function loadMessages(id,doRender=true){
  if(r.error)throw r.error;state.messages=r.data||[];if(doRender){renderInbox();tab('inbox');}
 }
 $('missionSearch').onclick=renderMissions;
+$('missionRefresh').onclick=async()=>{
+ const button=$('missionRefresh');if(button.disabled)return;
+ button.disabled=true;
+ try{
+  const updated=await refreshLiveMissions(true);
+  if(updated)toast('Missions actualisées depuis OFFRYA.');
+ }catch(error){console.error('OFFRYA: mission refresh failed',error);toast('Actualisation indisponible. Réessayez.');}
+ finally{button.disabled=false;}
+};
 $('newMissionBtn').onclick=()=>location.assign('/deposer-une-mission');
 // Open the selected owner's mission, not merely the list tab.
 $('roleRecentMissions').addEventListener('click',event=>{
@@ -622,6 +655,19 @@ async function init(){
  if(canUsePremium())loadBoamp().catch(error=>console.warn('BOAMP background loading:',error));
  // La file est créée dans Supabase dès la publication; le navigateur vérifie les nouvelles alertes.
  setInterval(()=>{if(state.session&&canUsePremium()&&!document.hidden)loadPriorityAlerts().catch(console.error);},60000);
+ // Updates after another user publishes a mission, without exposing listings
+ // to visitors or unsubscribed accounts. Also refreshes on returning to Android.
+ const refreshOnReturn=()=>{
+  if(!document.hidden&&state.session&&state.loaded)
+   refreshLiveMissions().catch(error=>console.warn('OFFRYA: mission sync unavailable',error));
+ };
+ document.addEventListener('visibilitychange',refreshOnReturn);
+ window.addEventListener('focus',refreshOnReturn);
+ setInterval(()=>{
+  if(state.session&&state.loaded&&!document.hidden&&
+    ($('missions').classList.contains('active')||$('professional').classList.contains('active')))
+   refreshLiveMissions().catch(error=>console.warn('OFFRYA: mission poll unavailable',error));
+ },30000);
  // Periodic in-app notification refresh; RLS remains the sole source of access.
  let tenderAlertRefresh=false;
  setInterval(async()=>{
