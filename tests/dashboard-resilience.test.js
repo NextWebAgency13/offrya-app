@@ -23,7 +23,9 @@ test('owned missions survive an optional Supabase query failure',async()=>{
  vm.runInNewContext(refreshSource,ctx);
  await ctx.refresh();
  assert.equal(state.missions[0].id,'mine');
- assert.equal(renders,1);
+ // The account now renders once after critical profile/billing data, then again
+ // when optional sections settle; a failed optional query must not lose missions.
+ assert.equal(renders,2);
  assert.equal(state.loaded,true);
  assert.ok(errors.some(e=>e.includes('conversations')));
 });
