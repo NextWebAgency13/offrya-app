@@ -176,14 +176,18 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   $('proV3Chart').innerHTML='<svg viewBox="0 0 '+width+' '+height+'" role="img" aria-label="'+esc(counts.join(', '))+' missions quotidiennes dans les 7 derniers jours"><path d="M10 '+(height-12)+' H'+(width-10)+'" fill="none" stroke="#e5d8f1" stroke-width="1"/><polyline points="'+pts+'" stroke="#7b32dc" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" fill="none"/>'+points.map(v=>'<circle cx="'+v[0]+'" cy="'+v[1]+'" r="3.5" fill="#813dd9"/>').join('')+'</svg><small>7 derniers jours · missions publiées</small>';
  }
  function alerts(){
-  const ms=matched(), alerts=state.opportunityAlerts||[];
-  const unseen=alerts.filter(x=>!x.seen_at);
+  // The home alerts concern only OTHER users' open missions.
+  // Official tender alerts are rendered below in the separate Watch section.
+  const missions=available(),filtered=matched(),weekAgo=Date.now()-7*86400000;
+  const recent=missions.filter(m=>Date.parse(m.created_at||'')>=weekAgo);
+  const tracked=(state.salesTracking||[]).filter(t=>missions.some(m=>m.id===t.mission_id));
   const rows=[
-   [String(ms.length)+' mission(s) correspondant à vos filtres','requests'],
-   [String(unseen.length)+' nouvelle(s) opportunité(s) publique(s)','watch'],
-   [String((state.tenderTracking||[]).length)+' marché(s) suivi(s)','tracking']
+   [String(filtered.length)+' mission(s) correspondant à vos filtres','requests'],
+   [String(recent.length)+' nouvelle(s) mission(s) cette semaine','requests'],
+   [String(tracked.length)+' mission(s) suivie(s)','tracking']
   ];
   $('proV3Alerts').innerHTML=rows.map(x=>'<button data-pro-screen="'+x[1]+'"><span class="pro-v3-alert-icon">'+alertIcon(x[1])+'</span>'+esc(x[0])+'<b>›</b></button>').join('');
+  const alerts=state.opportunityAlerts||[];
   $('proV3WatchAlertList').innerHTML=alerts.length?[...alerts]
    .filter(a=>!a.deadline||Date.parse(a.deadline)>Date.now())
    .sort((a,b)=>(b.match_score||0)-(a.match_score||0))
@@ -275,6 +279,11 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    e.preventDefault();document.getElementById('accountMenu')?.removeAttribute('open');show(b.dataset.proScreen);
   });
   $('proExperienceV3').addEventListener('click',e=>{
+   const refreshButton=e.target.closest('[data-refresh-missions]');
+   if(refreshButton&&canUsePremium()){
+    $('missionRefresh').click();
+    return;
+   }
    const filter=e.target.closest('[data-market-query]');
    if(filter&&canUsePremium()){
     $('boampKeyword').value=filter.dataset.marketQuery||'';
