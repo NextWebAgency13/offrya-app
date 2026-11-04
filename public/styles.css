@@ -422,3 +422,11 @@
  #dashboard .role-resume-mission{margin:12px 0 16px;flex-direction:column;align-items:stretch;padding:16px}
  #dashboard .role-resume-mission .role-primary{width:100%;max-width:none}
 }
+
+/* Keep cross-account mission refresh available and touch-friendly on all viewports. */
+.app-shell .mission-header-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+.app-shell #missionRefresh{min-height:44px}
+@media(max-width:620px){
+ .app-shell .mission-header-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}
+ .app-shell .mission-header-actions .button{width:100%;min-height:44px;padding:10px 9px;white-space:normal}
+}
