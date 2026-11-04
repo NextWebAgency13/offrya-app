@@ -198,6 +198,29 @@
         <div><strong id="opSavedCount">—</strong><span>Marchés suivis</span></div>
       </div>
 
+      <section class="sales-workspace" aria-label="Tableau de bord commercial professionnel">
+        <div class="sales-heading"><div><span class="pro-stage-label">OFFRYA · GESTION COMMERCIALE</span><h4>Tableau de bord commercial</h4></div><span aria-hidden="true" class="sales-bot-symbol">♧</span></div>
+        <div class="sales-stats" aria-label="Statistiques réelles de vos missions">
+          <div><strong id="salesRequestsCount">0</strong><span>Demandes</span></div>
+          <div><strong id="salesPendingCount">0</strong><span>À traiter</span></div>
+          <div><strong id="salesQuotesCount">0</strong><span>Devis</span></div>
+        </div>
+        <div class="sales-tabs" role="tablist" aria-label="Gestion commerciale">
+          <button id="salesTabRequests" type="button" role="tab" aria-controls="salesRequestsPane" aria-selected="true" data-sales-tab="requests">Demandes</button>
+          <button id="salesTabAssistant" type="button" role="tab" aria-controls="salesAssistantPane" aria-selected="false" data-sales-tab="assistant">Assistant IA</button>
+          <button id="salesTabTracking" type="button" role="tab" aria-controls="salesTrackingPane" aria-selected="false" data-sales-tab="tracking">Suivi</button>
+        </div>
+        <div id="salesRequestsPane" role="tabpanel" aria-labelledby="salesTabRequests">
+          <div id="salesRequestsList" class="sales-leads"><p class="muted">Chargement des demandes réelles…</p></div>
+        </div>
+        <div id="salesAssistantPane" role="tabpanel" aria-labelledby="salesTabAssistant" hidden>
+          <div id="salesAssistantContent"><p class="muted">Sélectionnez une demande pour préparer une réponse.</p></div>
+        </div>
+        <div id="salesTrackingPane" role="tabpanel" aria-labelledby="salesTabTracking" hidden>
+          <div id="salesTrackingList"><p class="muted">Aucun dossier en cours.</p></div>
+        </div>
+        <p class="sales-integrity-note">Données réelles uniquement · Aucune réponse n'est envoyée sans votre validation · Les devis ne sont pas générés automatiquement.</p>
+      </section>
       <section class="op-discovery" aria-label="Découvrir mes opportunités">
         <div class="op-discovery-head">
           <div><h4>Opportunités recommandées</h4><p>Choisissez une source pour voir les résultats qui correspondent à votre activité.</p></div>
