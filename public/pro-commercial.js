@@ -8,8 +8,6 @@ export function createSalesWorkspace({state,element,canUsePremium,tab,notify,ref
  const uid=()=>state.session?.user?.id||null;
  const accessible=()=>canUsePremium()?state.missions.filter(m=>m.owner_id!==uid()&&m.status==='open'): [];
  const tracking=()=>new Map((state.salesTracking||[]).map(x=>[x.mission_id,x.stage]));
- const stageFor=(m,t)=>t.get(m.id)||(state.conversations||[]).some(c=>c.mission_id===m.id&&c.professional_id===uid())?'contacted':'new';
- // Explicit parentheses avoid precedence ambiguity: tracked stage has priority.
  function effectiveStage(m,t){
   if(t.has(m.id))return t.get(m.id);
   return (state.conversations||[]).some(c=>c.mission_id===m.id&&c.professional_id===uid())?'contacted':'new';
@@ -52,7 +50,7 @@ export function createSalesWorkspace({state,element,canUsePremium,tab,notify,ref
   const loc=[m.city,m.department].filter(Boolean).join(' · ');
   node.innerHTML='<div class="sales-assistant-detail"><button class="sales-back" type="button" data-sales-back>← Toutes les demandes</button><h5>'+esc(m.title)+'</h5><p class="muted">'+esc(loc||'Localisation non précisée')+'</p>'+
    '<div class="sales-received"><strong>Demande reçue</strong><p>'+esc(m.description||'Description non précisée.')+'</p><small>'+esc([m.area_sqm?m.area_sqm+' m²':null,m.desired_date?'Date souhaitée : '+m.desired_date:null].filter(Boolean).join(' · '))+'</small></div>'+
-   '<div class="sales-draft"><strong>Proposition de réponse à valider</strong><p class="tiny muted">Brouillon guidé établi depuis la mission réelle. Le moteur IA externe n’est pas connecté : aucune analyse avancée n’est simulée.</p><label for="salesDraftText">Réponse modifiable</label><textarea id="salesDraftText" class="field" rows="8" maxlength="2500"></textarea><div class="sales-actions"><button type="button" class="button secondary" data-sales-copy>Copier</button><button type="button" class="button primary" data-sales-send>Valider et envoyer</button></div><p class="tiny muted">L’envoi nécessite votre confirmation. Aucun devis ferme ni tarif ne sont envoyés automatiquement.</p></div>'+
+   '<div class="sales-draft"><strong>Proposition de réponse à valider</strong><p class="tiny muted">Brouillon guidé établi depuis la mission réelle. Brouillon guidé disponible immédiatement. La génération IA nécessite sa configuration serveur et reste soumise à validation.</p><label for="salesDraftText">Réponse modifiable</label><textarea id="salesDraftText" class="field" rows="8" maxlength="2500"></textarea><div class="sales-actions"><button type="button" class="button secondary" data-sales-generate>Générer avec l’IA</button><button type="button" class="button secondary" data-sales-copy>Copier</button><button type="button" class="button primary" data-sales-send>Valider et envoyer</button></div><p class="tiny muted">L’envoi nécessite votre confirmation. Aucun devis ferme ni tarif ne sont envoyés automatiquement.</p></div>'+
    '<label class="sales-stage">Statut du dossier<select id="salesStageSelect" class="field">'+Object.entries(stageNames).map(([k,v])=>'<option value="'+k+'"'+(k===status?' selected':'')+'>'+esc(v)+'</option>').join('')+'</select></label></div>';
   $('salesDraftText').value=drafts.has(m.id)?drafts.get(m.id):buildDraft(m);
  }
@@ -86,6 +84,26 @@ export function createSalesWorkspace({state,element,canUsePremium,tab,notify,ref
   const {error}=await state.db.from('offrya_pro_lead_tracking').upsert({user_id:uid(),mission_id:missionId,stage,updated_at:new Date().toISOString()},{onConflict:'user_id,mission_id'});
   if(error)throw error;
   state.salesTracking=(state.salesTracking||[]).filter(x=>x.mission_id!==missionId).concat([{mission_id:missionId,stage}]);
+ }
+ async function generate(){
+  if(busy||!uid()||!canUsePremium())return;
+  const mission=accessible().find(m=>m.id===selected);if(!mission)return;
+  busy=true;
+  const button=$('salesAssistantContent').querySelector('[data-sales-generate]');
+  if(button){button.disabled=true;button.textContent='Génération en cours…';}
+  try{
+   const session=(await state.db.auth.getSession()).data?.session;
+   if(!session)throw Error('Session expirée.');
+   const resp=await fetch('/api/pro/draft',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({mission_id:mission.id}),cache:'no-store'});
+   const result=await resp.json();
+   if(!resp.ok)throw Error(result.error||'Assistant IA momentanément indisponible.');
+   if(!result.draft||typeof result.draft!=='string')throw Error('Brouillon invalide.');
+   drafts.set(mission.id,result.draft.slice(0,2500));
+   $('salesDraftText').value=drafts.get(mission.id);
+   await saveStage(mission.id,'reply_ready');
+   notify('Brouillon IA prêt : vérifiez-le avant envoi.');
+  }catch(e){notify(e.message||'Génération indisponible. Le brouillon guidé reste utilisable.');}
+  finally{busy=false;if(button){button.disabled=false;button.textContent='Générer avec l’IA';}}
  }
  async function send(){
   if(busy||!uid()||!canUsePremium())return;
@@ -123,6 +141,7 @@ export function createSalesWorkspace({state,element,canUsePremium,tab,notify,ref
   $('salesAssistantContent')?.addEventListener('click',e=>{
    if(e.target.closest('[data-sales-back]')){switchView('requests');return;}
    if(e.target.closest('[data-sales-copy]')){const text=$('salesDraftText')?.value||'';if(!text)return;navigator.clipboard?.writeText(text).then(()=>notify('Réponse copiée.')).catch(()=>notify('Copie indisponible.'));return;}
+   if(e.target.closest('[data-sales-generate]')){generate();return;}
    if(e.target.closest('[data-sales-send]'))send();
   });
   $('salesAssistantContent')?.addEventListener('input',e=>{if(e.target.id==='salesDraftText'&&selected)drafts.set(selected,e.target.value);});
