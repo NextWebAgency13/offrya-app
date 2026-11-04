@@ -2,9 +2,10 @@
 const http=require('node:http');
 const fs=require('node:fs/promises');
 const path=require('node:path');
-const {queryBoamp}=require('./lib/boamp');
+const {queryBoamp,getBoampById}=require('./lib/boamp');
 const {verifyPremiumAccess}=require('./lib/premium');
 const {prepareWithAI,guidedPreparation}=require('./lib/tender-assistant');
+const {validateTenderResponseInput,composeTenderResponse}=require('./lib/tender-response');
 const {lookupCompany,verifyProfessional}=require('./lib/company');
 const {beginIdentity,processIdentityEvent,configured:identityConfigured,identityConfigChecks}=require('./lib/identity');
 const {billingEnabled,startCheckout,verifyStripeSignature,syncSubscription,portal}=require('./lib/billing');
@@ -117,6 +118,32 @@ async function handle(req,res){
     await syncSubscription(JSON.parse(raw.toString('utf8')));
     return json(res,200,{received:true});
    }catch(e){console.error('Stripe Webhook:',e.message);return json(res,503,{error:'Échec de traitement du webhook.'});}
+  }
+  if(p==='/api/pro/tender-response'&&req.method==='POST'){
+   if(!rateLimit(req,4))return json(res,429,{error:'Limite de génération atteinte. Réessayez plus tard.'});
+   let authorization;
+   try{authorization=await verifyPremiumAccess(req.headers.authorization,{url:process.env.SUPABASE_URL,key:process.env.SUPABASE_PUBLISHABLE_KEY});}
+   catch(error){console.error('Tender response authorization:',error.message);return json(res,503,{error:'Contrôle des droits professionnels indisponible.'});}
+   if(!authorization.allowed)return json(res,authorization.status,{error:authorization.error});
+   if(authorization.test)return json(res,403,{error:'La rédaction IA des offres est réservée aux professionnels vérifiés et abonnés.'});
+   if(!process.env.OPENAI_API_KEY)return json(res,503,{error:'Assistant IA temporairement indisponible.'});
+   let input;
+   try{input=JSON.parse(await readBody(req,14500));}
+   catch(error){return json(res,400,{error:'Formulaire de réponse invalide.'});}
+   const validation=validateTenderResponseInput(input);
+   if(validation.error)return json(res,400,{error:validation.error});
+   try{
+    // Never trust titles, buyer details or official requirements supplied by the browser.
+    const notice=await getBoampById(validation.value.tenderId);
+    if(!notice)return json(res,404,{error:'Avis officiel BOAMP introuvable.'});
+    if(!notice.deadline||!Number.isFinite(Date.parse(notice.deadline))||Date.parse(notice.deadline)<=Date.now())
+     return json(res,409,{error:'Date limite absente ou dépassée : vérifiez l’avis officiel.'});
+    const answer=await composeTenderResponse(notice,input);
+    return json(res,200,answer,{'Cache-Control':'private,no-store'});
+   }catch(error){
+    console.error('Official tender AI response:',error.message);
+    return json(res,502,{error:'Impossible de générer le brouillon pour le moment. Aucun dossier n’a été envoyé.'});
+   }
   }
   if(p==='/api/pro/tender-preparation'&&req.method==='POST'){
    if(!rateLimit(req,6))return json(res,429,{error:'Trop de demandes de préparation.'});
