@@ -22,3 +22,5 @@ services:
         value: "12"
       - key: OFFRYA_PLACE_RSS_APPROVED
         value: "false"
+      - key: OFFRYA_PLACE_RSS_URL
+        sync: false
