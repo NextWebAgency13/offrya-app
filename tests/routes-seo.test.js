@@ -14,7 +14,7 @@ test('Accès direct à chaque document public, SEO et H1 unique',async()=>{
   const html=await r.text();assert.equal((html.match(/<h1\b/gi)||[]).length,1,p);
   assert.match(html,/<title>[^<]+<\/title>/,p);
   assert.match(html,/<meta name="description" content="/,p);
-  assert.match(html,/<link rel="canonical" href="https:\/\/offrya-app.onrender.com\//,p);
+  assert.match(html,/<link rel="canonical" href="https:\/\/offrya.fr\//,p);
   if(p==='/connexion'){assert.match(r.headers.get('x-robots-tag'),/noindex/);assert.match(html,/name="robots" content="noindex,nofollow"/);}else assert.equal(r.headers.get('x-robots-tag'),null,p);
   for(const legal of ['/cgv.html','/confidentialite.html','/remboursements.html','/contact.html','/mentions-legales.html'])assert.ok(html.includes('href="'+legal+'"'),p+' missing '+legal);
  }
@@ -47,9 +47,9 @@ test('Robots et sitemap : seules les pages publiques sont listées, noindex atte
  assert.equal(robots.status,200);assert.match(robots.headers.get('content-type'),/text\/plain/);
  assert.equal(sitemap.status,200);assert.match(sitemap.headers.get('content-type'),/xml/);
  const rt=await robots.text(),xml=await sitemap.text();
- assert.match(rt,/Sitemap: https:\/\/offrya-app.onrender.com\/sitemap.xml/);
+ assert.match(rt,/Sitemap: https:\/\/offrya.fr\/sitemap.xml/);
  assert.doesNotMatch(rt,/Disallow:\s*\/espace/);
- for(const p of publicPaths.filter(p=>p!=='/connexion'))assert.ok(xml.includes('https://offrya-app.onrender.com'+p+'</loc>'),p);
+ for(const p of publicPaths.filter(p=>p!=='/connexion'))assert.ok(xml.includes('https://offrya.fr'+p+'</loc>'),p);
  assert.doesNotMatch(xml,/<loc>[^<]*\/espace(?:\/|<)/);
 });
 test('Anciens fragments, lien de connexion et retour profond sur page autorisée',()=>{
