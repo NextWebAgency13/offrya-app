@@ -1,9 +1,10 @@
 'use strict';
-// OFFRYA read-only public-opportunity monitoring: BOAMP (France) + TED (EU).
+// OFFRYA read-only public-opportunity monitoring: BOAMP, TED, and explicitly approved PLACE / regional feeds.
 // Every verified, paid professional is monitored automatically in-app. Optional profile filters narrow matching.
 // No AI-generated reply, bid submission, external contact or unsolicited email.
 const {queryBoamp}=require('../lib/boamp');
 const {queryTed}=require('../lib/ted');
+const {queryPublicPortals}=require('../lib/public-portal-feeds');
 const {qualifyTender}=require('../lib/tender-assistant');
 const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
 const key=process.env.SUPABASE_SECRET_KEY;
@@ -33,7 +34,7 @@ function cleanRow(item,user,prefs={},now=new Date()){
  if(!ranked)return null;
  // Discovery rows are solely notifications, not automatically prepared dossiers.
  const {first_steps:unused,...alert}=ranked;
- return {...alert,source:item.source==='TED'?'TED':'BOAMP'};
+ return {...alert,source:item.source||'BOAMP'};
 }
 function queryTerms(pref){
  const selected=(Array.isArray(pref.sectors)?pref.sectors:[]).filter(s=>Boolean(termsBySector[s]));
@@ -41,11 +42,16 @@ function queryTerms(pref){
  const keyword=String(pref.keywords||'').trim().slice(0,60);
  return [...new Set([...sectorTerms,...(keyword?[keyword]:[])])].slice(0,8);
 }
-async function run({boamp=queryBoamp,ted=queryTed,store=rest,logger=console}={}){
+async function run({boamp=queryBoamp,ted=queryTed,portals=queryPublicPortals,store=rest,logger=console}={}){
  if(!/^https:\/\/[a-z0-9.-]+\.supabase\.co$/.test(base)||!key)
   throw Error('OFFRYA veille indisponible : vérifier les secrets Supabase du dépôt GitHub.');
  const targets=await store('rpc/offrya_agent_watch_targets',{method:'POST',body:'{}'});
  if(!Array.isArray(targets))throw Error('Invalid professional watch targets response');
+ // Regional/PLACE notices are loaded once per run, never once per account.
+ // Each source is explicitly allowlisted and only enabled with a reviewed feed.
+ let portalItems=[],portalHealth=[];
+ try{const fetched=await portals();portalItems=fetched.items||[];portalHealth=fetched.health||[];}
+ catch(error){logger.warn('OFFRYA : flux régionaux temporairement indisponibles');}
  const cache=new Map();
  let processed=0,qualified=0,insertedCandidates=0,failures=0,queries=0;
  for(const pref of targets.slice(0,60)){
@@ -87,6 +93,16 @@ async function run({boamp=queryBoamp,ted=queryTed,store=rest,logger=console}={})
     }
    }
   }
+  // Apply the exact same matching and duplicate suppression to approved portal RSS.
+  // Unknown deadlines, private sources, and out-of-zone notices have already
+  // been rejected in the feed adapter and the qualification function.
+  for(const item of portalItems){
+   const row=cleanRow(item,pref.user_id,pref);
+   if(!row)continue;
+   qualified++;
+   const unique=fingerprint(row),previous=matches.get(unique);
+   if(!previous||row.match_score>previous.match_score)matches.set(unique,row);
+  }
   if(matches.size){
    const alerts=[...matches.values()].sort((a,b)=>b.match_score-a.match_score)
     .slice(0,20);
@@ -100,7 +116,8 @@ async function run({boamp=queryBoamp,ted=queryTed,store=rest,logger=console}={})
  }
  logger.log('OFFRYA veille officielle : abonnés actifs='+processed+
   ' évaluations='+qualified+' propositions='+insertedCandidates+
-  ' sources indisponibles='+failures+' recherches='+queries);
+  ' sources indisponibles='+failures+' recherches='+queries+
+  ' flux territoriaux='+portalHealth.map(x=>x.id+':'+x.status).join(','));
  // Source outages are reported; never fabricate results or alter email consent.
  if(failures&&processed&&qualified===0)process.exitCode=1;
  return {processed,qualified,proposed:insertedCandidates,failures,queries};
