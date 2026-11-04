@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - 'scripts/watch-sector-tenders.js'
+      - 'lib/ted.js'
+      - 'lib/tender-assistant.js'
       - '.github/workflows/sector-tender-watch.yml'
   schedule:
     - cron: '23 * * * *'
@@ -25,5 +27,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Recherche des avis officiels pour les professionnels opt-in
+      - name: Veille BOAMP + TED : opportunités publiques pour abonnés vérifiés
         run: node scripts/watch-sector-tenders.js
