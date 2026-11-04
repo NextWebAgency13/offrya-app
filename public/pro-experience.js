@@ -152,8 +152,9 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  }
  async function prepareTender(id){
   if(!canUsePremium()||Date.parse(state.testPremiumUntil||'')>Date.now())return;
+  const activeUser=state.session?.user?.id;
   const alert=(state.opportunityAlerts||[]).find(x=>x.tender_id===id);
-  if(!alert)return;
+  if(!alert||!activeUser)return;
   const panel=$('proV3TenderPreparation'),notice=$('proV3TenderPrepNotice'),draft=$('proV3TenderPrepDraft');
   panel.hidden=false;notice.textContent='Préparation interne en cours…';draft.value='';
   try{
@@ -163,6 +164,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
     headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},
     body:JSON.stringify({tender_id:id}),cache:'no-store'});
    const result=await response.json();
+   if(state.session?.user?.id!==activeUser)return;
    if(!response.ok)throw Error(result.error||'Préparation indisponible.');
    draft.value=String(result.draft||'');
    notice.textContent=result.notice||'Brouillon à vérifier dans le DCE.';
@@ -255,7 +257,10 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   document.body.classList.toggle('offrya-pro-v3',premium);
   if(!premium){uid=null;return;}
   const user=state.session?.user?.id;
-  if(user!==uid){uid=user;view='home';}
+  if(user!==uid){uid=user;view='home';
+   const pane=$('proV3TenderPreparation');if(pane)pane.hidden=true;
+   const draft=$('proV3TenderPrepDraft');if(draft)draft.value='';
+  }
   const label=state.premium?.legal_name||state.profile?.display_name||'professionnel';
   $('proV3Hello').textContent=label;
   const temporary=Date.parse(state.testPremiumUntil||'')>Date.now();
