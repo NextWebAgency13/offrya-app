@@ -26,7 +26,7 @@ test('Approved nine-view navigation and existing protected modules',()=>{
 });
 test('Core business access control and signed-in client screens remain untouched',()=>{
  assert.match(app,/createProExperience/);
- assert.match(app,/canUsePremium\(\)&&location\.pathname===paths\.dashboard/);
+ assert.match(app,/const initialScreen=pathsReverse\[location\.pathname\]\|\|'dashboard'/);
  assert.match(app,/createSalesWorkspace/);
  assert.match(app,/createOpportunityConsole/);
  assert.match(app,/renderPremium/);

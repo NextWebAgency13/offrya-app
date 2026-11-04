@@ -304,3 +304,30 @@ body.offrya-pro-v3 #proV3MobileAlert{display:none}
  body.offrya-pro-v3 .header #proV3MobileAlert{display:grid!important;position:relative;place-items:center;min-height:43px;min-width:43px;flex:none;padding:0}
  body.offrya-pro-v3 #proV3AlertBubble:not([hidden]){position:absolute;top:-3px;right:-4px;display:grid;place-items:center;min-width:17px;height:17px;padding:0 3px;border:2px solid #351348;border-radius:13px;background:#f0b77e;color:#351348;font-size:9px;font-weight:900}
 }
+
+/* Commercial radar: only verified, authorized sources; no fabricated counters. */
+body.offrya-pro-v3 .pro-v3-radar-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:0 0 15px}
+body.offrya-pro-v3 .pro-v3-radar-kpis>span{display:flex;flex-direction:column;gap:4px;background:#f5effb;padding:12px 13px;border-radius:12px}
+body.offrya-pro-v3 .pro-v3-radar-kpis strong{font:800 23px 'Plus Jakarta Sans',sans-serif;color:#341951}
+body.offrya-pro-v3 .pro-v3-radar-kpis small{color:#71617f;font-size:11px}
+body.offrya-pro-v3 .pro-v3-radar-row{display:flex;justify-content:space-between;gap:14px;align-items:center;min-width:0;border:1px solid #e9e0f1;border-radius:13px;padding:14px}
+body.offrya-pro-v3 .pro-v3-radar-body{min-width:0;display:grid;gap:4px}
+body.offrya-pro-v3 .pro-v3-radar-body strong{color:#342047;font:800 13px/1.4 'Plus Jakarta Sans',sans-serif;overflow-wrap:anywhere}
+body.offrya-pro-v3 .pro-v3-radar-body small{font-size:11px;color:#756680}
+body.offrya-pro-v3 .pro-v3-radar-body .pro-v3-radar-source{font-size:10px;color:#7336b5;font-weight:800;letter-spacing:.035em}
+body.offrya-pro-v3 .pro-v3-radar-body p{font-size:11px;color:#6b5a76;line-height:1.45;margin:2px 0 0;overflow-wrap:anywhere}
+body.offrya-pro-v3 .pro-v3-radar-side{display:grid;justify-items:end;flex:none;gap:10px}
+body.offrya-pro-v3 .pro-v3-radar-side>strong{font:800 14px 'Plus Jakarta Sans',sans-serif;color:#54228d;background:#f1e5fc;padding:6px 8px;border-radius:11px}
+body.offrya-pro-v3 .pro-v3-radar-side .pro-v3-reco-btn{min-height:42px;display:inline-flex;justify-content:center;align-items:center;text-decoration:none;text-align:center}
+body.offrya-pro-v3 .pro-v3-radar-disclaimer{font-size:10px;line-height:1.45;color:#796b87;margin:12px 0 0}
+@media(max-width:620px){
+ body.offrya-pro-v3 .pro-v3-radar-row{gap:9px;padding:12px;align-items:start}
+ body.offrya-pro-v3 .pro-v3-radar-side{min-width:90px}
+ body.offrya-pro-v3 .pro-v3-radar-side .pro-v3-reco-btn{padding:10px 8px;white-space:normal;font-size:11px}
+ body.offrya-pro-v3 .pro-v3-radar-kpis>span{padding:11px 9px}
+ body.offrya-pro-v3 .pro-v3-radar-kpis strong{font-size:21px}
+}
+@media(max-width:355px){
+ body.offrya-pro-v3 .pro-v3-radar-row{flex-direction:column}
+ body.offrya-pro-v3 .pro-v3-radar-side{display:flex;align-items:center;justify-content:space-between;width:100%}
+}

@@ -1,4 +1,4 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f7f6fb"><title>OFFRYA : publiez une mission gratuite ou devenez professionnel</title><meta name="description" content="Déposez gratuitement une mission après inscription et confirmation de votre adresse e-mail. OFFRYA vous met en relation avec des professionnels vérifiés partout en France."><link rel="canonical" href="https://offrya-app.onrender.com/"><meta property="og:type" content="website"><meta property="og:site_name" content="OFFRYA"><meta property="og:locale" content="fr_FR"><meta property="og:title" content="OFFRYA : publiez une mission gratuite ou devenez professionnel"><meta property="og:description" content="Déposez gratuitement une mission après inscription et confirmation de votre adresse e-mail. OFFRYA vous met en relation avec des professionnels vérifiés partout en France."><meta property="og:url" content="https://offrya-app.onrender.com/"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/public.css"><script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://offrya-app.onrender.com/#organization","name":"OFFRYA","url":"https://offrya-app.onrender.com/","logo":"https://offrya-app.onrender.com/favicon.svg"},{"@type":"WebSite","@id":"https://offrya-app.onrender.com/#website","name":"OFFRYA","url":"https://offrya-app.onrender.com/","publisher":{"@id":"https://offrya-app.onrender.com/#organization"},"inLanguage":"fr-FR"}]}</script></head>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f7f6fb"><title>OFFRYA : publiez une mission gratuite ou devenez professionnel</title><meta name="description" content="Déposez gratuitement une mission après inscription et confirmation de votre adresse e-mail. OFFRYA vous met en relation avec des professionnels vérifiés partout en France."><link rel="canonical" href="https://offrya.fr/"><meta property="og:type" content="website"><meta property="og:site_name" content="OFFRYA"><meta property="og:locale" content="fr_FR"><meta property="og:title" content="OFFRYA : publiez une mission gratuite ou devenez professionnel"><meta property="og:description" content="Déposez gratuitement une mission après inscription et confirmation de votre adresse e-mail. OFFRYA vous met en relation avec des professionnels vérifiés partout en France."><meta property="og:url" content="https://offrya.fr/"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/public.css"><script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://offrya.fr/#organization","name":"OFFRYA","url":"https://offrya.fr/","logo":"https://offrya.fr/favicon.svg"},{"@type":"WebSite","@id":"https://offrya.fr/#website","name":"OFFRYA","url":"https://offrya.fr/","publisher":{"@id":"https://offrya.fr/#organization"},"inLanguage":"fr-FR"}]}</script></head>
 <body class="home-landing mock-home">
 <a class="home-skip" href="#contenu">Aller au contenu</a>
 <header class="top home-top mock-top"><nav aria-label="Navigation principale">
@@ -19,6 +19,22 @@
         <a class="mock-button mock-button-primary" href="/deposer-une-mission"><span class="mock-button-icon" aria-hidden="true">＋</span><span>Déposer une mission<small>(gratuit)</small></span></a>
         <a class="mock-button mock-button-light" href="/professionnels"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M2 20v-2c0-3 3-5 7-5s7 2 7 5v2M17 5c3 0 4 6 0 6m1 2c3 0 5 2 5 5v2"/></svg><span>Rejoindre OFFRYA<small>Professionnel</small></span></a>
       </div>
+      <form class="mock-quick-mission" action="/deposer-une-mission" method="get" aria-label="Commencer votre demande de mission gratuite">
+        <p><strong>Quel service recherchez-vous ?</strong><small>Commencez en quelques secondes, sans paiement.</small></p>
+        <div class="mock-quick-mission-fields">
+          <label for="quickMissionCategory">Type de prestation</label>
+          <select name="category" id="quickMissionCategory" required>
+            <option value="" selected disabled>Choisir un service</option>
+            <option>Nettoyage</option><option>Espaces verts</option><option>Bâtiment</option>
+            <option>Informatique</option><option>Transport</option>
+            <option>Restauration &amp; Hôtellerie</option><option>Bien-être &amp; Beauté</option><option>Autre</option>
+          </select>
+          <label for="quickMissionCity">Votre ville (facultatif)</label>
+          <input id="quickMissionCity" name="city" maxlength="90" autocomplete="address-level2" placeholder="Ex. Marseille">
+          <button type="submit">Décrire mon projet</button>
+        </div>
+        <small class="mock-quick-mission-disclaimer">Publication gratuite après création du compte et confirmation de l’adresse e-mail. Aucun projet n’est publié sans votre validation.</small>
+      </form>
       <div class="mock-hero-trust" aria-label="Les garanties du service">
         <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m8 12 3 3 5-5"/></svg><span>Professionnels<br>vérifiés</span></div>
         <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m13 2-9 11h7l-1 9 10-12h-7l0-8Z"/></svg><span>Mise en relation<br>directe</span></div>

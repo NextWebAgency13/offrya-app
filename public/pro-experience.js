@@ -1,3 +1,4 @@
+import {buildRadar,radarOfficialUrl} from './radar.js';
 // OFFRYA Pro UI v3 — visual redesign on top of existing secured modules.
 // Only authenticated, server/RLS-authorized data is displayed. No demo rows.
 export function createProExperience({state,element,canUsePremium,tab,renderMissions,notify}){
@@ -61,8 +62,10 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
     '</div>',
     '<div class="pro-v3-home-grid">',
       '<section class="pro-v3-panel pro-v3-opportunities" aria-labelledby="proV3OpTitle">',
-       '<div class="pro-v3-panel-head"><div><h3 id="proV3OpTitle">'+icon('ic-sparkles')+' Opportunités prioritaires</h3><p>Des missions correspondant à votre secteur et à votre zone.</p></div><button type="button" data-pro-screen="requests">Voir toutes les missions →</button></div>',
-       '<div id="proV3Recommendations" class="pro-v3-reco-list"><p class="pro-v3-empty">Recherche de missions…</p></div>',
+       '<div class="pro-v3-panel-head"><div><h3 id="proV3OpTitle">'+icon('ic-sparkles')+' Radar commercial</h3><p>Missions OFFRYA et avis publics réels, classés selon leur correspondance.</p></div><button type="button" data-pro-screen="watch">Toutes les alertes →</button></div>',
+       '<div class="pro-v3-radar-kpis" aria-label="Résultats du radar"><span><strong id="proV3RadarTotal">0</strong><small>Détectées</small></span><span><strong id="proV3RadarRelevant">0</strong><small>Pertinentes</small></span><span><strong id="proV3RadarUrgent">0</strong><small>À examiner</small></span></div>',
+        '<div id="proV3Recommendations" class="pro-v3-reco-list"><p class="pro-v3-empty">Analyse des opportunités disponibles…</p></div>',
+        '<p class="pro-v3-radar-disclaimer">Score indicatif de correspondance, pas une probabilité de remporter un marché. Aucun contact ou dépôt automatique.</p>',
       '</section>',
       '<div class="pro-v3-home-side">',
        '<section class="pro-v3-panel"><div class="pro-v3-panel-head"><h3>'+icon('ic-bolt')+' Alertes & nouveautés</h3></div><div id="proV3Alerts" class="pro-v3-alerts"><p class="pro-v3-empty">Aucune alerte.</p></div></section>',
@@ -108,16 +111,28 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   return '▣';
  }
  function recommendations(){
-  const rows=matched().slice(0,4);
-  const box=$('proV3Recommendations');if(!box)return;
-  box.innerHTML=rows.length?rows.map(m=>{
-   const place=[m.city,m.department?'('+m.department+')':''].filter(Boolean).join(' ');
-   const created=m.created_at?'Publiée le '+new Date(m.created_at).toLocaleDateString('fr-FR'):'';
-   return '<article class="pro-v3-reco"><div class="pro-v3-reco-image" aria-hidden="true">'+categoryIcon(m.category||'')+'</div>'+
-   '<div><strong>'+esc(m.title||'Mission')+'</strong><p><span>'+esc(m.category||'Service')+'</span> · '+esc(place||'Localisation non précisée')+'</p><small>'+esc(created)+'</small></div>'+
-   '<button type="button" class="pro-v3-reco-btn" data-pro-mission="'+esc(m.id)+'">Voir la mission →</button></article>';
-  }).join(''):'<div class="pro-v3-empty"><strong>Aucune mission recommandée pour le moment.</strong><p>Les demandes réelles des particuliers et des entreprises apparaîtront ici selon vos secteurs et votre zone.</p><button data-pro-screen="preferences">Personnaliser mes préférences →</button></div>';
+  const panel=$('proV3Recommendations');if(!panel||!canUsePremium())return;
+  const data=buildRadar({missions:available(),alerts:state.opportunityAlerts||[],
+   preferences:state.opportunityPrefs||{},userId:state.session?.user?.id});
+  $('proV3RadarTotal').textContent=String(data.total);
+  $('proV3RadarRelevant').textContent=String(data.relevant);
+  $('proV3RadarUrgent').textContent=String(data.urgent);
+  panel.innerHTML=data.items.length?data.items.slice(0,5).map(item=>{
+   const source=item.kind==='mission'?'MISSION OFFRYA':item.source+' · AVIS OFFICIEL';
+   const place=item.location||'Localisation à vérifier';
+   const rationale=item.reasons.slice(0,3).join(' · ');
+   const action=item.kind==='mission'
+    ?'<button type="button" class="pro-v3-reco-btn" data-pro-mission="'+esc(item.id)+'">Voir la mission</button>'
+    :radarOfficialUrl(item.url)
+     ?'<a class="pro-v3-reco-btn" href="'+esc(item.url)+'" target="_blank" rel="noopener noreferrer">Avis officiel</a>':'';
+   return '<article class="pro-v3-radar-row"><div class="pro-v3-radar-body"><small class="pro-v3-radar-source">'+esc(source)+'</small>'+
+     '<strong>'+esc(item.title)+'</strong><small>'+esc(place)+'</small><p>'+esc(rationale)+'</p></div>'+
+     '<div class="pro-v3-radar-side"><strong aria-label="Correspondance estimée '+item.score+' sur 100">'+item.score+'/100</strong>'+action+'</div></article>';
+  }).join(''):'<div class="pro-v3-empty"><strong>Pas encore d’opportunités classées.</strong>'+
+   '<p>Le radar affichera uniquement les missions accessibles et les avis officiels enregistrés pour votre compte. Il ne crée aucun résultat fictif.</p>'+
+   '<button type="button" data-pro-screen="watch">Consulter ma veille →</button></div>';
  }
+
  function metrics(){
   const missions=available(), conversations=state.conversations||[];
   $('proV3MissionCount').textContent=String(missions.length);

@@ -493,6 +493,20 @@ $('priorityAlertsList').onclick=async event=>{
 
 function render(){
  const yes=Boolean(state.session);
+ // A confirmed user may resume only their local, non-sensitive draft starter.
+ const resume=$('missionStarterResume');
+ if(resume){
+  let pending=null;
+  try{pending=JSON.parse(sessionStorage.getItem('offrya:mission-starter:v1')||'null');}catch(_){}
+  const time=Number(pending?.time);
+  const category=String(pending?.category||'').slice(0,60);
+  const city=String(pending?.city||'').slice(0,90);
+  const valid=Boolean(yes&&Number.isFinite(time)&&time<=Date.now()&&Date.now()-time<86400000
+   &&(category||city));
+  resume.hidden=!valid;
+  if(valid)$('missionStarterResumeDescription').textContent=
+   'Reprenez votre demande'+(category?' en '+category:'')+(city?' à '+city:'')+'. Aucun projet n’a encore été publié.';
+ }
  $('dashboardLoading').classList.toggle('hidden',state.loaded);
  $('homePrivateDashboard').classList.toggle('hidden',!state.loaded||!yes);
  document.querySelector('#dashboard .stats')?.classList.add('hidden');

@@ -69,8 +69,8 @@ test('Les secteurs restauration et beauté ont leurs propres aperçus publics',(
   assert.match(home,new RegExp('href="/secteurs/'+slug+'"><span class="mock-sector-picture mock-sector-'+cls+'"'));
   const page=read('public/secteurs/'+slug+'.html');
   assert.ok(page.includes('<h1>'+title+' :'),slug+' a son titre dédié');
-  assert.ok(page.includes('https://offrya-app.onrender.com/secteurs/'+slug),slug+' a sa balise canonique');
-  assert.ok(page.includes('href="/deposer-une-mission"'),'Le lien de dépôt existe');
+  assert.ok(page.includes('https://offrya.fr/secteurs/'+slug),slug+' a sa balise canonique');
+  assert.ok(page.includes('href="/deposer-une-mission?category='),'Le lien de dépôt existe');
  }
  assert.ok(css.includes('.mock-home .mock-pro .mock-card-cta{width:88.9%;min-height:40px'),'CTA professionnel redimensionné');
  assert.ok(css.includes('.mock-home .mock-pro-details{max-width:88.9%'),'Lien secondaire ajusté');

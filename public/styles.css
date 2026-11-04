@@ -411,3 +411,14 @@
  body:has(.app-shell) .pro-progress-summary{flex-wrap:wrap}
  body:has(.app-shell) .pro-progress-step{margin-left:auto}
 }
+
+/* Personal dashboard: restore the pending mission after standard e-mail confirmation. */
+#dashboard .role-resume-mission{display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid #dcc3ed;border-radius:17px;background:#f5ecfc;padding:17px 18px;margin:0 0 18px}
+#dashboard .role-resume-mission[hidden]{display:none!important}
+#dashboard .role-resume-mission strong{font:800 16px 'Plus Jakarta Sans',system-ui,sans-serif;color:#371c52}
+#dashboard .role-resume-mission p{font-size:12px;color:#675478;line-height:1.5;margin:5px 0 0}
+#dashboard .role-resume-mission .role-primary{flex:none;text-align:center;min-height:45px;text-decoration:none}
+@media(max-width:620px){
+ #dashboard .role-resume-mission{margin:12px 0 16px;flex-direction:column;align-items:stretch;padding:16px}
+ #dashboard .role-resume-mission .role-primary{width:100%;max-width:none}
+}
