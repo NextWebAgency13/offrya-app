@@ -32,9 +32,25 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const badge=document.createElement('div');badge.id='proV3SidePlan';badge.className='pro-v3-side-plan';
   badge.innerHTML='<strong>♛ Offre professionnelle</strong><span id="proV3PlanState">Accès en cours</span><small>34,99 € TTC / mois</small><button type="button" data-pro-screen="settings">Gérer mon abonnement →</button>';
   nav.after(badge);
+  // Secondary Pro screens appear in the existing mobile account menu.
+  const accountPanel=document.querySelector('#accountMenu .account-menu-panel');
+  if(accountPanel&&!accountPanel.querySelector('#proV3AccountTools')){
+   const tools=document.createElement('nav');tools.id='proV3AccountTools';tools.className='pro-v3-account-tools';
+   tools.setAttribute('aria-label','Outils professionnels');
+   tools.innerHTML='<strong class="pro-v3-account-title">Outils professionnels</strong>'+menu.map(navButton).join('');
+   accountPanel.prepend(tools);
+  }
+  const accountMenu=document.getElementById('accountMenu');
+  const alertButton=document.createElement('button');
+  alertButton.type='button';alertButton.id='proV3MobileAlert';
+  alertButton.className='header-shortcut pro-v3-alert-shortcut';
+  alertButton.setAttribute('aria-label','Consulter les alertes de marchés publics');
+  alertButton.innerHTML='<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"/><path d="M10 21h4"/></svg><span id="proV3AlertBubble" hidden></span>';
+  if(accountMenu)accountMenu.before(alertButton);
+  alertButton.addEventListener('click',()=>{if(canUsePremium())show('watch');});
   const root=document.createElement('div');root.id='proExperienceV3';root.className='pro-v3-experience';
   root.innerHTML=[
-   '<div class="pro-v3-mobile-menu" role="navigation" aria-label="Outils de votre espace Pro">'+menu.map(navButton).join('')+'</div>',
+   '<div class="pro-v3-mobile-menu" aria-hidden="true" hidden></div>',
    '<section class="pro-v3-view" data-pro-panel="home">',
     '<div class="pro-v3-intro"><div><span class="pro-v3-eyebrow">ESPACE PROFESSIONNEL OFFRYA</span><h2>Bonjour, <span id="proV3Hello">professionnel</span></h2><p>Gérez vos opportunités, suivez vos missions et développez votre activité.</p></div><span class="pro-v3-status" id="proV3Status">Accès professionnel</span></div>',
     '<div class="pro-v3-metrics" aria-label="Indicateurs réels">',
@@ -51,15 +67,15 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
       '<div class="pro-v3-home-side">',
        '<section class="pro-v3-panel"><div class="pro-v3-panel-head"><h3>'+icon('ic-bolt')+' Alertes & nouveautés</h3></div><div id="proV3Alerts" class="pro-v3-alerts"><p class="pro-v3-empty">Aucune alerte.</p></div></section>',
        '<section class="pro-v3-panel"><div class="pro-v3-panel-head"><h3>'+icon('ic-dashboard')+' Mon activité</h3><button type="button" data-pro-screen="tracking">Suivi →</button></div><div class="pro-v3-activity"><div id="proV3ActivityStats"></div><div id="proV3Chart" class="pro-v3-chart" aria-label="Missions visibles publiées sur les 7 derniers jours"></div></div></section>',
-       '<section class="pro-v3-panel pro-v3-actions"><div class="pro-v3-panel-head"><h3>'+icon('ic-bolt')+' Actions rapides</h3></div><div class="pro-v3-action-grid"><button data-pro-screen="watch">Définir ma veille</button><button data-pro-screen="assistant">Assistant IA</button><button data-pro-screen="preferences">Mes préférences</button><a href="/contact.html">Besoin d’aide ?</a></div></section>',
+       '<section class="pro-v3-panel pro-v3-actions"><div class="pro-v3-panel-head"><h3>'+icon('ic-bolt')+' Accès rapides</h3></div><div class="pro-v3-action-grid"><button data-pro-screen="requests">Rechercher des missions</button><button data-pro-screen="tracking">Mes suivis</button><button data-pro-screen="watch">Veille automatique</button><button data-pro-screen="preferences">Mes préférences</button></div></section>',
       '</div>',
     '</div>',
     '<section class="pro-v3-overview"><h3>Un espace pour chaque besoin</h3><div class="pro-v3-overview-grid">'+
      menu.slice(1).map(x=>'<button data-pro-screen="'+x[0]+'">'+icon(x[2])+'<strong>'+esc(x[1])+'</strong><span>Accéder à cet outil →</span></button>').join('')+'</div></section>',
    '</section>',
    '<section class="pro-v3-view" data-pro-panel="commercial" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">GESTION DES DEMANDES · OFFRYA</span><h2 id="proV3CommercialHeading">Demandes de missions</h2><p id="proV3CommercialDescription">Qualifiez les demandes, préparez vos réponses et suivez vos échanges.</p></div><div id="proV3CommercialSlot"></div><div id="proV3FollowupSlot" class="pro-v3-followup" hidden></div></section>',
-   '<section class="pro-v3-view" data-pro-panel="watch" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">VEILLE · OFFRYA</span><h2>Veille automatisée</h2><p>Vos critères permettent de rechercher des missions et avis BOAMP correspondant à votre activité.</p></div><div class="pro-v3-metrics pro-v3-small-metrics"><div class="pro-v3-metric purple">'+icon('ic-bolt')+'<span><small>État de ma veille</small><strong id="proV3WatchState">—</strong><em>Activation volontaire</em></span></div><div class="pro-v3-metric blue">'+icon('ic-boamp')+'<span><small>Alertes reçues</small><strong id="proV3AlertCount">0</strong><em>Alertes BOAMP enregistrées</em></span></div></div><section class="pro-v3-panel"><div class="pro-v3-panel-head"><h3>Dernières alertes</h3><button data-pro-screen="preferences">Modifier mes critères →</button></div><div id="proV3WatchAlertList" class="pro-v3-alerts"></div><p class="pro-v3-helper">Les e-mails ne sont envoyés que si vous avez activé les préférences correspondantes et que le service d’envoi est configuré.</p></section></section>',
-   '<section class="pro-v3-view" data-pro-panel="preferences" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">PERSONNALISATION · OFFRYA</span><h2>Préférences de veille</h2><p>Choisissez vos secteurs, votre département et les mots-clés à surveiller.</p></div><div class="pro-v3-panel" id="proV3PreferenceSlot"></div><p class="pro-v3-helper">Les alertes restent désactivées tant que vous ne les activez pas explicitement.</p></section>',
+   '<section class="pro-v3-view" data-pro-panel="watch" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">VEILLE · OFFRYA</span><h2>Veille automatisée</h2><p>OFFRYA surveille les annonces publiques BOAMP et TED automatiquement. Vos filtres restent facultatifs.</p></div><div class="pro-v3-metrics pro-v3-small-metrics"><div class="pro-v3-metric purple">'+icon('ic-bolt')+'<span><small>État de ma veille</small><strong id="proV3WatchState">—</strong><em>Incluse dans l’abonnement professionnel</em></span></div><div class="pro-v3-metric blue">'+icon('ic-boamp')+'<span><small>Alertes reçues</small><strong id="proV3AlertCount">0</strong><em>Publications BOAMP et TED</em></span></div></div><section class="pro-v3-panel"><div class="pro-v3-panel-head"><h3>Dernières alertes</h3><button data-pro-screen="preferences">Modifier mes critères →</button></div><div id="proV3WatchAlertList" class="pro-v3-alerts"></div><p class="pro-v3-helper">Les e-mails ne sont envoyés que si vous avez activé les préférences correspondantes et que le service d’envoi est configuré.</p></section></section>',
+   '<section class="pro-v3-view" data-pro-panel="preferences" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">PERSONNALISATION · OFFRYA</span><h2>Préférences de veille</h2><p>Affinez les secteurs, la zone ou les mots-clés si nécessaire. La veille reste automatique.</p></div><div class="pro-v3-panel" id="proV3PreferenceSlot"></div><p class="pro-v3-helper">Les opportunités publiques s’affichent automatiquement pour les professionnels vérifiés et abonnés. Les e-mails nécessitent une autorisation distincte.</p></section>',
   ].join('');
   $('proDashboard').prepend(root);
   $('proV3CommercialSlot').appendChild(document.querySelector('#proDashboard .sales-workspace'));
@@ -105,12 +121,17 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  function metrics(){
   const missions=available(), conversations=state.conversations||[];
   $('proV3MissionCount').textContent=String(missions.length);
-  const boampLoaded=(state.boamp||[]).length>0 || Number(state.boampTotal)>0;
-  $('proV3MarketCount').textContent=boampLoaded?String(state.boampTotal):'—';
+  const boampState=state.boampStatus||'idle';
+  $('proV3MarketCount').textContent=boampState==='ready'?String(Number(state.boampTotal)||0):boampState==='loading'?'Recherche…':boampState==='error'?'Indisponible':'À actualiser';
   $('proV3ConversationCount').textContent=String(conversations.length);
   $('proV3TrackingCount').textContent=String((state.salesTracking||[]).length+(state.tenderTracking||[]).length);
-  $('proV3WatchState').textContent=state.opportunityPrefs?.alerts_enabled?'Active':'Inactive';
+  $('proV3WatchState').textContent=Date.parse(state.testPremiumUntil||'')>Date.now()?'Accès test':'Automatique';
   $('proV3AlertCount').textContent=String((state.opportunityAlerts||[]).length);
+  const count=(state.opportunityAlerts||[]).filter(a=>!a.seen_at&&(!a.deadline||Date.parse(a.deadline)>Date.now())).length;
+  const bubble=$('proV3AlertBubble');
+  if(bubble){bubble.hidden=!count;bubble.textContent=String(Math.min(count,99));}
+  const trigger=$('proV3MobileAlert');
+  if(trigger)trigger.setAttribute('aria-label',count?'Consulter '+count+' nouvelle(s) opportunité(s) publique(s)':'Consulter les alertes de marchés publics');
   for(const el of document.querySelectorAll('[data-pro-count="requests"]')){el.textContent=String(missions.length);el.hidden=!missions.length;}
   for(const el of document.querySelectorAll('[data-pro-count="inbox"]')){el.textContent=String(conversations.length);el.hidden=!conversations.length;}
  }
@@ -203,8 +224,8 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   // Delegation also handles preference shortcuts added when real data refreshes.
   document.addEventListener('click',e=>{
    const b=e.target.closest('[data-pro-screen]');
-   if(!b||!canUsePremium()||!b.closest('#proExperienceV3,#proV3Sidebar,#proV3SidePlan'))return;
-   e.preventDefault();show(b.dataset.proScreen);
+   if(!b||!canUsePremium()||!b.closest('#proExperienceV3,#proV3Sidebar,#proV3SidePlan,#proV3AccountTools'))return;
+   e.preventDefault();document.getElementById('accountMenu')?.removeAttribute('open');show(b.dataset.proScreen);
   });
   $('proExperienceV3').addEventListener('click',e=>{
    const b=e.target.closest('[data-pro-mission]');if(b)openMission(b.dataset.proMission);
@@ -239,8 +260,11 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const user=state.session?.user?.id;
   if(user!==uid){uid=user;view='home';
   }
-  const label=state.premium?.legal_name||state.profile?.display_name||'professionnel';
-  $('proV3Hello').textContent=label;
+  const rawLabel=String(state.premium?.legal_name||state.profile?.display_name||'').trim();
+  const technical=/^(?:user[_-][a-z0-9_-]{6,}|[a-f0-9-]{24,}|[0-9]{10,})$/i.test(rawLabel);
+  const label=rawLabel&&!technical?rawLabel:'professionnel';
+  $('proV3Hello').textContent=label.length>32?label.slice(0,29).trimEnd()+'…':label;
+  $('proV3Hello').title=label;
   const temporary=Date.parse(state.testPremiumUntil||'')>Date.now();
   const status=temporary?'Accès temporaire':state.premium?.status==='verified'?'Compte vérifié · abonnement actif':'Compte professionnel actif';
   $('proV3Status').textContent=status;

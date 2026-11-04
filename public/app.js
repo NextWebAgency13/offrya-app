@@ -9,7 +9,14 @@ const authCaptcha=createAuthCaptcha($('modalAuthCaptcha'));
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,testPremiumUntil:null,opportunityPrefs:null,tenderTracking:[],opportunityAlerts:[],salesTracking:[],draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,testPremiumUntil:null,boampStatus:'idle',opportunityPrefs:null,tenderTracking:[],opportunityAlerts:[],salesTracking:[],draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
+$('dashboardLoadingRetry')?.addEventListener('click',()=>location.reload());
+setTimeout(()=>{
+ if(state.loaded)return;
+ const message=$('dashboardLoadingMessage');
+ if(message)message.textContent='Le chargement prend plus de temps que prévu. Vous pouvez réessayer.';
+ $('dashboardLoadingRetry')?.classList.remove('hidden');
+},10000);
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
@@ -79,21 +86,35 @@ async function refresh(){
   ['draft',state.db.from('offrya_professional_drafts').select('step,siret,legal_name,representative_name,representative_capacity,representative_kind').eq('user_id',uid).maybeSingle()],
   ['manualIdentity',state.db.from('offrya_manual_identity_requests').select('status,requested_at,updated_at').eq('user_id',uid).maybeSingle()]
  ];
- const results=await Promise.allSettled(requests.map(([,request])=>request));
- for(let i=0;i<requests.length;i++){
-  const [key]=requests[i],answer=results[i];
-  const res=answer.status==='fulfilled'?answer.value:null;
-  if(answer.status==='rejected'||res?.error){
-   console.warn('OFFRYA: optional section unavailable:',key,answer.status==='rejected'?answer.reason:res.error);
-   continue;
+ // Start independent requests together, then render as soon as identity and
+ // subscription data are available. Optional panels fill in after that.
+ const tasks=requests.map(([key,request])=>({key,promise:Promise.resolve(request)}));
+ const criticalKeys=new Set(['profile','premium','subscription','testPremiumUntil']);
+ const critical=tasks.filter(x=>criticalKeys.has(x.key));
+ const optional=tasks.filter(x=>!criticalKeys.has(x.key));
+ function applyResponses(group,results){
+  for(let i=0;i<group.length;i++){
+   const key=group[i].key,answer=results[i];
+   const res=answer.status==='fulfilled'?answer.value:null;
+   if(answer.status==='rejected'||res?.error){
+    console.warn('OFFRYA: optional section unavailable:',key,answer.status==='rejected'?answer.reason:res.error);
+    continue;
+   }
+   if(key==='favorites')state.favorites=(res?.data||[]).map(x=>x.mission_id);
+   else if(key==='tenderTracking')state.tenderTracking=res?.data||[];
+   else if(key==='salesTracking')state.salesTracking=res?.data||[];
+   else if(key==='opportunityAlerts')state.opportunityAlerts=res?.data||[];
+   else if(key==='conversations'||key==='profiles')state[key]=res?.data||[];
+   else state[key]=res?.data||null;
   }
-  if(key==='favorites')state.favorites=(res?.data||[]).map(x=>x.mission_id);
-  else if(key==='tenderTracking')state.tenderTracking=res?.data||[];
-  else if(key==='salesTracking')state.salesTracking=res?.data||[];
-  else if(key==='opportunityAlerts')state.opportunityAlerts=res?.data||[];
-  else if(key==='conversations'||key==='profiles')state[key]=res?.data||[];
-  else state[key]=res?.data||null;
  }
+ const requiredResults=await Promise.allSettled(critical.map(x=>x.promise));
+ if(state.currentUserId!==uid)return;
+ applyResponses(critical,requiredResults);
+ state.loaded=true;render();
+ const optionalResults=await Promise.allSettled(optional.map(x=>x.promise));
+ if(state.currentUserId!==uid)return;
+ applyResponses(optional,optionalResults);
  if(canUsePremium()){
   try{
    // The backend RLS remains the authority for viewing other users' missions.
@@ -549,8 +570,8 @@ $('inboxBackToList').onclick=()=>{$('inbox').classList.remove('has-active-thread
 $('conversationList').onclick=async e=>{const btn=e.target.closest('[data-thread]');if(!btn)return;state.thread=btn.dataset.thread;renderInbox();try{await loadMessages(state.thread);}catch(err){showError(err);}};
 $('messageForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth()||!state.thread)return;const f=e.currentTarget,body=f.elements.body.value.trim();if(!body)return;try{const r=await state.db.from('offrya_messages').insert({conversation_id:state.thread,sender_id:state.session.user.id,body});if(r.error)throw r.error;f.reset();await loadMessages(state.thread);}catch(err){showError(err);}};
 $('preferencesForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget;const payload={user_id:state.session.user.id,missions_enabled:f.elements.missions_enabled.checked,messages_enabled:f.elements.messages_enabled.checked,department:f.elements.department.value.trim().toUpperCase(),category:f.elements.category.value};try{let r;if(state.prefs){delete payload.user_id;r=await state.db.from('offrya_alert_preferences').update(payload).eq('user_id',state.session.user.id);}else r=await state.db.from('offrya_alert_preferences').insert(payload);if(r.error)throw r.error;toast('Préférences enregistrées.');await refresh();}catch(err){showError(err);}};
-async function loadBoamp(append=false){if(!canUsePremium()){renderPremium();return;}if(!append){state.boampOffset=0;state.boamp=[];}$('boampCount').textContent='Recherche en cours';$('boampList').innerHTML='<div class="boamp-skeleton" aria-hidden="true"><div></div><div></div></div>';try{const qs=new URLSearchParams({q:$('boampKeyword').value.trim(),dept:$('boampDept').value.trim(),offset:String(state.boampOffset)});const {data:{session}}=await state.db.auth.getSession();if(!session)throw Error('Session expirée.');
-const r=await fetch('/api/annonces?'+qs,{headers:{Authorization:'Bearer '+session.access_token}});const data=await r.json();if(!r.ok)throw Error(data.error||'Source indisponible');state.boamp.push(...data.items);state.boampOffset+=data.items.length;state.boampTotal=data.total;$('boampCount').textContent=`${data.total} avis officiels`;$('boampList').innerHTML=state.boamp.map(m=>`<article class="data-item"><span class="tag">BOAMP OFFICIEL</span><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.buyer)}</div><div class="meta-row"><span>Dépt. : ${esc(m.departments)}</span><span>Publié : ${date(m.published)}</span><span>Échéance : ${date(m.deadline)}</span></div><a class="button secondary micro-button" href="${esc(m.url)}" target="_blank" rel="noopener noreferrer">Consulter l'avis officiel ↗</a></article>`).join('')||'<div class="empty">Aucune annonce correspondante.</div>';$('boampMore').classList.toggle('hidden',state.boampOffset>=data.total||!data.items.length);}catch(err){$('boampCount').textContent='Indisponible';$('boampList').innerHTML='<div class="empty">Le service officiel ne répond pas. Aucune donnée fictive n’est affichée.</div>';console.error(err);}}
+async function loadBoamp(append=false){if(!canUsePremium()){renderPremium();return;}if(!append){state.boampOffset=0;state.boamp=[];}state.boampStatus='loading';$('boampCount').textContent='Recherche en cours';$('boampList').innerHTML='<div class="boamp-skeleton" aria-hidden="true"><div></div><div></div></div>';try{const qs=new URLSearchParams({q:$('boampKeyword').value.trim(),dept:$('boampDept').value.trim(),offset:String(state.boampOffset)});const {data:{session}}=await state.db.auth.getSession();if(!session)throw Error('Session expirée.');
+const r=await fetch('/api/annonces?'+qs,{headers:{Authorization:'Bearer '+session.access_token}});const data=await r.json();if(!r.ok)throw Error(data.error||'Source indisponible');state.boamp.push(...data.items);state.boampOffset+=data.items.length;state.boampTotal=data.total;state.boampStatus='ready';proExperience.render();$('boampCount').textContent=`${data.total} avis officiels`;$('boampList').innerHTML=state.boamp.map(m=>`<article class="data-item"><span class="tag">BOAMP OFFICIEL</span><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.buyer)}</div><div class="meta-row"><span>Dépt. : ${esc(m.departments)}</span><span>Publié : ${date(m.published)}</span><span>Échéance : ${date(m.deadline)}</span></div><a class="button secondary micro-button" href="${esc(m.url)}" target="_blank" rel="noopener noreferrer">Consulter l'avis officiel ↗</a></article>`).join('')||'<div class="empty">Aucune annonce correspondante.</div>';$('boampMore').classList.toggle('hidden',state.boampOffset>=data.total||!data.items.length);}catch(err){state.boampStatus='error';proExperience.render();$('boampCount').textContent='Indisponible';$('boampList').innerHTML='<div class="empty">Le service officiel ne répond pas. Aucune donnée fictive n’est affichée.</div>';console.error(err);}}
 $('boampSearch').onclick=()=>loadBoamp();$('boampMore').onclick=()=>loadBoamp(true);$('exportBoamp').onclick=async()=>{
  if(!canUsePremium())return renderPremium();
  try{
@@ -575,7 +596,7 @@ async function init(){
   state.db.auth.onAuthStateChange((event,session)=>{state.session=session;if(event==='SIGNED_OUT'){location.replace('/connexion?next='+encodeURIComponent(location.pathname));return;}if(event==='PASSWORD_RECOVERY'){state.authMode='recover';$('authTitle').textContent='Choisissez un nouveau mot de passe';$('authSubmit').textContent='Enregistrer le mot de passe';$('authPasswordRow').classList.remove('hidden');authModal(true);}setTimeout(()=>refresh().catch(showError),0);});
   try{await refresh();}catch(err){state.loaded=true;info('Certaines fonctionnalités sont momentanément indisponibles. Veuillez réessayer ultérieurement.',true);render();}
  }else{info('La connexion au service est momentanément indisponible. Veuillez réessayer ultérieurement.',true);render();}
- if(canUsePremium())await loadBoamp();
+ if(canUsePremium())loadBoamp().catch(error=>console.warn('BOAMP background loading:',error));
  // La file est créée dans Supabase dès la publication; le navigateur vérifie les nouvelles alertes.
  setInterval(()=>{if(state.session&&canUsePremium()&&!document.hidden)loadPriorityAlerts().catch(console.error);},60000);
  // Periodic in-app notification refresh; RLS remains the sole source of access.

@@ -70,3 +70,7 @@
 @media(prefers-reduced-motion:reduce){#dashboard *{scroll-behavior:auto}}
 
 .dashboard-skeleton{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;padding:20px 0}.dashboard-skeleton>div,.boamp-skeleton>div{min-height:100px;border-radius:16px;background:linear-gradient(90deg,#eee9f6 22%,#faf7fe 47%,#eee9f6 70%);background-size:200% 100%;animation:offrya-shimmer 1.6s infinite}.boamp-skeleton>div{min-height:50px;margin:9px 0}@keyframes offrya-shimmer{to{background-position:-200% 0}}.pro-verification-banner{border:1px solid #ded2f4;border-radius:15px;padding:14px;margin:14px 0;background:#f8f4ff;color:#452a70;font-weight:650}@media(max-width:720px){.dashboard-skeleton{grid-template-columns:repeat(2,1fr)}}@media(prefers-reduced-motion:reduce){.dashboard-skeleton>div,.boamp-skeleton>div{animation:none}}
+
+/* Useful fallback when any critical account request is slow. */
+.dashboard-skeleton .dashboard-loading-caption{grid-column:1/-1;margin:2px 0;color:#705e80;font-size:13px;text-align:center;line-height:1.5}
+.dashboard-skeleton #dashboardLoadingRetry{grid-column:1/-1;justify-self:center;min-height:44px;margin-top:3px}
