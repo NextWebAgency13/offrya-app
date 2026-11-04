@@ -32,6 +32,14 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const badge=document.createElement('div');badge.id='proV3SidePlan';badge.className='pro-v3-side-plan';
   badge.innerHTML='<strong>♛ Offre professionnelle</strong><span id="proV3PlanState">Accès en cours</span><small>34,99 € TTC / mois</small><button type="button" data-pro-screen="settings">Gérer mon abonnement →</button>';
   nav.after(badge);
+  // Secondary Pro screens appear in the existing mobile account menu.
+  const accountPanel=document.querySelector('#accountMenu .account-menu-panel');
+  if(accountPanel&&!accountPanel.querySelector('#proV3AccountTools')){
+   const tools=document.createElement('nav');tools.id='proV3AccountTools';tools.className='pro-v3-account-tools';
+   tools.setAttribute('aria-label','Outils professionnels');
+   tools.innerHTML='<strong class="pro-v3-account-title">Outils professionnels</strong>'+menu.map(navButton).join('');
+   accountPanel.prepend(tools);
+  }
   const root=document.createElement('div');root.id='proExperienceV3';root.className='pro-v3-experience';
   root.innerHTML=[
    '<div class="pro-v3-mobile-menu" aria-hidden="true" hidden></div>',
@@ -203,8 +211,8 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   // Delegation also handles preference shortcuts added when real data refreshes.
   document.addEventListener('click',e=>{
    const b=e.target.closest('[data-pro-screen]');
-   if(!b||!canUsePremium()||!b.closest('#proExperienceV3,#proV3Sidebar,#proV3SidePlan'))return;
-   e.preventDefault();show(b.dataset.proScreen);
+   if(!b||!canUsePremium()||!b.closest('#proExperienceV3,#proV3Sidebar,#proV3SidePlan,#proV3AccountTools'))return;
+   e.preventDefault();document.getElementById('accountMenu')?.removeAttribute('open');show(b.dataset.proScreen);
   });
   $('proExperienceV3').addEventListener('click',e=>{
    const b=e.target.closest('[data-pro-mission]');if(b)openMission(b.dataset.proMission);
@@ -239,8 +247,11 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const user=state.session?.user?.id;
   if(user!==uid){uid=user;view='home';
   }
-  const label=state.premium?.legal_name||state.profile?.display_name||'professionnel';
-  $('proV3Hello').textContent=label;
+  const rawLabel=String(state.premium?.legal_name||state.profile?.display_name||'').trim();
+  const technical=/^(?:user[_-][a-z0-9_-]{6,}|[a-f0-9-]{24,}|[0-9]{10,})$/i.test(rawLabel);
+  const label=rawLabel&&!technical?rawLabel:'professionnel';
+  $('proV3Hello').textContent=label.length>32?label.slice(0,29).trimEnd()+'…':label;
+  $('proV3Hello').title=label;
   const temporary=Date.parse(state.testPremiumUntil||'')>Date.now();
   const status=temporary?'Accès temporaire':state.premium?.status==='verified'?'Compte vérifié · abonnement actif':'Compte professionnel actif';
   $('proV3Status').textContent=status;
