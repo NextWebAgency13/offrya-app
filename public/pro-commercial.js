@@ -40,6 +40,45 @@ export function createSalesWorkspace({state,element,canUsePremium,tab,notify,ref
   const detail=requests.length?'Pourriez-vous me préciser '+requests.slice(0,3).join(', ')+' ?':'Pourriez-vous me confirmer les modalités pratiques et les disponibilités pour échanger sur cette prestation ?';
   return 'Bonjour,\n\nMerci pour votre demande concernant « '+String(m.title||'votre projet').slice(0,110)+' »'+(m.city?' à '+m.city:'')+'.\n\n'+detail+'\n\nCes informations nous permettront d’étudier votre besoin et de revenir vers vous avec une proposition adaptée.\n\nCordialement';
  }
+ function renderCopilotPanels(missionId){
+  const data=copilotResults.get(missionId),review=reviews.get(missionId);
+  const insight=$('salesCopilotAnalysis'),selector=$('salesCopilotTones'),reviewBox=$('salesCopilotReview');
+  if(insight)insight.innerHTML=data?
+   '<div class="sales-copilot-insights"><p class="sales-copilot-summary">'+esc(data.summary||'Analyse de la mission')+'</p>'+
+   '<span class="sales-copilot-status">'+esc(data.information_status||'à préciser')+'</span>'+
+   '<div class="sales-copilot-groups"><div><strong>À demander au client</strong>'+
+   (data.missing_information?.length?'<ul>'+data.missing_information.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<p>Aucune précision essentielle relevée.</p>')+
+   '</div><div><strong>Points de vigilance</strong>'+
+   (data.watchouts?.length?'<ul>'+data.watchouts.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<p>Aucun point particulier détecté.</p>')+
+   '</div></div><p class="sales-copilot-next"><strong>Prochaine action</strong> '+esc(data.next_action||'Vérifiez la mission avant de contacter le demandeur.')+'</p></div>':
+   '<p class="sales-copilot-hint">L’IA prépare trois réponses adaptées à cette mission. Elles restent modifiables et ne sont jamais envoyées automatiquement.</p>';
+  if(selector){selector.hidden=!data;selector.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.salesDraftTone==='professional')));}
+  if(reviewBox)reviewBox.innerHTML=review?
+   '<div class="sales-copilot-review"><strong>Relecture IA</strong><p>'+esc(review.explanation||'')+'</p>'+
+   (review.findings?.length?'<ul>'+review.findings.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<p>Aucun point particulier signalé ; vérifiez néanmoins les engagements.</p>')+
+   '<div class="sales-copilot-reviewed"><strong>Proposition corrigée</strong><p>'+esc(review.suggested_revision||'')+'</p><button class="button secondary" type="button" data-sales-apply-review>Appliquer cette version</button></div></div>':'';
+ }
+ async function reviewDraft(){
+  if(busy||!uid()||!canUsePremium())return;
+  const mission=accessible().find(m=>m.id===selected),body=$('salesDraftText')?.value.trim();
+  if(!mission||!body||body.length<10||body.length>2500){notify('Saisissez un message valide avant la relecture.');return;}
+  busy=true;
+  const button=$('salesAssistantContent')?.querySelector('[data-sales-review]');
+  if(button){button.disabled=true;button.textContent='Relecture en cours…';}
+  try{
+   const session=(await state.db.auth.getSession()).data?.session;
+   if(!session)throw Error('Session expirée.');
+   const resp=await fetch('/api/pro/copilot',{method:'POST',
+    headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},
+    body:JSON.stringify({mission_id:mission.id,action:'review',draft:body}),cache:'no-store'});
+   const data=await resp.json();
+   if(!resp.ok)throw Error(data.error||'Relecture indisponible.');
+   if(typeof data.suggested_revision!=='string'||data.suggested_revision.length<15)throw Error('Relecture incomplète.');
+   reviews.set(mission.id,data);renderCopilotPanels(mission.id);
+   notify('Relecture prête. Vérifiez la proposition avant de l’appliquer.');
+  }catch(err){notify(err.message||'Relecture indisponible.');}
+  finally{busy=false;if(button){button.disabled=false;button.textContent='Relire mon message avec l’IA';}}
+ }
  function renderAssistant(m,t){
   const node=$('salesAssistantContent');
   if(!m){
@@ -146,9 +185,23 @@ export function createSalesWorkspace({state,element,canUsePremium,tab,notify,ref
    if(e.target.closest('[data-sales-back]')){switchView('requests');return;}
    if(e.target.closest('[data-sales-copy]')){const text=$('salesDraftText')?.value||'';if(!text)return;navigator.clipboard?.writeText(text).then(()=>notify('Réponse copiée.')).catch(()=>notify('Copie indisponible.'));return;}
    if(e.target.closest('[data-sales-generate]')){generate();return;}
+   if(e.target.closest('[data-sales-review]')){reviewDraft();return;}
+   const tone=e.target.closest('[data-sales-draft-tone]');
+   if(tone&&selected){
+    const data=copilotResults.get(selected),value=data?.drafts?.[tone.dataset.salesDraftTone];
+    if(typeof value!=='string'||!value)return;
+    drafts.set(selected,value);$('salesDraftText').value=value;
+    $('salesCopilotTones').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===tone)));
+    reviews.delete(selected);$('salesCopilotReview').innerHTML='';return;
+   }
+   if(e.target.closest('[data-sales-apply-review]')&&selected){
+    const revision=reviews.get(selected)?.suggested_revision;
+    if(revision){$('salesDraftText').value=revision;drafts.set(selected,revision);
+     reviews.delete(selected);$('salesCopilotReview').innerHTML='';notify('Correction appliquée ; relisez avant envoi.');}return;
+   }
    if(e.target.closest('[data-sales-send]'))send();
   });
-  $('salesAssistantContent')?.addEventListener('input',e=>{if(e.target.id==='salesDraftText'&&selected)drafts.set(selected,e.target.value);});
+  $('salesAssistantContent')?.addEventListener('input',e=>{if(e.target.id==='salesDraftText'&&selected){drafts.set(selected,e.target.value);reviews.delete(selected);if($('salesCopilotReview'))$('salesCopilotReview').innerHTML='';}});
   $('salesAssistantContent')?.addEventListener('change',async e=>{
    if(e.target.id!=='salesStageSelect'||!selected)return;
    try{await saveStage(selected,e.target.value);notify('Suivi mis à jour.');render();}
