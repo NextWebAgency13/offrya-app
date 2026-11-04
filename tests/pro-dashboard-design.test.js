@@ -34,7 +34,8 @@ test('Android portrait restores all four KPI tiles, six touch friendly actions a
  assert.match(css,/\.pro-v3-mission-preview\{grid-template-columns:1fr/);
  assert.match(css,/\.pro-v3-action-grid>\*:nth-child\(n\+3\)\{display:flex\}/);
  assert.match(css,/\.pro-v3-markets-panel #premiumContent>\.panel\.filters\{display:flex;flex-direction:column/);
- const quick=pro.match(/<div class="pro-v3-action-grid">[^']+/)?.[0]||'';
+ const i=pro.indexOf('<div class="pro-v3-action-grid">'),j=pro.indexOf('</div>',i);
+ const quick=pro.slice(i,j);
  for(const action of ['boamp','requests','watch','tracking','preferences','inbox'])assert.match(quick,new RegExp('data-pro-screen="'+action+'"'));
  assert.match(html,/data-tab="professional"/);
 });
