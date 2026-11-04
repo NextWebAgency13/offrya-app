@@ -178,7 +178,7 @@ async function handle(req,res){
    try{premium=await verifyPremiumAccess(req.headers.authorization,{url:process.env.SUPABASE_URL,key:process.env.SUPABASE_PUBLISHABLE_KEY});}
    catch(e){console.error('Premium verification',e.message);return json(res,503,{error:'Vérification Premium temporairement indisponible.'});}
    if(!premium.allowed)return json(res,premium.status,{error:premium.error});
-   try{const data=await queryBoamp({q:u.searchParams.get('q'),dept:u.searchParams.get('dept'),offset:p==='/api/export'?0:u.searchParams.get('offset'),limit:p==='/api/export'?50:20});
+   try{const data=await queryBoamp({q:u.searchParams.get('q'),dept:u.searchParams.get('dept'),sector:u.searchParams.get('sector'),deadlineBefore:u.searchParams.get('before'),offset:p==='/api/export'?0:u.searchParams.get('offset'),limit:p==='/api/export'?50:20});
     if(p==='/api/annonces')return json(res,200,data,{'Cache-Control':'private,no-store'});
     const rows=[['ID','Objet','Acheteur','Département','Publié','Date limite','BOAMP'],...data.items.map(x=>[x.id,x.title,x.buyer,x.departments,x.published,x.deadline,x.url])];
     const csv='\ufeff'+rows.map(row=>row.map(csvValue).join(';')).join('\r\n');
