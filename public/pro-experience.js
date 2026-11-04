@@ -33,7 +33,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    recommendations();
   }catch(error){
    console.warn('OFFRYA: classement distant indisponible, secours local',error);
-  }finally{radarAt=Date.now();radarLoading=false;}
+  }finally{if(key===radarKey)radarAt=Date.now();radarLoading=false;}
  }
 
  function icon(name){return '<svg class="nav-icon" aria-hidden="true"><use href="#'+name+'"/></svg>';}
