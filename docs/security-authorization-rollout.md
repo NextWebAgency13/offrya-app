@@ -1,5 +1,21 @@
 # OFFRYA — autorisation : procédure de validation avant production
 
+## Mise à jour de l'audit gratuit — 2026-11-04
+
+Contrôles SQL en lecture seule sur le projet de production (aucune migration appliquée) :
+
+- `missions_guest_owner_only` est **actuellement RESTRICTIVE** d'après `pg_policies.permissive`. Le constat initial de politique PERMISSIVE était valable lors du premier audit, mais **ne correspond plus à l'état présent**. Vérifier qui l'a corrigée avant d'attribuer ce changement à la PR.
+- `profile_read` utilise encore `USING (true)` pour `authenticated` : la restriction proposée reste nécessaire, sous réserve de préserver l'annuaire et les correspondants.
+- `conversation_read` et `messages_read` sont conditionnées aux participants, sans test réel A/B effectué.
+- La base observée contient 0 mission, 1 profil, 0 conversation et 0 message. Il n'existe donc pas assez de données réelles pour démontrer un cloisonnement entre plusieurs comptes.
+- Un octroi Premium temporaire actif est toujours présent ; le RPC d'expiration est exécutable par `authenticated`, pas par `anon`.
+- La création d'une branche Supabase a été refusée par l'utilisateur, après annonce d'un coût horaire. **Ne pas créer de branche payante**, ni effectuer de tests de rôles nécessitant des écritures en production.
+- Le contrôle direct des URLs externes de `offrya.fr` et `offrya-app.onrender.com` n'a pas été possible dans la session ; ne pas annoncer de résultat HTTP vérifié. Le code expose néanmoins `/api/health`, la configuration CAPTCHA conditionnelle et les références du domaine historique.
+- Les tests GitHub vérifient la logique du code et les déclarations SQL, **pas** les permissions vécues par différents JWT sur une véritable instance PostgreSQL.
+
+**Décision : garder la PR en brouillon, sans fusion, et ne pas appliquer le script SQL tant que la matrice d'essais avec identités isolées n'est pas validée sur une instance gratuite ou un environnement de développement local.**
+
+
 **Statut : préparation uniquement. Ne pas fusionner ni déployer sans validation.**
 
 ## Incidents confirmés dans la base de production (lecture seule)
