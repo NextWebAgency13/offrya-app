@@ -148,16 +148,20 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(fingerprint!==radarKey){radarKey=fingerprint;serverRadar=null;radarAt=0;}
   if(!radarLoading&&Date.now()-radarAt>5*60*1000)
    queueMicrotask(()=>loadMatchedRadar(fingerprint,user));
-  const data=serverRadar||buildRadar({missions:available(),alerts:[],
+  const data=buildRadar({missions:available(),alerts:[],
    preferences:state.opportunityPrefs||{},userId:state.session?.user?.id});
+  // Keep home recommendations mission-only; official notices stay under Premium watch.
+  const matchedMissions=serverRadar?.items.filter(item=>item.kind==='mission');
+  const ranked=matchedMissions?{total:matchedMissions.length,relevant:matchedMissions.filter(item=>item.score>=65).length,
+   urgent:matchedMissions.filter(item=>item.score>=65&&item.deadline&&Date.parse(item.deadline)-Date.now()<=7*86400000).length,items:matchedMissions}:data;
   const mode=$('proV3MatchingStatus');
   if(mode)mode.textContent=serverRadar?.mode==='ai'
    ?'Classement sémantique IA · score indicatif'
    :serverRadar?'Correspondance automatique explicable':'Classement local provisoire';
-  $('proV3RadarTotal').textContent=String(data.total);
-  $('proV3RadarRelevant').textContent=String(data.relevant);
-  $('proV3RadarUrgent').textContent=String(data.urgent);
-  panel.innerHTML=data.items.length?data.items.slice(0,5).map(item=>{
+  $('proV3RadarTotal').textContent=String(ranked.total);
+  $('proV3RadarRelevant').textContent=String(ranked.relevant);
+  $('proV3RadarUrgent').textContent=String(ranked.urgent);
+  panel.innerHTML=ranked.items.length?ranked.items.slice(0,5).map(item=>{
    const place=item.location||'Localisation à vérifier';
    const rationale=item.reasons.slice(0,3).join(' · ');
    const official=item.kind==='tender'&&(
