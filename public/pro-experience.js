@@ -40,6 +40,14 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    tools.innerHTML='<strong class="pro-v3-account-title">Outils professionnels</strong>'+menu.map(navButton).join('');
    accountPanel.prepend(tools);
   }
+  const accountMenu=document.getElementById('accountMenu');
+  const alertButton=document.createElement('button');
+  alertButton.type='button';alertButton.id='proV3MobileAlert';
+  alertButton.className='header-shortcut pro-v3-alert-shortcut';
+  alertButton.setAttribute('aria-label','Consulter les alertes de marchés publics');
+  alertButton.innerHTML='<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"/><path d="M10 21h4"/></svg><span id="proV3AlertBubble" hidden></span>';
+  if(accountMenu)accountMenu.before(alertButton);
+  alertButton.addEventListener('click',()=>{if(canUsePremium())show('watch');});
   const root=document.createElement('div');root.id='proExperienceV3';root.className='pro-v3-experience';
   root.innerHTML=[
    '<div class="pro-v3-mobile-menu" aria-hidden="true" hidden></div>',
@@ -119,6 +127,11 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   $('proV3TrackingCount').textContent=String((state.salesTracking||[]).length+(state.tenderTracking||[]).length);
   $('proV3WatchState').textContent=Date.parse(state.testPremiumUntil||'')>Date.now()?'Accès test':'Automatique';
   $('proV3AlertCount').textContent=String((state.opportunityAlerts||[]).length);
+  const count=(state.opportunityAlerts||[]).filter(a=>!a.seen_at&&(!a.deadline||Date.parse(a.deadline)>Date.now())).length;
+  const bubble=$('proV3AlertBubble');
+  if(bubble){bubble.hidden=!count;bubble.textContent=String(Math.min(count,99));}
+  const trigger=$('proV3MobileAlert');
+  if(trigger)trigger.setAttribute('aria-label',count?'Consulter '+count+' nouvelle(s) opportunité(s) publique(s)':'Consulter les alertes de marchés publics');
   for(const el of document.querySelectorAll('[data-pro-count="requests"]')){el.textContent=String(missions.length);el.hidden=!missions.length;}
   for(const el of document.querySelectorAll('[data-pro-count="inbox"]')){el.textContent=String(conversations.length);el.hidden=!conversations.length;}
  }
