@@ -49,14 +49,13 @@ test('The radar is displayed only behind the existing pro authorization and can 
  const parsed=spawnSync(process.execPath,['--input-type=module','--check'],{input:radarSource,encoding:'utf8'});
  assert.equal(parsed.status,0,parsed.stderr);
 });
-test('Acquisition starter is a GET form, safely prefills all valid categories and never publishes anonymously',()=>{
+test('Mission publication remains available on its dedicated page, without an embedded homepage form',()=>{
  for(const cat of ['Nettoyage','Espaces verts','Bâtiment','Informatique','Transport','Restauration &amp; Hôtellerie','Bien-être &amp; Beauté','Autre']){
-  assert.match(home,new RegExp(cat.includes('&amp;')?cat:cat));
-  assert.match(deposit,new RegExp(cat.includes('&amp;')?cat:cat));
+  assert.match(deposit,new RegExp(cat));
  }
- assert.match(home,/<form class="mock-quick-mission" action="\/deposer-une-mission" method="get"/);
- assert.match(home,/name="category"/);
- assert.match(home,/name="city"/);
+ assert.doesNotMatch(home,/mock-quick-mission|quickMissionCategory|quickMissionCity|Décrire mon projet/);
+ assert.match(home,/href="\/deposer-une-mission"/);
+ assert.match(deposit,/id="missionForm"/);
  assert.match(deposit,/next=%2Fespace/);
  assert.match(fs.readFileSync('public/espace.html','utf8'),/id="missionStarterResume"/);
  assert.match(fs.readFileSync('public/app.js','utf8'),/offrya:mission-starter:v1/);
