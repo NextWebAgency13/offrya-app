@@ -29,7 +29,10 @@ test('Only the owner can change their watch or tender tracking; privileged data 
 });
 test('Hourly opt-in source discovery deduplicates official tenders and never sends commercial mail',()=>{
  assert.match(workflow,/cron: '23 \* \* \* \*'/);
- assert.match(worker,/rpc\/offrya_watch_targets/);
+ assert.match(worker,/rpc\/offrya_agent_watch_targets/);
+  const agentSQL=fs.readFileSync('sql/tender_agent_preparation.sql','utf8');
+  assert.match(agentSQL,/grant execute on function public\.offrya_agent_watch_targets\(\) to service_role/);
+  assert.match(agentSQL,/s\.status='active' and s\.paid_through>now\(\)/);
  assert.match(worker,/resolution=ignore-duplicates/);
  assert.match(worker,/queryBoamp/);
  assert.doesNotMatch(worker,/api\.resend\.com|sendMail|smtp/);
