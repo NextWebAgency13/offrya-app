@@ -1,0 +1,24 @@
+# PROPOSITION — NE PAS IMPORTER SANS ACCORD (Render Cron a un coût mensuel).
+# La veille GitHub Actions existante doit être désactivée uniquement une fois
+# le Cron Render activé, pour éviter deux collectes horaires concurrentes.
+services:
+  - type: cron
+    name: offrya-veille-publique-ia
+    runtime: node
+    region: frankfurt
+    schedule: "0 * * * *"
+    buildCommand: "npm ci"
+    startCommand: "node scripts/watch-sector-tenders.js"
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: OFFRYA_AI_API_KEY
+        sync: false
+      - key: OFFRYA_AI_MODEL
+        value: gpt-4.1-mini
+      - key: OFFRYA_AI_MAX_PER_HOUR
+        value: "12"
+      - key: OFFRYA_PLACE_RSS_APPROVED
+        value: "false"
