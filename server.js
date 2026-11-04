@@ -34,7 +34,7 @@ async function unsubscribe(id){const url=process.env.SUPABASE_URL, key=process.e
  return await resp.json();}
 async function handle(req,res){
  try{const u=new URL(req.url,'http://localhost'),p=u.pathname;
-  if(p==='/api/health'&&req.method==='GET')return json(res,200,{ok:true,version:'4.0.0',paymentsEnabled:billingEnabled(),emailsConfigured:Boolean(process.env.RESEND_API_KEY)});
+  if(p==='/api/health'&&req.method==='GET')return json(res,200,{ok:true,version:'4.0.0',paymentsEnabled:billingEnabled(),emailsConfigured:Boolean(process.env.RESEND_API_KEY),aiConfigured:Boolean(String(process.env.OPENAI_API_KEY||'').trim())});
   if(p==='/api/company/lookup'&&req.method==='GET'){
    if(!rateLimit(req,12))return json(res,429,{error:'Trop de demandes de vérification.'});
    try{
