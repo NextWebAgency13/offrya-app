@@ -246,7 +246,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    if(!target||!canUsePremium())return;
    const dest=target.dataset.tab;
    if(dest==='professional'){setTimeout(()=>{if(canUsePremium())show('home');},0);}
-   else if(['missions','inbox','settings','boamp'].includes(dest)){setTimeout(()=>syncTab(dest),0);}
+   else if(['dashboard','missions','inbox','settings','boamp'].includes(dest)){setTimeout(()=>syncTab(dest),0);}
   });
   // Browser/Android back and forward restore the correct tab without pushing
   // a second history entry or hijacking the personal Accueil screen.
