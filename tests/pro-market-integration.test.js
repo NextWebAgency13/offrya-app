@@ -11,7 +11,7 @@ const server=fs.readFileSync('server.js','utf8');
 const slice=(s,a,b)=>{const i=s.indexOf(a),j=s.indexOf(b,i+a.length);assert.ok(i>=0&&j>i);return s.slice(i,j)};
 test('Marchés publics appears as a real Pro subsection, with the original BOAMP search and export reused',()=>{
  assert.match(pro,/\['boamp','Marchés publics','ic-boamp'\]/);
- assert.match(pro,/data-pro-screen="boamp">Marchés publics<\/button>/);
+ assert.match(pro,/<span>Rechercher des marchés publics<\/span>/);
  assert.match(pro,/data-pro-panel="boamp"/);
  assert.match(pro,/\$\('proV3BoampSlot'\)\.appendChild\(\$\('premiumContent'\)\)/);
  for(const id of ['premiumContent','boampSearch','boampKeyword','boampDept','exportBoamp','boampList','boampMore'])assert.match(html,new RegExp('id="'+id+'"'));
@@ -19,11 +19,12 @@ test('Marchés publics appears as a real Pro subsection, with the original BOAMP
  assert.match(css,/#proV3BoampSlot \.filters/);
  assert.match(css,/#proV3BoampSlot #exportBoamp/);
 });
-test('Market menu remains accessible from the two visible mobile shortcuts, not a sixth bottom tab',()=>{
- const quick=pro.match(/pro-v3-action-grid[^']*/)?.[0]||'';
+test('Market menu is visible in all six Android quick actions, not a sixth bottom tab',()=>{
+ const i=pro.indexOf('<div class="pro-v3-action-grid">'),j=pro.indexOf('</div>',i);
+ const quick=pro.slice(i,j);
  assert.ok(quick.indexOf('data-pro-screen="boamp"')>0);
  assert.ok(quick.indexOf('data-pro-screen="boamp"')<quick.indexOf('data-pro-screen="tracking"'));
- assert.match(css,/pro-v3-action-grid>\*:nth-child\(n\+3\)\{display:none\}/);
+ assert.match(css,/pro-v3-action-grid>\*:nth-child\(n\+3\)\{display:flex\}/);
  assert.match(css,/pro-v3-mobile-menu\{display:none!important\}/);
  assert.match(html,/data-tab="professional"/);
  assert.match(html,/class="nav-link" data-tab="boamp"/);
@@ -56,6 +57,7 @@ test('Entering Markets from Pro menu activates the embedded panel and loads offi
   tab:(...args)=>calls.push(['tab',...args]),
   syncTab:()=>{},activeButtons:()=>calls.push(['active']),
   state:{boampStatus:'idle'},loadMarkets:async()=>{calls.push(['marketFetch']);},
+  placeMarketSearch:()=>calls.push(['moveSearch']),
   $:key=>dom[key],window:{scrollTo(){}},
   console:{warn(){}} 
  };
@@ -65,7 +67,8 @@ test('Entering Markets from Pro menu activates the embedded panel and loads offi
  assert.equal(context.view,'boamp');
  assert.equal(sections.find(s=>s.dataset.proPanel==='boamp').hidden,false);
  assert.equal(sections.find(s=>s.dataset.proPanel==='home').hidden,true);
- assert.deepEqual(Array.from(calls[0]),['tab','professional',false]);
+ assert.deepEqual(Array.from(calls.find(x=>x[0]==='tab')),['tab','professional',false]);
+ assert.equal(calls.filter(x=>x[0]==='moveSearch').length,1);
  assert.equal(calls.filter(x=>x[0]==='marketFetch').length,1);
 });
 test('The existing server-side subscription/QA checks remain in force for all BOAMP API requests',()=>{

@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: '22'
       - run: npm test
-      - name: Verify BOAMP source and Premium production access control
+      - name: Verify BOAMP source and local Premium access control
         run: node scripts/diagnose-boamp.js
       - name: Check official company API response schema
         run: node scripts/check-company-api.js
