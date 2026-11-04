@@ -190,9 +190,21 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    .filter(a=>!a.deadline||Date.parse(a.deadline)>Date.now())
    .sort((a,b)=>(b.match_score||0)-(a.match_score||0))
    .slice(0,15).map(a=>{
-    const official=/^https:\/\/(www\.)?boamp\.fr\//i.test(a.url||'')||/^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(a.url||'');
+    const portalHosts={
+     PLACE:['www.marches-publics.gouv.fr'],MAXIMILIEN:['marches.maximilien.fr'],
+     MEGALIS:['marches.megalisbretagne.org'],EBOURGOGNE:['e-bourgogne.fr','www.e-bourgogne.fr'],
+     OCCITANIE:['www.marches-occitanie.fr','marches-occitanie.fr'],
+     SUD:['marches-publics.maregionsud.fr']
+    };
+    const portalLabels={PLACE:'PLACE · État',MAXIMILIEN:'Maximilien · Île-de-France',
+     MEGALIS:'Mégalis · Bretagne',EBOURGOGNE:'Territoires numériques BFC',
+     OCCITANIE:'Marchés Occitanie',SUD:'Sud Marchés Publics'};
+    let official=/^https:\/\/(www\.)?boamp\.fr\//i.test(a.url||'')||/^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(a.url||'');
+    if(!official&&portalHosts[a.source]){
+     try{const link=new URL(a.url);official=link.protocol==='https:'&&portalHosts[a.source].includes(link.hostname)&&!link.username&&!link.password;}catch{}
+    }
     const href=official?esc(a.url):null;
-    const name=a.source==='TED'?'TED · Union européenne':'BOAMP · DILA';
+    const name=portalLabels[a.source]|| (a.source==='TED'?'TED · Union européenne':'BOAMP · DILA');
     const score=Number.isInteger(a.match_score)?'<small>Correspondance : '+a.match_score+'/100 · '+esc(a.match_reason||'')+'</small>':'';
     return '<div class="pro-v3-watch-item"><small>'+esc(name)+' · '+esc(a.seen_at?'Déjà consultée':'Nouvelle opportunité')+'</small><strong>'+esc(a.title||'Marché public')+'</strong>'+score+
      '<small>Échéance : '+esc(a.deadline?new Date(a.deadline).toLocaleDateString('fr-FR'):'À vérifier')+'</small>'+
