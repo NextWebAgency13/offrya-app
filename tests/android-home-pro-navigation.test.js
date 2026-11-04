@@ -25,7 +25,7 @@ test('Android back and forward restore Pro screen without duplicating browser hi
  assert.match(pro,/function show\(next,fromHistory=false\)/);
  assert.match(pro,/tab\('professional',fromHistory\)/);
  assert.match(pro,/const professionalVisible=\$\('professional'\)\?\.classList\.contains\('active'\)===true/);
- assert.match(pro,/if\(name==='professional'\)activeButtons\(\)/);
+ assert.match(pro,/if\(name==='professional'\|\|name==='boamp'\)activeButtons\(\)/);
 });
 test('Accueil displays personal activity; Premium-only access remains protected',()=>{
  assert.match(app,/const personalHeading=document\.querySelector\('#roleClientView \.client-dashboard-heading h2'\)/);
