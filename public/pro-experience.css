@@ -331,3 +331,21 @@ body.offrya-pro-v3 .pro-v3-radar-disclaimer{font-size:10px;line-height:1.45;colo
  body.offrya-pro-v3 .pro-v3-radar-row{flex-direction:column}
  body.offrya-pro-v3 .pro-v3-radar-side{display:flex;align-items:center;justify-content:space-between;width:100%}
 }
+
+/* Public procurement is an integrated, Premium-only tool inside Espace pro. */
+body.offrya-pro-v3 #proV3BoampSlot{min-width:0;max-width:100%}
+body.offrya-pro-v3 #proV3BoampSlot #premiumContent{min-width:0;max-width:100%}
+body.offrya-pro-v3 #proV3BoampSlot .section-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin:0 0 17px}
+body.offrya-pro-v3 #proV3BoampSlot .section-top h3{font:800 18px/1.35 'Plus Jakarta Sans',sans-serif;color:#2e1746}
+body.offrya-pro-v3 #proV3BoampSlot .section-top p{color:#71647f;font-size:13px;line-height:1.5;margin:6px 0 0}
+body.offrya-pro-v3 #proV3BoampSlot .panel{background:#fff;border:1px solid var(--v3-border);border-radius:17px;padding:20px;margin:0 0 16px;min-width:0}
+body.offrya-pro-v3 #proV3BoampSlot .button.primary{background:linear-gradient(105deg,#8b3cdd,#6127c7);border-color:transparent}
+body.offrya-pro-v3 #proV3BoampSlot :is(input,.field){max-width:100%;min-width:0}
+body.offrya-pro-v3 #proV3BoampSlot #boampList{min-width:0;overflow-wrap:anywhere}
+@media(max-width:620px){
+ body.offrya-pro-v3 #proV3BoampSlot .section-top{align-items:stretch;gap:10px}
+ body.offrya-pro-v3 #proV3BoampSlot #exportBoamp{width:100%;min-height:44px}
+ body.offrya-pro-v3 #proV3BoampSlot .panel{padding:14px}
+ body.offrya-pro-v3 #proV3BoampSlot .filters{display:flex;flex-direction:column;gap:10px}
+ body.offrya-pro-v3 #proV3BoampSlot .filters .button{width:100%;min-height:44px}
+}

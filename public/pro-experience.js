@@ -1,7 +1,7 @@
 import {buildRadar,radarOfficialUrl} from './radar.js';
 // OFFRYA Pro UI v3 — visual redesign on top of existing secured modules.
 // Only authenticated, server/RLS-authorized data is displayed. No demo rows.
-export function createProExperience({state,element,canUsePremium,tab,renderMissions,notify}){
+export function createProExperience({state,element,canUsePremium,tab,renderMissions,loadMarkets,notify}){
  const $=element;
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const menu=[
@@ -70,18 +70,22 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
       '<div class="pro-v3-home-side">',
        '<section class="pro-v3-panel"><div class="pro-v3-panel-head"><h3>'+icon('ic-bolt')+' Alertes & nouveautés</h3></div><div id="proV3Alerts" class="pro-v3-alerts"><p class="pro-v3-empty">Aucune alerte.</p></div></section>',
        '<section class="pro-v3-panel"><div class="pro-v3-panel-head"><h3>'+icon('ic-dashboard')+' Mon activité</h3><button type="button" data-pro-screen="tracking">Suivi →</button></div><div class="pro-v3-activity"><div id="proV3ActivityStats"></div><div id="proV3Chart" class="pro-v3-chart" aria-label="Missions visibles publiées sur les 7 derniers jours"></div></div></section>',
-       '<section class="pro-v3-panel pro-v3-actions"><div class="pro-v3-panel-head"><h3>'+icon('ic-bolt')+' Accès rapides</h3></div><div class="pro-v3-action-grid"><button data-pro-screen="requests">Rechercher des missions</button><button data-pro-screen="tracking">Mes suivis</button><button data-pro-screen="watch">Veille automatique</button><button data-pro-screen="preferences">Mes préférences</button></div></section>',
+       '<section class="pro-v3-panel pro-v3-actions"><div class="pro-v3-panel-head"><h3>'+icon('ic-bolt')+' Accès rapides</h3></div><div class="pro-v3-action-grid"><button data-pro-screen="requests">Rechercher des missions</button><button data-pro-screen="boamp">Marchés publics</button><button data-pro-screen="tracking">Mes suivis</button><button data-pro-screen="watch">Veille automatique</button><button data-pro-screen="preferences">Mes préférences</button></div></section>',
       '</div>',
     '</div>',
     '<section class="pro-v3-overview"><h3>Un espace pour chaque besoin</h3><div class="pro-v3-overview-grid">'+
      menu.slice(1).map(x=>'<button data-pro-screen="'+x[0]+'">'+icon(x[2])+'<strong>'+esc(x[1])+'</strong><span>Accéder à cet outil →</span></button>').join('')+'</div></section>',
    '</section>',
    '<section class="pro-v3-view" data-pro-panel="commercial" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">GESTION DES DEMANDES · OFFRYA</span><h2 id="proV3CommercialHeading">Demandes de missions</h2><p id="proV3CommercialDescription">Qualifiez les demandes, préparez vos réponses et suivez vos échanges.</p></div><div id="proV3CommercialSlot"></div><div id="proV3FollowupSlot" class="pro-v3-followup" hidden></div></section>',
+   '<section class="pro-v3-view" data-pro-panel="boamp" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">MARCHÉS PUBLICS · DILA</span><h2>Marchés publics</h2><p>Recherchez les appels d’offres officiels, consultez leurs échéances et exportez les résultats.</p></div><div id="proV3BoampSlot"></div></section>',
    '<section class="pro-v3-view" data-pro-panel="watch" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">VEILLE · OFFRYA</span><h2>Veille automatisée</h2><p>OFFRYA surveille les annonces publiques BOAMP et TED automatiquement. Vos filtres restent facultatifs.</p></div><div class="pro-v3-metrics pro-v3-small-metrics"><div class="pro-v3-metric purple">'+icon('ic-bolt')+'<span><small>État de ma veille</small><strong id="proV3WatchState">—</strong><em>Incluse dans l’abonnement professionnel</em></span></div><div class="pro-v3-metric blue">'+icon('ic-boamp')+'<span><small>Alertes reçues</small><strong id="proV3AlertCount">0</strong><em>Publications BOAMP et TED</em></span></div></div><section class="pro-v3-panel"><div class="pro-v3-panel-head"><h3>Dernières alertes</h3><button data-pro-screen="preferences">Modifier mes critères →</button></div><div id="proV3WatchAlertList" class="pro-v3-alerts"></div><p class="pro-v3-helper">Les e-mails ne sont envoyés que si vous avez activé les préférences correspondantes et que le service d’envoi est configuré.</p></section></section>',
    '<section class="pro-v3-view" data-pro-panel="preferences" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">PERSONNALISATION · OFFRYA</span><h2>Préférences de veille</h2><p>Affinez les secteurs, la zone ou les mots-clés si nécessaire. La veille reste automatique.</p></div><div class="pro-v3-panel" id="proV3PreferenceSlot"></div><p class="pro-v3-helper">Les opportunités publiques s’affichent automatiquement pour les professionnels vérifiés et abonnés. Les e-mails nécessitent une autorisation distincte.</p></section>',
   ].join('');
   $('proDashboard').prepend(root);
   $('proV3CommercialSlot').appendChild(document.querySelector('#proDashboard .sales-workspace'));
+  // Reuse the single, already protected BOAMP search/CSV component inside Espace pro.
+  // The legacy /espace/marches-publics route remains a compatible entry point.
+  $('proV3BoampSlot').appendChild($('premiumContent'));
   $('proV3PreferenceSlot').appendChild($('opWatchDetails'));
   $('opWatchDetails').open=true;
   $('proV3FollowupSlot').appendChild($('opFollowupDetails'));
@@ -192,7 +196,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  }
  function syncTab(name){
   if(!initialized||!canUsePremium())return;
-  if(name==='professional')activeButtons();
+  if(name==='professional'||name==='boamp')activeButtons();
   else document.querySelectorAll('.pro-v3-nav-btn').forEach(b=>{
    b.classList.remove('active');b.removeAttribute('aria-current');
   });
@@ -207,10 +211,12 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  }
  function show(next,fromHistory=false){
   if(!initialized||!canUsePremium())return;
-  if(['boamp','inbox','settings'].includes(next)){tab(next);syncTab(next);return;}
-  if(!['home','requests','assistant','tracking','watch','preferences'].includes(next))return;
+  if(['inbox','settings'].includes(next)){tab(next);syncTab(next);return;}
+  if(!['home','requests','assistant','tracking','boamp','watch','preferences'].includes(next))return;
   view=next;
   tab('professional',fromHistory);
+  if(next==='boamp'&&state.boampStatus!=='loading'&&state.boampStatus!=='ready')
+   loadMarkets().catch(error=>console.warn('OFFRYA: marchés publics indisponibles',error));
   const commercial=['requests','assistant','tracking'].includes(next);
   for(const section of $('proExperienceV3').querySelectorAll('[data-pro-panel]')){
    const on=section.dataset.proPanel===(commercial?'commercial':next);
@@ -272,6 +278,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    if(!canUsePremium())return;
    const route=window.location.pathname;
    if(route==='/espace/professionnel')show('home',true);
+   else if(route==='/espace/marches-publics')show('boamp',true);
    else syncTab(route==='/espace'?'dashboard':route.includes('/missions')?'missions':route.includes('/messagerie')?'inbox':route.includes('/reglages')?'settings':'boamp');
   });
   const header=document.querySelector('.app-shell .header');
