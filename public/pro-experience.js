@@ -196,7 +196,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  }
  function syncTab(name){
   if(!initialized||!canUsePremium())return;
-  if(name==='professional')activeButtons();
+  if(name==='professional'||name==='boamp')activeButtons();
   else document.querySelectorAll('.pro-v3-nav-btn').forEach(b=>{
    b.classList.remove('active');b.removeAttribute('aria-current');
   });
