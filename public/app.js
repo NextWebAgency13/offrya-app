@@ -497,6 +497,15 @@ function render(){
  $('homePrivateDashboard').classList.toggle('hidden',!state.loaded||!yes);
  document.querySelector('#dashboard .stats')?.classList.add('hidden');
  const eligiblePro=canUsePremium(),hasProProfile=state.profile?.role==='pro';
+ // Accueil is always the user's personal activity, distinct from Espace pro.
+ const personalEyebrow=document.querySelector('#roleClientView .client-dashboard-heading .client-dashboard-eyebrow');
+ const personalHeading=document.querySelector('#roleClientView .client-dashboard-heading h2');
+ const personalDescription=document.querySelector('#roleClientView .client-dashboard-heading p');
+ if(personalEyebrow)personalEyebrow.textContent='ACCUEIL · COMPTE OFFRYA';
+ if(personalHeading)personalHeading.textContent=hasProProfile?'Votre espace personnel':'Bonjour, bienvenue sur votre espace';
+ if(personalDescription)personalDescription.textContent=hasProProfile?
+  'Vos missions publiées et vos échanges. Retrouvez les opportunités dans Espace pro.':
+  'Publiez vos projets et suivez les échanges avec les professionnels.';
  $('roleClientView').classList.remove('hidden');
  $('rolePremiumView').classList.add('hidden');
  document.querySelector('#rolePremiumView .role-premium-stats')?.classList.toggle('hidden',!eligiblePro);
@@ -620,7 +629,9 @@ async function init(){
   }catch(error){console.warn('OFFRYA : actualisation des opportunités indisponible',error);}
   finally{tenderAlertRefresh=false;}
  },300000);
- tab(canUsePremium()&&location.pathname===paths.dashboard?'professional':(pathsReverse[location.pathname]||'dashboard'),true);
+ const initialScreen=pathsReverse[location.pathname]||'dashboard';
+ tab(initialScreen,true);
+ proExperience.syncTab(initialScreen);
   const p=new URLSearchParams(location.search);
   if(p.has('checkout'))toast(p.get('checkout')==='success'?'Retour de Stripe : confirmation du paiement en cours.':'Paiement non finalisé.');
   if(p.has('identity'))toast('Retour de Stripe Identity : consultez le statut de votre dossier.');

@@ -37,7 +37,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(accountPanel&&!accountPanel.querySelector('#proV3AccountTools')){
    const tools=document.createElement('nav');tools.id='proV3AccountTools';tools.className='pro-v3-account-tools';
    tools.setAttribute('aria-label','Outils professionnels');
-   tools.innerHTML='<strong class="pro-v3-account-title">Outils professionnels</strong>'+menu.map(navButton).join('');
+   tools.innerHTML='<strong class="pro-v3-account-title">Outils professionnels</strong>'+menu.map(item=>navButton(item[0]==='home'?['home','Tableau professionnel',item[2]]:item)).join('');
    accountPanel.prepend(tools);
   }
   const accountMenu=document.getElementById('accountMenu');
@@ -174,23 +174,25 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  }
  function syncTab(name){
   if(!initialized||!canUsePremium())return;
-  if(name==='boamp'||name==='inbox'||name==='settings'||name==='missions'){
-   document.querySelectorAll('.pro-v3-nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.proScreen===(name==='missions'?'requests':name)));
-  }else if(name==='professional')activeButtons();
+  if(name==='professional')activeButtons();
+  else document.querySelectorAll('.pro-v3-nav-btn').forEach(b=>{
+   b.classList.remove('active');b.removeAttribute('aria-current');
+  });
  }
  function activeButtons(){
+  const professionalVisible=$('professional')?.classList.contains('active')===true;
   document.querySelectorAll('.pro-v3-nav-btn').forEach(b=>{
-   const active=b.dataset.proScreen===view;
+   const active=professionalVisible&&b.dataset.proScreen===view;
    b.classList.toggle('active',active);
    if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
   });
  }
- function show(next){
+ function show(next,fromHistory=false){
   if(!initialized||!canUsePremium())return;
   if(['boamp','inbox','settings'].includes(next)){tab(next);syncTab(next);return;}
   if(!['home','requests','assistant','tracking','watch','preferences'].includes(next))return;
   view=next;
-  tab('professional');
+  tab('professional',fromHistory);
   const commercial=['requests','assistant','tracking'].includes(next);
   for(const section of $('proExperienceV3').querySelectorAll('[data-pro-panel]')){
    const on=section.dataset.proPanel===(commercial?'commercial':next);
@@ -231,10 +233,10 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    const b=e.target.closest('[data-pro-mission]');if(b)openMission(b.dataset.proMission);
     
   });
-  // The five existing mobile tabs continue to function, but "Accueil" shows
-  // the Pro dashboard instead of the client's personal dashboard for eligible users.
+  // Accueil remains the personal dashboard; only the explicit Pro shortcut
+  // opens the professional screen. Do not intercept the bottom Accueil tab.
   document.addEventListener('click',e=>{
-   const b=e.target.closest('.sidebar [data-tab="dashboard"],#priorityAlertShortcut');
+   const b=e.target.closest('#priorityAlertShortcut');
    if(b&&canUsePremium()){
     e.preventDefault();e.stopImmediatePropagation();show('home');
    }
@@ -244,7 +246,15 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    if(!target||!canUsePremium())return;
    const dest=target.dataset.tab;
    if(dest==='professional'){setTimeout(()=>{if(canUsePremium())show('home');},0);}
-   else if(['missions','inbox','settings','boamp'].includes(dest)){setTimeout(()=>syncTab(dest),0);}
+   else if(['dashboard','missions','inbox','settings','boamp'].includes(dest)){setTimeout(()=>syncTab(dest),0);}
+  });
+  // Browser/Android back and forward restore the correct tab without pushing
+  // a second history entry or hijacking the personal Accueil screen.
+  window.addEventListener('popstate',()=>{
+   if(!canUsePremium())return;
+   const route=window.location.pathname;
+   if(route==='/espace/professionnel')show('home',true);
+   else syncTab(route==='/espace'?'dashboard':route.includes('/missions')?'missions':route.includes('/messagerie')?'inbox':route.includes('/reglages')?'settings':'boamp');
   });
   const header=document.querySelector('.app-shell .header');
   const search=document.createElement('form');search.id='proV3Search';search.className='pro-v3-search';
