@@ -20,6 +20,10 @@ La requête IA contient au plus 10 candidatures réelles déjà autorisées, leu
 
 L'IA ne peut que réajuster les scores de ±15 points. Elle ne crée pas de missions, ne modifie pas les filtres, ne transmet pas de candidature et ne contacte personne. En cas de panne ou de réponse non conforme, le classement explicable prévaut. Une requête est espacée de cinq minutes par client actif. Les requêtes publiques sont limitées par IP côté serveur.
 
+## Préférences du professionnel
+
+Le professionnel peut personnaliser les secteurs, le département, les mots-clés et la plage de budget depuis ses préférences Premium. Sans filtre renseigné, le moteur propose un classement exploratoire des opportunités déjà accessibles, sans promettre une qualification automatique du métier.
+
 ## Vérifications
 
 Exécuter npm test avant fusion. Vérifier en préproduction avec un professionnel vérifié et abonné, un demandeur, un non-abonné et une session expirée ; vérifier que seules les annonces accessibles sous RLS figurent dans la réponse et que le modèle reste inactif tant que le drapeau n'est pas activé. La branche n'inclut ni changement SQL ni déploiement de production.
