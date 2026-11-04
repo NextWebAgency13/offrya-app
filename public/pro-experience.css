@@ -1,0 +1,207 @@
+/* OFFRYA Pro V3 — approved plum/violet dashboard. Applies only to eligible Pro UI. */
+body.offrya-pro-v3{
+ --v3-plum:#271040;--v3-plum-deep:#200c35;--v3-purple:#7d35da;
+ --v3-purple-dark:#5b24ba;--v3-ink:#27143f;--v3-muted:#6d6380;
+ --v3-border:#e9e2f4;--v3-bg:#faf8ff;
+ color:var(--v3-ink);background:var(--v3-bg);
+ font-family:'DM Sans',system-ui,sans-serif;
+}
+body.offrya-pro-v3 .app-shell{grid-template-columns:270px minmax(0,1fr);background:var(--v3-bg)}
+body.offrya-pro-v3 .app-shell .sidebar{
+ background:linear-gradient(155deg,#241037 0%,#311347 52%,#261139 100%);
+ border-right:0;padding:23px 13px 18px;color:#fff;box-shadow:8px 0 28px #21112c11;
+ overflow-y:auto;scrollbar-width:thin;scrollbar-color:#75508c transparent;
+}
+body.offrya-pro-v3 .sidebar .brand-area{padding:7px 10px 25px}
+body.offrya-pro-v3 .sidebar .brand{color:#fff;font-size:29px}
+body.offrya-pro-v3 .sidebar .brand-symbol{background:linear-gradient(135deg,#9750f0,#662ac6);box-shadow:none}
+body.offrya-pro-v3 .sidebar .workspace-label,
+body.offrya-pro-v3 .sidebar #nav,
+body.offrya-pro-v3 .sidebar .sidebar-bottom{display:none!important}
+body.offrya-pro-v3 .pro-v3-sidebar-nav{display:grid;gap:4px;flex:0 0 auto}
+body.offrya-pro-v3 .pro-v3-nav-btn{display:flex;align-items:center;gap:12px;width:100%;min-height:45px;padding:10px 13px;border:0;border-radius:12px;background:transparent;color:#f5eafa;font:700 12px/1.3 'Plus Jakarta Sans',sans-serif;text-align:left;cursor:pointer;position:relative}
+body.offrya-pro-v3 .pro-v3-nav-btn:hover{background:#ffffff16}
+body.offrya-pro-v3 .pro-v3-nav-btn.active{background:linear-gradient(105deg,#8a39df,#6327c5);color:#fff;box-shadow:0 5px 13px #00000016}
+body.offrya-pro-v3 .pro-v3-nav-btn .nav-icon{width:20px;height:20px;flex:none}
+body.offrya-pro-v3 .pro-v3-nav-btn span:nth-child(2){flex:1}
+body.offrya-pro-v3 .pro-v3-nav-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;border-radius:10px;padding:0 5px;background:#ba69e8;color:white;font-size:10px}
+body.offrya-pro-v3 .pro-v3-nav-count[hidden]{display:none}
+body.offrya-pro-v3 .pro-v3-side-plan{margin-top:auto;margin-left:5px;margin-right:5px;padding:18px 15px;border:1px solid #895ca8;border-radius:15px;background:linear-gradient(135deg,#4a205f,#2c163d);display:grid;gap:5px;color:#fff;box-shadow:0 9px 18px #0002}
+body.offrya-pro-v3 .pro-v3-side-plan strong{font:750 13px 'Plus Jakarta Sans',sans-serif}
+body.offrya-pro-v3 .pro-v3-side-plan span{font-weight:800;font-size:15px}
+body.offrya-pro-v3 .pro-v3-side-plan small{font-size:12px;color:#dec5ef}
+body.offrya-pro-v3 .pro-v3-side-plan button{border:0;background:transparent;color:#f9d9ff;text-align:left;font-weight:750;font-size:11px;cursor:pointer;padding:10px 0 0}
+body.offrya-pro-v3 .app-shell .header{height:78px;background:#fff;border-bottom:1px solid var(--v3-border);padding:0 30px;gap:22px}
+body.offrya-pro-v3 .header-heading h1{color:#2d1743;font-size:17px}
+body.offrya-pro-v3 .header .overline{color:#9353d4}
+body.offrya-pro-v3 .header-actions .live-dot{display:none}
+body.offrya-pro-v3 .header .account-menu summary{background:#f0e9fc}
+body.offrya-pro-v3 .pro-v3-search{display:flex;align-items:center;min-width:190px;max-width:590px;width:100%;height:42px;flex:1;border-radius:25px;background:#f8f5fc;border:1px solid #e6daf1;overflow:hidden}
+body.offrya-pro-v3 .pro-v3-search input{min-width:0;width:100%;height:100%;border:0;outline:none;background:transparent;padding:0 16px;color:#39254a;font-size:12px}
+body.offrya-pro-v3 .pro-v3-search button{height:35px;width:40px;flex:none;display:grid;place-items:center;border:0;border-radius:18px;margin-right:4px;background:linear-gradient(130deg,#8c40ed,#6126bb);color:white;cursor:pointer}
+body.offrya-pro-v3 .pro-v3-search button svg{height:18px;width:18px}
+body.offrya-pro-v3 .app-shell .main-content{max-width:1820px;padding:24px 30px 85px}
+body.offrya-pro-v3 #professional{margin:0}
+body.offrya-pro-v3 #proWorkspace.op-dashboard-active,
+body.offrya-pro-v3 #proWorkspace.op-dashboard-active .pro-layout,
+body.offrya-pro-v3 #proWorkspace.op-dashboard-active .pro-stage-card,
+body.offrya-pro-v3 #proWorkspace.op-dashboard-active #proDashboard{width:100%;max-width:none}
+body.offrya-pro-v3 #proWorkspace.op-dashboard-active>.pro-head,
+body.offrya-pro-v3 #proWorkspace.op-dashboard-active>.pro-progress-summary,
+body.offrya-pro-v3 #proDashboard>.op-discovery,
+body.offrya-pro-v3 #proDashboard>.sales-secondary-summary,
+body.offrya-pro-v3 #proDashboard>.op-settings-link,
+body.offrya-pro-v3 #proDashboard>.op-compact-details,
+body.offrya-pro-v3 #proWorkspace .pro-rail{display:none!important}
+body.offrya-pro-v3 #proEntryHeading{display:none}
+body.offrya-pro-v3 .pro-v3-experience{color:var(--v3-ink);font-family:'DM Sans',system-ui,sans-serif}
+body.offrya-pro-v3 .pro-v3-view[hidden],body.offrya-pro-v3 .pro-v3-followup[hidden],body.offrya-pro-v3 [hidden]{display:none!important}
+body.offrya-pro-v3 .pro-v3-intro{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+body.offrya-pro-v3 .pro-v3-eyebrow{font:800 10px/1.3 'Plus Jakarta Sans',sans-serif;letter-spacing:1.4px;color:#8043c8;display:block;margin-bottom:7px}
+body.offrya-pro-v3 .pro-v3-intro h2,body.offrya-pro-v3 .pro-v3-page-intro h2{font:800 clamp(23px,2.2vw,32px)/1.2 'Plus Jakarta Sans',sans-serif;letter-spacing:-.9px;color:#2c1643;margin:0 0 8px}
+body.offrya-pro-v3 .pro-v3-intro p,body.offrya-pro-v3 .pro-v3-page-intro p{font-size:13px;color:var(--v3-muted);margin:0}
+body.offrya-pro-v3 .pro-v3-status{display:inline-flex;align-items:center;gap:7px;padding:10px 14px;border-radius:19px;background:#edf9ef;color:#24743f;border:1px solid #d4f1dc;font-weight:800;font-size:11px;white-space:nowrap}
+body.offrya-pro-v3 .pro-v3-status:before{content:'✓';background:#38a861;color:white;width:16px;height:16px;display:grid;place-items:center;border-radius:50%}
+body.offrya-pro-v3 .pro-v3-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin-bottom:19px}
+body.offrya-pro-v3 .pro-v3-metric{border:1px solid #eae2f8;border-radius:16px;padding:18px 15px;min-height:110px;display:flex;align-items:center;gap:14px;min-width:0}
+body.offrya-pro-v3 .pro-v3-metric.purple{background:#f0e8fc}
+body.offrya-pro-v3 .pro-v3-metric.blue{background:#eaf2ff}
+body.offrya-pro-v3 .pro-v3-metric.green{background:#e9f9f2}
+body.offrya-pro-v3 .pro-v3-metric.coral{background:#fff1e9}
+body.offrya-pro-v3 .pro-v3-metric>.nav-icon{height:40px;width:40px;flex:none;padding:9px;background:#ffffffb0;border-radius:13px;color:#763ad0}
+body.offrya-pro-v3 .pro-v3-metric span{display:flex;flex-direction:column;min-width:0}
+body.offrya-pro-v3 .pro-v3-metric small{font:750 11px/1.3 'Plus Jakarta Sans',sans-serif;color:#412b53}
+body.offrya-pro-v3 .pro-v3-metric strong{font:850 31px/1.35 'Plus Jakarta Sans',sans-serif;letter-spacing:-1px;color:#2a1241}
+body.offrya-pro-v3 .pro-v3-metric em{font-size:10px;color:#726083;font-style:normal}
+body.offrya-pro-v3 .pro-v3-home-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(320px,.95fr);gap:17px;align-items:start}
+body.offrya-pro-v3 .pro-v3-home-side{display:grid;gap:15px}
+body.offrya-pro-v3 .pro-v3-panel{min-width:0;border:1px solid var(--v3-border);border-radius:19px;background:#fff;padding:20px;box-shadow:0 6px 24px #341c4e08}
+body.offrya-pro-v3 .pro-v3-panel-head{display:flex;justify-content:space-between;align-items:center;gap:11px;margin-bottom:12px}
+body.offrya-pro-v3 .pro-v3-panel-head h3{display:flex;align-items:center;gap:7px;color:#28113d;font:800 clamp(14px,1.4vw,18px)/1.28 'Plus Jakarta Sans',sans-serif;margin:0}
+body.offrya-pro-v3 .pro-v3-panel-head h3 .nav-icon{width:20px;height:20px;color:#7c34d9}
+body.offrya-pro-v3 .pro-v3-panel-head p{color:var(--v3-muted);font-size:11px;line-height:1.4;margin:6px 0 0}
+body.offrya-pro-v3 .pro-v3-panel-head button{background:transparent;border:0;color:#7330c7;font:750 11px 'Plus Jakarta Sans',sans-serif;cursor:pointer;padding:8px 2px;white-space:nowrap}
+body.offrya-pro-v3 .pro-v3-reco-list{display:grid;gap:10px}
+body.offrya-pro-v3 .pro-v3-reco{display:grid;grid-template-columns:64px minmax(0,1fr) auto;align-items:center;gap:12px;background:#fff;border:1px solid #eae4f1;border-radius:14px;padding:11px;min-height:90px;box-shadow:0 3px 8px #2c19440a}
+body.offrya-pro-v3 .pro-v3-reco-image{height:62px;width:64px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(135deg,#efe2ff,#c7a9f4);color:#6833a7;font-size:31px}
+body.offrya-pro-v3 .pro-v3-reco strong{display:block;font:800 12px/1.4 'Plus Jakarta Sans',sans-serif;color:#302044}
+body.offrya-pro-v3 .pro-v3-reco p{margin:5px 0 3px;color:#625577;font-size:11px;line-height:1.4}
+body.offrya-pro-v3 .pro-v3-reco p span{color:#6733a4;font-weight:700}
+body.offrya-pro-v3 .pro-v3-reco small{font-size:10px;color:#82778e}
+body.offrya-pro-v3 .pro-v3-reco-btn{background:linear-gradient(110deg,#8a37df,#6127c3);border:0;border-radius:10px;padding:11px 13px;color:white;font:800 11px/1.2 'Plus Jakarta Sans',sans-serif;cursor:pointer}
+body.offrya-pro-v3 .pro-v3-reco-btn:hover{filter:brightness(1.07)}
+body.offrya-pro-v3 .pro-v3-empty{padding:23px;background:#faf7fe;border:1px dashed #e3d5ee;border-radius:13px;color:#72677b;font-size:12px;line-height:1.55}
+body.offrya-pro-v3 .pro-v3-empty strong{display:block;color:#3b2251;font:800 14px 'Plus Jakarta Sans',sans-serif}
+body.offrya-pro-v3 .pro-v3-empty p{margin:8px 0 10px}
+body.offrya-pro-v3 .pro-v3-empty button{border:0;padding:7px 0;background:transparent;color:#6831b4;font-weight:800;font-size:12px;cursor:pointer}
+body.offrya-pro-v3 .pro-v3-alerts{display:grid;gap:7px}
+body.offrya-pro-v3 .pro-v3-alerts>button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:#fbfaff;border-radius:10px;padding:12px 9px;text-align:left;font:650 11px/1.35 'DM Sans',sans-serif;color:#382348;cursor:pointer}
+body.offrya-pro-v3 .pro-v3-alerts>button>b{margin-left:auto;color:#693ab5;font-size:20px}
+body.offrya-pro-v3 .pro-v3-alert-icon{height:25px;width:25px;border-radius:50%;display:grid;place-items:center;color:#5d28b6;background:#ece0ff;font-weight:800;font-size:13px}
+body.offrya-pro-v3 .pro-v3-activity{display:grid;grid-template-columns:90px minmax(0,1fr);gap:13px;align-items:center}
+body.offrya-pro-v3 #proV3ActivityStats{display:grid;gap:1px}
+body.offrya-pro-v3 #proV3ActivityStats strong{font:800 23px 'Plus Jakarta Sans',sans-serif;color:#2d1b44}
+body.offrya-pro-v3 #proV3ActivityStats small{font-size:10px;color:#776b84;margin-bottom:9px}
+body.offrya-pro-v3 .pro-v3-chart{min-width:0}
+body.offrya-pro-v3 .pro-v3-chart svg{width:100%;height:auto;max-height:125px}
+body.offrya-pro-v3 .pro-v3-chart>small{font-size:10px;color:#897d95}
+body.offrya-pro-v3 .pro-v3-action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+body.offrya-pro-v3 .pro-v3-action-grid>*{padding:14px 5px;border:0;border-radius:11px;background:#f0e8fb;font:750 11px/1.3 'Plus Jakarta Sans',sans-serif;color:#552d8b;text-align:center;cursor:pointer;text-decoration:none}
+body.offrya-pro-v3 .pro-v3-action-grid>*:hover{background:#e6d5f8}
+body.offrya-pro-v3 .pro-v3-overview{margin-top:19px;border-top:1px solid #e8dff2;padding-top:20px}
+body.offrya-pro-v3 .pro-v3-overview h3{font:800 15px 'Plus Jakarta Sans',sans-serif;margin:0 0 13px;color:#2d1643}
+body.offrya-pro-v3 .pro-v3-overview-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+body.offrya-pro-v3 .pro-v3-overview-grid button{display:grid;grid-template-columns:24px 1fr;grid-template-rows:auto auto;gap:6px 8px;align-items:center;border:1px solid var(--v3-border);border-radius:13px;background:white;color:#382249;text-align:left;padding:14px 11px;cursor:pointer;min-width:0;box-shadow:0 4px 11px #2c1a4308}
+body.offrya-pro-v3 .pro-v3-overview-grid button:hover{background:#f6f0ff;border-color:#d5bff0}
+body.offrya-pro-v3 .pro-v3-overview-grid .nav-icon{color:#7f3ed2;width:21px;height:21px}
+body.offrya-pro-v3 .pro-v3-overview-grid strong{font:800 11px/1.3 'Plus Jakarta Sans',sans-serif}
+body.offrya-pro-v3 .pro-v3-overview-grid button span{grid-column:2;font-size:10px;color:#7a5c9c}
+body.offrya-pro-v3 .pro-v3-page-intro{margin-bottom:20px}
+body.offrya-pro-v3 .pro-v3-page-intro h2{font-size:27px}
+body.offrya-pro-v3 #proV3CommercialSlot .sales-workspace{background:white;border:1px solid var(--v3-border);border-radius:19px;box-shadow:0 6px 24px #341c4e08}
+body.offrya-pro-v3 #proV3CommercialSlot .sales-heading,
+body.offrya-pro-v3 #proV3CommercialSlot .sales-stats,
+body.offrya-pro-v3 #proV3CommercialSlot .sales-tabs{display:none!important}
+body.offrya-pro-v3 #proV3CommercialSlot .sales-lead{border-color:#e8dcf1;box-shadow:0 3px 9px #23113208}
+body.offrya-pro-v3 .pro-v3-followup>.op-compact-details{border:1px solid var(--v3-border);border-radius:17px}
+body.offrya-pro-v3 .pro-v3-followup .op-compact-details summary{display:none}
+body.offrya-pro-v3 .pro-v3-followup .op-detail-content{border:0;padding:20px}
+body.offrya-pro-v3 #proV3PreferenceSlot .op-compact-details{border:0;box-shadow:none;margin:0}
+body.offrya-pro-v3 #proV3PreferenceSlot .op-compact-details summary{display:none}
+body.offrya-pro-v3 #proV3PreferenceSlot .op-detail-content{border:0;padding:4px}
+body.offrya-pro-v3 .pro-v3-watch-item{display:grid;gap:5px;border:1px solid #eee3f5;border-radius:12px;background:#fff;padding:13px;font-size:13px}
+body.offrya-pro-v3 .pro-v3-watch-item strong{color:#301745}
+body.offrya-pro-v3 .pro-v3-watch-item small{color:#867c90}
+body.offrya-pro-v3 .pro-v3-watch-item a{color:#6935bb;text-decoration:underline;font-weight:700}
+body.offrya-pro-v3 .pro-v3-helper{font-size:11px;color:#7a6b87;line-height:1.5;margin:12px 2px}
+body.offrya-pro-v3 .pro-v3-mobile-menu{display:none}
+body.offrya-pro-v3 :is(#boamp,#inbox,#settings,#missions)>.section-top h2{color:#29123e;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-1px}
+body.offrya-pro-v3 :is(#boamp,#inbox,#settings,#missions)>.panel,
+body.offrya-pro-v3 :is(#boamp,#inbox,#settings,#missions) .panel{border-color:var(--v3-border);border-radius:17px;background:white}
+body.offrya-pro-v3 :is(#boamp,#inbox,#settings,#missions) .button.primary{background:linear-gradient(105deg,#8b3cdd,#6127c7);border-color:transparent}
+body.offrya-pro-v3 .pro-v3-search .sr-only{position:absolute;width:1px;height:1px;clip:rect(0,0,0,0);overflow:hidden}
+
+@media(max-width:1180px){
+ body.offrya-pro-v3 .app-shell{grid-template-columns:233px minmax(0,1fr)}
+ body.offrya-pro-v3 .app-shell .main-content{padding:20px 18px 70px}
+ body.offrya-pro-v3 .pro-v3-metrics{gap:9px}
+ body.offrya-pro-v3 .pro-v3-home-grid{grid-template-columns:minmax(0,1.25fr) minmax(255px,.8fr);gap:10px}
+ body.offrya-pro-v3 .pro-v3-metric{gap:7px;padding:14px 9px}
+ body.offrya-pro-v3 .pro-v3-metric>.nav-icon{width:31px;height:31px;padding:6px}
+ body.offrya-pro-v3 .pro-v3-reco{grid-template-columns:49px minmax(0,1fr);gap:9px}
+ body.offrya-pro-v3 .pro-v3-reco-image{width:49px;height:51px}
+ body.offrya-pro-v3 .pro-v3-reco-btn{grid-column:2;justify-self:start}
+}
+@media(max-width:880px){
+ body.offrya-pro-v3 .pro-v3-home-grid{grid-template-columns:1fr}
+ body.offrya-pro-v3 .pro-v3-home-side{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body.offrya-pro-v3 .pro-v3-home-side>.pro-v3-panel:last-child{grid-column:1/-1}
+ body.offrya-pro-v3 .pro-v3-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body.offrya-pro-v3 .pro-v3-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:620px){
+ body.offrya-pro-v3 .app-shell{display:block;padding-bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+ body.offrya-pro-v3 .app-shell .sidebar{
+  position:fixed;top:auto;bottom:0;left:0;right:0;height:calc(72px + env(safe-area-inset-bottom,0px));
+  background:#fff;border-top:1px solid #e6ddee;border-radius:17px 17px 0 0;
+  padding:5px 7px calc(5px + env(safe-area-inset-bottom,0px));overflow:visible;box-shadow:0 -9px 24px #1e143b13;
+ }
+ body.offrya-pro-v3 .sidebar #nav{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))}
+ body.offrya-pro-v3 .sidebar #nav .nav-link{display:flex;min-height:55px;color:#75678a}
+ body.offrya-pro-v3 .sidebar #nav .nav-link[data-tab="boamp"]{display:none!important}
+ body.offrya-pro-v3 .sidebar #nav .nav-link.active{color:#6328c1;background:#f0e7fa}
+ body.offrya-pro-v3 .pro-v3-sidebar-nav,
+ body.offrya-pro-v3 .pro-v3-side-plan{display:none!important}
+ body.offrya-pro-v3 .app-shell .header{height:69px;padding:0 13px;background:linear-gradient(100deg,#26103a,#3d1856);border:0;color:#fff}
+ body.offrya-pro-v3 .mobile-brand{color:#fff}
+ body.offrya-pro-v3 .header .header-shortcut{color:#fff;background:#ffffff20;border:0}
+ body.offrya-pro-v3 .app-shell .main-content{padding:16px 13px 35px}
+ body.offrya-pro-v3 .pro-v3-search{display:none}
+ body.offrya-pro-v3 .pro-v3-mobile-menu{display:flex;gap:7px;overflow-x:auto;padding:4px 0 13px;scrollbar-width:none;scroll-snap-type:x proximity}
+ body.offrya-pro-v3 .pro-v3-mobile-menu::-webkit-scrollbar{display:none}
+ body.offrya-pro-v3 .pro-v3-mobile-menu .pro-v3-nav-btn{width:auto;white-space:nowrap;flex:none;min-height:36px;padding:9px 12px;border:1px solid #e5d7f4;border-radius:19px;background:white;color:#583c6f;font-size:11px;scroll-snap-align:start}
+ body.offrya-pro-v3 .pro-v3-mobile-menu .pro-v3-nav-btn.active{color:#fff;border-color:#7336d2;background:linear-gradient(110deg,#8639df,#5c27b7)}
+ body.offrya-pro-v3 .pro-v3-mobile-menu .pro-v3-nav-btn .nav-icon{width:15px;height:15px}
+ body.offrya-pro-v3 .pro-v3-mobile-menu .pro-v3-nav-count{display:none}
+ body.offrya-pro-v3 .pro-v3-intro{align-items:flex-start;flex-direction:column;gap:8px;margin:3px 0 16px}
+ body.offrya-pro-v3 .pro-v3-intro h2{font-size:24px}
+ body.offrya-pro-v3 .pro-v3-intro p{font-size:12px}
+ body.offrya-pro-v3 .pro-v3-status{padding:7px 10px;font-size:10px}
+ body.offrya-pro-v3 .pro-v3-metrics{gap:8px;margin-bottom:14px}
+ body.offrya-pro-v3 .pro-v3-metric{min-height:99px;padding:13px 9px;gap:9px;border-radius:13px}
+ body.offrya-pro-v3 .pro-v3-metric>.nav-icon{width:31px;height:31px;padding:7px}
+ body.offrya-pro-v3 .pro-v3-metric small{font-size:10px}
+ body.offrya-pro-v3 .pro-v3-metric strong{font-size:25px}
+ body.offrya-pro-v3 .pro-v3-metric em{font-size:9px}
+ body.offrya-pro-v3 .pro-v3-home-side{grid-template-columns:1fr}
+ body.offrya-pro-v3 .pro-v3-home-side>.pro-v3-panel:last-child{grid-column:auto}
+ body.offrya-pro-v3 .pro-v3-panel{padding:14px;border-radius:15px}
+ body.offrya-pro-v3 .pro-v3-panel-head{align-items:flex-start}
+ body.offrya-pro-v3 .pro-v3-panel-head h3{font-size:16px}
+ body.offrya-pro-v3 .pro-v3-reco{grid-template-columns:47px minmax(0,1fr);gap:9px}
+ body.offrya-pro-v3 .pro-v3-reco-image{height:48px;width:47px}
+ body.offrya-pro-v3 .pro-v3-reco-btn{grid-column:2;font-size:11px}
+ body.offrya-pro-v3 .pro-v3-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ body.offrya-pro-v3 .pro-v3-overview-grid button{padding:12px 8px}
+ body.offrya-pro-v3 .pro-v3-page-intro h2{font-size:23px}
+}
