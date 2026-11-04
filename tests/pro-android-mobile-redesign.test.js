@@ -32,8 +32,8 @@ test('Android has one five-item bottom navigation and secondary menu in header',
  assert.match(pro,/removeAttribute\('open'\);show\(b\.dataset\.proScreen\)/);
 });
 test('Android profile and notification elements are present and robust',()=>{
- assert.match(pro,/const technical=\/\^\(\?:user/);
- assert.match(pro,/proV3Hello'\)\.textContent=label\.length>32/);
+ assert.match(pro,/function greetingUsername\(state\)/);
+ assert.match(pro,/proV3Hello'\)\.textContent=username/);
  assert.match(pro,/alertButton\.id='proV3MobileAlert'/);
  assert.match(pro,/proV3AlertBubble/);
  assert.match(css,/#proV3AlertBubble:not\(\[hidden\]\)/);
