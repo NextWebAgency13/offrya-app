@@ -6,6 +6,7 @@ const {queryBoamp}=require('../lib/boamp');
 const {queryTed}=require('../lib/ted');
 const {queryPublicPortals}=require('../lib/public-portal-feeds');
 const {qualifyTender}=require('../lib/tender-assistant');
+const {fingerprint:noticeDigest,enrichPublicNotice}=require('../lib/official-notice-ai');
 const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
 const key=process.env.SUPABASE_SECRET_KEY;
 const defaultSectors=['Nettoyage','Espaces verts','Bâtiment','Informatique','Transport','Restauration & Hôtellerie','Bien-être & Beauté'];
@@ -42,7 +43,8 @@ function queryTerms(pref){
  const keyword=String(pref.keywords||'').trim().slice(0,60);
  return [...new Set([...sectorTerms,...(keyword?[keyword]:[])])].slice(0,8);
 }
-async function run({boamp=queryBoamp,ted=queryTed,portals=queryPublicPortals,store=rest,logger=console}={}){
+async function run({boamp=queryBoamp,ted=queryTed,portals=queryPublicPortals,store=rest,
+ enricher=enrichPublicNotice,env=process.env,logger=console}={}){
  if(!/^https:\/\/[a-z0-9.-]+\.supabase\.co$/.test(base)||!key)
   throw Error('OFFRYA veille indisponible : vérifier les secrets Supabase du dépôt GitHub.');
  const targets=await store('rpc/offrya_agent_watch_targets',{method:'POST',body:'{}'});
@@ -53,7 +55,8 @@ async function run({boamp=queryBoamp,ted=queryTed,portals=queryPublicPortals,sto
  try{const fetched=await portals();portalItems=fetched.items||[];portalHealth=fetched.health||[];}
  catch(error){logger.warn('OFFRYA : flux régionaux temporairement indisponibles');}
  const cache=new Map();
- let processed=0,qualified=0,insertedCandidates=0,failures=0,queries=0;
+ const notices=new Map(),pendingUsers=[];
+ let processed=0,qualified=0,insertedCandidates=0,failures=0,queries=0,aiCalls=0;
  for(const pref of targets.slice(0,60)){
   if(!/^[0-9a-f-]{36}$/i.test(pref.user_id||''))continue;
   const terms=queryTerms(pref);
@@ -86,10 +89,10 @@ async function run({boamp=queryBoamp,ted=queryTed,portals=queryPublicPortals,sto
      qualified++;
      const unique=fingerprint(row);
      const previous=matches.get(unique);
-     // Prefer the France-specific official BOAMP record if both sources cover one notice.
-     if(!previous||row.match_score>previous.match_score ||
-       (row.match_score===previous.match_score&&row.source==='BOAMP'))
-      matches.set(unique,row);
+     // Prefer BOAMP over TED if the same procurement appears twice.
+     if(!previous||row.match_score>previous.row.match_score ||
+       (row.match_score===previous.row.match_score&&row.source==='BOAMP'))
+      matches.set(unique,{row,notice:item});
     }
    }
   }
@@ -101,26 +104,61 @@ async function run({boamp=queryBoamp,ted=queryTed,portals=queryPublicPortals,sto
    if(!row)continue;
    qualified++;
    const unique=fingerprint(row),previous=matches.get(unique);
-   if(!previous||row.match_score>previous.match_score)matches.set(unique,row);
+   if(!previous||row.match_score>previous.row.match_score)matches.set(unique,{row,notice:item});
   }
   if(matches.size){
-   const alerts=[...matches.values()].sort((a,b)=>b.match_score-a.match_score)
-    .slice(0,20);
-   await store('offrya_tender_alerts?on_conflict=user_id,tender_id',{
-    method:'POST',
-    headers:{Prefer:'resolution=ignore-duplicates,return=minimal'},
-    body:JSON.stringify(alerts)
-   });
-   insertedCandidates+=alerts.length;
+   const selected=[...matches.values()].sort((a,b)=>b.row.match_score-a.row.match_score).slice(0,20);
+   for(const {notice} of selected)notices.set(noticeDigest(notice),notice);
+   pendingUsers.push(selected);
   }
+ }
+ // AI analysis is global to an official notice: one OpenAI request per distinct
+ // new notice, never per user. Previously analyzed notices are cached in DB.
+ const digestCache=new Map();
+ const noticeKeys=[...notices.keys()];
+ for(let offset=0;offset<noticeKeys.length;offset+=45){
+  const batch=noticeKeys.slice(offset,offset+45);
+  const saved=await store('offrya_public_tender_digest?select=digest_key,ai_summary,ai_category,ai_location,ai_budget_eur,ai_status,ai_model&digest_key=in.('+batch.join(',')+')');
+  for(const item of Array.isArray(saved)?saved:[])digestCache.set(item.digest_key,item);
+ }
+ const maxAI=Math.min(50,Math.max(0,Number.parseInt(env.OFFRYA_AI_MAX_PER_HOUR||'12',10)||0));
+ for(const [key,notice] of notices){
+  if(digestCache.has(key)||!env.OFFRYA_AI_API_KEY||aiCalls>=maxAI)continue;
+  aiCalls++;
+  try{
+   const ai=await enricher(notice,{apiKey:env.OFFRYA_AI_API_KEY,model:env.OFFRYA_AI_MODEL||'gpt-4.1-mini'});
+   const cached={digest_key:key,title:notice.title,buyer:notice.buyer||null,
+    first_source:notice.source,official_url:notice.url,published_at:notice.published||null,
+    deadline:notice.deadline,departments:notice.departments||null,...ai};
+   await store('offrya_public_tender_digest?on_conflict=digest_key',{
+    method:'POST',headers:{Prefer:'resolution=ignore-duplicates,return=minimal'},body:JSON.stringify([cached])
+   });
+   digestCache.set(key,cached);
+  }catch(error){failures++;logger.warn('OFFRYA IA : analyse d’un avis indisponible (aucune donnée inventée)');}
+ }
+ for(const selected of pendingUsers){
+  const alerts=selected.map(({row,notice})=>{
+   const digest_key=noticeDigest(notice),ai=digestCache.get(digest_key);
+   return {...row,digest_key,published_at:notice.published||null,
+    ai_summary:ai?.ai_summary||null,ai_category:ai?.ai_category||null,
+    ai_location:ai?.ai_location||null,ai_budget_eur:ai?.ai_budget_eur??null,
+    ai_status:ai?.ai_status||'pending'};
+  });
+  // Updating only matching fields does NOT clear detected_at or seen_at.
+  await store('offrya_tender_alerts?on_conflict=user_id,tender_id',{
+   method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},
+   body:JSON.stringify(alerts)
+  });
+  insertedCandidates+=alerts.length;
  }
  logger.log('OFFRYA veille officielle : abonnés actifs='+processed+
   ' évaluations='+qualified+' propositions='+insertedCandidates+
   ' sources indisponibles='+failures+' recherches='+queries+
-  ' flux territoriaux='+portalHealth.map(x=>x.id+':'+x.status).join(','));
+  ' flux territoriaux='+portalHealth.map(x=>x.id+':'+x.status).join(',')+
+  ' nouvelles analyses IA='+aiCalls+' avis uniques='+notices.size);
  // Source outages are reported; never fabricate results or alter email consent.
  if(failures&&processed&&qualified===0)process.exitCode=1;
- return {processed,qualified,proposed:insertedCandidates,failures,queries};
+ return {processed,qualified,proposed:insertedCandidates,failures,queries,aiCalls,uniqueNotices:notices.size};
 }
 if(require.main===module)run().catch(e=>{console.error(e.message);process.exitCode=1;});
 module.exports={run,cleanRow,queryTerms,fingerprint};
