@@ -57,7 +57,7 @@ test('Acquisition starter is a GET form, safely prefills all valid categories an
  assert.match(home,/<form class="mock-quick-mission" action="\/deposer-une-mission" method="get"/);
  assert.match(home,/name="category"/);
  assert.match(home,/name="city"/);
- assert.match(deposit,/next=%2Fdeposer-une-mission/);
+ assert.match(deposit,/next=%2Fespace/);\n assert.match(fs.readFileSync('public/espace.html','utf8'),/id="missionStarterResume"/);\n assert.match(fs.readFileSync('public/app.js','utf8'),/offrya:mission-starter:v1/);
  assert.match(submit,/offrya:mission-starter:v1/);
  assert.match(submit,/sessionStorage\.removeItem\(DRAFT_KEY\)/);
  assert.match(submit,/user\.email_confirmed_at/);
