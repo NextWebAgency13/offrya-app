@@ -13,13 +13,14 @@ const rss=(source,host=source.domains[0])=>'<rss><channel><item><title><![CDATA[
 
 test('PLACE must be explicitly enabled; regional URL must be approved and exact-host allowed',()=>{
  assert.deepEqual(getApprovedFeeds({}),[]);
- const on=getApprovedFeeds({OFFRYA_PLACE_RSS_APPROVED:'true',OFFRYA_OCCITANIE_RSS_URL:'https://www.marches-occitanie.fr/rss.xml',OFFRYA_SUD_RSS_URL:'https://attacker.com/rss.xml'});
+ const on=getApprovedFeeds({OFFRYA_PLACE_RSS_APPROVED:'true',OFFRYA_PLACE_RSS_URL:'https://www.marches-publics.gouv.fr/reverified/rss.xml',OFFRYA_OCCITANIE_RSS_URL:'https://www.marches-occitanie.fr/rss.xml',OFFRYA_SUD_RSS_URL:'https://attacker.com/rss.xml'});
  assert.deepEqual(on.map(s=>s.id),['PLACE','OCCITANIE']);
  assert.equal(getApprovedFeeds({OFFRYA_PLACE_RSS_APPROVED:'false'}).length,0);
  const place=CATALOG.find(s=>s.id==='PLACE');
- assert.ok(safeUrl('https://www.marches-publics.gouv.fr/rss.xml',place,true));
+ assert.ok(safeUrl('https://www.marches-publics.gouv.fr/reverified/rss.xml',place,true));
  for(const url of ['http://www.marches-publics.gouv.fr/rss.xml','https://www.marches-publics.gouv.fr.evil.com/rss.xml','https://evil.com/rss.xml','https://www.marches-publics.gouv.fr:444/rss.xml','https://x@www.marches-publics.gouv.fr/rss.xml'])assert.equal(safeUrl(url,place,true),null,url);
  assert.equal(CATALOG.length,6);
+ assert.deepEqual(getApprovedFeeds({OFFRYA_PLACE_RSS_APPROVED:'true'}),[]);
 });
 test('RSS feed is parsed only from approved sources and explicit unexpired dates',()=>{
  const src=CATALOG.find(s=>s.id==='SUD');
@@ -44,7 +45,7 @@ test('Official public tender matching rejects unknown sources, foreign regions a
  assert.ok(DEP.SUD.includes('13'));
 });
 test('Source unavailability degrades gracefully without silently inventing any rows',async()=>{
- const env={OFFRYA_PLACE_RSS_APPROVED:'true'};
+ const env={OFFRYA_PLACE_RSS_APPROVED:'true',OFFRYA_PLACE_RSS_URL:'https://www.marches-publics.gouv.fr/reverified/rss.xml'};
  const fetched=await queryPublicPortals({env,fetcher:async()=>({ok:false,status:503,headers:{get:()=> 'application/rss+xml'}})});
  assert.deepEqual(fetched.items,[]);
  assert.deepEqual(fetched.health,[{id:'PLACE',status:'unavailable',count:0}]);
@@ -93,7 +94,7 @@ test('AI data is allowlisted, and three tone drafts are structured and strictly 
  assert.equal(Object.keys(parsed.drafts).length,3);
  const review=buildCopilotRequest({mission:{title:'Travaux'},action:'review',draft:'Bonjour, je peux vous accompagner après précisions.'});
  assert.equal(review.response_format.json_schema.name,'offrya_message_review');
- assert.throws(()=>buildCopilotRequest({mission:{title:'Travaux'},action:'review',draft:'court'}),/10 à 2 500/);
+ assert.throws(()=>buildCopilotRequest({mission:{title:'Travaux'},action:'review',draft:'court'}),/entre 10 et 2 500/);
  assert.throws(()=>parseCopilotResponse('Bonjour','analyze'),/structurée/);
 });
 test('Premium server gate, strict original links, and human message confirmation stay present',()=>{
