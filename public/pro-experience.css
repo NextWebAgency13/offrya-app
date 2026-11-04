@@ -31,6 +31,8 @@ body.offrya-pro-v3 .pro-v3-nav-btn span:nth-child(2){flex:1}
 body.offrya-pro-v3 .pro-v3-nav-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;border-radius:10px;padding:0 5px;background:#ba69e8;color:white;font-size:10px}
 body.offrya-pro-v3 .pro-v3-nav-count[hidden]{display:none}
 body.offrya-pro-v3 .pro-v3-side-plan{margin-top:auto;margin-left:5px;margin-right:5px;padding:18px 15px;border:1px solid #895ca8;border-radius:15px;background:linear-gradient(135deg,#4a205f,#2c163d);display:grid;gap:5px;color:#fff;box-shadow:0 9px 18px #0002}
+/* The verified / active / temporary Premium sidebar has no subscription upsell. */
+body.offrya-pro-v3 #proV3SidePlan[hidden]{display:none!important}
 body.offrya-pro-v3 .pro-v3-side-plan strong{font:750 13px 'Plus Jakarta Sans',sans-serif}
 body.offrya-pro-v3 .pro-v3-side-plan span{font-weight:800;font-size:15px}
 body.offrya-pro-v3 .pro-v3-side-plan small{font-size:12px;color:#dec5ef}
