@@ -113,8 +113,8 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  function metrics(){
   const missions=available(), conversations=state.conversations||[];
   $('proV3MissionCount').textContent=String(missions.length);
-  const boampLoaded=(state.boamp||[]).length>0 || Number(state.boampTotal)>0;
-  $('proV3MarketCount').textContent=boampLoaded?String(state.boampTotal):'À actualiser';
+  const boampState=state.boampStatus||'idle';
+  $('proV3MarketCount').textContent=boampState==='ready'?String(Number(state.boampTotal)||0):boampState==='loading'?'Recherche…':boampState==='error'?'Indisponible':'À actualiser';
   $('proV3ConversationCount').textContent=String(conversations.length);
   $('proV3TrackingCount').textContent=String((state.salesTracking||[]).length+(state.tenderTracking||[]).length);
   $('proV3WatchState').textContent=Date.parse(state.testPremiumUntil||'')>Date.now()?'Accès test':'Automatique';
