@@ -24,6 +24,12 @@ function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggl
 const paths={dashboard:'/espace',missions:'/espace/missions',boamp:'/espace/marches-publics',professional:'/espace/professionnel',inbox:'/espace/messagerie',settings:'/espace/reglages'};
 const pathsReverse=Object.fromEntries(Object.entries(paths).map(([name,p])=>[p,name]));
 function tab(name,fromHistory=false,preserveMissionDetail=false){
+ // The legacy public-tenders URL now opens the Markets subsection inside Espace pro.
+ // Do not expose a separate Premium tab or bypass RLS/paid-access checks.
+ if(name==='boamp'){
+  if(canUsePremium()){proExperience.show('boamp',fromHistory);return;}
+  name='professional';
+ }
  if(!$(name))return;
  // Selecting the Missions tab means "show the list"; opening a specific card
  // explicitly preserves its detail. Other tabs never mutate this selection.
@@ -698,6 +704,6 @@ async function init(){
 }
 const opportunityConsole=createOpportunityConsole({state,element:$,canUsePremium,tab,renderMissions,notify:toast});
 const salesWorkspace=createSalesWorkspace({state,element:$,canUsePremium,tab,notify:toast,refresh});
-const proExperience=createProExperience({state,element:$,canUsePremium,tab,renderMissions,notify:toast});
+const proExperience=createProExperience({state,element:$,canUsePremium,tab,renderMissions,loadMarkets:()=>loadBoamp(),notify:toast});
 proExperience.init();opportunityConsole.init();salesWorkspace.init();
 init().catch(showError);
