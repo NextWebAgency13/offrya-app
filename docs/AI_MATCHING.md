@@ -16,7 +16,7 @@ Le LLM est **désactivé par défaut**. Après validation juridique et mise à j
 - OFFRYA_AI_MATCHING_ENABLED=true : activer explicitement l'enrichissement sémantique.
 - OFFRYA_AI_MODEL (facultatif) : modèle compatible avec chat/completions et response_format json_object ; défaut gpt-4.1-mini.
 
-La requête IA contient au plus 10 candidatures réelles déjà autorisées, leurs titres/descritions tronqués et partiellement dépourvus de contacts, plus la spécialité et les filtres métier. Le service ne reçoit pas les identifiants d'utilisateurs. La suppression automatique des données personnelles n'est **pas exhaustive** : le contrôle juridique/confidentialité est donc indispensable avant activation.
+La requête IA contient au plus 10 candidatures réelles déjà autorisées, leurs titres/descriptions tronqués et partiellement dépourvus de contacts, plus la spécialité et les filtres métier. Le service ne reçoit pas les identifiants d'utilisateurs. La suppression automatique des données personnelles n'est **pas exhaustive** : le contrôle juridique/confidentialité est donc indispensable avant activation.
 
 L'IA ne peut que réajuster les scores de ±15 points. Elle ne crée pas de missions, ne modifie pas les filtres, ne transmet pas de candidature et ne contacte personne. En cas de panne ou de réponse non conforme, le classement explicable prévaut. Une requête est espacée de cinq minutes par client actif. Les requêtes publiques sont limitées par IP côté serveur.
 
