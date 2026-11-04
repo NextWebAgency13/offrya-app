@@ -68,7 +68,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
        '<button type="button" class="pro-v3-missions-all" data-pro-screen="requests">Voir toutes les demandes de missions →</button>',
       '</section>',
       '<section class="pro-v3-panel pro-v3-opportunities" aria-labelledby="proV3OpTitle">',
-       '<div class="pro-v3-panel-head"><div><h3 id="proV3OpTitle">'+icon('ic-sparkles')+' Radar des missions</h3><p>Les demandes d’autres utilisateurs classées selon votre métier et votre zone.</p></div><button type="button" data-pro-screen="watch">Toutes les alertes →</button></div>',
+       '<div class="pro-v3-panel-head"><div><h3 id="proV3OpTitle">'+icon('ic-sparkles')+' Radar des missions</h3><p>Les demandes d’autres utilisateurs classées selon votre métier et votre zone.</p></div><button type="button" data-pro-screen="requests">Toutes les missions →</button></div>',
        '<div class="pro-v3-radar-kpis" aria-label="Résultats du radar"><span><strong id="proV3RadarTotal">0</strong><small>Détectées</small></span><span><strong id="proV3RadarRelevant">0</strong><small>Pertinentes</small></span><span><strong id="proV3RadarUrgent">0</strong><small>À examiner</small></span></div>',
        '<div id="proV3Recommendations" class="pro-v3-reco-list"><p class="pro-v3-empty">Analyse des opportunités disponibles…</p></div>',
        '<p class="pro-v3-radar-disclaimer">Score indicatif de correspondance entre les missions publiées et vos critères. Aucun contact automatique.</p>',
@@ -80,8 +80,6 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
       '<section class="pro-v3-panel pro-v3-actions"><div class="pro-v3-panel-head"><h3>'+icon('ic-bolt')+' Accès rapides</h3></div><div class="pro-v3-action-grid"><button type="button" data-pro-screen="requests">'+icon('ic-missions')+'<span>Voir toutes les missions</span></button><button type="button" data-refresh-missions="true">'+icon('ic-bolt')+'<span>Actualiser les missions</span></button><button type="button" data-pro-screen="tracking">'+icon('ic-check')+'<span>Mes missions suivies</span></button><button type="button" data-pro-screen="inbox">'+icon('ic-inbox')+'<span>Ouvrir mes messages</span></button></div></section>',
      '</aside>',
     '</div>',
-    '<section class="pro-v3-overview"><h3>Un espace pour chaque besoin</h3><div class="pro-v3-overview-grid">'+
-     menu.slice(1).map(x=>'<button data-pro-screen="'+x[0]+'">'+icon(x[2])+'<strong>'+esc(x[1])+'</strong><span>Accéder à cet outil →</span></button>').join('')+'</div></section>',
    '</section>',
    '<section class="pro-v3-view" data-pro-panel="commercial" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">GESTION DES DEMANDES · OFFRYA</span><h2 id="proV3CommercialHeading">Demandes de missions</h2><p id="proV3CommercialDescription">Qualifiez les demandes, préparez vos réponses et suivez vos échanges.</p></div><div id="proV3CommercialSlot"></div><div id="proV3FollowupSlot" class="pro-v3-followup" hidden></div></section>',
    '<section class="pro-v3-view" data-pro-panel="boamp" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">MARCHÉS PUBLICS · DILA</span><h2>Marchés publics</h2><p>Recherchez les appels d’offres officiels, consultez leurs échéances et exportez les résultats.</p></div><div id="proV3BoampSlot"></div></section>',
