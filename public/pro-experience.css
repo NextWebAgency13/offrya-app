@@ -552,3 +552,9 @@ body.offrya-pro-v3:not(.offrya-pro-workspace) #proV3Search{display:none!importan
  body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar .workspace-label,
  body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar .sidebar-bottom{display:none!important}
 }
+
+@media(min-width:621px) and (max-width:930px){
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar #nav .nav-link{justify-content:flex-start}
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar #nav .nav-link span{display:inline!important;font-size:12px}
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar #nav .nav-icon{flex:none}
+}
