@@ -522,3 +522,33 @@ body.offrya-pro-v3 .pro-v3-nav-btn:focus-visible{outline:3px solid #a45fe4;outli
  body.offrya-pro-v3 .pro-v3-action-grid{gap:7px}
  body.offrya-pro-v3 .pro-v3-action-grid>*{font-size:10px}
 }
+
+/* The personal dashboard (/espace) is separate from the professional dashboard.
+   Eligible professionals retain their account navigation outside Espace pro,
+   instead of seeing "Tableau de bord" on a Pro sidebar alongside personal data. */
+body.offrya-pro-v3:not(.offrya-pro-workspace) #proV3Sidebar,
+body.offrya-pro-v3:not(.offrya-pro-workspace) #proV3SidePlan,
+body.offrya-pro-v3:not(.offrya-pro-workspace) #proV3Search{display:none!important}
+@media(min-width:621px){
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar .workspace-label{display:block!important;color:#d9bae9}
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar #nav{display:flex!important;flex-direction:column;gap:6px;margin-top:12px}
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar #nav .nav-link{display:flex!important;min-height:47px;gap:12px;padding:9px 13px;border-radius:12px;color:#f4e5ff;font-size:12px}
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar #nav .nav-link.active{color:#fff;background:linear-gradient(105deg,#8a39df,#6327c5)}
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar #nav .nav-link:hover{color:#fff;background:#ffffff21}
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar #nav .nav-link[data-tab="boamp"]{display:none!important}
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar .sidebar-bottom{display:block!important;margin-top:auto}
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar .founder-card{background:#4e2766;border-color:#79518c;color:#fff}
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar .founder-card p{color:#e9d8f3}
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar .founder-pill{color:#582298}
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar .legal-links{display:none}
+}
+@media(min-width:621px) and (max-width:930px){
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar .workspace-label{display:none!important}
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar #nav{margin-top:14px}
+}
+@media(max-width:620px){
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar #nav{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))}
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar #nav .nav-link[data-tab="boamp"]{display:none!important}
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar .workspace-label,
+ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar .sidebar-bottom{display:none!important}
+}
