@@ -11,7 +11,7 @@ test('Vitrine publique autonome : accroche unique, contenu SEO et aucun tableau 
  assert.match(home,/href="\/professionnels"/);
  assert.match(home,/34,99 €/);
  assert.doesNotMatch(home,/Les opportunités prennent forme|id="dashMissions"|id="statOpen"|id="priorityAlertsList"|Chargement…|<script type="module"/i);
- assert.match(home,/<link rel="canonical" href="https:\/\/offrya-app.onrender.com\/"/);
+ assert.match(home,/<link rel="canonical" href="https:\/\/offrya.fr\/"/);
  assert.match(home,/application\/ld\+json/);
  for(const tag of ['og:type','og:title','og:url','og:description'])assert.ok(home.includes(tag));
 });
