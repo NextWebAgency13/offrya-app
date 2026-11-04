@@ -16,6 +16,14 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  ];
  let initialized=false,view='home',uid=null;
  function icon(name){return '<svg class="nav-icon" aria-hidden="true"><use href="#'+name+'"/></svg>';}
+ function alertIcon(screen){
+  const shapes={
+   requests:'<rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12a21 21 0 0 0 18 0"/><rect x="10.5" y="12" width="3" height="3" rx="0.5"/>',
+   watch:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"/><path d="M10 21h4"/>',
+   tracking:'<path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6M13 3l5 5v3M13 3v5h5M8 12h6M8 16h3"/><circle cx="17" cy="17" r="4"/><path d="m15.5 17 1 1 2-2"/>'
+  };
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'+(shapes[screen]||shapes.requests)+'</svg>';
+ }
  function caption(v){return '<span>'+esc(v)+'</span>';}
  function navButton(item){return '<button type="button" class="pro-v3-nav-btn" data-pro-screen="'+item[0]+'">'+icon(item[2])+'<span>'+esc(item[1])+'</span><span class="pro-v3-nav-count" data-pro-count="'+item[0]+'" hidden></span></button>';}
  function makeMarkup(){
@@ -129,7 +137,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    [String(unseen.length)+' nouvelle(s) alerte(s) BOAMP','watch'],
    [String((state.tenderTracking||[]).length)+' marché(s) suivi(s)','tracking']
   ];
-  $('proV3Alerts').innerHTML=rows.map(x=>'<button data-pro-screen="'+x[1]+'"><span class="pro-v3-alert-icon">'+(x[1]==='watch'?'♧':x[1]==='tracking'?'✓':'✦')+'</span>'+esc(x[0])+'<b>›</b></button>').join('');
+  $('proV3Alerts').innerHTML=rows.map(x=>'<button data-pro-screen="'+x[1]+'"><span class="pro-v3-alert-icon">'+alertIcon(x[1])+'</span>'+esc(x[0])+'<b>›</b></button>').join('');
   $('proV3WatchAlertList').innerHTML=alerts.length?alerts.slice(0,15).map(a=>{
    const href=/^https:\/\/[^\s]+$/i.test(a.url||'')?esc(a.url):null;
    return '<div class="pro-v3-watch-item"><strong>'+esc(a.title||'Marché public')+'</strong><small>'+esc(a.seen_at?'Déjà consultée':'Nouvelle alerte')+'</small>'+(href?'<a href="'+href+'" target="_blank" rel="noopener noreferrer">Ouvrir l’avis officiel ↗</a>':'')+'</div>';
