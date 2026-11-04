@@ -78,7 +78,6 @@ async function refresh(){
   ['favorites',state.db.from('offrya_favorites').select('mission_id')],
   ['premium',state.db.from('offrya_premium_requests').select('user_id,siret,legal_name,status,premium_until,identity_status,authority_status,representative_kind,registry_name_matched,registry_match_checked_at,registry_match_source,identity_live_verified,presence_verified_at,presence_method,identity_verified_at,authority_verified_at,authority_review_method').eq('user_id',uid).maybeSingle()],
   ['subscription',state.db.from('offrya_premium_subscriptions').select('status,paid_through,stripe_customer_id').eq('user_id',uid).maybeSingle()],
-  ['testPremiumUntil',typeof state.db.rpc==='function'?state.db.rpc('offrya_test_premium_expires_at'):Promise.resolve({data:null})],
   ['opportunityPrefs',state.db.from('offrya_opportunity_preferences').select('*').eq('user_id',uid).maybeSingle()],
   ['tenderTracking',state.db.from('offrya_tender_tracking').select('user_id,tender_id,title,url,stage,updated_at').eq('user_id',uid).limit(100)],
   ['salesTracking',state.db.from('offrya_pro_lead_tracking').select('mission_id,stage,updated_at').eq('user_id',uid).limit(200)],
@@ -89,7 +88,7 @@ async function refresh(){
  // Start independent requests together, then render as soon as identity and
  // subscription data are available. Optional panels fill in after that.
  const tasks=requests.map(([key,request])=>({key,promise:Promise.resolve(request)}));
- const criticalKeys=new Set(['profile','premium','subscription','testPremiumUntil']);
+ const criticalKeys=new Set(['profile','premium','subscription']);
  const critical=tasks.filter(x=>criticalKeys.has(x.key));
  const optional=tasks.filter(x=>!criticalKeys.has(x.key));
  function applyResponses(group,results){
@@ -203,11 +202,10 @@ function hasVerifiedProfessionalIdentity(){
 }
 function canUsePremium(){
  const paid=state.subscription?.status==='active'&&Date.parse(state.subscription?.paid_through||'')>Date.now();
- const trial=Date.parse(state.testPremiumUntil||'')>Date.now();
- return Boolean(state.session&&!state.session.user?.is_anonymous&&((hasVerifiedProfessionalIdentity()&&paid)||trial));
+ return Boolean(state.session&&!state.session.user?.is_anonymous&&hasVerifiedProfessionalIdentity()&&paid);
 }
 function renderPremium(){
- const allowed=canUsePremium(),pro=Boolean(state.session&&(state.profile?.role==='pro'||Date.parse(state.testPremiumUntil||'')>Date.now()));
+ const allowed=canUsePremium(),pro=Boolean(state.session&&state.profile?.role==='pro');
  $('boampGate').classList.toggle('hidden',allowed);
  document.querySelectorAll('.nav-link[data-tab="boamp"]').forEach(el=>el.classList.toggle('hidden',!allowed));
  $('premiumContent').classList.toggle('hidden',!allowed);
