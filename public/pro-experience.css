@@ -1,3 +1,7 @@
+/* Keep the new navigation absent for client/unverified sessions. */
+body:not(.offrya-pro-v3) #proV3Sidebar,
+body:not(.offrya-pro-v3) #proV3SidePlan,
+body:not(.offrya-pro-v3) #proV3Search{display:none!important}
 /* OFFRYA Pro V3 — approved plum/violet dashboard. Applies only to eligible Pro UI. */
 body.offrya-pro-v3{
  --v3-plum:#271040;--v3-plum-deep:#200c35;--v3-purple:#7d35da;
