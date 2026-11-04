@@ -36,7 +36,7 @@ modification Supabase ou Render n'a été réalisée.
 ## Ordre de mise en production — uniquement après accord
 
 1. Vérifier les conditions de chaque flux source, l'exactitude des liens et
-   les champs des avis. PLACE et plateformes régionales désactivées par défaut.
+   les champs des avis. PLACE et plateformes régionales désactivées par défaut. PLACE exige une URL confirmée dans `OFFRYA_PLACE_RSS_URL` et `OFFRYA_PLACE_RSS_APPROVED=true` : aucune adresse RSS supposée n'est intégrée.
 2. Exécuter dans un environnement contrôlé les migrations
    `sql/approved_public_portal_sources.sql` et
    `sql/public_tender_ai_enrichment.sql`, après validation du schéma et de RLS.
