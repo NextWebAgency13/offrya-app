@@ -184,7 +184,12 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  function init(){
   if(initialized)return;
   makeMarkup();
-  document.querySelectorAll('[data-pro-screen]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.proScreen)));
+  // Delegation also handles preference shortcuts added when real data refreshes.
+  document.addEventListener('click',e=>{
+   const b=e.target.closest('[data-pro-screen]');
+   if(!b||!canUsePremium()||!b.closest('#proExperienceV3,#proV3Sidebar,#proV3SidePlan'))return;
+   e.preventDefault();show(b.dataset.proScreen);
+  });
   $('proExperienceV3').addEventListener('click',e=>{
    const b=e.target.closest('[data-pro-mission]');if(b)openMission(b.dataset.proMission);
   });
