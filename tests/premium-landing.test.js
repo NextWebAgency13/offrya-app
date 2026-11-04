@@ -7,7 +7,7 @@ test('OFFRYA Professionnel : vitrine et offre unique cohérentes',()=>{
  assert.match(premium,/<h1 id="premium-title">OFFRYA Professionnel : développez votre activité<\/h1>/);
  assert.equal((premium.match(/<h1\b/g)||[]).length,1);
  assert.match(premium,/<title>OFFRYA Professionnel \| 34,99 € TTC\/mois<\/title>/);
- assert.match(premium,/rel="canonical" href="https:\/\/offrya-app\.onrender\.com\/professionnels"/);
+ assert.match(premium,/rel="canonical" href="https:\/\/offrya\.fr\/professionnels"/);
  assert.doesNotMatch(premium,/>Devenir professionnel<\/a>/);
  assert.equal((premium.match(/href="\/connexion\?mode=signup&amp;next=%2Fespace%2Fprofessionnel">Créer mon compte professionnel<\/a>/g)||[]).length,1);
  assert.match(premium,/class="account-link" href="\/connexion\?next=%2Fespace"/);
