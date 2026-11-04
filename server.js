@@ -4,6 +4,7 @@ const fs=require('node:fs/promises');
 const path=require('node:path');
 const {queryBoamp}=require('./lib/boamp');
 const {verifyPremiumAccess}=require('./lib/premium');
+const {prepareWithAI,guidedPreparation}=require('./lib/tender-assistant');
 const {lookupCompany,verifyProfessional}=require('./lib/company');
 const {beginIdentity,processIdentityEvent,configured:identityConfigured,identityConfigChecks}=require('./lib/identity');
 const {billingEnabled,startCheckout,verifyStripeSignature,syncSubscription,portal}=require('./lib/billing');
@@ -116,6 +117,37 @@ async function handle(req,res){
     await syncSubscription(JSON.parse(raw.toString('utf8')));
     return json(res,200,{received:true});
    }catch(e){console.error('Stripe Webhook:',e.message);return json(res,503,{error:'Échec de traitement du webhook.'});}
+  }
+  if(p==='/api/pro/tender-preparation'&&req.method==='POST'){
+   if(!rateLimit(req,6))return json(res,429,{error:'Trop de demandes de préparation.'});
+   let premium;
+   try{premium=await verifyPremiumAccess(req.headers.authorization,{url:process.env.SUPABASE_URL,key:process.env.SUPABASE_PUBLISHABLE_KEY});}
+   catch(e){console.error('Tender assistant authorization:',e.message);return json(res,503,{error:'Vérification professionnelle indisponible.'});}
+   if(!premium.allowed)return json(res,premium.status,{error:premium.error});
+   // A temporary QA entitlement never grants access to the professional AI agent.
+   if(premium.test)return json(res,403,{error:'Réservé aux professionnels vérifiés et abonnés.'});
+   try{
+    const payload=JSON.parse(await readBody(req,650));
+    const id=String(payload.tender_id||'');
+    if(!/^[A-Za-z0-9._-]{3,80}$/.test(id))return json(res,400,{error:'Identifiant de marché invalide.'});
+    const jwt=String(req.headers.authorization||'').replace(/^Bearer /,'');
+    const userId=JSON.parse(Buffer.from(jwt.split('.')[1],'base64url').toString('utf8')).sub;
+    if(!/^[a-f0-9-]{36}$/i.test(String(userId)))return json(res,401,{error:'Session invalide.'});
+    const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
+    const key=process.env.SUPABASE_PUBLISHABLE_KEY;
+    const url=base+'/rest/v1/offrya_tender_alerts?select=tender_id,title,buyer,departments,url,deadline,match_score,match_reason,first_steps&user_id=eq.'+encodeURIComponent(userId)+'&tender_id=eq.'+encodeURIComponent(id)+'&limit=1';
+    const response=await fetch(url,{headers:{apikey:key,Authorization:'Bearer '+jwt,Accept:'application/json'},signal:AbortSignal.timeout(9000)});
+    if(!response.ok)return json(res,503,{error:'Impossible de vérifier les droits sur ce marché.'});
+    const entries=await response.json();
+    const row=Array.isArray(entries)?entries[0]:null;
+    if(!row||!/^https:\/\/(www\.)?boamp\.fr\//i.test(row.url||''))return json(res,404,{error:'Marché inaccessible.'});
+    if(row.deadline&&Date.parse(row.deadline)<=Date.now())return json(res,409,{error:'Ce marché est arrivé à échéance : vérifiez l’avis officiel.'});
+    let preparation;
+    try{preparation=await prepareWithAI(row);}
+    catch(e){console.error('Tender AI unavailable:',e.message);
+     preparation={mode:'guide',draft:guidedPreparation(row),notice:'IA momentanément indisponible : plan de préparation guidé affiché. Aucun envoi effectué.'};}
+    return json(res,200,{tender_id:id,source_url:row.url,score:row.match_score,...preparation},{'Cache-Control':'private,no-store'});
+   }catch(e){console.error('Tender preparation:',e.message);return json(res,503,{error:'Préparation du marché indisponible.'});}
   }
   if(p==='/api/pro/draft'&&req.method==='POST'){
    if(!rateLimit(req,12))return json(res,429,{error:'Trop de demandes. Réessayez plus tard.'});
