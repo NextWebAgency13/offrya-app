@@ -1,4 +1,4 @@
-import {buildRadar,radarOfficialUrl} from './radar.js';
+import {buildRadar} from './radar.js';
 // OFFRYA Pro UI v3 — visual redesign on top of existing secured modules.
 // Only authenticated, server/RLS-authorized data is displayed. No demo rows.
 export function createProExperience({state,element,canUsePremium,tab,renderMissions,loadMarkets,notify}){
@@ -45,49 +45,41 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const alertButton=document.createElement('button');
   alertButton.type='button';alertButton.id='proV3MobileAlert';
   alertButton.className='header-shortcut pro-v3-alert-shortcut';
-  alertButton.setAttribute('aria-label','Consulter les alertes de marchés publics');
+  alertButton.setAttribute('aria-label','Consulter les nouvelles missions');
   alertButton.innerHTML='<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"/><path d="M10 21h4"/></svg><span id="proV3AlertBubble" hidden></span>';
   if(accountMenu)accountMenu.before(alertButton);
-  alertButton.addEventListener('click',()=>{if(canUsePremium())show('watch');});
+  alertButton.addEventListener('click',()=>{if(canUsePremium())show('requests');});
   const root=document.createElement('div');root.id='proExperienceV3';root.className='pro-v3-experience';
   root.innerHTML=[
    '<div class="pro-v3-mobile-menu" aria-hidden="true" hidden></div>',
    '<section class="pro-v3-view" data-pro-panel="home">',
-    '<div class="pro-v3-intro"><div><span class="pro-v3-eyebrow">ESPACE PROFESSIONNEL OFFRYA</span><h2>Bonjour, <span id="proV3Hello">professionnel</span></h2><p>Gérez vos opportunités, suivez vos missions et développez votre activité.</p></div><span class="pro-v3-status" id="proV3Status">Accès professionnel</span></div>',
+    '<div class="pro-v3-intro"><div><span class="pro-v3-eyebrow">ESPACE PROFESSIONNEL OFFRYA</span><h2>Bonjour, <span id="proV3Hello">professionnel</span></h2><p>Consultez les missions publiées par d’autres utilisateurs et développez votre activité.</p></div><span class="pro-v3-status" id="proV3Status">Accès professionnel</span></div>',
     '<div class="pro-v3-metrics" aria-label="Indicateurs réels">',
      '<div class="pro-v3-metric purple">'+icon('ic-missions')+'<span><small>Missions disponibles</small><strong id="proV3MissionCount">—</strong><em>Demandes accessibles</em></span></div>',
-     '<div class="pro-v3-metric blue">'+icon('ic-boamp')+'<span><small>Marchés publics</small><strong id="proV3MarketCount">—</strong><em>Résultats BOAMP chargés</em></span></div>',
+     '<div class="pro-v3-metric blue">'+icon('ic-missions')+'<span><small>Nouvelles missions</small><strong id="proV3RecentMissionCount">—</strong><em>Publiées depuis 7 jours</em></span></div>',
      '<div class="pro-v3-metric green">'+icon('ic-inbox')+'<span><small>Conversations</small><strong id="proV3ConversationCount">—</strong><em>Discussions accessibles</em></span></div>',
-     '<div class="pro-v3-metric coral">'+icon('ic-check')+'<span><small>Dossiers suivis</small><strong id="proV3TrackingCount">—</strong><em>Missions et marchés</em></span></div>',
+     '<div class="pro-v3-metric coral">'+icon('ic-check')+'<span><small>Missions suivies</small><strong id="proV3TrackingCount">—</strong><em>Suivi de vos contacts</em></span></div>',
     '</div>',
     '<div class="pro-v3-home-grid">',
      '<div class="pro-v3-main-column">',
-      '<section class="pro-v3-panel pro-v3-markets-panel" aria-labelledby="proV3MarketsTitle">',
-       '<div class="pro-v3-panel-head"><div><h3 id="proV3MarketsTitle">'+icon('ic-boamp')+' Marchés publics</h3><p>Trouvez les appels d’offres officiels correspondant à votre activité.</p></div><button type="button" data-pro-screen="boamp">Voir tous les marchés →</button></div>',
-       '<div id="proV3HomeMarketsSlot"></div>',
-       '<div class="pro-v3-market-chips" role="group" aria-label="Filtres métiers des marchés publics"><span>Filtres rapides :</span><button type="button" class="active" data-market-query="" aria-pressed="true">Tous</button><button type="button" data-market-query="bâtiment" aria-pressed="false">Bâtiment</button><button type="button" data-market-query="informatique" aria-pressed="false">Informatique</button><button type="button" data-market-query="espaces verts" aria-pressed="false">Espaces verts</button><button type="button" data-market-query="nettoyage" aria-pressed="false">Nettoyage</button></div>',
-       '<p class="pro-v3-market-footnote">Données officielles BOAMP. Vérifiez toujours les dates et les conditions des avis.</p>',
-      '</section>',
       '<section class="pro-v3-panel pro-v3-missions-panel" aria-labelledby="proV3MissionsTitle">',
-       '<div class="pro-v3-panel-head"><div><h3 id="proV3MissionsTitle">'+icon('ic-missions')+' Demandes de missions</h3><p>De vraies opportunités accessibles à votre compte professionnel.</p></div><button type="button" data-pro-screen="requests">Voir les demandes →</button></div>',
+       '<div class="pro-v3-panel-head"><div><h3 id="proV3MissionsTitle">'+icon('ic-missions')+' Missions publiées par les autres</h3><p>Les missions ouvertes et accessibles, classées de la plus récente à la plus ancienne.</p></div><button type="button" data-refresh-missions="true">↻ Actualiser</button></div>',
        '<div id="proV3MissionPreview" class="pro-v3-mission-preview" aria-live="polite"></div>',
        '<button type="button" class="pro-v3-missions-all" data-pro-screen="requests">Voir toutes les demandes de missions →</button>',
       '</section>',
       '<section class="pro-v3-panel pro-v3-opportunities" aria-labelledby="proV3OpTitle">',
-       '<div class="pro-v3-panel-head"><div><h3 id="proV3OpTitle">'+icon('ic-sparkles')+' Radar commercial</h3><p>Missions et avis classés selon la correspondance avec vos critères.</p></div><button type="button" data-pro-screen="watch">Toutes les alertes →</button></div>',
+       '<div class="pro-v3-panel-head"><div><h3 id="proV3OpTitle">'+icon('ic-sparkles')+' Radar des missions</h3><p>Les demandes d’autres utilisateurs classées selon votre métier et votre zone.</p></div><button type="button" data-pro-screen="requests">Toutes les missions →</button></div>',
        '<div class="pro-v3-radar-kpis" aria-label="Résultats du radar"><span><strong id="proV3RadarTotal">0</strong><small>Détectées</small></span><span><strong id="proV3RadarRelevant">0</strong><small>Pertinentes</small></span><span><strong id="proV3RadarUrgent">0</strong><small>À examiner</small></span></div>',
        '<div id="proV3Recommendations" class="pro-v3-reco-list"><p class="pro-v3-empty">Analyse des opportunités disponibles…</p></div>',
-       '<p class="pro-v3-radar-disclaimer">Score indicatif de correspondance, pas une probabilité de remporter un marché. Aucun contact automatique.</p>',
+       '<p class="pro-v3-radar-disclaimer">Score indicatif de correspondance entre les missions publiées et vos critères. Aucun contact automatique.</p>',
       '</section>',
      '</div>',
      '<aside class="pro-v3-home-side" aria-label="Informations professionnelles">',
       '<section class="pro-v3-panel"><div class="pro-v3-panel-head"><h3>'+icon('ic-bolt')+' Alertes & nouveautés</h3></div><div id="proV3Alerts" class="pro-v3-alerts"><p class="pro-v3-empty">Aucune alerte.</p></div></section>',
       '<section class="pro-v3-panel"><div class="pro-v3-panel-head"><h3>'+icon('ic-dashboard')+' Mon activité</h3><button type="button" data-pro-screen="tracking">Suivi détaillé →</button></div><div class="pro-v3-activity"><div id="proV3ActivityStats"></div><div id="proV3Chart" class="pro-v3-chart" aria-label="Missions visibles publiées sur les 7 derniers jours"></div></div></section>',
-      '<section class="pro-v3-panel pro-v3-actions"><div class="pro-v3-panel-head"><h3>'+icon('ic-bolt')+' Accès rapides</h3></div><div class="pro-v3-action-grid"><button type="button" data-pro-screen="boamp">'+icon('ic-boamp')+'<span>Rechercher des marchés publics</span></button><button type="button" data-pro-screen="requests">'+icon('ic-missions')+'<span>Voir les missions</span></button><button type="button" data-pro-screen="watch">'+icon('ic-bolt')+'<span>Consulter mes alertes</span></button><button type="button" data-pro-screen="tracking">'+icon('ic-dashboard')+'<span>Voir mes performances</span></button><button type="button" data-pro-screen="preferences">'+icon('ic-settings')+'<span>Mes préférences</span></button><button type="button" data-pro-screen="inbox">'+icon('ic-inbox')+'<span>Ouvrir la messagerie</span></button></div></section>',
+      '<section class="pro-v3-panel pro-v3-actions"><div class="pro-v3-panel-head"><h3>'+icon('ic-bolt')+' Accès rapides</h3></div><div class="pro-v3-action-grid"><button type="button" data-pro-screen="requests">'+icon('ic-missions')+'<span>Voir toutes les missions</span></button><button type="button" data-refresh-missions="true">'+icon('ic-bolt')+'<span>Actualiser les missions</span></button><button type="button" data-pro-screen="tracking">'+icon('ic-check')+'<span>Mes missions suivies</span></button><button type="button" data-pro-screen="inbox">'+icon('ic-inbox')+'<span>Ouvrir mes messages</span></button></div></section>',
      '</aside>',
     '</div>',
-    '<section class="pro-v3-overview"><h3>Un espace pour chaque besoin</h3><div class="pro-v3-overview-grid">'+
-     menu.slice(1).map(x=>'<button data-pro-screen="'+x[0]+'">'+icon(x[2])+'<strong>'+esc(x[1])+'</strong><span>Accéder à cet outil →</span></button>').join('')+'</div></section>',
    '</section>',
    '<section class="pro-v3-view" data-pro-panel="commercial" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">GESTION DES DEMANDES · OFFRYA</span><h2 id="proV3CommercialHeading">Demandes de missions</h2><p id="proV3CommercialDescription">Qualifiez les demandes, préparez vos réponses et suivez vos échanges.</p></div><div id="proV3CommercialSlot"></div><div id="proV3FollowupSlot" class="pro-v3-followup" hidden></div></section>',
    '<section class="pro-v3-view" data-pro-panel="boamp" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">MARCHÉS PUBLICS · DILA</span><h2>Marchés publics</h2><p>Recherchez les appels d’offres officiels, consultez leurs échéances et exportez les résultats.</p></div><div id="proV3BoampSlot"></div></section>',
@@ -129,26 +121,22 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  }
  function recommendations(){
   const panel=$('proV3Recommendations');if(!panel||!canUsePremium())return;
-  const data=buildRadar({missions:available(),alerts:state.opportunityAlerts||[],
+  const data=buildRadar({missions:available(),alerts:[],
    preferences:state.opportunityPrefs||{},userId:state.session?.user?.id});
   $('proV3RadarTotal').textContent=String(data.total);
   $('proV3RadarRelevant').textContent=String(data.relevant);
   $('proV3RadarUrgent').textContent=String(data.urgent);
   panel.innerHTML=data.items.length?data.items.slice(0,5).map(item=>{
-   const source=item.kind==='mission'?'MISSION OFFRYA':item.source+' · AVIS OFFICIEL';
    const place=item.location||'Localisation à vérifier';
    const rationale=item.reasons.slice(0,3).join(' · ');
-   const action=item.kind==='mission'
-    ?'<button type="button" class="pro-v3-reco-btn" data-pro-mission="'+esc(item.id)+'">Voir la mission</button>'
-    :radarOfficialUrl(item.url)
-     ?'<a class="pro-v3-reco-btn" href="'+esc(item.url)+'" target="_blank" rel="noopener noreferrer">Avis officiel</a>':'';
-   return '<article class="pro-v3-radar-row"><div class="pro-v3-radar-body"><small class="pro-v3-radar-source">'+esc(source)+'</small>'+
-     '<strong>'+esc(item.title)+'</strong><small>'+esc(place)+'</small><p>'+esc(rationale)+'</p></div>'+
-     '<div class="pro-v3-radar-side"><strong aria-label="Correspondance estimée '+item.score+' sur 100">'+item.score+'/100</strong>'+action+'</div></article>';
+   const action='<button type="button" class="pro-v3-reco-btn" data-pro-mission="'+esc(item.id)+'">Voir la mission</button>';
+   return '<article class="pro-v3-radar-row"><div class="pro-v3-radar-body"><small class="pro-v3-radar-source">MISSION OFFRYA</small>'+
+    '<strong>'+esc(item.title)+'</strong><small>'+esc(place)+'</small><p>'+esc(rationale)+'</p></div>'+
+    '<div class="pro-v3-radar-side"><strong aria-label="Correspondance estimée '+item.score+' sur 100">'+item.score+'/100</strong>'+action+'</div></article>';
   }).join(''):'<div class="pro-v3-empty"><strong>Pas encore d’opportunités correspondant au radar.</strong>'+
    (available().length?
     '<p>'+available().length+' mission(s) accessible(s) actuellement, mais non retenue(s) par vos filtres de correspondance. Consultez la liste complète.</p>'+
-    '<p>Le radar ne présente que les missions accessibles et les avis officiels enregistrés pour votre compte.</p>':
+    '<p>Le radar ne classe que les missions publiées par les autres utilisateurs.</p>':
     '<p>Aucune mission accessible actuellement. La liste restera vide tant que votre compte ne reçoit aucune mission autorisée.</p>')+
    '<button type="button" data-pro-screen="requests">Voir toutes les missions →</button></div>';
  }
@@ -156,17 +144,17 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  function metrics(){
   const missions=available(), conversations=state.conversations||[];
   $('proV3MissionCount').textContent=String(missions.length);
-  const boampState=state.boampStatus||'idle';
-  $('proV3MarketCount').textContent=boampState==='ready'?String(Number(state.boampTotal)||0):boampState==='loading'?'Recherche…':boampState==='error'?'Indisponible':'À actualiser';
+  const weekAgo=Date.now()-7*86400000;
+  $('proV3RecentMissionCount').textContent=String(missions.filter(m=>Date.parse(m.created_at||'')>=weekAgo).length);
   $('proV3ConversationCount').textContent=String(conversations.length);
-  $('proV3TrackingCount').textContent=String((state.salesTracking||[]).length+(state.tenderTracking||[]).length);
+  $('proV3TrackingCount').textContent=String((state.salesTracking||[]).filter(t=>missions.some(m=>m.id===t.mission_id)).length);
   $('proV3WatchState').textContent=Date.parse(state.testPremiumUntil||'')>Date.now()?'Accès test':'Automatique';
   $('proV3AlertCount').textContent=String((state.opportunityAlerts||[]).length);
-  const count=(state.opportunityAlerts||[]).filter(a=>!a.seen_at&&(!a.deadline||Date.parse(a.deadline)>Date.now())).length;
+  const count=matched().length;
   const bubble=$('proV3AlertBubble');
   if(bubble){bubble.hidden=!count;bubble.textContent=String(Math.min(count,99));}
   const trigger=$('proV3MobileAlert');
-  if(trigger)trigger.setAttribute('aria-label',count?'Consulter '+count+' nouvelle(s) opportunité(s) publique(s)':'Consulter les alertes de marchés publics');
+  if(trigger)trigger.setAttribute('aria-label',count?'Consulter '+count+' mission(s) correspondant à vos filtres':'Consulter les missions disponibles');
   for(const el of document.querySelectorAll('[data-pro-count="requests"]')){el.textContent=String(missions.length);el.hidden=!missions.length;}
   for(const el of document.querySelectorAll('[data-pro-count="inbox"]')){el.textContent=String(conversations.length);el.hidden=!conversations.length;}
  }
@@ -186,14 +174,18 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   $('proV3Chart').innerHTML='<svg viewBox="0 0 '+width+' '+height+'" role="img" aria-label="'+esc(counts.join(', '))+' missions quotidiennes dans les 7 derniers jours"><path d="M10 '+(height-12)+' H'+(width-10)+'" fill="none" stroke="#e5d8f1" stroke-width="1"/><polyline points="'+pts+'" stroke="#7b32dc" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" fill="none"/>'+points.map(v=>'<circle cx="'+v[0]+'" cy="'+v[1]+'" r="3.5" fill="#813dd9"/>').join('')+'</svg><small>7 derniers jours · missions publiées</small>';
  }
  function alerts(){
-  const ms=matched(), alerts=state.opportunityAlerts||[];
-  const unseen=alerts.filter(x=>!x.seen_at);
+  // The home alerts concern only OTHER users' open missions.
+  // Official tender alerts are rendered below in the separate Watch section.
+  const missions=available(),filtered=matched(),weekAgo=Date.now()-7*86400000;
+  const recent=missions.filter(m=>Date.parse(m.created_at||'')>=weekAgo);
+  const tracked=(state.salesTracking||[]).filter(t=>missions.some(m=>m.id===t.mission_id));
   const rows=[
-   [String(ms.length)+' mission(s) correspondant à vos filtres','requests'],
-   [String(unseen.length)+' nouvelle(s) opportunité(s) publique(s)','watch'],
-   [String((state.tenderTracking||[]).length)+' marché(s) suivi(s)','tracking']
+   [String(filtered.length)+' mission(s) correspondant à vos filtres','requests'],
+   [String(recent.length)+' nouvelle(s) mission(s) cette semaine','requests'],
+   [String(tracked.length)+' mission(s) suivie(s)','tracking']
   ];
   $('proV3Alerts').innerHTML=rows.map(x=>'<button data-pro-screen="'+x[1]+'"><span class="pro-v3-alert-icon">'+alertIcon(x[1])+'</span>'+esc(x[0])+'<b>›</b></button>').join('');
+  const alerts=state.opportunityAlerts||[];
   $('proV3WatchAlertList').innerHTML=alerts.length?[...alerts]
    .filter(a=>!a.deadline||Date.parse(a.deadline)>Date.now())
    .sort((a,b)=>(b.match_score||0)-(a.match_score||0))
@@ -223,12 +215,12 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   });
  }
  function placeMarketSearch(){
-  const node=$('premiumContent'),target=$(view==='boamp'?'proV3BoampSlot':'proV3HomeMarketsSlot');
+  const node=$('premiumContent'),target=$('proV3BoampSlot');
   if(node&&target&&node.parentElement!==target)target.appendChild(node);
  }
  function missionPreview(){
   const panel=$('proV3MissionPreview');if(!panel)return;
-  const entries=[...available()].sort((a,b)=>(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0)).slice(0,2);
+  const entries=[...available()].sort((a,b)=>(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0)).slice(0,8);
   panel.innerHTML=entries.length?entries.map(m=>{
    const place=[m.city,m.department].filter(Boolean).join(' · ')||'Lieu à préciser';
    const summary=String(m.description||'').trim().slice(0,115);
@@ -285,6 +277,11 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    e.preventDefault();document.getElementById('accountMenu')?.removeAttribute('open');show(b.dataset.proScreen);
   });
   $('proExperienceV3').addEventListener('click',e=>{
+   const refreshButton=e.target.closest('[data-refresh-missions]');
+   if(refreshButton&&canUsePremium()){
+    $('missionRefresh').click();
+    return;
+   }
    const filter=e.target.closest('[data-market-query]');
    if(filter&&canUsePremium()){
     $('boampKeyword').value=filter.dataset.marketQuery||'';
