@@ -327,6 +327,10 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(!initialized)return;
   const premium=Boolean(canUsePremium());
   document.body.classList.toggle('offrya-pro-v3',premium);
+  // Active or verified professionals (including Premium test access) must not
+  // see a subscription upsell in the sidebar. Account controls remain in Settings.
+  const sidePlan=$('proV3SidePlan');
+  if(sidePlan)sidePlan.hidden=premium||state.premium?.status==='verified';
   if(!premium){uid=null;return;}
   const user=state.session?.user?.id;
   if(user!==uid){uid=user;view='home';
