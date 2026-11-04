@@ -31,6 +31,9 @@ function tab(name,fromHistory=false,preserveMissionDetail=false){
   name='professional';
  }
  if(!$(name))return;
+ // Keep the personal Accueil navigation distinct from the premium Pro workspace.
+ // The desktop Pro sidebar must never be displayed with the personal dashboard.
+ document.body.classList.toggle('offrya-pro-workspace',name==='professional');
  // Selecting the Missions tab means "show the list"; opening a specific card
  // explicitly preserves its detail. Other tabs never mutate this selection.
  if(name==='missions'&&!preserveMissionDetail&&state.selectedMissionId){
