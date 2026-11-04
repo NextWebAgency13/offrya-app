@@ -16,6 +16,26 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   ['settings','Paramètres','ic-user']
  ];
  let initialized=false,view='home',uid=null;
+ let serverRadar=null,radarKey='',radarAt=0,radarLoading=false;
+ async function loadMatchedRadar(key,user){
+  if(radarLoading||!canUsePremium()||!user)return;
+  radarLoading=true;
+  try{
+   const session=(await state.db.auth.getSession()).data?.session;
+   if(!session||session.user?.id!==user)return;
+   const response=await fetch('/api/pro/matches',{
+    headers:{Authorization:'Bearer '+session.access_token},cache:'no-store'});
+   if(!response.ok)throw Error('Correspondance HTTP '+response.status);
+   const data=await response.json();
+   if(!Array.isArray(data.items)||!['ai','rules'].includes(data.mode))throw Error('Format incorrect');
+   if(state.session?.user?.id!==user||key!==radarKey||!canUsePremium())return;
+   serverRadar=data;
+   recommendations();
+  }catch(error){
+   console.warn('OFFRYA: classement distant indisponible, secours local',error);
+  }finally{radarAt=Date.now();radarLoading=false;}
+ }
+
  function icon(name){return '<svg class="nav-icon" aria-hidden="true"><use href="#'+name+'"/></svg>';}
  function alertIcon(screen){
   const shapes={
@@ -71,7 +91,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
        '<div class="pro-v3-panel-head"><div><h3 id="proV3OpTitle">'+icon('ic-sparkles')+' Radar des missions</h3><p>Les demandes d’autres utilisateurs classées selon votre métier et votre zone.</p></div><button type="button" data-pro-screen="requests">Toutes les missions →</button></div>',
        '<div class="pro-v3-radar-kpis" aria-label="Résultats du radar"><span><strong id="proV3RadarTotal">0</strong><small>Détectées</small></span><span><strong id="proV3RadarRelevant">0</strong><small>Pertinentes</small></span><span><strong id="proV3RadarUrgent">0</strong><small>À examiner</small></span></div>',
        '<div id="proV3Recommendations" class="pro-v3-reco-list"><p class="pro-v3-empty">Analyse des opportunités disponibles…</p></div>',
-       '<p class="pro-v3-radar-disclaimer">Score indicatif de correspondance entre les missions publiées et vos critères. Aucun contact automatique.</p>',
+       '<p class="pro-v3-radar-disclaimer">Score indicatif de correspondance entre les missions publiées et vos critères. Aucun contact automatique. <span id="proV3MatchingStatus"></span></p>',
       '</section>',
      '</div>',
      '<aside class="pro-v3-home-side" aria-label="Informations professionnelles">',
@@ -121,16 +141,32 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  }
  function recommendations(){
   const panel=$('proV3Recommendations');if(!panel||!canUsePremium())return;
-  const data=buildRadar({missions:available(),alerts:[],
+  const user=state.session?.user?.id;
+  const fingerprint=JSON.stringify([user,state.opportunityPrefs,
+   (state.missions||[]).map(m=>[m.id,m.status,m.created_at]).slice(0,220),
+   (state.opportunityAlerts||[]).map(a=>[a.tender_id,a.match_score]).slice(0,100)]);
+  if(fingerprint!==radarKey){radarKey=fingerprint;serverRadar=null;radarAt=0;}
+  if(!radarLoading&&Date.now()-radarAt>5*60*1000)
+   queueMicrotask(()=>loadMatchedRadar(fingerprint,user));
+  const data=serverRadar||buildRadar({missions:available(),alerts:[],
    preferences:state.opportunityPrefs||{},userId:state.session?.user?.id});
+  const mode=$('proV3MatchingStatus');
+  if(mode)mode.textContent=serverRadar?.mode==='ai'
+   ?'Classement sémantique IA · score indicatif'
+   :serverRadar?'Correspondance automatique explicable':'Classement local provisoire';
   $('proV3RadarTotal').textContent=String(data.total);
   $('proV3RadarRelevant').textContent=String(data.relevant);
   $('proV3RadarUrgent').textContent=String(data.urgent);
   panel.innerHTML=data.items.length?data.items.slice(0,5).map(item=>{
    const place=item.location||'Localisation à vérifier';
    const rationale=item.reasons.slice(0,3).join(' · ');
-   const action='<button type="button" class="pro-v3-reco-btn" data-pro-mission="'+esc(item.id)+'">Voir la mission</button>';
-   return '<article class="pro-v3-radar-row"><div class="pro-v3-radar-body"><small class="pro-v3-radar-source">MISSION OFFRYA</small>'+
+   const official=item.kind==='tender'&&(
+    /^https:\/\/(www\.)?boamp\.fr\//i.test(item.url||'')||
+    /^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(item.url||''));
+   const action=official?'<a class="pro-v3-reco-btn" href="'+esc(item.url)+'" target="_blank" rel="noopener noreferrer">Avis officiel</a>':
+    '<button type="button" class="pro-v3-reco-btn" data-pro-mission="'+esc(item.id)+'">Voir la mission</button>';
+   const source=official?'MARCHÉ PUBLIC · '+esc(item.source):'MISSION OFFRYA';
+   return '<article class="pro-v3-radar-row"><div class="pro-v3-radar-body"><small class="pro-v3-radar-source">'+source+'</small>'+
     '<strong>'+esc(item.title)+'</strong><small>'+esc(place)+'</small><p>'+esc(rationale)+'</p></div>'+
     '<div class="pro-v3-radar-side"><strong aria-label="Correspondance estimée '+item.score+' sur 100">'+item.score+'/100</strong>'+action+'</div></article>';
   }).join(''):'<div class="pro-v3-empty"><strong>Pas encore d’opportunités correspondant au radar.</strong>'+
@@ -327,7 +363,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(!initialized)return;
   const premium=Boolean(canUsePremium());
   document.body.classList.toggle('offrya-pro-v3',premium);
-  if(!premium){uid=null;return;}
+  if(!premium){uid=null;serverRadar=null;radarKey='';radarAt=0;return;}
   const user=state.session?.user?.id;
   if(user!==uid){uid=user;view='home';
   }
