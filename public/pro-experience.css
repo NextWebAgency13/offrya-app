@@ -349,3 +349,176 @@ body.offrya-pro-v3 #proV3BoampSlot #boampList{min-width:0;overflow-wrap:anywhere
  body.offrya-pro-v3 #proV3BoampSlot .filters{display:flex;flex-direction:column;gap:10px}
  body.offrya-pro-v3 #proV3BoampSlot .filters .button{width:100%;min-height:44px}
 }
+
+/* OFFRYA Pro 2026 — premium desktop / Android design, based on approved mockup.
+   Visual-only, all figures and opportunities continue to come from authorized API data. */
+body.offrya-pro-v3{
+ --v3-plum:#29103e;--v3-plum-deep:#1f0a35;--v3-purple:#7726da;
+ --v3-purple-dark:#5520a7;--v3-ink:#261239;--v3-muted:#706582;
+ --v3-border:#e9e1f4;--v3-bg:#f9f6ff;
+ background:#faf7ff;
+}
+body.offrya-pro-v3 .app-shell{grid-template-columns:240px minmax(0,1fr)}
+body.offrya-pro-v3 .app-shell .sidebar{
+ background:radial-gradient(ellipse 110% 38% at -30% 79%,#6f218b 0%,transparent 78%),
+ radial-gradient(ellipse 140% 25% at 120% 110%,#42125c 0%,transparent 78%),
+ linear-gradient(158deg,#220b37 0%,#2e1044 55%,#27103c 100%);
+ padding:22px 13px 24px;box-shadow:7px 0 28px #2e155012;
+}
+body.offrya-pro-v3 .sidebar .brand-area{padding:8px 4px 28px}
+body.offrya-pro-v3 .sidebar .brand{font-size:27px}
+body.offrya-pro-v3 .pro-v3-sidebar-nav{gap:6px}
+body.offrya-pro-v3 .pro-v3-nav-btn{min-height:47px;padding:12px 14px;border-radius:12px;font-size:12px;font-weight:700;transition:background-color .16s,transform .16s}
+body.offrya-pro-v3 .pro-v3-nav-btn:hover{background:#ffffff1d;transform:translateX(1px)}
+body.offrya-pro-v3 .pro-v3-nav-btn.active{background:linear-gradient(110deg,#9646ee,#6323d4);box-shadow:0 6px 16px #18082230}
+body.offrya-pro-v3 .pro-v3-side-plan{margin:30px 5px 0;border:1px solid #9b64bc88;background:linear-gradient(155deg,#54216e,#35114d);border-radius:17px;padding:19px}
+body.offrya-pro-v3 .pro-v3-side-plan button{background:linear-gradient(100deg,#e8c9ff,#b66bfb);border-radius:10px;color:#2c1640;padding:12px 10px;text-align:center;margin-top:10px}
+body.offrya-pro-v3 .app-shell .header{height:72px;background:#fff;border-bottom:1px solid #ebe3f4;padding:0 30px}
+body.offrya-pro-v3 .header-heading h1{font-size:20px;letter-spacing:-.6px}
+body.offrya-pro-v3 .pro-v3-search{height:44px;border-radius:15px;max-width:630px;background:#faf8ff;border-color:#dcd0f2;box-shadow:0 0 0 1px #eeebf9}
+body.offrya-pro-v3 .pro-v3-search input{font-size:13px}
+body.offrya-pro-v3 .pro-v3-search button{border-radius:12px;height:36px;width:40px}
+body.offrya-pro-v3 .app-shell .main-content{max-width:none;padding:25px clamp(16px,2.1vw,35px) 70px;background:linear-gradient(180deg,#fcfaff 0%,#faf7ff 50%,#f9f6fd 100%)}
+body.offrya-pro-v3 .pro-v3-intro{position:relative;min-height:100px;overflow:hidden;padding:17px 22px;border-radius:24px;margin:-6px -2px 15px;background:radial-gradient(ellipse 45% 145% at 75% 9%,#e6d2ffb9 0%,transparent 72%),linear-gradient(115deg,#fbf8ff,#f5effe)}
+body.offrya-pro-v3 .pro-v3-intro h2{font-size:clamp(26px,2.3vw,34px);letter-spacing:-1.25px}
+body.offrya-pro-v3 .pro-v3-intro p{font-size:13px;line-height:1.6}
+body.offrya-pro-v3 .pro-v3-status{box-shadow:0 5px 13px #229d5c11;border-radius:22px;padding:10px 16px}
+body.offrya-pro-v3 .pro-v3-metrics{gap:13px;margin-bottom:19px}
+body.offrya-pro-v3 .pro-v3-metric{min-height:120px;border-radius:17px;padding:21px 15px;gap:13px;box-shadow:0 7px 24px #40225d0d;border:1px solid #fff}
+body.offrya-pro-v3 .pro-v3-metric.purple{background:linear-gradient(125deg,#fbf8ff,#eee0fc)}
+body.offrya-pro-v3 .pro-v3-metric.blue{background:linear-gradient(125deg,#f3f8ff,#e2edfc)}
+body.offrya-pro-v3 .pro-v3-metric.green{background:linear-gradient(125deg,#f4fff9,#e3f8ed)}
+body.offrya-pro-v3 .pro-v3-metric.coral{background:linear-gradient(125deg,#fffafa,#ffebe4)}
+body.offrya-pro-v3 .pro-v3-metric>.nav-icon{width:49px;height:49px;border-radius:16px;padding:12px;color:#6924c9;background:#ffffffa3}
+body.offrya-pro-v3 .pro-v3-metric strong{font-size:clamp(23px,2.2vw,34px);font-weight:800}
+body.offrya-pro-v3 .pro-v3-metric small{font-size:11px}
+body.offrya-pro-v3 .pro-v3-metric em{font-size:10px}
+body.offrya-pro-v3 .pro-v3-home-grid{grid-template-columns:minmax(0,1.76fr) minmax(286px,.93fr);gap:18px}
+body.offrya-pro-v3 .pro-v3-main-column{display:grid;gap:17px;min-width:0}
+body.offrya-pro-v3 .pro-v3-home-side{gap:17px;min-width:0}
+body.offrya-pro-v3 .pro-v3-panel{padding:20px;border-radius:20px;border:1px solid #ebe3f7;box-shadow:0 10px 25px #37204f0a}
+body.offrya-pro-v3 .pro-v3-panel-head{margin-bottom:17px;gap:12px}
+body.offrya-pro-v3 .pro-v3-panel-head h3{font-size:clamp(15px,1.4vw,19px);gap:9px}
+body.offrya-pro-v3 .pro-v3-panel-head h3 .nav-icon{height:24px;width:24px}
+body.offrya-pro-v3 .pro-v3-panel-head button{color:#7325d5;background:#f5effd;border-radius:17px;padding:9px 12px;white-space:normal;text-align:center}
+body.offrya-pro-v3 .pro-v3-panel-head button:hover{background:#e7d6f9}
+body.offrya-pro-v3 .pro-v3-markets-panel{display:flex;flex-direction:column;gap:0}
+body.offrya-pro-v3 .pro-v3-markets-panel .pro-v3-panel-head{order:0}
+/* Flatten the single BOAMP widget only on home so controls follow mockup hierarchy. */
+body.offrya-pro-v3 .pro-v3-markets-panel #proV3HomeMarketsSlot,
+body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent{display:contents}
+body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent.hidden{display:none!important}
+body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.panel.filters{order:1}
+body.offrya-pro-v3 .pro-v3-markets-panel>.pro-v3-market-chips{order:2}
+body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.section-top{order:3}
+body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.panel:not(.filters){order:4}
+body.offrya-pro-v3 .pro-v3-markets-panel>.pro-v3-market-footnote{order:5}
+body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.panel{margin:0;padding:0;border:0;box-shadow:none;background:transparent;max-width:100%;min-width:0}
+body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.panel.filters{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(115px,.77fr) auto;align-items:stretch;gap:9px;margin:0 0 12px}
+body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.panel.filters :is(input,.field){box-sizing:border-box;width:100%;height:45px;min-width:0;border-radius:12px;border:1px solid #dcd2ed;background:#fbfaff;padding:0 12px;font-size:12px}
+body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.panel.filters button{min-height:45px;border-radius:12px;font-size:12px;padding:0 17px}
+body.offrya-pro-v3 .pro-v3-market-chips{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:0 0 10px;min-width:0}
+body.offrya-pro-v3 .pro-v3-market-chips span{color:#4b3560;font-size:11px;font-weight:800}
+body.offrya-pro-v3 .pro-v3-market-chips button{font-size:11px;font-weight:750;color:#59377f;background:#faf8ff;border:1px solid #e0d3ef;border-radius:16px;padding:7px 12px;cursor:pointer;min-height:31px}
+body.offrya-pro-v3 .pro-v3-market-chips button:is(.active,:hover){background:#eee0ff;color:#6722be;border-color:#be93f5}
+body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.section-top{display:flex;justify-content:space-between;align-items:center;margin:0 0 9px;min-height:36px}
+body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.section-top>div{display:none}
+body.offrya-pro-v3 .pro-v3-markets-panel #exportBoamp{border:1px solid #d8bcf6;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:800;background:#fff;color:#6321a9}
+body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.panel:not(.filters){border-top:1px solid #e9e1f2;padding-top:7px}
+body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.panel .panel-heading{display:flex;align-items:center;justify-content:space-between;margin:0 0 9px}
+body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.panel .panel-heading h3{font-size:13px;font-weight:800;color:#39254e;margin:0}
+body.offrya-pro-v3 .pro-v3-markets-panel #boampCount{background:#f1ebfb;color:#6536b0;border-radius:14px;padding:6px 10px;font-size:11px}
+body.offrya-pro-v3 .pro-v3-markets-panel #boampList{display:grid;gap:0;min-width:0}
+body.offrya-pro-v3 .pro-v3-markets-panel #boampList .data-item{position:relative;min-width:0;padding:12px 5px 12px 49px;margin:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 9px;align-items:center;border:0;border-bottom:1px solid #f0e9f7;border-radius:0;background:#fff;box-shadow:none}
+body.offrya-pro-v3 .pro-v3-markets-panel #boampList .data-item:before{content:'◈';position:absolute;left:3px;top:15px;width:35px;height:35px;border-radius:11px;background:#f2eaff;color:#7330c9;display:grid;place-items:center;font-size:20px}
+body.offrya-pro-v3 .pro-v3-markets-panel #boampList .data-item .tag{display:none}
+body.offrya-pro-v3 .pro-v3-markets-panel #boampList .data-item .item-title{grid-column:1;grid-row:1;font-size:12px;line-height:1.5;font-weight:800;color:#2c1a3f;min-width:0;overflow-wrap:anywhere}
+body.offrya-pro-v3 .pro-v3-markets-panel #boampList .data-item .item-desc{grid-column:1;grid-row:2;font-size:11px;color:#766886;min-width:0;overflow-wrap:anywhere}
+body.offrya-pro-v3 .pro-v3-markets-panel #boampList .data-item .meta-row{grid-column:1;grid-row:3;display:flex;flex-wrap:wrap;gap:5px 12px;color:#746c7c;font-size:10px;min-width:0}
+body.offrya-pro-v3 .pro-v3-markets-panel #boampList .data-item>a{grid-column:2;grid-row:1/4;font-size:11px;white-space:normal;text-align:center;border-radius:11px;background:#f5efff;border:1px solid #e7d5fa;color:#6730ba;padding:8px 10px}
+body.offrya-pro-v3 .pro-v3-markets-panel #boampList .data-item:nth-child(n+6){display:none}
+body.offrya-pro-v3 .pro-v3-markets-panel #boampMore{display:none!important}
+body.offrya-pro-v3 .pro-v3-market-footnote{font-size:10px;color:#8b7e98;line-height:1.6;margin:13px 0 0}
+body.offrya-pro-v3 .pro-v3-mission-preview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 13px}
+body.offrya-pro-v3 .pro-v3-mission-card{display:flex;flex-direction:column;min-width:0;padding:15px;border:1px solid #eae1f5;border-radius:15px;background:linear-gradient(145deg,#fff,#fcfaff)}
+body.offrya-pro-v3 .pro-v3-mission-type{display:flex;align-items:center;gap:8px;color:#6e35bc;font-size:11px;font-weight:800}
+body.offrya-pro-v3 .pro-v3-mission-type .nav-icon{width:18px;height:18px}
+body.offrya-pro-v3 .pro-v3-mission-type span{display:block;max-width:100%;padding:6px 10px;background:#f0e4ff;border-radius:12px;overflow-wrap:anywhere}
+body.offrya-pro-v3 .pro-v3-mission-card h4{margin:13px 0 7px;color:#2b1840;font:800 14px/1.4 'Plus Jakarta Sans',sans-serif;overflow-wrap:anywhere}
+body.offrya-pro-v3 .pro-v3-mission-meta{display:flex;align-items:flex-start;flex-wrap:wrap;gap:7px 15px;color:#71647f}
+body.offrya-pro-v3 .pro-v3-mission-meta small{font-size:11px}
+body.offrya-pro-v3 .pro-v3-mission-card p{color:#695b78;font-size:12px;line-height:1.55;margin:10px 0 15px}
+body.offrya-pro-v3 .pro-v3-mission-card>button{align-self:flex-start;margin-top:auto;border:0;background:#eee0fd;color:#6328ae;padding:9px 13px;border-radius:10px;font-size:11px;font-weight:800;cursor:pointer}
+body.offrya-pro-v3 .pro-v3-missions-all{width:100%;min-height:43px;padding:11px 14px;background:linear-gradient(100deg,#8f32dd,#3b0c64);border:0;border-radius:11px;color:#fff;font-weight:800;font-size:12px;cursor:pointer}
+body.offrya-pro-v3 .pro-v3-opportunities{background:linear-gradient(160deg,#fff,#fcfaff)}
+body.offrya-pro-v3 .pro-v3-alerts>button{border-radius:13px;padding:13px;background:#f8f4fd;font-size:12px;min-height:56px}
+body.offrya-pro-v3 .pro-v3-action-grid>*{display:flex;align-items:center;gap:9px;min-width:0;min-height:53px;padding:12px 11px;background:#f6f0fc;border:1px solid #f2eafb;border-radius:12px;color:#59268b;font-size:11px;text-align:left}
+body.offrya-pro-v3 .pro-v3-action-grid .nav-icon{height:20px;width:20px;flex:none;color:#7c38d0}
+body.offrya-pro-v3 .pro-v3-action-grid span{min-width:0;overflow-wrap:anywhere}
+body.offrya-pro-v3 .pro-v3-actions{box-shadow:0 10px 25px #2e154709}
+body.offrya-pro-v3 .pro-v3-overview{display:none}
+body.offrya-pro-v3 .pro-v3-mission-card>button:focus-visible,
+body.offrya-pro-v3 .pro-v3-market-chips button:focus-visible,
+body.offrya-pro-v3 .pro-v3-action-grid button:focus-visible,
+body.offrya-pro-v3 .pro-v3-nav-btn:focus-visible{outline:3px solid #a45fe4;outline-offset:2px}
+@media(max-width:1180px){
+ body.offrya-pro-v3 .app-shell{grid-template-columns:225px minmax(0,1fr)}
+ body.offrya-pro-v3 .pro-v3-home-grid{grid-template-columns:minmax(0,1.35fr) minmax(245px,.85fr)}
+ body.offrya-pro-v3 .pro-v3-metric{flex-direction:column;align-items:flex-start;gap:7px;padding:16px 12px}
+ body.offrya-pro-v3 .pro-v3-metric>.nav-icon{height:38px;width:38px;padding:9px}
+ body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.panel.filters{grid-template-columns:minmax(0,1fr) 116px}
+ body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.panel.filters button{grid-column:1/-1}
+}
+@media(max-width:880px){
+ body.offrya-pro-v3 .pro-v3-home-grid{grid-template-columns:1fr}
+ body.offrya-pro-v3 .pro-v3-main-column{order:0}
+ body.offrya-pro-v3 .pro-v3-home-side{order:1;grid-template-columns:repeat(2,minmax(0,1fr))}
+ body.offrya-pro-v3 .pro-v3-home-side>.pro-v3-panel:last-child{grid-column:1/-1}
+}
+@media(max-width:620px){
+ body.offrya-pro-v3 .app-shell{display:block;padding-bottom:calc(93px + env(safe-area-inset-bottom,0px))}
+ body.offrya-pro-v3 .app-shell .sidebar{background:#351348}
+ body.offrya-pro-v3 .app-shell .header{height:66px;padding:0 15px}
+ body.offrya-pro-v3 .app-shell .main-content{padding:14px 13px 25px}
+ body.offrya-pro-v3 .pro-v3-intro{padding:19px 14px 17px;margin:0 0 13px;min-height:0;display:flex;flex-direction:column;align-items:flex-start;gap:12px;border-radius:17px}
+ body.offrya-pro-v3 .pro-v3-intro h2{font-size:clamp(22px,5.8vw,27px);line-height:1.25}
+ body.offrya-pro-v3 .pro-v3-intro p{font-size:12px}
+ body.offrya-pro-v3 .pro-v3-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0 0 15px}
+ body.offrya-pro-v3 [data-pro-panel="home"]>.pro-v3-metrics .pro-v3-metric:nth-child(n+3){display:flex!important}
+ body.offrya-pro-v3 .pro-v3-metric{height:auto;min-height:118px;padding:13px 11px;gap:5px;flex-direction:column;align-items:flex-start}
+ body.offrya-pro-v3 .pro-v3-metric>.nav-icon{width:33px;height:33px;padding:6px}
+ body.offrya-pro-v3 .pro-v3-metric span{display:flex;flex-direction:column;gap:4px}
+ body.offrya-pro-v3 .pro-v3-metric small{order:0;font-size:11px}
+ body.offrya-pro-v3 .pro-v3-metric strong{font-size:clamp(19px,6vw,26px)}
+ body.offrya-pro-v3 .pro-v3-home-grid{display:flex;flex-direction:column;gap:13px}
+ body.offrya-pro-v3 .pro-v3-main-column{display:flex;flex-direction:column;gap:13px;width:100%;min-width:0}
+ body.offrya-pro-v3 .pro-v3-home-side{display:flex;flex-direction:column;gap:13px;width:100%;min-width:0}
+ body.offrya-pro-v3 .pro-v3-panel{width:100%;max-width:100%;padding:16px;border-radius:17px}
+ body.offrya-pro-v3 .pro-v3-panel-head{align-items:flex-start;gap:8px;flex-wrap:wrap}
+ body.offrya-pro-v3 .pro-v3-panel-head h3{font-size:16px}
+ body.offrya-pro-v3 .pro-v3-panel-head button{padding:8px 10px;font-size:11px}
+ body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.panel.filters{display:flex;flex-direction:column;gap:9px;margin-bottom:12px}
+ body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.panel.filters :is(input,.field){width:100%;min-height:44px}
+ body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.panel.filters button{width:100%;min-height:44px}
+ body.offrya-pro-v3 .pro-v3-market-chips{gap:6px}
+ body.offrya-pro-v3 .pro-v3-market-chips span{width:100%}
+ body.offrya-pro-v3 .pro-v3-market-chips button{min-height:35px;font-size:11px}
+ body.offrya-pro-v3 .pro-v3-markets-panel #boampList .data-item{display:block;padding:12px 5px 14px 47px}
+ body.offrya-pro-v3 .pro-v3-markets-panel #boampList .data-item:before{top:13px}
+ body.offrya-pro-v3 .pro-v3-markets-panel #boampList .data-item .item-desc{margin:4px 0}
+ body.offrya-pro-v3 .pro-v3-markets-panel #boampList .data-item .meta-row{margin-top:6px}
+ body.offrya-pro-v3 .pro-v3-markets-panel #boampList .data-item>a{display:inline-flex;margin-top:9px;min-height:39px;align-items:center}
+ body.offrya-pro-v3 .pro-v3-mission-preview{grid-template-columns:1fr;gap:10px}
+ body.offrya-pro-v3 .pro-v3-mission-card{padding:13px}
+ body.offrya-pro-v3 .pro-v3-action-grid>*:nth-child(n+3){display:flex}
+ body.offrya-pro-v3 .pro-v3-action-grid>*{min-height:52px;padding:12px 9px;font-size:11px;gap:7px}
+ body.offrya-pro-v3 .pro-v3-action-grid .nav-icon{width:17px;height:17px}
+ body.offrya-pro-v3 .pro-v3-reco-btn{min-height:44px}
+ body.offrya-pro-v3 .pro-v3-home-side>.pro-v3-panel{width:100%}
+ body.offrya-pro-v3 .pro-v3-market-footnote{font-size:10px}
+}
+@media(max-width:370px){
+ body.offrya-pro-v3 .pro-v3-metric{padding:12px 8px}
+ body.offrya-pro-v3 .pro-v3-action-grid{gap:7px}
+ body.offrya-pro-v3 .pro-v3-action-grid>*{font-size:10px}
+}
