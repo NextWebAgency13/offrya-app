@@ -137,6 +137,14 @@ body.offrya-pro-v3 .pro-v3-watch-item{display:grid;gap:5px;border:1px solid #eee
 body.offrya-pro-v3 .pro-v3-watch-item strong{color:#301745}
 body.offrya-pro-v3 .pro-v3-watch-item small{color:#867c90}
 body.offrya-pro-v3 .pro-v3-watch-item a{color:#6935bb;text-decoration:underline;font-weight:700}
+body.offrya-pro-v3 .pro-v3-watch-item button[data-pro-prepare]{justify-self:start;border:1px solid #d9c1f1;color:#53228d;background:#f5effc;padding:9px 12px;border-radius:9px;font:750 11px 'Plus Jakarta Sans',sans-serif;cursor:pointer}
+body.offrya-pro-v3 .pro-v3-watch-item button[data-pro-prepare]:focus-visible{outline:3px solid #a56cdd;outline-offset:2px}
+body.offrya-pro-v3 .pro-v3-first-steps{padding-left:20px;margin:5px 0;color:#62516e;display:grid;gap:4px;font-size:11px;line-height:1.5}
+body.offrya-pro-v3 .pro-v3-tender-preparation{margin-top:14px;border:1px solid #ddcce9;padding:16px;border-radius:13px;background:#faf7fe}
+body.offrya-pro-v3 .pro-v3-tender-preparation[hidden]{display:none}
+body.offrya-pro-v3 .pro-v3-tender-preparation h3{font:800 16px 'Plus Jakarta Sans',sans-serif;color:#34164c;margin:0}
+body.offrya-pro-v3 #proV3TenderPrepDraft{display:block;width:100%;box-sizing:border-box;border:1px solid #d4bedf;border-radius:10px;padding:13px;background:#fff;color:#2e1b3d;line-height:1.6;font:13px 'DM Sans',sans-serif;resize:vertical;min-height:230px}
+
 body.offrya-pro-v3 .pro-v3-helper{font-size:11px;color:#7a6b87;line-height:1.5;margin:12px 2px}
 body.offrya-pro-v3 .pro-v3-mobile-menu{display:none}
 body.offrya-pro-v3 :is(#boamp,#inbox,#settings,#missions)>.section-top h2{color:#29123e;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-1px}
