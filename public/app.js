@@ -75,7 +75,7 @@ async function refresh(){
   ['opportunityPrefs',state.db.from('offrya_opportunity_preferences').select('*').eq('user_id',uid).maybeSingle()],
   ['tenderTracking',state.db.from('offrya_tender_tracking').select('user_id,tender_id,title,url,stage,updated_at').eq('user_id',uid).limit(100)],
   ['salesTracking',state.db.from('offrya_pro_lead_tracking').select('mission_id,stage,updated_at').eq('user_id',uid).limit(200)],
-  ['opportunityAlerts',state.db.from('offrya_tender_alerts').select('user_id,tender_id,title,url,deadline,detected_at,seen_at').eq('user_id',uid).order('detected_at',{ascending:false}).limit(50)],
+  ['opportunityAlerts',state.db.from('offrya_tender_alerts').select('user_id,tender_id,title,buyer,departments,url,deadline,match_score,match_reason,first_steps,detected_at,seen_at').eq('user_id',uid).order('detected_at',{ascending:false}).limit(50)],
   ['draft',state.db.from('offrya_professional_drafts').select('step,siret,legal_name,representative_name,representative_capacity,representative_kind').eq('user_id',uid).maybeSingle()],
   ['manualIdentity',state.db.from('offrya_manual_identity_requests').select('status,requested_at,updated_at').eq('user_id',uid).maybeSingle()]
  ];

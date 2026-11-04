@@ -58,7 +58,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
      menu.slice(1).map(x=>'<button data-pro-screen="'+x[0]+'">'+icon(x[2])+'<strong>'+esc(x[1])+'</strong><span>Accéder à cet outil →</span></button>').join('')+'</div></section>',
    '</section>',
    '<section class="pro-v3-view" data-pro-panel="commercial" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">GESTION DES DEMANDES · OFFRYA</span><h2 id="proV3CommercialHeading">Demandes de missions</h2><p id="proV3CommercialDescription">Qualifiez les demandes, préparez vos réponses et suivez vos échanges.</p></div><div id="proV3CommercialSlot"></div><div id="proV3FollowupSlot" class="pro-v3-followup" hidden></div></section>',
-   '<section class="pro-v3-view" data-pro-panel="watch" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">VEILLE · OFFRYA</span><h2>Veille automatisée</h2><p>Vos critères permettent de rechercher des missions et avis BOAMP correspondant à votre activité.</p></div><div class="pro-v3-metrics pro-v3-small-metrics"><div class="pro-v3-metric purple">'+icon('ic-bolt')+'<span><small>État de ma veille</small><strong id="proV3WatchState">—</strong><em>Activation volontaire</em></span></div><div class="pro-v3-metric blue">'+icon('ic-boamp')+'<span><small>Alertes reçues</small><strong id="proV3AlertCount">0</strong><em>Alertes BOAMP enregistrées</em></span></div></div><section class="pro-v3-panel"><div class="pro-v3-panel-head"><h3>Dernières alertes</h3><button data-pro-screen="preferences">Modifier mes critères →</button></div><div id="proV3WatchAlertList" class="pro-v3-alerts"></div><p class="pro-v3-helper">Les e-mails ne sont envoyés que si vous avez activé les préférences correspondantes et que le service d’envoi est configuré.</p></section></section>',
+   '<section class="pro-v3-view" data-pro-panel="watch" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">VEILLE · OFFRYA</span><h2>Veille automatisée</h2><p>Vos critères permettent de rechercher des missions et avis BOAMP correspondant à votre activité.</p></div><div class="pro-v3-metrics pro-v3-small-metrics"><div class="pro-v3-metric purple">'+icon('ic-bolt')+'<span><small>État de ma veille</small><strong id="proV3WatchState">—</strong><em>Activation volontaire</em></span></div><div class="pro-v3-metric blue">'+icon('ic-boamp')+'<span><small>Alertes reçues</small><strong id="proV3AlertCount">0</strong><em>Alertes BOAMP enregistrées</em></span></div></div><section class="pro-v3-panel"><div class="pro-v3-panel-head"><h3>Dernières alertes</h3><button data-pro-screen="preferences">Modifier mes critères →</button></div><div id="proV3WatchAlertList" class="pro-v3-alerts"></div><div id="proV3TenderPreparation" class="pro-v3-tender-preparation" hidden><h3>Préparation du dossier</h3><p id="proV3TenderPrepNotice" class="pro-v3-helper"></p><textarea id="proV3TenderPrepDraft" rows="15" readonly aria-label="Brouillon de préparation du marché"></textarea><p class="pro-v3-helper">Brouillon interne : vérifier le DCE et valider toute démarche avant dépôt.</p></div><p class="pro-v3-helper">Les e-mails ne sont envoyés que si vous avez activé les préférences correspondantes et que le service d’envoi est configuré.</p></section></section>',
    '<section class="pro-v3-view" data-pro-panel="preferences" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">PERSONNALISATION · OFFRYA</span><h2>Préférences de veille</h2><p>Choisissez vos secteurs, votre département et les mots-clés à surveiller.</p></div><div class="pro-v3-panel" id="proV3PreferenceSlot"></div><p class="pro-v3-helper">Les alertes restent désactivées tant que vous ne les activez pas explicitement.</p></section>',
   ].join('');
   $('proDashboard').prepend(root);
@@ -139,9 +139,37 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   ];
   $('proV3Alerts').innerHTML=rows.map(x=>'<button data-pro-screen="'+x[1]+'"><span class="pro-v3-alert-icon">'+alertIcon(x[1])+'</span>'+esc(x[0])+'<b>›</b></button>').join('');
   $('proV3WatchAlertList').innerHTML=alerts.length?alerts.slice(0,15).map(a=>{
-   const href=/^https:\/\/[^\s]+$/i.test(a.url||'')?esc(a.url):null;
-   return '<div class="pro-v3-watch-item"><strong>'+esc(a.title||'Marché public')+'</strong><small>'+esc(a.seen_at?'Déjà consultée':'Nouvelle alerte')+'</small>'+(href?'<a href="'+href+'" target="_blank" rel="noopener noreferrer">Ouvrir l’avis officiel ↗</a>':'')+'</div>';
-  }).join(''):'<div class="pro-v3-empty">Aucune alerte BOAMP enregistrée pour le moment.</div>';
+   const href=/^https:\/\/(www\.)?boamp\.fr\//i.test(a.url||'')?esc(a.url):null;
+   const score=Number.isInteger(a.match_score)?'<small>Pertinence estimée : '+a.match_score+'/100 · '+esc(a.match_reason||'')+'</small>':'';
+   const actions=Array.isArray(a.first_steps)?a.first_steps.slice(0,2).map(x=>'<li>'+esc(x)+'</li>').join(''):'';
+   const steps=actions?'<ol class="pro-v3-first-steps">'+actions+'</ol>':'';
+   const prepare=Date.parse(state.testPremiumUntil||'')>Date.now()?'':'<button type="button" data-pro-prepare="'+esc(a.tender_id)+'">Préparer le dossier avec l’IA</button>';
+   return '<div class="pro-v3-watch-item"><strong>'+esc(a.title||'Marché public')+'</strong>'+score+
+    '<small>'+esc(a.seen_at?'Déjà consultée':'Nouvelle alerte')+' · Date limite : '+esc(a.deadline?new Date(a.deadline).toLocaleDateString('fr-FR'):'À vérifier')+'</small>'+steps+
+    (href?'<a href="'+href+'" target="_blank" rel="noopener noreferrer">Ouvrir l’avis officiel</a>':'')+prepare+'</div>';
+  }).join(''):'<div class="pro-v3-empty">Aucune alerte BOAMP qualifiée. Activez votre veille avec vos secteurs et votre département ; seuls les marchés réels seront proposés.</div>';
+
+ }
+ async function prepareTender(id){
+  if(!canUsePremium()||Date.parse(state.testPremiumUntil||'')>Date.now())return;
+  const activeUser=state.session?.user?.id;
+  const alert=(state.opportunityAlerts||[]).find(x=>x.tender_id===id);
+  if(!alert||!activeUser)return;
+  const panel=$('proV3TenderPreparation'),notice=$('proV3TenderPrepNotice'),draft=$('proV3TenderPrepDraft');
+  panel.hidden=false;notice.textContent='Préparation interne en cours…';draft.value='';
+  try{
+   const session=(await state.db.auth.getSession()).data?.session;
+   if(!session)throw Error('Session expirée.');
+   const response=await fetch('/api/pro/tender-preparation',{method:'POST',
+    headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},
+    body:JSON.stringify({tender_id:id}),cache:'no-store'});
+   const result=await response.json();
+   if(state.session?.user?.id!==activeUser)return;
+   if(!response.ok)throw Error(result.error||'Préparation indisponible.');
+   draft.value=String(result.draft||'');
+   notice.textContent=result.notice||'Brouillon à vérifier dans le DCE.';
+   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }catch(e){notice.textContent=e.message||'Préparation indisponible.';}
  }
  function syncTab(name){
   if(!initialized||!canUsePremium())return;
@@ -200,6 +228,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   });
   $('proExperienceV3').addEventListener('click',e=>{
    const b=e.target.closest('[data-pro-mission]');if(b)openMission(b.dataset.proMission);
+    const prep=e.target.closest('[data-pro-prepare]');if(prep)prepareTender(prep.dataset.proPrepare);
   });
   // The five existing mobile tabs continue to function, but "Accueil" shows
   // the Pro dashboard instead of the client's personal dashboard for eligible users.
@@ -228,7 +257,10 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   document.body.classList.toggle('offrya-pro-v3',premium);
   if(!premium){uid=null;return;}
   const user=state.session?.user?.id;
-  if(user!==uid){uid=user;view='home';}
+  if(user!==uid){uid=user;view='home';
+   const pane=$('proV3TenderPreparation');if(pane)pane.hidden=true;
+   const draft=$('proV3TenderPrepDraft');if(draft)draft.value='';
+  }
   const label=state.premium?.legal_name||state.profile?.display_name||'professionnel';
   $('proV3Hello').textContent=label;
   const temporary=Date.parse(state.testPremiumUntil||'')>Date.now();
