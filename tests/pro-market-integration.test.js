@@ -11,7 +11,7 @@ const server=fs.readFileSync('server.js','utf8');
 const slice=(s,a,b)=>{const i=s.indexOf(a),j=s.indexOf(b,i+a.length);assert.ok(i>=0&&j>i);return s.slice(i,j)};
 test('Marchés publics appears as a real Pro subsection, with the original BOAMP search and export reused',()=>{
  assert.match(pro,/\['boamp','Marchés publics','ic-boamp'\]/);
- assert.match(pro,/<span>Rechercher des marchés publics<\/span>/);
+ assert.match(pro,/data-pro-panel="boamp"/);
  assert.match(pro,/data-pro-panel="boamp"/);
  assert.match(pro,/\$\('proV3BoampSlot'\)\.appendChild\(\$\('premiumContent'\)\)/);
  for(const id of ['premiumContent','boampSearch','boampKeyword','boampDept','exportBoamp','boampList','boampMore'])assert.match(html,new RegExp('id="'+id+'"'));
@@ -19,11 +19,11 @@ test('Marchés publics appears as a real Pro subsection, with the original BOAMP
  assert.match(css,/#proV3BoampSlot \.filters/);
  assert.match(css,/#proV3BoampSlot #exportBoamp/);
 });
-test('Market menu is visible in all six Android quick actions, not a sixth bottom tab',()=>{
+test('Markets stay in their own Pro menu, outside dashboard quick actions and bottom tabs',()=>{
  const i=pro.indexOf('<div class="pro-v3-action-grid">'),j=pro.indexOf('</div>',i);
  const quick=pro.slice(i,j);
- assert.ok(quick.indexOf('data-pro-screen="boamp"')>0);
- assert.ok(quick.indexOf('data-pro-screen="boamp"')<quick.indexOf('data-pro-screen="tracking"'));
+ assert.equal(quick.includes('data-pro-screen="boamp"'),false);
+ assert.ok(quick.includes('data-pro-screen="requests"'));
  assert.match(css,/pro-v3-action-grid>\*:nth-child\(n\+3\)\{display:flex\}/);
  assert.match(css,/pro-v3-mobile-menu\{display:none!important\}/);
  assert.match(html,/data-tab="professional"/);
