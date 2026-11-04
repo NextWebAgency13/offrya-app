@@ -1,0 +1,39 @@
+'use strict';
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const {spawnSync}=require('node:child_process');
+const fs=require('node:fs');
+const js=fs.readFileSync('public/pro-experience.js','utf8');
+const css=fs.readFileSync('public/pro-experience.css','utf8');
+const app=fs.readFileSync('public/app.js','utf8');
+const html=fs.readFileSync('public/espace.html','utf8');
+const server=fs.readFileSync('server.js','utf8');
+test('Pro V3 module syntax is valid ES module JavaScript',()=>{
+ const p=spawnSync(process.execPath,['--input-type=module','--check'],{input:js,encoding:'utf8'});
+ assert.equal(p.status,0,p.stderr);
+});
+test('Approved nine-view navigation and existing protected modules',()=>{
+ for(const name of ['Tableau de bord','Demandes de missions','Assistant IA','Marchés publics','Veille automatisée','Suivi & performances','Messagerie','Préférences de veille','Paramètres'])assert.ok(js.includes(name),'Missing Pro navigation '+name);
+ for(const id of ['proV3MissionCount','proV3MarketCount','proV3ConversationCount','proV3TrackingCount','proV3Recommendations','proV3Alerts','proV3Chart','proV3CommercialSlot','proV3PreferenceSlot'])assert.ok(js.includes(id),'Missing element '+id);
+ assert.match(js,/canUsePremium\(\)/);
+ assert.match(js,/state\.missions/);
+ assert.match(js,/state\.opportunityPrefs/);
+ assert.match(js,/state\.conversations/);
+ assert.match(js,/appendChild\(\$\('opWatchDetails'\)\)/);
+ assert.match(js,/appendChild\(document\.querySelector\('#proDashboard \.sales-workspace'\)\)/);
+ assert.match(js,/state\.selectedMissionId=id/);
+ assert.doesNotMatch(js,/Entretien complet d.un jardin|Bâtisud Services|12 nouvelles missions/);
+});
+test('Core business access control and signed-in client screens remain untouched',()=>{
+ assert.match(app,/createProExperience/);
+ assert.match(app,/canUsePremium\(\)&&location\.pathname===paths\.dashboard/);
+ assert.match(app,/createSalesWorkspace/);
+ assert.match(app,/createOpportunityConsole/);
+ assert.match(app,/renderPremium/);
+ assert.match(css,/body\.offrya-pro-v3/);
+ assert.match(css,/@media\(max-width:620px\)/);
+ assert.match(css,/#proV3CommercialSlot/);
+ assert.match(html,/href="\/pro-experience\.css"/);
+ assert.match(server,/\/pro-experience\.js/);
+ assert.match(server,/\/pro-experience\.css/);
+});
