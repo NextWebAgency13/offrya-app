@@ -2,6 +2,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 import {createAuthCaptcha} from './auth-captcha.mjs';
 import {createOpportunityConsole} from './opportunity-console.js';
 import {createSalesWorkspace} from './pro-commercial.js';
+import {createProExperience} from './pro-experience.js';
 const $=id=>document.getElementById(id);
 const authCaptcha=createAuthCaptcha($('modalAuthCaptcha'));
 
@@ -511,7 +512,7 @@ $('homePrivateDashboard').classList.toggle('hidden',!yes);$('statOpenLabel').tex
  // An optional module must not interrupt the other views.
  for(const [name,draw] of [
   ['missions',renderMissions],['messagerie',renderInbox],['paramètres',renderSettings],
-  ['professionnel',renderPremium],['opportunités',()=>{opportunityConsole.render();salesWorkspace.render();}],['alertes',renderPriorityAlerts]
+  ['professionnel',renderPremium],['opportunités',()=>{opportunityConsole.render();salesWorkspace.render();}],['nouvelle interface professionnelle',()=>proExperience.render()],['alertes',renderPriorityAlerts]
  ]){
   try{draw();}catch(error){console.error('OFFRYA: rendu '+name+' indisponible',error);}
  }
@@ -577,12 +578,13 @@ async function init(){
  if(canUsePremium())await loadBoamp();
  // La file est créée dans Supabase dès la publication; le navigateur vérifie les nouvelles alertes.
  setInterval(()=>{if(state.session&&canUsePremium()&&!document.hidden)loadPriorityAlerts().catch(console.error);},60000);
- tab(pathsReverse[location.pathname]||'dashboard',true);
+ tab(canUsePremium()&&location.pathname===paths.dashboard?'professional':(pathsReverse[location.pathname]||'dashboard'),true);
   const p=new URLSearchParams(location.search);
   if(p.has('checkout'))toast(p.get('checkout')==='success'?'Retour de Stripe : confirmation du paiement en cours.':'Paiement non finalisé.');
   if(p.has('identity'))toast('Retour de Stripe Identity : consultez le statut de votre dossier.');
 }
 const opportunityConsole=createOpportunityConsole({state,element:$,canUsePremium,tab,renderMissions,notify:toast});
 const salesWorkspace=createSalesWorkspace({state,element:$,canUsePremium,tab,notify:toast,refresh});
-opportunityConsole.init();salesWorkspace.init();
+const proExperience=createProExperience({state,element:$,canUsePremium,tab,renderMissions,notify:toast});
+proExperience.init();opportunityConsole.init();salesWorkspace.init();
 init().catch(showError);
