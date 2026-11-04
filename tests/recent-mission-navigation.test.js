@@ -43,7 +43,7 @@ test('Missions tab resets a prior detail but explicit card selection preserves i
   if(!nodes.has(id))nodes.set(id,{id,classList:{toggle(){}}});
   return nodes.get(id);
  };
- const doc={querySelectorAll:()=>[],getElementById:()=>({removeAttribute(){}})};
+ const doc={body:{classList:{toggle(){}}},querySelectorAll:()=>[],getElementById:()=>({removeAttribute(){}})};
  const ctx={state,$,document:doc,history:{pushState(){}},location:{pathname:'/espace/missions'},window:{scrollTo(){}},paths:{missions:'/espace/missions'},canUsePremium:()=>false,loadBoamp:()=>{},renderMissions:()=>{calls.render++}};
  vm.runInNewContext(source,ctx);
  ctx.tab('missions');
