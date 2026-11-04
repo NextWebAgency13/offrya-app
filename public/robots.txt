@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://offrya-app.onrender.com/sitemap.xml
+Sitemap: https://offrya.fr/sitemap.xml
