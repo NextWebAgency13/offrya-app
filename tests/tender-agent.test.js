@@ -1,0 +1,56 @@
+'use strict';
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const {qualifyTender,initialSteps,guidedPreparation,prepareWithAI}=require('../lib/tender-assistant');
+const expiry=new Date(Date.now()+12*86400000).toISOString();
+const tender={id:'26-123456',title:'Prestations de nettoyage de locaux administratifs',description:'Entretien des bureaux',buyer:'Ville de test',departments:'13',deadline:expiry,url:'https://www.boamp.fr/pages/avis/?q=idweb:26-123456'};
+const prefs={sectors:['Nettoyage'],department:'13',keywords:'bureaux',user_id:'12345678-1234-4234-8234-123456789012'};
+test('Qualification ranks real, unexpired matching BOAMP notices and prepares human-reviewed steps',()=>{
+ const row=qualifyTender(tender,prefs);
+ assert.ok(row && row.match_score>=45);
+ assert.match(row.match_reason,/Nettoyage/);
+ assert.equal(row.user_id,prefs.user_id);
+ assert.ok(row.first_steps.length>=4);
+ assert.match(row.first_steps.join(' '),/DCE/);
+ assert.match(guidedPreparation(row),/NON DÉPOSÉ/);
+ assert.match(guidedPreparation(row),/Aucune candidature/);
+});
+test('Reject expired, fabricated-source, irrelevant and unset-filter notices',()=>{
+ assert.equal(qualifyTender({...tender,deadline:new Date(Date.now()-1000).toISOString()},prefs),null);
+ assert.equal(qualifyTender({...tender,url:'https://attacker.example/avis'},prefs),null);
+ assert.equal(qualifyTender({...tender,title:'Services juridiques',description:'Conseil juridique'},prefs),null);
+ assert.equal(qualifyTender(tender,{sectors:[],keywords:''}),null);
+});
+test('AI provider is opt-in configured and cannot send bids or mail',async()=>{
+ const row=qualifyTender(tender,prefs);
+ const guided=await prepareWithAI(row,{});
+ assert.equal(guided.mode,'guide');
+ let urlSent,optsSent;
+ const fake=async(u,opts)=>{urlSent=u;optsSent=opts;return{ok:true,json:async()=>({choices:[{message:{content:'Note de préparation détaillée : vérifier le règlement du DCE, les critères exacts, les pièces obligatoires, le délai officiel de remise et les capacités de l’entreprise. Aucun engagement ni dépôt sans validation humaine. Le brouillon ne constitue pas une candidature et doit être contrôlé.'}}]})};};
+ const ai=await prepareWithAI(row,{OPENAI_API_KEY:'test',OFFRYA_AI_MODEL:'test-model'},fake);
+ assert.equal(ai.mode,'ai');
+ assert.equal(urlSent,'https://api.openai.com/v1/chat/completions');
+ assert.match(optsSent.body,/aucun/i);
+ assert.match(ai.draft,/DCE/);
+});
+test('Backend and UI integrate read-only preparation with prior subscription and identity checks',()=>{
+ const server=fs.readFileSync('server.js','utf8');
+ const worker=fs.readFileSync('scripts/watch-sector-tenders.js','utf8');
+ const ui=fs.readFileSync('public/pro-experience.js','utf8');
+ const app=fs.readFileSync('public/app.js','utf8');
+ const sql=fs.readFileSync('sql/tender_agent_preparation.sql','utf8');
+ assert.match(server,/\/api\/pro\/tender-preparation/);
+ assert.match(server,/if\(premium\.test\)return json\(res,403/);
+ assert.match(server,/verifyPremiumAccess/);
+ assert.match(server,/offrya_tender_alerts\?select=/);
+ assert.match(worker,/qualifyTender/);
+ assert.match(worker,/rpc\/offrya_agent_watch_targets/);
+ assert.match(worker,/resolution=ignore-duplicates/);
+ assert.doesNotMatch(worker,/sendMail|smtp|api\.resend\.com/);
+ assert.match(ui,/data-pro-prepare/);
+ assert.match(ui,/proV3TenderPrepDraft/);
+ assert.match(app,/match_score,match_reason,first_steps/);
+ assert.match(sql,/revoke all on function public\.offrya_agent_watch_targets/);
+ assert.match(sql,/s\.status='active' and s\.paid_through>now\(\)/);
+});
