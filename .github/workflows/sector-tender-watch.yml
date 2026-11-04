@@ -27,5 +27,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Veille BOAMP + TED : opportunités publiques pour abonnés vérifiés
+      - name: "Veille BOAMP + TED : opportunités publiques pour abonnés vérifiés"
         run: node scripts/watch-sector-tenders.js
