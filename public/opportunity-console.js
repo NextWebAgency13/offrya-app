@@ -24,7 +24,7 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
  }
 
  const current=()=>state.session?.user?.id;
- function prefs(){return state.opportunityPrefs||{sectors:[],department:'',keywords:'',alerts_enabled:false};}
+ function prefs(){return state.opportunityPrefs||{sectors:[],department:'',keywords:''};}
  function matchMission(m,p){
   if(m.status!=='open'||m.owner_id===current())return false;
   if(p.sectors?.length&&!p.sectors.includes(m.category))return false;
@@ -46,7 +46,6 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
    const form=$('opWatchForm');
    form.elements.department.value=p.department||'';
    form.elements.keywords.value=p.keywords||'';
-   form.elements.alerts_enabled.checked=Boolean(p.alerts_enabled);
    for(const c of $('opSectorChoices').querySelectorAll('input'))c.checked=Boolean(p.sectors?.includes(c.value));
    ready=true;
   }
@@ -124,13 +123,12 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
   const f=event.currentTarget,p={user_id:current(),
    sectors:[...$('opSectorChoices').querySelectorAll('input:checked')].map(x=>x.value).filter(x=>sectors.includes(x)),
    department:f.elements.department.value.trim().toUpperCase(),keywords:f.elements.keywords.value.trim(),
-   alerts_enabled:f.elements.alerts_enabled.checked,updated_at:new Date().toISOString()};
+   alerts_enabled:true,updated_at:new Date().toISOString()};
   if(p.department&&!/^(0[1-9]|[1-8][0-9]|9[0-5]|2A|2B|97[1-6])$/.test(p.department)){notify('Indiquez un département valide ou laissez vide.');return;}
-  if(p.alerts_enabled&&!p.sectors.length&&!p.keywords){notify('Sélectionnez un secteur ou saisissez un mot-clé pour activer les alertes.');return;}
   const result=await state.db.from('offrya_opportunity_preferences').upsert(p,{onConflict:'user_id'});
   if(result.error){notify('Préférences non enregistrées.');console.warn(result.error);return;}
-  state.opportunityPrefs=p;lastSearch=0;previousFingerprint='';$('opWatchFeedback').textContent=p.alerts_enabled?'Veille active : BOAMP et TED. Les nouvelles opportunités paraîtront dans votre espace après la prochaine exécution.':'Préférences enregistrées. Alertes de veille désactivées.';
-  render();notify(p.alerts_enabled?'Veille activée.':'Préférences de veille enregistrées, alertes désactivées.');
+  state.opportunityPrefs=p;lastSearch=0;previousFingerprint='';$('opWatchFeedback').textContent='Veille automatique incluse dans votre abonnement Premium. Vos critères facultatifs sont enregistrés.';
+  render();notify('Filtres facultatifs enregistrés. La veille reste automatique.');
  }
  async function trackTender(t){
   if(!canUsePremium())return;

@@ -249,9 +249,9 @@
       </section>
 
       <details class="op-compact-details" id="opWatchDetails">
-        <summary><span><strong>Ma veille automatisée</strong><small>Configurer mes secteurs, ma zone, mes mots-clés et mes alertes</small></span><span aria-hidden="true">⌄</span></summary>
+        <summary><span><strong>Ma veille automatisée</strong><small>Automatique pour les abonnés Premium · filtres facultatifs</small></span><span aria-hidden="true">⌄</span></summary>
         <div class="op-detail-content">
-          <p class="tiny muted">Vos critères s'appliquent aux missions privées et aux marchés publics. Les alertes par e-mail restent indépendantes et désactivées par défaut.</p>
+          <p class="tiny muted">OFFRYA recherche automatiquement les opportunités publiques pour chaque professionnel vérifié et abonné, même sans filtre. Précisez votre activité ou département uniquement si vous souhaitez affiner les résultats. Les e-mails sont indépendants et nécessitent votre accord.</p>
           <form id="opWatchForm" class="op-form">
             <fieldset><legend>Secteurs surveillés</legend><div class="op-check-grid" id="opSectorChoices">
               <label><input type="checkbox" value="Nettoyage"> Nettoyage</label>
@@ -265,9 +265,8 @@
             </div></fieldset>
             <label>Département (vide = France entière)<input class="field" name="department" maxlength="3" placeholder="Ex. 13" autocomplete="off"></label>
             <label>Mots-clés complémentaires<input class="field" name="keywords" maxlength="180" placeholder="Ex. entretien bureaux"></label>
-            <label class="op-check-alert"><input type="checkbox" name="alerts_enabled"> Recevoir des alertes de veille BOAMP et TED dans mon espace Premium</label>
-            <button class="button primary" type="submit">Enregistrer ma veille</button>
-            <p class="tiny muted" id="opWatchFeedback" role="status">Sélectionnez vos critères pour personnaliser les résultats.</p>
+                        <button class="button primary" type="submit">Enregistrer mes filtres facultatifs</button>
+            <p class="tiny muted" id="opWatchFeedback" role="status">Veille automatique active pour tout compte professionnel vérifié et abonné. Aucun filtre n’est obligatoire.</p>
           </form>
         </div>
       </details>

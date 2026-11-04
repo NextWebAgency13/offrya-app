@@ -149,7 +149,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
     return '<div class="pro-v3-watch-item"><small>'+esc(name)+' · '+esc(a.seen_at?'Déjà consultée':'Nouvelle opportunité')+'</small><strong>'+esc(a.title||'Marché public')+'</strong>'+score+
      '<small>Échéance : '+esc(a.deadline?new Date(a.deadline).toLocaleDateString('fr-FR'):'À vérifier')+'</small>'+
      (href?'<a href="'+href+'" target="_blank" rel="noopener noreferrer">Consulter la publication officielle</a>':'')+'</div>';
-   }).join(''):'<div class="pro-v3-empty">Aucune nouvelle opportunité qualifiée. Activez la veille avec vos secteurs et votre département pour recevoir des alertes issues des sources officielles.</div>';
+   }).join(''):'<div class="pro-v3-empty">Aucune nouvelle opportunité pour le moment. La veille BOAMP et TED s’exécute automatiquement pour les professionnels vérifiés et abonnés.</div>';
  }
  function syncTab(name){
   if(!initialized||!canUsePremium())return;

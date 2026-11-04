@@ -1,12 +1,13 @@
 'use strict';
 // OFFRYA read-only public-opportunity monitoring: BOAMP (France) + TED (EU).
-// Only verified, paid, explicitly opted-in professionals are notified in-app.
+// Every verified, paid professional is monitored automatically in-app. Optional profile filters narrow matching.
 // No AI-generated reply, bid submission, external contact or unsolicited email.
 const {queryBoamp}=require('../lib/boamp');
 const {queryTed}=require('../lib/ted');
 const {qualifyTender}=require('../lib/tender-assistant');
 const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
 const key=process.env.SUPABASE_SECRET_KEY;
+const defaultSectors=['Nettoyage','Espaces verts','Bâtiment','Informatique','Transport','Restauration & Hôtellerie','Bien-être & Beauté'];
 const termsBySector={
  'Nettoyage':'nettoyage','Espaces verts':'espaces verts','Bâtiment':'travaux',
  'Informatique':'informatique','Transport':'transport',
@@ -27,17 +28,18 @@ function fingerprint(row){
  return [canonical(row.title),canonical(row.buyer),String(row.deadline||'').slice(0,10)].join('|');
 }
 function cleanRow(item,user,prefs={},now=new Date()){
- const ranked=qualifyTender(item,{...prefs,user_id:user},now);
+ const sectors=(Array.isArray(prefs.sectors)?prefs.sectors:[]).filter(s=>Boolean(termsBySector[s]));
+ const ranked=qualifyTender(item,{...prefs,sectors:sectors.length?sectors:defaultSectors,user_id:user},now);
  if(!ranked)return null;
  // Discovery rows are solely notifications, not automatically prepared dossiers.
  const {first_steps:unused,...alert}=ranked;
  return {...alert,source:item.source==='TED'?'TED':'BOAMP'};
 }
 function queryTerms(pref){
- const sectorTerms=(Array.isArray(pref.sectors)?pref.sectors:[])
-  .map(s=>termsBySector[s]).filter(Boolean);
+ const selected=(Array.isArray(pref.sectors)?pref.sectors:[]).filter(s=>Boolean(termsBySector[s]));
+ const sectorTerms=(selected.length?selected:defaultSectors).map(s=>termsBySector[s]).filter(Boolean);
  const keyword=String(pref.keywords||'').trim().slice(0,60);
- return [...new Set([...sectorTerms,...(keyword?[keyword]:[])])].slice(0,5);
+ return [...new Set([...sectorTerms,...(keyword?[keyword]:[])])].slice(0,8);
 }
 async function run({boamp=queryBoamp,ted=queryTed,store=rest,logger=console}={}){
  if(!/^https:\/\/[a-z0-9.-]+\.supabase\.co$/.test(base)||!key)
@@ -49,11 +51,11 @@ async function run({boamp=queryBoamp,ted=queryTed,store=rest,logger=console}={})
  for(const pref of targets.slice(0,60)){
   if(!/^[0-9a-f-]{36}$/i.test(pref.user_id||''))continue;
   const terms=queryTerms(pref);
-  if(!terms.length)continue; // No broad, untargeted surveillance.
+  // A professional with no custom filters receives automatically discovered notices.
   processed++;
   const matches=new Map();
   for(const term of terms){
-   // Cache results for other opted-in professionals sharing the same criteria.
+   // Cache results for paid professionals sharing the same criteria.
    const cacheKey=term+'|'+String(pref.department||'');
    if(!cache.has(cacheKey)){
     if(queries>=100){logger.warn('OFFRYA : limite de requêtes de veille atteinte');break;}
@@ -96,10 +98,10 @@ async function run({boamp=queryBoamp,ted=queryTed,store=rest,logger=console}={})
    insertedCandidates+=alerts.length;
   }
  }
- logger.log('OFFRYA veille officielle : abonnés opt-in='+processed+
+ logger.log('OFFRYA veille officielle : abonnés actifs='+processed+
   ' évaluations='+qualified+' propositions='+insertedCandidates+
   ' sources indisponibles='+failures+' recherches='+queries);
- // Source outages are reported; never fabricate results or alter opt-in.
+ // Source outages are reported; never fabricate results or alter email consent.
  if(failures&&processed&&qualified===0)process.exitCode=1;
  return {processed,qualified,proposed:insertedCandidates,failures,queries};
 }
