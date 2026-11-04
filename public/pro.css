@@ -165,3 +165,43 @@
  .op-compact-details summary{padding:15px}
  .op-detail-content{padding:2px 14px 17px}
 }
+
+/* Commercial triage for authenticated OFFRYA professionals. */
+.sales-workspace{border:1px solid #e8deef;background:#fff;border-radius:22px;padding:20px;margin:0 0 18px;box-shadow:0 8px 27px #40135d08}
+.sales-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.sales-heading h4{font:800 clamp(20px,2.9vw,26px)/1.2 'Plus Jakarta Sans',sans-serif;color:#321348;margin:6px 0 0}
+.sales-bot-symbol{color:#66319b;font-size:28px}
+.sales-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:19px}
+.sales-stats>div{background:#f8f5fb;border:1px solid #e8e0f0;border-radius:18px;min-width:0;min-height:115px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px}
+.sales-stats strong{font:800 clamp(23px,4vw,33px)/1.1 'Plus Jakarta Sans',sans-serif;color:#3e1a56}
+.sales-stats span{font-size:12px;color:#6c6580;text-align:center}
+.sales-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:5px;background:#f3eef9;border-radius:15px;margin-bottom:16px}
+.sales-tabs button{font:750 13px/1.3 'Plus Jakarta Sans',sans-serif;border:0;background:transparent;border-radius:12px;padding:13px 4px;color:#70657d;cursor:pointer}
+.sales-tabs button[aria-selected="true"]{background:#632c9b;color:white;box-shadow:0 3px 9px #3e17652c}
+.sales-tabs button:focus-visible,.sales-lead:focus-visible{outline:3px solid #b795e6;outline-offset:2px}
+.sales-leads,#salesTrackingList{display:grid;gap:10px}
+.sales-lead{background:#fff;border:1px solid #e6dfec;border-radius:16px;padding:19px;text-align:left;display:grid;grid-template-columns:minmax(0,1fr) 16px;gap:9px 12px;width:100%;cursor:pointer;color:#34223e}
+.sales-lead:hover{border-color:#a97fc9;background:#fdfaff}
+.sales-lead strong{font:800 17px/1.35 'Plus Jakarta Sans',sans-serif}
+.sales-chevron{font-size:26px;line-height:1;color:#86778e}
+.sales-lead small{grid-column:1/-1;font-size:12px;color:#7a7082}
+.sales-lead-status{grid-column:1/-1;font-weight:650;font-size:12px;color:#55316e}
+.sales-empty{padding:25px 15px;text-align:center;border:1px dashed #dcd1e5;border-radius:16px;color:#71667e;line-height:1.55}
+.sales-empty strong{color:#452753}
+.sales-empty p{margin:7px auto 0;max-width:440px;font-size:13px}
+.sales-assistant-detail h5{font:800 20px/1.35 'Plus Jakarta Sans',sans-serif;color:#381547;margin:9px 0 4px}
+.sales-assistant-detail>.muted{margin:0 0 13px}
+.sales-back{background:none;border:0;padding:5px 0;color:#7035a4;font-weight:750;font-size:12px;cursor:pointer}
+.sales-received,.sales-draft{padding:16px;border-radius:15px;margin:12px 0}
+.sales-received{background:#f8f4fb}
+.sales-received strong,.sales-draft strong{display:block;font-size:14px;color:#3c2448;margin-bottom:8px}
+.sales-received p{margin:0 0 8px;white-space:pre-wrap;overflow-wrap:anywhere;color:#463b50;font-size:13px;line-height:1.6}
+.sales-received small{font-size:11px;color:#736782}
+.sales-draft{border:1px solid #e2d5ed}
+.sales-draft label{display:block;font-size:12px;font-weight:700;margin:12px 0 7px}
+.sales-draft textarea{width:100%;min-height:170px;line-height:1.55}
+.sales-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.sales-stage{display:grid;gap:8px;margin:18px 0;font-size:12px;font-weight:800;color:#4c335d}
+.sales-stage select{width:100%;max-width:400px}
+.sales-integrity-note{font-size:11px;line-height:1.55;color:#837a8e;margin:14px 0 0}
+@media(max-width:600px){.sales-workspace{padding:14px}.sales-stats{gap:7px}.sales-stats>div{min-height:93px;border-radius:13px;padding:10px 4px}.sales-stats span{font-size:11px}.sales-tabs button{font-size:12px;padding:12px 1px}.sales-lead{padding:15px}.sales-actions>.button{flex:1}}
