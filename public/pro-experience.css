@@ -558,3 +558,41 @@ body.offrya-pro-v3:not(.offrya-pro-workspace) #proV3Search{display:none!importan
  body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar #nav .nav-link span{display:inline!important;font-size:12px}
  body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar #nav .nav-icon{flex:none}
 }
+
+/* Public tender digest: always in the separate Markets/Watch views, never the mission dashboard. */
+body.offrya-pro-v3 .pro-v3-today-panel{margin-bottom:17px}
+body.offrya-pro-v3 .pro-v3-today-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+body.offrya-pro-v3 .pro-v3-tender-card{padding:17px;background:linear-gradient(160deg,#fff,#fcfaff);border:1px solid #e8def3;border-radius:16px;min-width:0;overflow-wrap:anywhere}
+body.offrya-pro-v3 .pro-v3-tender-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:#73627f}
+body.offrya-pro-v3 .pro-v3-tender-meta small{font-size:10px;font-weight:800}
+body.offrya-pro-v3 .pro-v3-tender-category{background:#f0e5ff;border-radius:12px;padding:5px 9px;color:#6631ad;font-size:10px;font-weight:800}
+body.offrya-pro-v3 .pro-v3-tender-score{font-size:11px;margin-left:auto;color:#6935ac;background:#f9f4ff;border-radius:10px;padding:5px 8px}
+body.offrya-pro-v3 .pro-v3-tender-card h4{font:800 14px/1.4 'Plus Jakarta Sans',sans-serif;color:#29143c;margin:12px 0 8px}
+body.offrya-pro-v3 .pro-v3-tender-summary{font-size:12px;line-height:1.65;color:#5b4b6b;margin:0 0 12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+body.offrya-pro-v3 .pro-v3-tender-pending{font-size:11px;color:#897c97;margin:8px 0 12px}
+body.offrya-pro-v3 .pro-v3-tender-fields{display:flex;flex-wrap:wrap;gap:7px 13px;color:#6f637d;font-size:11px;margin:10px 0}
+body.offrya-pro-v3 .pro-v3-tender-fields span{background:#faf7ff;border-radius:9px;padding:7px 10px}
+body.offrya-pro-v3 .pro-v3-tender-reasons{display:block;color:#72647b;font-size:10px;line-height:1.6;margin:8px 0}
+body.offrya-pro-v3 .pro-v3-tender-card a{display:inline-flex;align-items:center;min-height:42px;margin-top:9px;color:#6c28b4;font-weight:800;font-size:11px;padding:7px 12px;background:#f1e8fc;border:1px solid #dcc6f3;border-radius:10px;text-decoration:none}
+body.offrya-pro-v3 #proV3WatchAlertList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.panel.filters{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+body.offrya-pro-v3 #premiumContent #boampKeyword{flex:2 1 190px}
+body.offrya-pro-v3 #premiumContent #boampDept{flex:0 1 125px}
+body.offrya-pro-v3 #premiumContent #boampSector{flex:1 1 165px}
+body.offrya-pro-v3 #premiumContent .boamp-date-label{display:block;width:100%;font-size:11px;font-weight:800;color:#574467}
+body.offrya-pro-v3 #premiumContent #boampDeadline{flex:1 1 155px}
+body.offrya-pro-v3 .pro-v3-markets-panel #premiumContent>.panel.filters #boampSearch{flex:1 1 175px}
+body.offrya-pro-v3 #premiumContent .panel.filters select,
+body.offrya-pro-v3 #premiumContent .panel.filters input[type=date]{min-height:44px;background:#fbfaff;border:1px solid #dcd2ed;border-radius:12px;padding:0 12px;font-size:12px;max-width:100%}
+@media(max-width:900px){
+ body.offrya-pro-v3 .pro-v3-today-grid,body.offrya-pro-v3 #proV3WatchAlertList{grid-template-columns:1fr}
+}
+@media(max-width:620px){
+ body.offrya-pro-v3 #premiumContent #boampKeyword,
+ body.offrya-pro-v3 #premiumContent #boampDept,
+ body.offrya-pro-v3 #premiumContent #boampSector,
+ body.offrya-pro-v3 #premiumContent #boampDeadline,
+ body.offrya-pro-v3 #premiumContent #boampSearch{width:100%;flex:1 1 100%}
+ body.offrya-pro-v3 .pro-v3-tender-card{padding:14px}
+ body.offrya-pro-v3 #proV3TodayAlerts .pro-v3-tender-card a{min-height:44px}
+}
