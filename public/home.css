@@ -74,32 +74,3 @@
 /* Useful fallback when any critical account request is slow. */
 .dashboard-skeleton .dashboard-loading-caption{grid-column:1/-1;margin:2px 0;color:#705e80;font-size:13px;text-align:center;line-height:1.5}
 .dashboard-skeleton #dashboardLoadingRetry{grid-column:1/-1;justify-self:center;min-height:44px;margin-top:3px}
-
-/* Lead acquisition: quick, accessible intake before signup. */
-.mock-home .mock-quick-mission{position:relative;width:min(100%,610px);margin:17px 0 19px;padding:17px 18px;border-radius:18px;background:#ffffffee;box-shadow:0 12px 38px #170b2b40;color:#311745}
-.mock-home .mock-quick-mission>p{display:grid;gap:3px;margin:0 0 12px}
-.mock-home .mock-quick-mission>p strong{font:800 16px 'Plus Jakarta Sans',system-ui,sans-serif;color:#2f183f}
-.mock-home .mock-quick-mission>p small{font-size:12px;color:#695578}
-.mock-home .mock-quick-mission-fields{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
-.mock-home .mock-quick-mission-fields label{font-weight:750;font-size:11px;color:#57416a}
-.mock-home .mock-quick-mission-fields label[for="quickMissionCategory"]{grid-column:1;grid-row:1}
-.mock-home .mock-quick-mission-fields label[for="quickMissionCity"]{grid-column:2;grid-row:1}
-.mock-home .mock-quick-mission-fields select,.mock-home .mock-quick-mission-fields input{width:100%;min-width:0;min-height:45px;border:1px solid #cbb6df;border-radius:10px;padding:9px 10px;color:#342149;background:white;font-size:13px}
-.mock-home .mock-quick-mission-fields select{grid-column:1;grid-row:2}
-.mock-home .mock-quick-mission-fields input{grid-column:2;grid-row:2}
-.mock-home .mock-quick-mission-fields button{grid-column:3;grid-row:2;min-height:45px;background:#7430bf;color:white;border:0;border-radius:10px;padding:10px 15px;font-size:12px;font-weight:800;white-space:nowrap}
-.mock-home .mock-quick-mission-fields :is(button,select,input):focus-visible{outline:3px solid #ed915b;outline-offset:2px}
-.mock-home .mock-quick-mission-disclaimer{display:block;margin-top:11px;font-size:10px;line-height:1.45;color:#6e5d77}
-@media(max-width:690px){
- .mock-home .mock-quick-mission{margin-top:18px;padding:16px}
- .mock-home .mock-quick-mission-fields{grid-template-columns:1fr 1fr}
- .mock-home .mock-quick-mission-fields button{grid-column:1/-1;grid-row:3;white-space:normal}
-}
-@media(max-width:390px){
- .mock-home .mock-quick-mission-fields{grid-template-columns:1fr}
- .mock-home .mock-quick-mission-fields label[for="quickMissionCategory"]{grid-column:1;grid-row:1}
- .mock-home .mock-quick-mission-fields select{grid-column:1;grid-row:2}
- .mock-home .mock-quick-mission-fields label[for="quickMissionCity"]{grid-column:1;grid-row:3}
- .mock-home .mock-quick-mission-fields input{grid-column:1;grid-row:4}
- .mock-home .mock-quick-mission-fields button{grid-column:1;grid-row:5}
-}
