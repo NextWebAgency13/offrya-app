@@ -22,7 +22,7 @@ test('Only published official, unexpired and relevant tenders can trigger Premiu
  assert.equal(qualifyTender(boamp,{sectors:[],keywords:''}),null);
  assert.equal(cleanRow(boamp,prefs.user_id,prefs).first_steps,undefined);
 });
-test('The TED source normalizes multilingual official titles and refuses expired/foreign notices',()=>{
+test('The TED source normalizes multilingual official titles and refuses expired/foreign notices',async()=>{
  const future=new Date(Date.now()+12*86400000).toISOString().slice(0,10);
  const row={'publication-number':'730007-2026','notice-title':{fra:['Nettoyage de bureaux'],eng:['Office cleaning']},
   'buyer-name':{fra:['Ville Test']},'buyer-country':['FRA'],'deadline-receipt-tender-date-lot':[future+'+01:00']};
