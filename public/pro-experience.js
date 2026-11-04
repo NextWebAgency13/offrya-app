@@ -82,8 +82,8 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
     '</div>',
    '</section>',
    '<section class="pro-v3-view" data-pro-panel="commercial" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">GESTION DES DEMANDES · OFFRYA</span><h2 id="proV3CommercialHeading">Demandes de missions</h2><p id="proV3CommercialDescription">Qualifiez les demandes, préparez vos réponses et suivez vos échanges.</p></div><div id="proV3CommercialSlot"></div><div id="proV3FollowupSlot" class="pro-v3-followup" hidden></div></section>',
-   '<section class="pro-v3-view" data-pro-panel="boamp" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">MARCHÉS PUBLICS · DILA</span><h2>Marchés publics</h2><p>Recherchez les appels d’offres officiels, consultez leurs échéances et exportez les résultats.</p></div><div id="proV3BoampSlot"></div></section>',
-   '<section class="pro-v3-view" data-pro-panel="watch" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">VEILLE · OFFRYA</span><h2>Veille automatisée</h2><p>OFFRYA surveille les annonces publiques BOAMP et TED automatiquement. Vos filtres restent facultatifs.</p></div><div class="pro-v3-metrics pro-v3-small-metrics"><div class="pro-v3-metric purple">'+icon('ic-bolt')+'<span><small>État de ma veille</small><strong id="proV3WatchState">—</strong><em>Incluse dans l’abonnement professionnel</em></span></div><div class="pro-v3-metric blue">'+icon('ic-boamp')+'<span><small>Alertes reçues</small><strong id="proV3AlertCount">0</strong><em>Publications BOAMP et TED</em></span></div></div><section class="pro-v3-panel"><div class="pro-v3-panel-head"><h3>Dernières alertes</h3><button data-pro-screen="preferences">Modifier mes critères →</button></div><div id="proV3WatchAlertList" class="pro-v3-alerts"></div><p class="pro-v3-helper">Les e-mails ne sont envoyés que si vous avez activé les préférences correspondantes et que le service d’envoi est configuré.</p></section></section>',
+   '<section class="pro-v3-view" data-pro-panel="boamp" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">MARCHÉS PUBLICS · OFFRYA PREMIUM</span><h2>Marchés publics</h2><p>Recherche officielle BOAMP et sélection personnalisée de la veille multicanale.</p></div><section class="pro-v3-panel pro-v3-today-panel" aria-labelledby="proV3TodayTitle"><div class="pro-v3-panel-head"><div><h3 id="proV3TodayTitle">Appels d’offres du jour</h3><p>Avis détectés aujourd’hui, classés selon votre métier et votre zone.</p></div><button type="button" data-pro-screen="watch">Toutes les alertes →</button></div><div id="proV3TodayAlerts" class="pro-v3-today-grid" aria-live="polite"></div></section><div id="proV3BoampSlot"></div></section>',
+   '<section class="pro-v3-view" data-pro-panel="watch" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">VEILLE · OFFRYA</span><h2>Veille automatisée</h2><p>OFFRYA surveille les annonces publiques BOAMP et TED, avec les flux régionaux explicitement autorisés, automatiquement. Vos filtres restent facultatifs.</p></div><div class="pro-v3-metrics pro-v3-small-metrics"><div class="pro-v3-metric purple">'+icon('ic-bolt')+'<span><small>État de ma veille</small><strong id="proV3WatchState">—</strong><em>Incluse dans l’abonnement professionnel</em></span></div><div class="pro-v3-metric blue">'+icon('ic-boamp')+'<span><small>Alertes reçues</small><strong id="proV3AlertCount">0</strong><em>Publications BOAMP et TED</em></span></div></div><section class="pro-v3-panel"><div class="pro-v3-panel-head"><h3>Dernières alertes</h3><button data-pro-screen="preferences">Modifier mes critères →</button></div><div id="proV3WatchAlertList" class="pro-v3-alerts"></div><p class="pro-v3-helper">Les e-mails ne sont envoyés que si vous avez activé les préférences correspondantes et que le service d’envoi est configuré.</p></section></section>',
    '<section class="pro-v3-view" data-pro-panel="preferences" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">PERSONNALISATION · OFFRYA</span><h2>Préférences de veille</h2><p>Affinez les secteurs, la zone ou les mots-clés si nécessaire. La veille reste automatique.</p></div><div class="pro-v3-panel" id="proV3PreferenceSlot"></div><p class="pro-v3-helper">Les opportunités publiques s’affichent automatiquement pour les professionnels vérifiés et abonnés. Les e-mails nécessitent une autorisation distincte.</p></section>',
   ].join('');
   $('proDashboard').prepend(root);
@@ -185,19 +185,64 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    [String(tracked.length)+' mission(s) suivie(s)','tracking']
   ];
   $('proV3Alerts').innerHTML=rows.map(x=>'<button data-pro-screen="'+x[1]+'"><span class="pro-v3-alert-icon">'+alertIcon(x[1])+'</span>'+esc(x[0])+'<b>›</b></button>').join('');
-  const alerts=state.opportunityAlerts||[];
+  const portalHosts={
+    PLACE:['www.marches-publics.gouv.fr'],MAXIMILIEN:['marches.maximilien.fr'],
+    MEGALIS:['marches.megalisbretagne.org'],EBOURGOGNE:['e-bourgogne.fr','www.e-bourgogne.fr'],
+    OCCITANIE:['www.marches-occitanie.fr','marches-occitanie.fr'],
+    SUD:['marches-publics.maregionsud.fr']
+  };
+  const portalLabels={PLACE:'PLACE · État',MAXIMILIEN:'Maximilien · Île-de-France',
+   MEGALIS:'Mégalis · Bretagne',EBOURGOGNE:'Territoires numériques BFC',
+   OCCITANIE:'Marchés Occitanie',SUD:'Sud Marchés Publics'};
+  function officialLink(a){
+   const raw=String(a.url||'');
+   let valid=/^https:\/\/(www\.)?boamp\.fr\//i.test(raw)
+    ||/^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(raw);
+   if(!valid&&portalHosts[a.source]){
+    try{const u=new URL(raw);valid=u.protocol==='https:'&&!u.username&&!u.password
+      &&portalHosts[a.source].includes(u.hostname);}catch{}
+   }
+   return valid?esc(raw):null;
+  }
+  function noticeCard(a){
+   const url=officialLink(a),name=portalLabels[a.source]||
+    (a.source==='TED'?'TED · Union européenne':'BOAMP · DILA');
+   const title=esc(a.title||'Marché public');
+   const amount=a.ai_budget_eur!==null&&a.ai_budget_eur!==undefined&&Number.isFinite(Number(a.ai_budget_eur))
+    ?'Montant mentionné : '+Number(a.ai_budget_eur).toLocaleString('fr-FR',{style:'currency',currency:'EUR'})
+    :'Budget non précisé';
+   const area=esc(a.ai_location||a.departments||'Lieu à vérifier');
+   const deadline=esc(a.deadline?new Date(a.deadline).toLocaleDateString('fr-FR'):'À vérifier');
+   const detail=a.ai_summary?
+    '<p class="pro-v3-tender-summary">'+esc(a.ai_summary)+'</p>':
+    '<p class="pro-v3-tender-pending">Résumé IA non encore disponible — consultez l’avis officiel.</p>';
+   const category=a.ai_category?'<span class="pro-v3-tender-category">'+esc(a.ai_category)+'</span>':'';
+   const score=Number.isInteger(a.match_score)?'<strong class="pro-v3-tender-score">'+a.match_score+'/100</strong>':'';
+   return '<article class="pro-v3-tender-card"><div class="pro-v3-tender-meta"><small>'+esc(name)+
+    '</small>'+category+score+'</div><h4>'+title+'</h4>'+detail+
+    '<div class="pro-v3-tender-fields"><span>'+area+'</span><span>Échéance : '+deadline+
+    '</span><span>'+esc(amount)+'</span></div>'+
+    (a.match_reason?'<small class="pro-v3-tender-reasons">Correspondance : '+esc(a.match_reason)+'</small>':'')+
+    (url?'<a href="'+url+'" target="_blank" rel="noopener noreferrer">Consulter l’avis original →</a>':'')+
+    '</article>';
+  }
+  const stored=state.opportunityAlerts||[];
+  const seen=new Set(),alerts=stored.filter(a=>{
+   if(a.deadline&&Date.parse(a.deadline)<=Date.now())return false;
+   const key=a.digest_key||[a.title,a.buyer,String(a.deadline||'').slice(0,10)].join('|').toLowerCase();
+   if(seen.has(key))return false;
+   seen.add(key);return true;
+  });
+  const todayStart=new Date();todayStart.setHours(0,0,0,0);
+  const todays=alerts.filter(a=>Date.parse(a.detected_at||'')>=todayStart.getTime())
+   .sort((a,b)=>(b.match_score||0)-(a.match_score||0)).slice(0,8);
+  const box=$('proV3TodayAlerts');
+  if(box)box.innerHTML=todays.length?todays.map(noticeCard).join(''):
+   '<p class="pro-v3-empty">Aucun appel d’offres correspondant détecté aujourd’hui. Les avis disponibles restent accessibles via la recherche et la veille.</p>';
   $('proV3WatchAlertList').innerHTML=alerts.length?[...alerts]
-   .filter(a=>!a.deadline||Date.parse(a.deadline)>Date.now())
-   .sort((a,b)=>(b.match_score||0)-(a.match_score||0))
-   .slice(0,15).map(a=>{
-    const official=/^https:\/\/(www\.)?boamp\.fr\//i.test(a.url||'')||/^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(a.url||'');
-    const href=official?esc(a.url):null;
-    const name=a.source==='TED'?'TED · Union européenne':'BOAMP · DILA';
-    const score=Number.isInteger(a.match_score)?'<small>Correspondance : '+a.match_score+'/100 · '+esc(a.match_reason||'')+'</small>':'';
-    return '<div class="pro-v3-watch-item"><small>'+esc(name)+' · '+esc(a.seen_at?'Déjà consultée':'Nouvelle opportunité')+'</small><strong>'+esc(a.title||'Marché public')+'</strong>'+score+
-     '<small>Échéance : '+esc(a.deadline?new Date(a.deadline).toLocaleDateString('fr-FR'):'À vérifier')+'</small>'+
-     (href?'<a href="'+href+'" target="_blank" rel="noopener noreferrer">Consulter la publication officielle</a>':'')+'</div>';
-   }).join(''):'<div class="pro-v3-empty">Aucune nouvelle opportunité pour le moment. La veille BOAMP et TED s’exécute automatiquement pour les professionnels vérifiés et abonnés.</div>';
+   .sort((a,b)=>(b.match_score||0)-(a.match_score||0)).slice(0,20)
+   .map(noticeCard).join(''):
+   '<p class="pro-v3-empty">Aucun nouvel avis correspondant. La veille consulte uniquement les sources publiques disponibles et autorisées.</p>';
  }
  function syncTab(name){
   if(!initialized||!canUsePremium())return;

@@ -205,3 +205,38 @@
 .sales-stage select{width:100%;max-width:400px}
 .sales-integrity-note{font-size:11px;line-height:1.55;color:#837a8e;margin:14px 0 0}
 @media(max-width:600px){.sales-workspace{padding:14px}.sales-stats{gap:7px}.sales-stats>div{min-height:93px;border-radius:13px;padding:10px 4px}.sales-stats span{font-size:11px}.sales-tabs button{font-size:12px;padding:12px 1px}.sales-lead{padding:15px}.sales-actions>.button{flex:1}}
+
+/* OFFRYA Premium Copilot: mission qualification and human-reviewed drafts. */
+.sales-copilot{margin:15px 0;padding:20px;border:1px solid #ddd0ef;border-radius:19px;background:linear-gradient(125deg,#f7f0ff,#fff 65%);box-shadow:0 8px 22px #5d258a08}
+.sales-copilot-head{display:flex;align-items:flex-start;justify-content:space-between;gap:13px;flex-wrap:wrap}
+.sales-copilot-head>div{flex:1 1 240px;min-width:0}
+.sales-copilot-label{display:inline-block;font-weight:800;color:#772bc0;letter-spacing:1.1px;font-size:10px}
+.sales-copilot h6{font:800 17px/1.4 'Plus Jakarta Sans',sans-serif;color:#2b1240;margin:7px 0}
+.sales-copilot-head p,.sales-copilot-hint{color:#736381;font-size:12px;margin:0;line-height:1.65}
+.sales-copilot-head .button{min-height:44px;background:#772bd5;color:#fff;border-color:#772bd5}
+.sales-copilot-insights{margin-top:16px}
+.sales-copilot-summary{font-size:13px;font-weight:750;color:#3e2453;margin:0 0 10px}
+.sales-copilot-status{display:inline-block;padding:5px 11px;border-radius:20px;font-size:11px;font-weight:800;color:#6328a6;background:#eeddff}
+.sales-copilot-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin:14px 0}
+.sales-copilot-groups>div{background:#fff;border:1px solid #efe7f6;border-radius:13px;padding:14px;min-width:0}
+.sales-copilot-groups strong,.sales-copilot-next strong{color:#392048;font-size:12px}
+.sales-copilot-groups ul,.sales-copilot-review ul{padding-left:18px;margin:10px 0 0;color:#614c71;font-size:12px;line-height:1.65}
+.sales-copilot-groups p,.sales-copilot-next{font-size:12px;line-height:1.6;color:#675478;margin:9px 0 0}
+.sales-copilot-tones{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.sales-copilot-tones button{border:1px solid #d5bfea;border-radius:20px;padding:9px 12px;min-height:42px;background:#fff;color:#593374;font-weight:800;font-size:12px}
+.sales-copilot-tones button[aria-pressed="true"]{background:#722abf;color:#fff;border-color:#722abf}
+.sales-copilot-review{padding:14px;margin:15px 0 0;border:1px solid #cfc3e9;border-radius:13px;background:#faf7ff;color:#493458}
+.sales-copilot-review>strong,.sales-copilot-reviewed>strong{font-size:13px;color:#37204b}
+.sales-copilot-review p,.sales-copilot-reviewed p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.65;margin:8px 0}
+.sales-copilot-reviewed{padding:13px;background:#fff;border:1px solid #ede3f8;border-radius:12px;margin-top:14px}
+.sales-copilot-reviewed .button{min-height:44px}
+.sales-copilot *{overflow-wrap:anywhere}
+@media(max-width:680px){
+ .sales-copilot{padding:14px;border-radius:15px;margin:12px 0}
+ .sales-copilot-head{flex-direction:column}
+ .sales-copilot-head .button{width:100%}
+ .sales-copilot-groups{grid-template-columns:1fr;gap:9px}
+ .sales-copilot-tones{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .sales-copilot-tones button:last-child{grid-column:1/-1}
+ .sales-actions>.button{min-height:44px}
+}
