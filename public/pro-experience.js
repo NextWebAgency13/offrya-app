@@ -7,10 +7,10 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  const menu=[
   ['home','Tableau de bord','ic-dashboard'],
   ['requests','Demandes de missions','ic-missions'],
-  ['assistant','Assistant IA','ic-sparkles'],
   ['boamp','Marchés publics','ic-boamp'],
   ['watch','Veille automatisée','ic-bolt'],
   ['tracking','Suivi & performances','ic-check'],
+  ['assistant','Assistant IA','ic-sparkles'],
   ['inbox','Messagerie','ic-inbox'],
   ['preferences','Préférences de veille','ic-settings'],
   ['settings','Paramètres','ic-user']
