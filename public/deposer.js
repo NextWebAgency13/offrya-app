@@ -1,6 +1,34 @@
 import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm';
 const $=id=>document.getElementById(id);
 let db;
+// Starter stores only sector and city (24h) on this browser; never private details.
+const DRAFT_KEY='offrya:mission-starter:v1';
+const allowedCategories=new Set(['Nettoyage','Espaces verts','Bâtiment','Informatique','Transport','Restauration & Hôtellerie','Bien-être & Beauté','Autre']);
+function readStarter(){
+ let saved=null;
+ try{
+  const raw=sessionStorage.getItem(DRAFT_KEY);
+  if(raw){const value=JSON.parse(raw);if(Number(value.time)<=Date.now()&&Date.now()-Number(value.time)<86400000)saved=value;}
+ }catch(_){}
+ const params=new URLSearchParams(location.search);
+ const category=params.has('category')?params.get('category'):saved?.category;
+ const city=params.has('city')?params.get('city'):saved?.city;
+ const validCategory=allowedCategories.has(category)?category:null;
+ const validCity=String(city||'').replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,90);
+ const safeCity=validCity.length>=2?validCity:'';
+ const value={category:validCategory,city:safeCity};
+ if(validCategory||safeCity){
+  try{sessionStorage.setItem(DRAFT_KEY,JSON.stringify({...value,time:Date.now()}));}catch(_){}
+ }
+ return value;
+}
+const starter=readStarter();
+function populateStarter(){
+ const form=$('missionForm');if(!form)return;
+ if(starter.category)form.elements.category.value=starter.category;
+ if(starter.city)form.elements.city.value=starter.city;
+ const hint=$('missionPrefillNote');if(hint)hint.hidden=!(starter.category||starter.city);
+}
 function notice(id,text,failed=false){
  const el=$(id);el.hidden=false;el.textContent=text;el.style.color=failed?'#aa324c':'#51319d';
 }
@@ -25,6 +53,7 @@ async function init(){
  const cfg=await response.json();
  if(!cfg.supabaseUrl||!cfg.supabaseKey)throw Error('Connexion Supabase indisponible');
  db=createClient(cfg.supabaseUrl,cfg.supabaseKey);
+ populateStarter();
  await showPublicationAccess();
 }
 $('missionForm').addEventListener('submit',async event=>{
@@ -55,6 +84,7 @@ $('missionForm').addEventListener('submit',async event=>{
   });
   if(result.error)throw result.error;
   form.reset();
+   try{sessionStorage.removeItem(DRAFT_KEY);}catch(_){}
   notice('missionStatus','Mission publiée gratuitement. Retrouvez-la dans Mon espace → Missions.');
  }catch(error){
   if(!$('publishArea').hidden)notice('missionStatus',error.message||'Publication indisponible.',true);
