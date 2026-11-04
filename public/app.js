@@ -79,21 +79,35 @@ async function refresh(){
   ['draft',state.db.from('offrya_professional_drafts').select('step,siret,legal_name,representative_name,representative_capacity,representative_kind').eq('user_id',uid).maybeSingle()],
   ['manualIdentity',state.db.from('offrya_manual_identity_requests').select('status,requested_at,updated_at').eq('user_id',uid).maybeSingle()]
  ];
- const results=await Promise.allSettled(requests.map(([,request])=>request));
- for(let i=0;i<requests.length;i++){
-  const [key]=requests[i],answer=results[i];
-  const res=answer.status==='fulfilled'?answer.value:null;
-  if(answer.status==='rejected'||res?.error){
-   console.warn('OFFRYA: optional section unavailable:',key,answer.status==='rejected'?answer.reason:res.error);
-   continue;
+ // Start independent requests together, then render as soon as identity and
+ // subscription data are available. Optional panels fill in after that.
+ const tasks=requests.map(([key,request])=>({key,promise:Promise.resolve(request)}));
+ const criticalKeys=new Set(['profile','premium','subscription','testPremiumUntil']);
+ const critical=tasks.filter(x=>criticalKeys.has(x.key));
+ const optional=tasks.filter(x=>!criticalKeys.has(x.key));
+ function applyResponses(group,results){
+  for(let i=0;i<group.length;i++){
+   const key=group[i].key,answer=results[i];
+   const res=answer.status==='fulfilled'?answer.value:null;
+   if(answer.status==='rejected'||res?.error){
+    console.warn('OFFRYA: optional section unavailable:',key,answer.status==='rejected'?answer.reason:res.error);
+    continue;
+   }
+   if(key==='favorites')state.favorites=(res?.data||[]).map(x=>x.mission_id);
+   else if(key==='tenderTracking')state.tenderTracking=res?.data||[];
+   else if(key==='salesTracking')state.salesTracking=res?.data||[];
+   else if(key==='opportunityAlerts')state.opportunityAlerts=res?.data||[];
+   else if(key==='conversations'||key==='profiles')state[key]=res?.data||[];
+   else state[key]=res?.data||null;
   }
-  if(key==='favorites')state.favorites=(res?.data||[]).map(x=>x.mission_id);
-  else if(key==='tenderTracking')state.tenderTracking=res?.data||[];
-  else if(key==='salesTracking')state.salesTracking=res?.data||[];
-  else if(key==='opportunityAlerts')state.opportunityAlerts=res?.data||[];
-  else if(key==='conversations'||key==='profiles')state[key]=res?.data||[];
-  else state[key]=res?.data||null;
  }
+ const requiredResults=await Promise.allSettled(critical.map(x=>x.promise));
+ if(state.currentUserId!==uid)return;
+ applyResponses(critical,requiredResults);
+ state.loaded=true;render();
+ const optionalResults=await Promise.allSettled(optional.map(x=>x.promise));
+ if(state.currentUserId!==uid)return;
+ applyResponses(optional,optionalResults);
  if(canUsePremium()){
   try{
    // The backend RLS remains the authority for viewing other users' missions.
