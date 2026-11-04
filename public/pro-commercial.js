@@ -4,7 +4,7 @@ export function createSalesWorkspace({state,element,canUsePremium,tab,notify,ref
  const $=element;
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\x27':'&#39;'}[c]));
  const stageNames={new:'À qualifier',qualifying:'Informations manquantes',reply_ready:'Réponse à valider',contacted:'Client contacté',followup:'À relancer',quote:'Devis en préparation',won:'Mission obtenue',lost:'Clôturé sans suite'};
- let selected=null,view='requests',accountId=null,drafts=new Map(),busy=false;
+ let selected=null,view='requests',accountId=null,drafts=new Map(),copilotResults=new Map(),reviews=new Map(),busy=false;
  const uid=()=>state.session?.user?.id||null;
  const accessible=()=>canUsePremium()?state.missions.filter(m=>m.owner_id!==uid()&&m.status==='open'): [];
  const tracking=()=>new Map((state.salesTracking||[]).map(x=>[x.mission_id,x.stage]));
@@ -50,13 +50,14 @@ export function createSalesWorkspace({state,element,canUsePremium,tab,notify,ref
   const loc=[m.city,m.department].filter(Boolean).join(' · ');
   node.innerHTML='<div class="sales-assistant-detail"><button class="sales-back" type="button" data-sales-back>← Toutes les demandes</button><h5>'+esc(m.title)+'</h5><p class="muted">'+esc(loc||'Localisation non précisée')+'</p>'+
    '<div class="sales-received"><strong>Demande reçue</strong><p>'+esc(m.description||'Description non précisée.')+'</p><small>'+esc([m.area_sqm?m.area_sqm+' m²':null,m.desired_date?'Date souhaitée : '+m.desired_date:null].filter(Boolean).join(' · '))+'</small></div>'+
-   '<div class="sales-draft"><strong>Proposition de réponse à valider</strong><p class="tiny muted">Brouillon guidé établi depuis la mission réelle. Brouillon guidé disponible immédiatement. La génération IA nécessite sa configuration serveur et reste soumise à validation.</p><label for="salesDraftText">Réponse modifiable</label><textarea id="salesDraftText" class="field" rows="8" maxlength="2500"></textarea><div class="sales-actions"><button type="button" class="button secondary" data-sales-generate>Générer avec l’IA</button><button type="button" class="button secondary" data-sales-copy>Copier</button><button type="button" class="button primary" data-sales-send>Valider et envoyer</button></div><p class="tiny muted">L’envoi nécessite votre confirmation. Aucun devis ferme ni tarif ne sont envoyés automatiquement.</p></div>'+
+   '<section class="sales-copilot"><div class="sales-copilot-head"><div><span class="sales-copilot-label">OFFRYA COPILOTE PREMIUM</span><h6>Comprendre la mission avant de répondre</h6><p>Questions à poser, risques à vérifier et prochaine action.</p></div><button class="button secondary" type="button" data-sales-generate>Générer avec l’IA</button></div><div id="salesCopilotAnalysis" aria-live="polite"></div></section><div class="sales-draft"><strong>Votre réponse au demandeur</strong><p class="tiny muted">Le brouillon reste modifiable. Rien n’est envoyé sans votre validation.</p><div class="sales-copilot-tones" id="salesCopilotTones" hidden><button type="button" data-sales-draft-tone="professional" aria-pressed="true">Professionnel</button><button type="button" data-sales-draft-tone="concise" aria-pressed="false">Court</button><button type="button" data-sales-draft-tone="clarification" aria-pressed="false">Questions précises</button></div><label for="salesDraftText">Message modifiable</label><textarea id="salesDraftText" class="field" rows="8" maxlength="2500"></textarea><div class="sales-actions"><button type="button" class="button secondary" data-sales-review>Relire mon message avec l’IA</button><button type="button" class="button secondary" data-sales-copy>Copier</button><button type="button" class="button primary" data-sales-send>Valider et envoyer</button></div><div id="salesCopilotReview" aria-live="polite"></div><p class="tiny muted">Vérifiez les données. Aucun prix, délai ou engagement n’est confirmé par l’IA.</p></div>'+
    '<label class="sales-stage">Statut du dossier<select id="salesStageSelect" class="field">'+Object.entries(stageNames).map(([k,v])=>'<option value="'+k+'"'+(k===status?' selected':'')+'>'+esc(v)+'</option>').join('')+'</select></label></div>';
   $('salesDraftText').value=drafts.has(m.id)?drafts.get(m.id):buildDraft(m);
+  renderCopilotPanels(m.id);
  }
  function render(){
   const current=uid();
-  if(accountId!==current){accountId=current;selected=null;view='requests';drafts.clear();}
+  if(accountId!==current){accountId=current;selected=null;view='requests';drafts.clear();copilotResults.clear();reviews.clear();}
   if(!current||!canUsePremium()){
    $('salesRequestsCount').textContent='0';$('salesPendingCount').textContent='0';$('salesQuotesCount').textContent='0';
    $('salesRequestsList').innerHTML='<div class="sales-empty">Espace réservé aux professionnels autorisés.</div>';
@@ -94,12 +95,15 @@ export function createSalesWorkspace({state,element,canUsePremium,tab,notify,ref
   try{
    const session=(await state.db.auth.getSession()).data?.session;
    if(!session)throw Error('Session expirée.');
-   const resp=await fetch('/api/pro/draft',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({mission_id:mission.id}),cache:'no-store'});
+   const resp=await fetch('/api/pro/copilot',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({mission_id:mission.id,action:'analyze'}),cache:'no-store'});
    const result=await resp.json();
    if(!resp.ok)throw Error(result.error||'Assistant IA momentanément indisponible.');
    if(!result.draft||typeof result.draft!=='string')throw Error('Brouillon invalide.');
+   if(!result.drafts)throw Error('Analyse incomplète.');
+   copilotResults.set(mission.id,result);reviews.delete(mission.id);
    drafts.set(mission.id,result.draft.slice(0,2500));
    $('salesDraftText').value=drafts.get(mission.id);
+   renderCopilotPanels(mission.id);
    await saveStage(mission.id,'reply_ready');
    notify('Brouillon IA prêt : vérifiez-le avant envoi.');
   }catch(e){notify(e.message||'Génération indisponible. Le brouillon guidé reste utilisable.');}
