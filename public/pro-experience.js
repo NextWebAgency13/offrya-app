@@ -45,10 +45,10 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const alertButton=document.createElement('button');
   alertButton.type='button';alertButton.id='proV3MobileAlert';
   alertButton.className='header-shortcut pro-v3-alert-shortcut';
-  alertButton.setAttribute('aria-label','Consulter les alertes de marchés publics');
+  alertButton.setAttribute('aria-label','Consulter les nouvelles missions');
   alertButton.innerHTML='<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"/><path d="M10 21h4"/></svg><span id="proV3AlertBubble" hidden></span>';
   if(accountMenu)accountMenu.before(alertButton);
-  alertButton.addEventListener('click',()=>{if(canUsePremium())show('watch');});
+  alertButton.addEventListener('click',()=>{if(canUsePremium())show('requests');});
   const root=document.createElement('div');root.id='proExperienceV3';root.className='pro-v3-experience';
   root.innerHTML=[
    '<div class="pro-v3-mobile-menu" aria-hidden="true" hidden></div>',
@@ -123,26 +123,22 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  }
  function recommendations(){
   const panel=$('proV3Recommendations');if(!panel||!canUsePremium())return;
-  const data=buildRadar({missions:available(),alerts:state.opportunityAlerts||[],
+  const data=buildRadar({missions:available(),alerts:[],
    preferences:state.opportunityPrefs||{},userId:state.session?.user?.id});
   $('proV3RadarTotal').textContent=String(data.total);
   $('proV3RadarRelevant').textContent=String(data.relevant);
   $('proV3RadarUrgent').textContent=String(data.urgent);
   panel.innerHTML=data.items.length?data.items.slice(0,5).map(item=>{
-   const source=item.kind==='mission'?'MISSION OFFRYA':item.source+' · AVIS OFFICIEL';
    const place=item.location||'Localisation à vérifier';
    const rationale=item.reasons.slice(0,3).join(' · ');
-   const action=item.kind==='mission'
-    ?'<button type="button" class="pro-v3-reco-btn" data-pro-mission="'+esc(item.id)+'">Voir la mission</button>'
-    :radarOfficialUrl(item.url)
-     ?'<a class="pro-v3-reco-btn" href="'+esc(item.url)+'" target="_blank" rel="noopener noreferrer">Avis officiel</a>':'';
-   return '<article class="pro-v3-radar-row"><div class="pro-v3-radar-body"><small class="pro-v3-radar-source">'+esc(source)+'</small>'+
-     '<strong>'+esc(item.title)+'</strong><small>'+esc(place)+'</small><p>'+esc(rationale)+'</p></div>'+
-     '<div class="pro-v3-radar-side"><strong aria-label="Correspondance estimée '+item.score+' sur 100">'+item.score+'/100</strong>'+action+'</div></article>';
+   const action='<button type="button" class="pro-v3-reco-btn" data-pro-mission="'+esc(item.id)+'">Voir la mission</button>';
+   return '<article class="pro-v3-radar-row"><div class="pro-v3-radar-body"><small class="pro-v3-radar-source">MISSION OFFRYA</small>'+
+    '<strong>'+esc(item.title)+'</strong><small>'+esc(place)+'</small><p>'+esc(rationale)+'</p></div>'+
+    '<div class="pro-v3-radar-side"><strong aria-label="Correspondance estimée '+item.score+' sur 100">'+item.score+'/100</strong>'+action+'</div></article>';
   }).join(''):'<div class="pro-v3-empty"><strong>Pas encore d’opportunités correspondant au radar.</strong>'+
    (available().length?
     '<p>'+available().length+' mission(s) accessible(s) actuellement, mais non retenue(s) par vos filtres de correspondance. Consultez la liste complète.</p>'+
-    '<p>Le radar ne présente que les missions accessibles et les avis officiels enregistrés pour votre compte.</p>':
+    '<p>Le radar ne classe que les missions publiées par les autres utilisateurs.</p>':
     '<p>Aucune mission accessible actuellement. La liste restera vide tant que votre compte ne reçoit aucune mission autorisée.</p>')+
    '<button type="button" data-pro-screen="requests">Voir toutes les missions →</button></div>';
  }
@@ -150,17 +146,17 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  function metrics(){
   const missions=available(), conversations=state.conversations||[];
   $('proV3MissionCount').textContent=String(missions.length);
-  const boampState=state.boampStatus||'idle';
-  $('proV3MarketCount').textContent=boampState==='ready'?String(Number(state.boampTotal)||0):boampState==='loading'?'Recherche…':boampState==='error'?'Indisponible':'À actualiser';
+  const weekAgo=Date.now()-7*86400000;
+  $('proV3RecentMissionCount').textContent=String(missions.filter(m=>Date.parse(m.created_at||'')>=weekAgo).length);
   $('proV3ConversationCount').textContent=String(conversations.length);
-  $('proV3TrackingCount').textContent=String((state.salesTracking||[]).length+(state.tenderTracking||[]).length);
+  $('proV3TrackingCount').textContent=String((state.salesTracking||[]).filter(t=>missions.some(m=>m.id===t.mission_id)).length);
   $('proV3WatchState').textContent=Date.parse(state.testPremiumUntil||'')>Date.now()?'Accès test':'Automatique';
   $('proV3AlertCount').textContent=String((state.opportunityAlerts||[]).length);
-  const count=(state.opportunityAlerts||[]).filter(a=>!a.seen_at&&(!a.deadline||Date.parse(a.deadline)>Date.now())).length;
+  const count=matched().length;
   const bubble=$('proV3AlertBubble');
   if(bubble){bubble.hidden=!count;bubble.textContent=String(Math.min(count,99));}
   const trigger=$('proV3MobileAlert');
-  if(trigger)trigger.setAttribute('aria-label',count?'Consulter '+count+' nouvelle(s) opportunité(s) publique(s)':'Consulter les alertes de marchés publics');
+  if(trigger)trigger.setAttribute('aria-label',count?'Consulter '+count+' mission(s) correspondant à vos filtres':'Consulter les missions disponibles');
   for(const el of document.querySelectorAll('[data-pro-count="requests"]')){el.textContent=String(missions.length);el.hidden=!missions.length;}
   for(const el of document.querySelectorAll('[data-pro-count="inbox"]')){el.textContent=String(conversations.length);el.hidden=!conversations.length;}
  }
@@ -217,12 +213,12 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   });
  }
  function placeMarketSearch(){
-  const node=$('premiumContent'),target=$(view==='boamp'?'proV3BoampSlot':'proV3HomeMarketsSlot');
+  const node=$('premiumContent'),target=$('proV3BoampSlot');
   if(node&&target&&node.parentElement!==target)target.appendChild(node);
  }
  function missionPreview(){
   const panel=$('proV3MissionPreview');if(!panel)return;
-  const entries=[...available()].sort((a,b)=>(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0)).slice(0,2);
+  const entries=[...available()].sort((a,b)=>(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0)).slice(0,8);
   panel.innerHTML=entries.length?entries.map(m=>{
    const place=[m.city,m.department].filter(Boolean).join(' · ')||'Lieu à préciser';
    const summary=String(m.description||'').trim().slice(0,115);
