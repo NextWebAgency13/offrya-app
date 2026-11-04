@@ -1,63 +1,107 @@
 'use strict';
-// Scheduled BOAMP discovery and internal preparation for paid, verified professionals.
-// No email, external contact, bid submission or autonomous commitments.
+// OFFRYA read-only public-opportunity monitoring: BOAMP (France) + TED (EU).
+// Only verified, paid, explicitly opted-in professionals are notified in-app.
+// No AI-generated reply, bid submission, external contact or unsolicited email.
 const {queryBoamp}=require('../lib/boamp');
+const {queryTed}=require('../lib/ted');
 const {qualifyTender}=require('../lib/tender-assistant');
 const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
 const key=process.env.SUPABASE_SECRET_KEY;
-const searches={'Nettoyage':'nettoyage','Espaces verts':'espaces verts','Bâtiment':'travaux','Informatique':'informatique','Transport':'transport','Restauration & Hôtellerie':'restauration','Bien-être & Beauté':'beauté','Autre':''};
+const termsBySector={
+ 'Nettoyage':'nettoyage','Espaces verts':'espaces verts','Bâtiment':'travaux',
+ 'Informatique':'informatique','Transport':'transport',
+ 'Restauration & Hôtellerie':'restauration','Bien-être & Beauté':'beauté'
+};
 async function rest(path,options={}){
- const response=await fetch(base+'/rest/v1/'+path,{
-  ...options,headers:{apikey:key,Accept:'application/json',...(options.body?{'Content-Type':'application/json'}:{}),...(options.headers||{})},
-  signal:AbortSignal.timeout(14000)
- });
- if(!response.ok)throw Error('Supabase watch HTTP '+response.status+' '+path.split('?')[0]);
- const payload=await response.text();
- return payload?JSON.parse(payload):null;
+ const r=await fetch(base+'/rest/v1/'+path,{
+  ...options,headers:{apikey:key,Accept:'application/json',
+   ...(options.body?{'Content-Type':'application/json'}:{}),...(options.headers||{})},
+  signal:AbortSignal.timeout(14000)});
+ if(!r.ok)throw Error('Supabase watch HTTP '+r.status+' '+path.split('?')[0]);
+ const value=await r.text();
+ return value?JSON.parse(value):null;
+}
+const canonical=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
+ .replace(/[^a-z0-9]+/g,' ').trim().slice(0,100);
+function fingerprint(row){
+ return [canonical(row.title),canonical(row.buyer),String(row.deadline||'').slice(0,10)].join('|');
 }
 function cleanRow(item,user,prefs={},now=new Date()){
- return qualifyTender(item,{...prefs,user_id:user},now);
+ const ranked=qualifyTender(item,{...prefs,user_id:user},now);
+ if(!ranked)return null;
+ // Discovery rows are solely notifications, not automatically prepared dossiers.
+ const {first_steps:unused,...alert}=ranked;
+ return {...alert,source:item.source==='TED'?'TED':'BOAMP'};
 }
-async function run(){
+function queryTerms(pref){
+ const sectorTerms=(Array.isArray(pref.sectors)?pref.sectors:[])
+  .map(s=>termsBySector[s]).filter(Boolean);
+ const keyword=String(pref.keywords||'').trim().slice(0,60);
+ return [...new Set([...sectorTerms,...(keyword?[keyword]:[])])].slice(0,5);
+}
+async function run({boamp=queryBoamp,ted=queryTed,store=rest,logger=console}={}){
  if(!/^https:\/\/[a-z0-9.-]+\.supabase\.co$/.test(base)||!key)
-  throw Error('Veille BOAMP inactive : vérifier OFFRYA_SUPABASE_URL et OFFRYA_SUPABASE_SECRET_KEY.');
- // Unlike the legacy opt-in selector, this RPC excludes temporary premium QA grants.
- const targets=await rest('rpc/offrya_agent_watch_targets',{method:'POST',body:'{}'});
- if(!Array.isArray(targets))throw Error('Invalid watch targets response');
- let detected=0,processed=0,errors=0,ranked=0;
+  throw Error('OFFRYA veille indisponible : vérifier les secrets Supabase du dépôt GitHub.');
+ const targets=await store('rpc/offrya_agent_watch_targets',{method:'POST',body:'{}'});
+ if(!Array.isArray(targets))throw Error('Invalid professional watch targets response');
+ const cache=new Map();
+ let processed=0,qualified=0,insertedCandidates=0,failures=0,queries=0;
  for(const pref of targets.slice(0,60)){
-  if(!/^[a-f0-9-]{36}$/i.test(pref.user_id||''))continue;
+  if(!/^[0-9a-f-]{36}$/i.test(pref.user_id||''))continue;
+  const terms=queryTerms(pref);
+  if(!terms.length)continue; // No broad, untargeted surveillance.
   processed++;
-  const terms=(Array.isArray(pref.sectors)&&pref.sectors.length?pref.sectors.map(s=>searches[s]).filter(Boolean):[pref.keywords||'']).slice(0,4);
-  if(!terms.length)terms.push(pref.keywords||'');
   const matches=new Map();
   for(const term of terms){
-   try{
-    const q=[term,pref.keywords||''].filter(Boolean).join(' ').slice(0,90);
-    const res=await queryBoamp({q,dept:pref.department||'',limit:20});
-    for(const item of res.items||[]){
+   // Cache results for other opted-in professionals sharing the same criteria.
+   const cacheKey=term+'|'+String(pref.department||'');
+   if(!cache.has(cacheKey)){
+    if(queries>=100){logger.warn('OFFRYA : limite de requêtes de veille atteinte');break;}
+    queries++;
+    cache.set(cacheKey,Promise.allSettled([
+     boamp({q:term,dept:pref.department||'',limit:25}),
+     ted(term)
+    ]));
+   }
+   const results=await cache.get(cacheKey);
+   for(let index=0;index<results.length;index++){
+    const result=results[index];
+    if(result.status!=='fulfilled'){
+     failures++;
+     logger.warn((index===0?'BOAMP':'TED')+' source indisponible: '+String(result.reason?.message||'erreur').slice(0,100));
+     continue;
+    }
+    const notices=index===0?(result.value?.items||[]):result.value||[];
+    for(const item of notices){
      const row=cleanRow(item,pref.user_id,pref);
      if(!row)continue;
-     ranked++;
-     const prior=matches.get(row.tender_id);
-     if(!prior||row.match_score>prior.match_score)matches.set(row.tender_id,row);
+     qualified++;
+     const unique=fingerprint(row);
+     const previous=matches.get(unique);
+     // Prefer the France-specific official BOAMP record if both sources cover one notice.
+     if(!previous||row.match_score>previous.match_score ||
+       (row.match_score===previous.match_score&&row.source==='BOAMP'))
+      matches.set(unique,row);
     }
-   }catch(error){errors++;console.warn('BOAMP scan unavailable:',error.message);}
+   }
   }
   if(matches.size){
-   const rows=[...matches.values()].sort((a,b)=>b.match_score-a.match_score).slice(0,15);
-   await rest('offrya_tender_alerts?on_conflict=user_id,tender_id',{
+   const alerts=[...matches.values()].sort((a,b)=>b.match_score-a.match_score)
+    .slice(0,20);
+   await store('offrya_tender_alerts?on_conflict=user_id,tender_id',{
     method:'POST',
-    // Never overwrite previously read notifications or the user's state.
     headers:{Prefer:'resolution=ignore-duplicates,return=minimal'},
-    body:JSON.stringify(rows)
+    body:JSON.stringify(alerts)
    });
-   detected+=rows.length;
+   insertedCandidates+=alerts.length;
   }
  }
- console.log('Agent BOAMP terminé. Professionnels opt-in vérifiés et abonnés:',processed,
-  'avis qualifiés:',ranked,'opportunités proposées:',detected,'recherches indisponibles:',errors);
- if(errors&&processed&&detected===0)process.exitCode=1;
+ logger.log('OFFRYA veille officielle : abonnés opt-in='+processed+
+  ' évaluations='+qualified+' propositions='+insertedCandidates+
+  ' sources indisponibles='+failures+' recherches='+queries);
+ // Source outages are reported; never fabricate results or alter opt-in.
+ if(failures&&processed&&qualified===0)process.exitCode=1;
+ return {processed,qualified,proposed:insertedCandidates,failures,queries};
 }
-if(require.main===module)run().catch(err=>{console.error(err.message);process.exitCode=1});
-module.exports={cleanRow,run};
+if(require.main===module)run().catch(e=>{console.error(e.message);process.exitCode=1;});
+module.exports={run,cleanRow,queryTerms,fingerprint};

@@ -78,10 +78,17 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
  }
  function renderAlerts(){
   const node=$('opAlertsList');if(!node)return;
-  const rows=state.opportunityAlerts||[];
-  node.innerHTML=rows.length?rows.slice(0,15).map(a=>
-   '<article class="op-result"><div><span class="op-source">'+(a.seen_at?'AVIS DÉJÀ CONSULTÉ':'NOUVELLE ALERTE BOAMP')+'</span><h5>'+esc(a.title)+'</h5><p>Repéré le '+esc(fmtDate(a.detected_at))+' · Échéance : '+esc(fmtDate(a.deadline))+'</p><a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer">Consulter l’avis officiel ↗</a></div>'+(a.seen_at?'':'<button class="button secondary" data-op-seen="'+esc(a.tender_id)+'">Marquer comme lu</button>')+'</article>'
-  ).join(''):'<p class="muted">Aucune nouvelle alerte enregistrée. La veille est exécutée périodiquement pour les comptes qui ont activé cette option.</p>';
+  const rows=[...(state.opportunityAlerts||[])].filter(a=>!a.deadline||Date.parse(a.deadline)>Date.now())
+   .sort((a,b)=>(b.match_score||0)-(a.match_score||0));
+  node.innerHTML=rows.length?rows.slice(0,15).map(a=>{
+   const source=a.source==='TED'?'TED · Union européenne':'BOAMP · DILA';
+   const allowed=/^https:\/\/(www\.)?boamp\.fr\//i.test(a.url||'')
+    ||/^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(a.url||'');
+   const link=allowed?'<a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer">Consulter l’annonce publique officielle</a>':'';
+   const score=Number.isInteger(a.match_score)?' · Correspondance '+a.match_score+'/100':'';
+   return '<article class="op-result"><div><span class="op-source">'+esc(source)+' · '+(a.seen_at?'DÉJÀ CONSULTÉ':'NOUVELLE OPPORTUNITÉ')+'</span><h5>'+esc(a.title)+'</h5><p>Détectée le '+esc(fmtDate(a.detected_at))+' · Échéance : '+esc(fmtDate(a.deadline))+score+'</p>'+link+'</div>'+
+    (a.seen_at?'':'<button class="button secondary" data-op-seen="'+esc(a.tender_id)+'">Marquer comme lu</button>')+'</article>';
+  }).join(''):'<p class="muted">Aucune opportunité qualifiée enregistrée. Activez la veille pour recevoir les annonces publiques BOAMP et TED correspondant à vos critères.</p>';
  }
  function renderTracked(){
   const rows=state.tenderTracking||[];
@@ -119,10 +126,11 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
    department:f.elements.department.value.trim().toUpperCase(),keywords:f.elements.keywords.value.trim(),
    alerts_enabled:f.elements.alerts_enabled.checked,updated_at:new Date().toISOString()};
   if(p.department&&!/^(0[1-9]|[1-8][0-9]|9[0-5]|2A|2B|97[1-6])$/.test(p.department)){notify('Indiquez un département valide ou laissez vide.');return;}
+  if(p.alerts_enabled&&!p.sectors.length&&!p.keywords){notify('Sélectionnez un secteur ou saisissez un mot-clé pour activer les alertes.');return;}
   const result=await state.db.from('offrya_opportunity_preferences').upsert(p,{onConflict:'user_id'});
   if(result.error){notify('Préférences non enregistrées.');console.warn(result.error);return;}
-  state.opportunityPrefs=p;lastSearch=0;previousFingerprint='';$('opWatchFeedback').textContent='Veille enregistrée. La recherche des deux sources est actualisée.';
-  render();notify('Préférences de veille enregistrées.');
+  state.opportunityPrefs=p;lastSearch=0;previousFingerprint='';$('opWatchFeedback').textContent=p.alerts_enabled?'Veille active : BOAMP et TED. Les nouvelles opportunités paraîtront dans votre espace après la prochaine exécution.':'Préférences enregistrées. Alertes de veille désactivées.';
+  render();notify(p.alerts_enabled?'Veille activée.':'Préférences de veille enregistrées, alertes désactivées.');
  }
  async function trackTender(t){
   if(!canUsePremium())return;

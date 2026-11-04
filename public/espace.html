@@ -239,12 +239,12 @@
           <div class="op-result-list" id="opMissionList"><p class="muted">Chargement de vos recommandations…</p></div>
         </div>
         <div class="op-discovery-body hidden" id="opTenderPane" role="tabpanel" aria-labelledby="opViewTenders" hidden>
-          <div class="op-panel-top"><div><h4>Assistant marchés publics</h4><p>Recherche BOAMP par activité, secteur et département ; candidature sur la plateforme officielle.</p></div>
+          <div class="op-panel-top"><div><h4>Veille des annonces publiques</h4><p>Recherche d’appels d’offres dans les publications officielles BOAMP et TED, selon votre secteur et votre zone. OFFRYA vous avertit des nouvelles opportunités sans répondre aux annonces.</p></div>
             <button class="button secondary" type="button" id="opTenderRefresh">Actualiser</button>
           </div>
           <p class="tiny muted" id="opTenderUpdated" role="status">Aucune recherche lancée.</p>
           <div class="op-result-list" id="opTenderList"><p class="muted">Chargement des avis officiels…</p></div>
-          <button class="button outline op-advanced-link" type="button" id="opAllTenders">Recherche avancée BOAMP</button>
+          <button class="button outline op-advanced-link" type="button" id="opAllTenders">Consulter les avis BOAMP</button>
         </div>
       </section>
 
@@ -265,7 +265,7 @@
             </div></fieldset>
             <label>Département (vide = France entière)<input class="field" name="department" maxlength="3" placeholder="Ex. 13" autocomplete="off"></label>
             <label>Mots-clés complémentaires<input class="field" name="keywords" maxlength="180" placeholder="Ex. entretien bureaux"></label>
-            <label class="op-check-alert"><input type="checkbox" name="alerts_enabled"> Activer les alertes de veille dans mon espace</label>
+            <label class="op-check-alert"><input type="checkbox" name="alerts_enabled"> Recevoir des alertes de veille BOAMP et TED dans mon espace Premium</label>
             <button class="button primary" type="submit">Enregistrer ma veille</button>
             <p class="tiny muted" id="opWatchFeedback" role="status">Sélectionnez vos critères pour personnaliser les résultats.</p>
           </form>
@@ -278,7 +278,7 @@
           <h4>Marchés publics suivis</h4>
           <div class="op-result-list" id="opTrackedList"><p class="muted">Aucun marché enregistré.</p></div>
           <h4>Alertes de veille sectorielle</h4>
-          <p class="tiny muted">Avis détectés sans doublons selon vos préférences.</p>
+          <p class="tiny muted">Avis officiels et opportunités publiques détectés sans doublons selon vos critères. Les alertes sont visibles uniquement sur votre compte Premium actif.</p>
           <div class="op-result-list" id="opAlertsList"><p class="muted">Aucune alerte reçue.</p></div>
           <div class="op-followup-actions"><button type="button" class="button secondary" id="opGoMessages">Ouvrir mes messages</button></div>
         </div>

@@ -75,7 +75,7 @@ async function refresh(){
   ['opportunityPrefs',state.db.from('offrya_opportunity_preferences').select('*').eq('user_id',uid).maybeSingle()],
   ['tenderTracking',state.db.from('offrya_tender_tracking').select('user_id,tender_id,title,url,stage,updated_at').eq('user_id',uid).limit(100)],
   ['salesTracking',state.db.from('offrya_pro_lead_tracking').select('mission_id,stage,updated_at').eq('user_id',uid).limit(200)],
-  ['opportunityAlerts',state.db.from('offrya_tender_alerts').select('user_id,tender_id,title,buyer,departments,url,deadline,match_score,match_reason,first_steps,detected_at,seen_at').eq('user_id',uid).order('detected_at',{ascending:false}).limit(50)],
+  ['opportunityAlerts',state.db.from('offrya_tender_alerts').select('user_id,tender_id,title,buyer,departments,url,deadline,source,match_score,match_reason,detected_at,seen_at').eq('user_id',uid).order('detected_at',{ascending:false}).limit(50)],
   ['draft',state.db.from('offrya_professional_drafts').select('step,siret,legal_name,representative_name,representative_capacity,representative_kind').eq('user_id',uid).maybeSingle()],
   ['manualIdentity',state.db.from('offrya_manual_identity_requests').select('status,requested_at,updated_at').eq('user_id',uid).maybeSingle()]
  ];
@@ -578,6 +578,27 @@ async function init(){
  if(canUsePremium())await loadBoamp();
  // La file est créée dans Supabase dès la publication; le navigateur vérifie les nouvelles alertes.
  setInterval(()=>{if(state.session&&canUsePremium()&&!document.hidden)loadPriorityAlerts().catch(console.error);},60000);
+ // Periodic in-app notification refresh; RLS remains the sole source of access.
+ let tenderAlertRefresh=false;
+ setInterval(async()=>{
+  if(tenderAlertRefresh||!state.db||!state.session||!canUsePremium()||document.hidden)return;
+  const uid=state.session.user.id;
+  tenderAlertRefresh=true;
+  try{
+   const r=await state.db.from('offrya_tender_alerts')
+    .select('user_id,tender_id,title,buyer,departments,url,deadline,source,match_score,match_reason,detected_at,seen_at')
+    .eq('user_id',uid).order('detected_at',{ascending:false}).limit(50);
+   if(r.error)throw r.error;
+   if(uid===state.session?.user?.id){
+    const prev=new Set((state.opportunityAlerts||[]).map(x=>x.tender_id));
+    const rows=r.data||[];
+    state.opportunityAlerts=rows;proExperience.render();opportunityConsole.render();
+    const newCount=rows.filter(x=>!x.seen_at&&!prev.has(x.tender_id)).length;
+    if(newCount)toast(newCount+' nouvelle(s) opportunité(s) publique(s) dans votre veille.');
+   }
+  }catch(error){console.warn('OFFRYA : actualisation des opportunités indisponible',error);}
+  finally{tenderAlertRefresh=false;}
+ },300000);
  tab(canUsePremium()&&location.pathname===paths.dashboard?'professional':(pathsReverse[location.pathname]||'dashboard'),true);
   const p=new URLSearchParams(location.search);
   if(p.has('checkout'))toast(p.get('checkout')==='success'?'Retour de Stripe : confirmation du paiement en cours.':'Paiement non finalisé.');
