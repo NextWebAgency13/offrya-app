@@ -296,3 +296,11 @@ body .pro-v3-account-tools{display:none!important}
  body.offrya-pro-v3 .sidebar #nav .nav-link span{font-size:9px}
  body.offrya-pro-v3 .pro-v3-metric{padding:12px;min-height:125px}
 }
+
+/* Native-looking professional notification shortcut for Android. */
+body:not(.offrya-pro-v3) #proV3MobileAlert{display:none!important}
+body.offrya-pro-v3 #proV3MobileAlert{display:none}
+@media(max-width:620px){
+ body.offrya-pro-v3 .header #proV3MobileAlert{display:grid!important;position:relative;place-items:center;min-height:43px;min-width:43px;flex:none;padding:0}
+ body.offrya-pro-v3 #proV3AlertBubble:not([hidden]){position:absolute;top:-3px;right:-4px;display:grid;place-items:center;min-width:17px;height:17px;padding:0 3px;border:2px solid #351348;border-radius:13px;background:#f0b77e;color:#351348;font-size:9px;font-weight:900}
+}
