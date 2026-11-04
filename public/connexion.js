@@ -118,9 +118,9 @@ function resume(session){
     return;
    }
    redirected=true;
-   // Toute confirmation de compte débouche sur le tableau de bord privé.
-   // Les liens profonds restent disponibles après une connexion ordinaire.
-   location.replace(confirmationReturn?'/espace':next);
+   // Une confirmation validée peut reprendre une publication gratuite interrompue.
+   // Les autres parcours rejoignent le tableau de bord privé.
+   location.replace(confirmationReturn&&next!=='/deposer-une-mission'?'/espace':next);
    return;
   }
   // L'authentification a changé pendant la vérification : ne pas
