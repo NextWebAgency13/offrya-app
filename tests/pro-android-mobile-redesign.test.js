@@ -40,7 +40,8 @@ test('Android profile and notification elements are present and robust',()=>{
  assert.match(css,/overflow-wrap:anywhere/);
 });
 test('The interface progressively loads verified account state before optional sections',()=>{
- assert.match(app,/const criticalKeys=new Set\(\['profile','premium','subscription','testPremiumUntil'\]\)/);
+ assert.match(app,/const criticalKeys=new Set\(\['profile','premium','subscription'\]\)/);
+ assert.doesNotMatch(app,/state\.db\.rpc\('offrya_test_premium_expires_at'\)/);
  assert.match(app,/applyResponses\(critical,requiredResults\);\s*state\.loaded=true;render\(\)/);
  assert.match(app,/applyResponses\(optional,optionalResults\)/);
  assert.doesNotMatch(app,/if\(canUsePremium\(\)\)await loadBoamp\(\)/);
