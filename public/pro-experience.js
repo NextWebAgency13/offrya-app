@@ -1,6 +1,16 @@
 import {buildRadar} from './radar.js';
 // OFFRYA Pro UI v3 — visual redesign on top of existing secured modules.
 // Only authenticated, server/RLS-authorized data is displayed. No demo rows.
+// The welcome banner displays the signup pseudonym, never the legal company
+// name or a technical placeholder from an imported/test account.
+function greetingUsername(state){
+ const candidates=[state.profile?.display_name,state.session?.user?.user_metadata?.offrya_username];
+ return candidates.map(v=>String(v??'').trim()).find(name=>
+  /^[A-Za-z0-9_]{3,30}$/.test(name)&&
+  !/^user_[0-9a-f]{20,}$/i.test(name)&&
+  !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(name)
+ )||'';
+}
 export function createProExperience({state,element,canUsePremium,tab,renderMissions,loadMarkets,notify}){
  const $=element;
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -53,7 +63,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   root.innerHTML=[
    '<div class="pro-v3-mobile-menu" aria-hidden="true" hidden></div>',
    '<section class="pro-v3-view" data-pro-panel="home">',
-    '<div class="pro-v3-intro"><div><span class="pro-v3-eyebrow">ESPACE PROFESSIONNEL OFFRYA</span><h2>Bonjour, <span id="proV3Hello">professionnel</span></h2><p>Consultez les missions publiées par d’autres utilisateurs et développez votre activité.</p></div><span class="pro-v3-status" id="proV3Status">Accès professionnel</span></div>',
+    '<div class="pro-v3-intro"><div><span class="pro-v3-eyebrow">ESPACE PROFESSIONNEL OFFRYA</span><h2>Bonjour<span id="proV3Hello"></span></h2><p>Consultez les missions publiées par d’autres utilisateurs et développez votre activité.</p></div><span class="pro-v3-status" id="proV3Status">Accès professionnel</span></div>',
     '<div class="pro-v3-metrics" aria-label="Indicateurs réels">',
      '<div class="pro-v3-metric purple">'+icon('ic-missions')+'<span><small>Missions disponibles</small><strong id="proV3MissionCount">—</strong><em>Demandes accessibles</em></span></div>',
      '<div class="pro-v3-metric blue">'+icon('ic-missions')+'<span><small>Nouvelles missions</small><strong id="proV3RecentMissionCount">—</strong><em>Publiées depuis 7 jours</em></span></div>',
@@ -331,11 +341,9 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const user=state.session?.user?.id;
   if(user!==uid){uid=user;view='home';
   }
-  const rawLabel=String(state.premium?.legal_name||state.profile?.display_name||'').trim();
-  const technical=/^(?:user[_-][a-z0-9_-]{6,}|[a-f0-9-]{24,}|[0-9]{10,})$/i.test(rawLabel);
-  const label=rawLabel&&!technical?rawLabel:'professionnel';
-  $('proV3Hello').textContent=label.length>32?label.slice(0,29).trimEnd()+'…':label;
-  $('proV3Hello').title=label;
+  const username=greetingUsername(state);
+  $('proV3Hello').textContent=username?', '+username:' !';
+  $('proV3Hello').title=username?'Pseudonyme : '+username:'';
   const temporary=Date.parse(state.testPremiumUntil||'')>Date.now();
   const status=temporary?'Accès temporaire':state.premium?.status==='verified'?'Compte vérifié · abonnement actif':'Compte professionnel actif';
   $('proV3Status').textContent=status;
