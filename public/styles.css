@@ -454,3 +454,14 @@
  .message-nav-link .message-unread-badge{top:2px;right:calc(50% - 24px)}
  .message-header-shortcut .message-unread-badge{right:-3px;top:-3px}
 }
+
+/* Web Push controls: optional and visible to all authenticated users. */
+#settings .push-notifications-settings{display:flex;align-items:center;justify-content:space-between;gap:18px}
+#settings .push-notifications-settings h3{margin:0 0 8px}
+#settings .push-notifications-settings p{max-width:680px;line-height:1.5;margin:5px 0}
+#settings #pushNotificationToggle{flex:none;min-height:46px;max-width:100%;white-space:normal}
+#settings #pushNotificationToggle:focus-visible{outline:3px solid #e58c51;outline-offset:3px}
+@media(max-width:720px){
+ #settings .push-notifications-settings{flex-direction:column;align-items:stretch}
+ #settings #pushNotificationToggle{width:100%;font-size:14px}
+}

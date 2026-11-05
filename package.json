@@ -1,3 +1,20 @@
 {
- "name":"offrya-marketplace","version":"4.0.0","private":true,"description":"OFFRYA : marketplace gratuite B2B avec missions, devis, messages, contrats et alertes","type":"commonjs", "engines":{"node":">=20.6"}, "scripts":{"start":"node server.js","dev":"node --env-file=.env.local server.js","test":"node --test","alerts":"node scripts/send-alerts.js"},"license":"UNLICENSED"
+  "name": "offrya-marketplace",
+  "version": "4.0.0",
+  "private": true,
+  "description": "OFFRYA : marketplace gratuite B2B avec missions, devis, messages, contrats et alertes",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20.6"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --env-file=.env.local server.js",
+    "test": "node --test",
+    "alerts": "node scripts/send-alerts.js"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "web-push": "3.6.7"
+  }
 }

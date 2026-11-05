@@ -3,6 +3,7 @@ import {createAuthCaptcha} from './auth-captcha.mjs';
 import {createOpportunityConsole} from './opportunity-console.js';
 import {createSalesWorkspace} from './pro-commercial.js';
 import {createProExperience} from './pro-experience.js';
+import {createPushNotifications} from './push-notifications.js';
 import {fetchMissionFeed} from './mission-feed.js';
 const $=id=>document.getElementById(id);
 const authCaptcha=createAuthCaptcha($('modalAuthCaptcha'));
@@ -769,7 +770,7 @@ function authModal(show){$('authModal').classList.toggle('hidden',!show);}
 $('authOpen').onclick=()=>{if(isGuest()){tab('missions');toast('Vos missions sont conservées dans cette session invitée sur cet appareil.');return;}if(state.session){tab('settings');return;}location.assign('/connexion?next='+encodeURIComponent(location.pathname));};$('authClose').onclick=()=>authModal(false);$('authModal').onclick=e=>{if(e.target===$('authModal'))authModal(false);};
 for(const b of document.querySelectorAll('[data-auth]'))b.onclick=()=>{if(b.dataset.auth==='signup'){location.assign('/connexion?mode=signup&role=client&next='+encodeURIComponent(location.pathname));return;}state.authMode=b.dataset.auth;document.querySelectorAll('[data-auth]').forEach(x=>x.classList.toggle('active',x===b));$('authTitle').textContent=state.authMode==='signup'?'Créer un compte':state.authMode==='reset'?'Réinitialiser le mot de passe':'Se connecter';$('authSubmit').textContent=state.authMode==='signup'?'Créer le compte':state.authMode==='reset'?'Envoyer le lien':'Se connecter';$('authPasswordRow').classList.toggle('hidden',state.authMode==='reset');};
 $('authForm').onsubmit=async e=>{e.preventDefault();if(!state.db)return showError(new Error('Le service de connexion est momentanément indisponible.'));const f=e.currentTarget,email=f.elements.email.value.trim(),password=f.elements.password.value;try{const captchaToken=authCaptcha.requiredToken();let r;if(state.authMode==='recover')r=await state.db.auth.updateUser({password});else if(state.authMode==='signup'){location.assign('/connexion?mode=signup&role=client&next='+encodeURIComponent(location.pathname));return;}else if(state.authMode==='reset')r=await state.db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/connexion?mode=reset-password&next='+encodeURIComponent(location.pathname),...(captchaToken?{captchaToken}:{})});else r=await state.db.auth.signInWithPassword({email,password,...(captchaToken?{options:{captchaToken}}:{})});if(r.error)throw r.error;authModal(false);toast(state.authMode==='signup'?'Vérifiez votre adresse e-mail pour activer le compte.':state.authMode==='reset'?'Consultez votre messagerie.':state.authMode==='recover'?'Mot de passe modifié.':'Connexion réussie.');await refresh();if(state.authMode==='signup'||state.signupForPro){tab(state.signupForPro?'professional':'settings');state.signupForPro=false;}}catch(err){showError(err);}finally{authCaptcha.reset();}};
-$('logout').onclick=async()=>{if(state.db)await state.db.auth.signOut();state.session=null;location.replace('/connexion?next=%2Fespace');};
+$('logout').onclick=async()=>{try{await pushNotifications.disable({silent:true});}catch(error){console.warn('OFFRYA: désabonnement push indisponible',error);}if(state.db)await state.db.auth.signOut();state.session=null;location.replace('/connexion?next=%2Fespace');};
 async function init(){
  const cfg=await fetch('/api/config').then(r=>r.json());await authCaptcha.init(cfg.guestCaptchaSiteKey);state.billingEnabled=Boolean(cfg.billingEnabled);state.identityEnabled=Boolean(cfg.identityEnabled);
  if(cfg.supabaseUrl&&cfg.supabaseKey&&!cfg.supabaseUrl.includes('VOTRE')){
@@ -778,6 +779,7 @@ async function init(){
   state.db.auth.onAuthStateChange((event,session)=>{state.session=session;if(event==='SIGNED_OUT'){location.replace('/connexion?next='+encodeURIComponent(location.pathname));return;}if(event==='PASSWORD_RECOVERY'){state.authMode='recover';$('authTitle').textContent='Choisissez un nouveau mot de passe';$('authSubmit').textContent='Enregistrer le mot de passe';$('authPasswordRow').classList.remove('hidden');authModal(true);}setTimeout(()=>refresh().catch(showError),0);});
   try{await refresh();}catch(err){state.loaded=true;info('Certaines fonctionnalités sont momentanément indisponibles. Veuillez réessayer ultérieurement.',true);render();}
  }else{info('La connexion au service est momentanément indisponible. Veuillez réessayer ultérieurement.',true);render();}
+ pushNotifications.init().catch(error=>console.warn('OFFRYA: push init indisponible',error));
  if(canUsePremium())loadBoamp().catch(error=>console.warn('BOAMP background loading:',error));
  // La file est créée dans Supabase dès la publication; le navigateur vérifie les nouvelles alertes.
  setInterval(()=>{if(state.session&&canUsePremium()&&!document.hidden)loadPriorityAlerts().catch(console.error);},60000);
@@ -840,5 +842,6 @@ async function init(){
 const opportunityConsole=createOpportunityConsole({state,element:$,canUsePremium,tab,renderMissions,notify:toast});
 const salesWorkspace=createSalesWorkspace({state,element:$,canUsePremium,tab,notify:toast,refresh,onNavigate:screen=>proExperience.show(screen)});
 const proExperience=createProExperience({state,element:$,canUsePremium,tab,renderMissions,loadMarkets:()=>loadBoamp(),notify:toast,openProposal:id=>salesWorkspace.openMission(id)});
+const pushNotifications=createPushNotifications({state,button:$('pushNotificationToggle'),status:$('pushNotificationStatus'),notify:toast});
 proExperience.init();opportunityConsole.init();salesWorkspace.init();
 init().catch(showError);

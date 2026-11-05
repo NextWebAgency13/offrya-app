@@ -1,0 +1,32 @@
+{
+  "name": "OFFRYA — Missions et professionnels",
+  "short_name": "OFFRYA",
+  "description": "Votre espace OFFRYA pour gérer vos missions, propositions et messages.",
+  "id": "/espace",
+  "start_url": "/espace",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6f32b6",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
