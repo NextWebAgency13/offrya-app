@@ -3,6 +3,7 @@ const http=require('node:http');
 const fs=require('node:fs/promises');
 const path=require('node:path');
 const {queryBoamp}=require('./lib/boamp');
+const {liveTenders}=require('./lib/live-tender-discovery');
 const {verifyPremiumAccess}=require('./lib/premium');
 const {rankCandidates,aiRerank}=require('./lib/ai-matching');
 const {lookupCompany,verifyProfessional}=require('./lib/company');
@@ -257,14 +258,25 @@ async function handle(req,res){
     if(rows[3][0]?.role!=='pro'||rows[3][0]?.id!==userId)
      return json(res,403,{error:'Compte professionnel requis.'});
     const preferences=rows[2][0]||{};
-    const result=rankCandidates({missions:rows[0],alerts:rows[1],preferences,
+    // Refresh the official public source on saved preference changes (or
+    // manual refresh), and reuse an account-scoped short-lived cache otherwise.
+    // Authorization was verified before making any discovery request.
+    const live=await liveTenders(userId,preferences,{force:u.searchParams.get('refresh')==='1'});
+    const storedIds=new Set(rows[1].map(n=>String(n.tender_id)));
+    const newNotices=live.notices.filter(n=>!storedIds.has(String(n.tender_id)));
+    const result=rankCandidates({missions:rows[0],alerts:[...newNotices,...rows[1]],preferences,
      profile:rows[3][0],userId});
     const enhanced=process.env.OFFRYA_AI_MATCHING_ENABLED==='true'?
      await aiRerank(result,{apiKey:process.env.OPENAI_API_KEY,
       model:process.env.OFFRYA_AI_MODEL||'gpt-4.1-mini',profile:rows[3][0],preferences}):
      {...result,mode:'rules'};
+    const displayed=enhanced.items.slice(0,100).map(({description, ...x})=>x);
     return json(res,200,{mode:enhanced.mode,total:enhanced.total,relevant:enhanced.relevant,
-     urgent:enhanced.urgent,items:enhanced.items.slice(0,30).map(({description, ...x})=>x)},
+     urgent:enhanced.urgent,items:displayed,
+     truncated:enhanced.total>displayed.length,
+     liveSource:live.source,
+     liveNotices:live.notices.map(({tender_id,title,buyer,departments,url,deadline,source,detected_at})=>
+      ({tender_id,title,buyer,departments,url,deadline,source,detected_at}))},
      {'Cache-Control':'private,no-store'});
    }catch(e){console.error('Opportunity matching:',e.message);
     return json(res,503,{error:'Moteur de correspondance momentanément indisponible.'});}
