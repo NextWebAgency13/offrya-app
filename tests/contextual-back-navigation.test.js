@@ -83,6 +83,27 @@ test('Android Back and Forward navigate between authorized conversations and the
  x.ctx.routeThread('unknown');
  assert.equal(x.location.search,'?conversation=conv-1','Unknown conversation must not be navigable');
 });
+test('Opening a conversation from a notification or list never skips the message list on Android Back',()=>{
+ const fromList=app.slice(app.indexOf("$('conversationList').onclick"),app.indexOf("$('messageForm').onsubmit"));
+ const fromNotification=app.slice(app.indexOf('async function openPushConversation(target){'),app.indexOf('async function loadMessages(id,doRender=true){'));
+ const load=app.slice(app.indexOf('async function loadMessages(id,doRender=true){'),app.indexOf("$('missionSearch').onclick"));
+ assert.match(fromList,/await loadMessages\(state\.thread\)/);
+ assert.match(fromNotification,/await loadMessages\(conversationId\)/);
+ // Both routes use the exact same loader. It must create a detail history entry,
+ // even if the notification originally opened from Espace Premium or Accueil.
+ assert.match(load,/if\(doRender\)\{renderInbox\(\);tab\('inbox'\);rememberConversationRoute\(id\);\}/);
+ assert.ok(fromNotification.indexOf("history.replaceState({tab:'inbox',threadId:conversationId}")>
+  fromNotification.indexOf('await loadMessages(conversationId)'));
+ const x=navigatorState('/espace/professionnel',true);
+ x.ctx.routeThread('conv-1'); // No navigation: first switch to the Messages parent.
+ assert.equal(x.location.pathname,'/espace/professionnel');
+ const parent=navigatorState('/espace/messagerie',true);
+ parent.ctx.routeThread('conv-1');
+ parent.history.back();parent.ctx.backToRoute('inbox');
+ assert.equal(parent.state.thread,null);
+ assert.equal(parent.location.pathname,'/espace/messagerie');
+ assert.equal(parent.location.search,'');
+});
 test('Professional registration steps return to their actual previous step, never jump over a stage',()=>{
  const x=navigatorState('/espace/professionnel');
  x.ctx.routeStep(2);
