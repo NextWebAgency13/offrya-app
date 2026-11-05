@@ -7,22 +7,24 @@ const pro=fs.readFileSync('public/pro-experience.js','utf8');
 const css=fs.readFileSync('public/pro-experience.css','utf8');
 const html=fs.readFileSync('public/espace.html','utf8');
 
-test('Top Premium action row contains only Proposer mes services and Gérer mon activité',()=>{
- assert.match(pro,/const primaryMenu=\[[\s\S]*?\['home','Trouver des missions','ic-dashboard'\]/);
- assert.match(pro,/\['requests','Proposer mes services','ic-missions'\]/);
- assert.match(pro,/\['tracking','Gérer mon activité','ic-check'\]/);
- assert.match(pro,/pro-v3-primary-tabs[^\n]*primaryMenu\.filter\(item=>item\[0\]!=='home'\)\.map\(navButton\)/);
- assert.doesNotMatch(pro,/pro-v3-primary-tabs[^\n]*primaryMenu\.map\(navButton\)/);
-});
-test('AI radar remains the Espace Premium bottom destination and its desktop sidebar remains accessible',()=>{
- assert.match(html,/data-tab="boamp" aria-label="Espace Premium"/);
- assert.match(pro,/nav\.innerHTML=primaryMenu\.map\(navButton\)\.join\(''\)/);
+test('No duplicate upper action cards remain on Premium',()=>{
+ assert.doesNotMatch(pro,/'<nav class="pro-v3-primary-tabs"/);
  assert.match(pro,/data-pro-panel="home"/);
  assert.match(pro,/Ma veille intelligente OFFRYA/);
+ assert.match(pro,/querySelector\('\[data-pro-panel="home"\]'\)\.before\(search\)/);
+ assert.doesNotMatch(pro,/querySelector\('\.pro-v3-primary-tabs'\)\.after\(search\)/);
 });
-test('Android and portrait virtual viewport show two balanced tiles',()=>{
- assert.match(css,/@media\(max-width:820px\)\{[\s\S]*?\.pro-v3-primary-tabs\{\s*display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
- assert.match(css,/\.pro-v3-primary-tabs\{\s*display:grid!important;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important/);
+test('Proposer mes services and Gérer mon activité are retained in Android menu and desktop sidebar',()=>{
+ assert.match(pro,/const primaryMenu=\[/);
+ for(const value of ['Trouver des missions','Proposer mes services','Gérer mon activité'])assert.ok(pro.includes(value));
+ assert.match(pro,/nav\.innerHTML=primaryMenu\.map\(navButton\)\.join\(''\)/);
+ assert.match(pro,/tools\.innerHTML=[^\n]*\[\.\.\.primaryMenu\.filter\(item=>item\[0\]!=='home'\),\.\.\.secondaryMenu\]\.map\(navButton\)/);
+ assert.match(pro,/accountPanel\.prepend\(tools\)/);
+ assert.match(html,/data-tab="boamp" aria-label="Espace Premium"/);
+ assert.match(pro,/data-pro-screen/);
+});
+test('No top three-card strip can appear on small Android or desktop-site portrait viewports',()=>{
+ assert.match(css,/body\.offrya-pro-v3 #proExperienceV3 \.pro-v3-primary-tabs\{display:none!important\}/);
  const parsed=spawnSync(process.execPath,['--input-type=module','--check'],{input:pro,encoding:'utf8'});
  assert.equal(parsed.status,0,parsed.stderr);
 });
