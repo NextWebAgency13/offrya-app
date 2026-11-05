@@ -26,7 +26,7 @@ test('Les trois CTA utilisent les parcours existants sécurisés, sans exposer l
  assert.match(home,/href="\/deposer-une-mission" data-journey="client"/);
  assert.match(home,/href="\/professionnels" data-journey="professional"/);
  assert.match(home,/href="\/connexion\?next=%2Fespace" data-journey="manage"/);
- assert.match(home,/après confirmation de l'e-mail/);
+ assert.match(home,/après confirmation de l’e-mail/);
  assert.match(home,/Professionnels vérifiés/);
  assert.match(pro,/Sans engagement, résiliable à tout moment\./);
  assert.doesNotMatch(home,/id="missionList"|id="statOpen"|id="dashMissions"|avis clients vérifiés|témoignages clients/i);
