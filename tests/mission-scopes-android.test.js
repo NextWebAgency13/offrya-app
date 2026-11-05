@@ -59,7 +59,7 @@ test('UI exposes three real scopes and reuses safe detail, contact and favorites
  assert.match(app,/data-contact/);
  assert.match(app,/data-favorite/);
  assert.match(app,/data-close-mission/);
- assert.match(app,/if\(!canBrowse\)/);
+ assert.match(app,/scope=canBrowse\?missionView:'published'/);
  assert.doesNotMatch(app,/missionView='followed';[\s\S]*fetch\('https:\/\//);
 });
 test('Android cards use compact horizontal actions and footer keeps bottom navigation',()=>{
