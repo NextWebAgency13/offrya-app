@@ -8,7 +8,8 @@ test('Production smoke verifies the three live entry journeys, not removed accou
  for(const term of ['client','professional','manage'])assert.ok(smoke.includes(term),'Missing entry '+term);
  assert.match(smoke,/offrya-entry-paths/);
  assert.match(smoke,/offrya-entry-hero/);
- assert.doesNotMatch(smoke,/landing\.text\.includes\('id="choisir-compte"'\)(?!\))/);
+ assert.ok(smoke.includes("!landing.text.includes('id=\"choisir-compte\"')"));
+ assert.ok(!smoke.includes("&&landing.text.includes('id=\"choisir-compte\"')"));
  assert.doesNotMatch(smoke,/landing\.text\.includes\('class="mock-choice-grid"'\)/);
  assert.doesNotMatch(smoke,/const proCard=/);
 });
