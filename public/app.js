@@ -73,6 +73,7 @@ function paintMessageBadges(){
  }
  if($('roleConversationCount'))$('roleConversationCount').textContent=String(total);
  if($('clientHomeUnread'))$('clientHomeUnread').textContent=String(total);
+ if($('clientHomeUnreadLabel'))$('clientHomeUnreadLabel').textContent=total+' message'+(total>1?'s':'');
  if($('clientHomeNotificationText'))$('clientHomeNotificationText').textContent=
   total?total+' nouveau'+(total>1?'x':'')+' message'+(total>1?'s':''):'Aucune nouvelle';
 }
