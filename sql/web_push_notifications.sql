@@ -45,7 +45,7 @@ begin
   url:='https://offrya.fr/api/push/message',
   body:=jsonb_build_object('message_id',new.id::text,'timestamp',issued),
   headers:=jsonb_build_object('Content-Type','application/json','x-offrya-push-signature',signature),
-  timeout_milliseconds:=30000
+  timeout_milliseconds:=90000
  );
  return new;
 exception when others then
