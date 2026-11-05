@@ -671,7 +671,7 @@ body.offrya-pro-v3 .pro-v3-primary-tabs button:focus-visible{
 }
 @media(max-width:820px){
  body.offrya-pro-v3 .pro-v3-primary-tabs{
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;
   margin:0 0 16px;padding:0;
  }
  body.offrya-pro-v3 .pro-v3-primary-tabs .pro-v3-nav-btn{
@@ -866,7 +866,7 @@ body.offrya-pro-v3 .pro-v3-search:focus-within{
  body #settings .push-notifications-settings{flex-direction:column!important;align-items:stretch!important}
  body #settings .push-notification-actions{width:100%!important}
  body.offrya-pro-v3 .pro-v3-primary-tabs{
-  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
   gap:10px!important;margin-bottom:14px!important;
  }
  body.offrya-pro-v3 .pro-v3-primary-tabs .pro-v3-nav-btn{
@@ -1279,3 +1279,7 @@ body.offrya-pro-v3 .pro-ai-card-side{min-width:0}
  body.offrya-pro-v3 .pro-ai-card{grid-template-columns:50px minmax(0,1fr)!important}
  body.offrya-pro-v3 .pro-ai-card-side{grid-column:2;grid-template-columns:minmax(0,1fr) auto!important}
 }
+
+/* The three redundant top-level cards were removed from the Premium markup.
+   Defensive fallback for old cached markup and Android's virtual desktop viewport. */
+body.offrya-pro-v3 #proExperienceV3 .pro-v3-primary-tabs{display:none!important}
