@@ -270,7 +270,7 @@ async function handle(req,res){
      await aiRerank(result,{apiKey:process.env.OPENAI_API_KEY,
       model:process.env.OFFRYA_AI_MODEL||'gpt-4.1-mini',profile:rows[3][0],preferences}):
      {...result,mode:'rules'};
-    const displayed=enhanced.items.slice(0,100).map(({description, ...x})=>x);
+    const displayed=enhanced.items.slice(0,300).map(({description, ...x})=>x);
     return json(res,200,{mode:enhanced.mode,total:enhanced.total,relevant:enhanced.relevant,
      urgent:enhanced.urgent,items:displayed,
      truncated:enhanced.total>displayed.length,
