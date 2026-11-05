@@ -59,7 +59,7 @@ test('Sending remains explicit, uses existing private conversation and moves to 
 });
 test('Personal space remains separate and focuses on projects and exchanges',()=>{
  assert.match(personal,/id="homePrivateTitle">Je gère mon activité/);
- assert.match(personal,/id="clientProjectHeading">Décrivez votre projet/);
+ assert.match(personal,/id="clientProjectHeading">Bienvenue sur OFFRYA/);
  assert.match(app,/Mes projets et mes échanges/);
  assert.match(pro,/canUsePremium\(\)/);
  for(const path of ['public/pro-commercial.js','public/pro-experience.js']){
