@@ -287,7 +287,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    section.hidden=!on;section.classList.toggle('active',on);
   }
   $('proV3FollowupSlot').hidden=next!=='tracking';
-  $('proV3WorkActions').hidden=next!=='tracking';
+  if($('proV3WorkActions'))$('proV3WorkActions').hidden=next!=='tracking';
   if($('proV3TrackingActivity'))$('proV3TrackingActivity').hidden=next!=='tracking';
   const headings={
    requests:['Proposer mes services','Choisissez une mission accessible pour rédiger votre proposition.'],
@@ -394,7 +394,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   metrics();recommendations();activity();alerts();
   const commercial=['requests','assistant','tracking'].includes(view);
   if($('proV3TrackingActivity'))$('proV3TrackingActivity').hidden=view!=='tracking';
-  $('proV3WorkActions').hidden=view!=='tracking';
+  if($('proV3WorkActions'))$('proV3WorkActions').hidden=view!=='tracking';
   for(const section of $('proExperienceV3').querySelectorAll('[data-pro-panel]')){
    const on=section.dataset.proPanel===(commercial?'commercial':view);
    section.hidden=!on;

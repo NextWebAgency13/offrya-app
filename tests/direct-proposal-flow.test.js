@@ -45,7 +45,7 @@ test('Only three main professional actions; secondary tools retained',()=>{
  assert.match(pro,/const secondaryMenu=menu\.filter/);
  for(const word of ['Marchés publics','Veille automatisée','Messagerie','Préférences de veille','Paramètres'])assert.ok(pro.includes(word));
  assert.match(pro,/pro-v3-primary-tabs/);
- assert.match(css,/\.pro-v3-primary-tabs\{grid-template-columns:repeat\(3/);
+ assert.match(css,/\.pro-v3-primary-tabs\s*\{\s*display:grid;grid-template-columns:repeat\(3/);
 });
 test('Sending remains explicit, uses existing private conversation and moves to tracking',()=>{
  assert.match(sales,/buildProposalMessage\(\$\('salesDraftText'\)\?\.value/);
