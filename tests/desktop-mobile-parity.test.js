@@ -76,6 +76,6 @@ test('The module remains valid and the three journeys still link to protected op
  const check=spawnSync(process.execPath,['--input-type=module','--check'],{input:pro,encoding:'utf8'});
  assert.equal(check.status,0,check.stderr);
  assert.match(pro,/if\(openProposal&&openProposal\(id\)\)\{show\('assistant'\);return;\}/);
- assert.match(pro,/return \{init,render,show,syncTab\}/);
+ assert.match(pro,/return \{init,render,show,syncTab,back:backFromProScreen\}/);
  assert.doesNotMatch(pro,/service_role|VAPID_PRIVATE_KEY|OPENAI_API_KEY/);
 });
