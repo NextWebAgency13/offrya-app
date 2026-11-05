@@ -420,3 +420,29 @@ body.offrya-reference-ui .role-ref-deposit-nav{display:none}
   min-height:26px;display:inline-flex;align-items:center;
  }
 }
+
+
+/* Espace Premium Android: eliminate duplicated pre-footer whitespace.
+ * Retain enough space below legal links to scroll above the fixed bottom nav. */
+@media(max-width:780px){
+ body.offrya-reference-ui.offrya-pro-v3:has(#professional.active) .app-shell .main-content{
+  padding-bottom:13px!important;
+ }
+ body.offrya-reference-ui.offrya-pro-v3:has(#professional.active) .offrya-global-footer{
+  margin-top:11px!important;padding:15px 15px calc(94px + env(safe-area-inset-bottom,0px))!important;
+  gap:8px 14px!important;font-size:12px!important;line-height:1.45;
+ }
+ body.offrya-reference-ui.offrya-pro-v3:has(#professional.active) .offrya-global-footer a{
+  display:inline-flex;min-height:30px;align-items:center;overflow-wrap:anywhere;
+ }
+}
+@media screen and (pointer:coarse) and (orientation:portrait)
+ and (min-width:621px) and (max-width:1100px) and (max-aspect-ratio:3/5){
+ body.offrya-reference-ui.offrya-pro-v3:has(#professional.active) .app-shell .main-content{
+  padding-bottom:13px!important;
+ }
+ body.offrya-reference-ui.offrya-pro-v3:has(#professional.active) .offrya-global-footer{
+  margin-top:11px!important;padding:16px 19px calc(106px + env(safe-area-inset-bottom,0px))!important;
+  gap:9px 15px!important;font-size:13px!important;
+ }
+}
