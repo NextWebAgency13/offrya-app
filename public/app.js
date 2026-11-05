@@ -517,8 +517,22 @@ function renderSettings(){
  $('filterStatus').textContent=state.prefs?.department||state.prefs?.category?'Filtres enregistrés.':'Aucun filtre défini. Sélectionnez un secteur ou un département.';
  const p=$('preferencesForm');p.elements.missions_enabled.checked=state.prefs?.missions_enabled||false;p.elements.messages_enabled.checked=state.prefs?.messages_enabled||false;p.elements.department.value=state.prefs?.department||'';p.elements.category.value=state.prefs?.category||'';
  const canManage=Boolean(state.session&&!isGuest()&&state.subscription?.stripe_customer_id);
+ const trialExpires=Date.parse(state.testPremiumUntil||'');
+ const paidThrough=Date.parse(state.subscription?.paid_through||'');
+ const hasTest=Number.isFinite(trialExpires)&&trialExpires>Date.now();
+ const paid=state.subscription?.status==='active'&&Number.isFinite(paidThrough)&&paidThrough>Date.now();
+ const badge=$('accountPlanBadge'),expiry=$('accountPlanExpiry');
+ badge.dataset.status=hasTest?'test':paid?'paid':'none';
+ badge.textContent=hasTest?'Accès de test':paid?'Abonnement actif':verified?'Professionnel vérifié':proJourney?'Vérification en cours':'Compte gratuit';
+ expiry.textContent=hasTest?'Expiration le '+date(state.testPremiumUntil):
+  paid?'Actif jusqu’au '+date(state.subscription?.paid_through):
+  verified?'Abonnement non activé':proJourney?'Activation après vérification':'Aucun abonnement professionnel actif';
  $('accountBillingPortal').disabled=!canManage;
- $('accountBillingInfo').textContent=!state.session?'Connectez-vous pour gérer votre abonnement.':canManage?'Votre abonnement est associé à un compte Stripe.':'Aucun abonnement Stripe associé à ce compte. En cas de difficulté, contactez le support.';
+ $('accountBillingPortal').setAttribute('aria-describedby','accountBillingInfo');
+ $('accountBillingInfo').textContent=!state.session?'Connectez-vous pour gérer votre abonnement.':
+  canManage?'Votre abonnement est associé à un compte Stripe.':
+  hasTest?'Accès de test sans paiement : aucun abonnement Stripe à gérer.':
+  'Aucun abonnement Stripe associé à ce compte. En cas de difficulté, contactez le support.';
 }
 
 function hasVerifiedProfessionalIdentity(){
