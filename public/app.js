@@ -10,7 +10,7 @@ const authCaptcha=createAuthCaptcha($('modalAuthCaptcha'));
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,testPremiumUntil:null,boampStatus:'idle',opportunityPrefs:null,tenderTracking:[],opportunityAlerts:[],salesTracking:[],draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,testPremiumUntil:null,boampStatus:'idle',opportunityPrefs:null,tenderTracking:[],opportunityAlerts:[],salesTracking:[],draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login',messageHeaders:[],messageUnreadCount:0};
 $('dashboardLoadingRetry')?.addEventListener('click',()=>location.reload());
 setTimeout(()=>{
  if(state.loaded)return;
@@ -159,7 +159,7 @@ async function refresh(){
  if(!state.db){state.loaded=true;render();return;}
  if(!state.session){
   state.draft=null;state.proStep=1;state.proStepUserId=null;
-  state.missions=[];state.profile=null;state.conversations=[];state.messages=[];
+  state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.messageHeaders=[];state.messageUnreadCount=0;
   state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;
   state.subscription=null;state.testPremiumUntil=null;state.opportunityPrefs=null;state.tenderTracking=[];state.opportunityAlerts=[];state.salesTracking=[];state.manualIdentity=null;state.boamp=[];
   state.priorityAlerts=[];state.lastPriorityIds=null;state.loaded=true;render();return;
@@ -168,7 +168,7 @@ async function refresh(){
  // Never expose a previous account's cached private rows during account switches.
  if(state.currentUserId!==uid){
   state.currentUserId=uid;state.missions=[];state.profile=null;state.premium=null;state.subscription=null;state.testPremiumUntil=null;
-  state.conversations=[];state.messages=[];state.prefs=null;state.opportunityPrefs=null;state.tenderTracking=[];state.opportunityAlerts=[];state.salesTracking=[];state.profiles=[];state.favorites=[];
+  state.conversations=[];state.messages=[];state.messageHeaders=[];state.messageUnreadCount=0;messageKnownAccount=null;messageKnownIds=null;state.prefs=null;state.opportunityPrefs=null;state.tenderTracking=[];state.opportunityAlerts=[];state.salesTracking=[];state.profiles=[];state.favorites=[];
   state.draft=null;state.manualIdentity=null;state.priorityAlerts=[];state.loaded=false;
  }
  // Load the owner's missions first. RLS also independently enforces ownership.
@@ -237,6 +237,7 @@ async function refresh(){
  if(state.proStepUserId!==uid){state.proStepUserId=uid;state.proStep=Math.max(1,Math.min(3,Number(state.draft?.step||1)));}
  if(state.thread&&!state.conversations.find(x=>x.id===state.thread))state.thread=null;
  if(state.thread)try{await loadMessages(state.thread,false);}catch(error){console.warn('OFFRYA: messages unavailable',error);}
+ try{await loadMessageNotifications();}catch(error){console.warn('OFFRYA: unread notifications unavailable',error);}
  try{await loadPriorityAlerts(false);}catch(error){console.warn('OFFRYA: priority alerts unavailable',error);}
  state.loaded=true;
  render();
@@ -291,7 +292,7 @@ function renderMissions(){
 }
 function renderInbox(){
  const items=state.conversations;
- $('conversationList').innerHTML=items.length?items.map(c=>{const mine=c.client_id===state.session?.user.id;const contact=profileName(mine?c.professional_id:c.client_id);const selected=state.thread===c.id;return `<button type="button" class="conv-item offrya-conversation ${selected?'selected':''}" data-thread="${esc(c.id)}" aria-pressed="${selected}"><span class="offrya-conversation-icon" aria-hidden="true">${mine?'P':'D'}</span><span class="offrya-conversation-body"><strong>${esc(titleForMission(c.mission_id))}</strong><small>${mine?'Professionnel':'Demandeur'} : ${esc(contact)}</small><time datetime="${esc(c.created_at)}">Discussion ouverte le ${date(c.created_at)}</time></span><span class="offrya-conversation-chevron" aria-hidden="true">›</span></button>`;}).join(''):'<div class="empty">Aucune conversation pour le moment. Retrouvez vos échanges ici après une prise de contact au sujet d’une mission.</div>';
+ $('conversationList').innerHTML=items.length?items.map(c=>{const mine=c.client_id===state.session?.user.id;const contact=profileName(mine?c.professional_id:c.client_id);const selected=state.thread===c.id,unread=messageUnread().byThread.get(c.id)||0;return `<button type="button" class="conv-item offrya-conversation ${selected?'selected':''} ${unread?'has-unread':''}" data-thread="${esc(c.id)}" aria-pressed="${selected}"><span class="offrya-conversation-icon" aria-hidden="true">${mine?'P':'D'}</span><span class="offrya-conversation-body"><strong>${esc(titleForMission(c.mission_id))}</strong><small>${mine?'Professionnel':'Demandeur'} : ${esc(contact)}</small><time datetime="${esc(c.created_at)}">Discussion ouverte le ${date(c.created_at)}</time></span>${unread?'<span class="message-thread-badge" aria-label="'+unread+' message(s) non lu(s)">'+(unread>99?'99+':unread)+'</span>':''}<span class="offrya-conversation-chevron" aria-hidden="true">›</span></button>`;}).join(''):'<div class="empty">Aucune conversation pour le moment. Retrouvez vos échanges ici après une prise de contact au sujet d’une mission.</div>';
  $('messageForm').querySelector('button').disabled=!state.thread;
  const activeConversation=items.find(c=>c.id===state.thread);
  $('threadTitle').textContent=activeConversation?titleForMission(activeConversation.mission_id):'Sélectionnez une discussion';
@@ -675,7 +676,7 @@ function render(){
  $('roleCompanyVerifiedText').textContent=state.testPremiumUntil?'Accès de test temporaire':eligiblePro?'✓ Compte vérifié':'Vérification en cours';
  $('roleAvailableCount').textContent=state.missions.filter(m=>m.status==='open').length;
  $('roleOwnCount').textContent=state.conversations.filter(x=>x.professional_id===state.session?.user?.id).length;
- $('roleConversationCount').textContent=state.conversations.length;
+ $('roleConversationCount').textContent=state.messageUnreadCount||0;
  $('roleAlertCount').textContent=state.priorityAlerts?.length||0;
 
 
@@ -692,10 +693,15 @@ $('homePrivateDashboard').classList.toggle('hidden',!yes);$('statOpenLabel').tex
  ]){
   try{draw();}catch(error){console.error('OFFRYA: rendu '+name+' indisponible',error);}
  }
+ paintMessageBadges();
 }
 async function loadMessages(id,doRender=true){
  const r=await state.db.from('offrya_messages').select('*').eq('conversation_id',id).order('created_at',{ascending:true}).limit(200);
- if(r.error)throw r.error;state.messages=r.data||[];if(doRender){renderInbox();tab('inbox');}
+ if(r.error)throw r.error;
+ if(id!==state.thread||!state.session)return;
+ state.messages=r.data||[];
+ acknowledgeConversation(id,state.messages);
+ if(doRender){renderInbox();tab('inbox');}
 }
 $('missionSearch').onclick=renderMissions;
 $('missionRefresh').onclick=async()=>{
