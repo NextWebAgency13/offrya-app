@@ -13,8 +13,9 @@ test('Professional homepage has exactly one unified opportunity Radar, no duplic
  for(const token of ['proV3Recommendations','proV3RadarSummary','proV3MatchingStatus','data-refresh-radar','Radar des opportunités'])assert.ok(home.includes(token),token);
  for(const obsolete of ['proV3MissionPreview','proV3MissionCount','proV3RecentMissionCount','proV3ConversationCount','proV3TrackingCount','proV3Alerts','proV3Chart','pro-v3-actions','Accès rapides','Missions publiées par les autres'])assert.equal(home.includes(obsolete),false,obsolete);
  assert.equal((home.match(/id="proV3Recommendations"/g)||[]).length,1);
- assert.match(pro,/alerts:state\.opportunityAlerts\|\|\[\]/);
- assert.match(pro,/serverRadar\?\.items\|\|fallback\.items/);
+ assert.match(pro,/serverRadar\.items\.filter/);
+ assert.match(pro,/serverRadar\.liveNotices/);
+ assert.doesNotMatch(pro,/serverRadar\?\.items\|\|fallback\.items/);
  assert.match(pro,/const seen=new Set\(\)/);
  assert.match(pro,/sort\(\(a,b\)=>Number\(b\.score\|\|0\)-Number\(a\.score\|\|0\)\)/);
 });

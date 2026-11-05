@@ -39,9 +39,10 @@ test('Ranking rejects expired, unrelated, spoofed and invalid public notices',as
  assert.equal(radarOfficialUrl('https://ted.europa.eu/fr/notice/-/detail/750090-2026'),true);
 });
 test('The radar is displayed only behind the existing pro authorization and can never send bids',()=>{
- assert.match(pro,/import \{buildRadar\} from '\.\/radar\.js'/);
+ assert.doesNotMatch(pro,/import \{buildRadar\} from '\.\/radar\.js'/);
+ assert.match(pro,/serverRadar\.items\.filter/);
  assert.match(pro,/if\(!panel\|\|!canUsePremium\(\)\)return/);
- assert.match(pro,/missions:available\(\),alerts:state\.opportunityAlerts\|\|\[\]/);
+ assert.match(pro,/serverRadar\.liveNotices/);
  assert.match(pro,/proV3RadarSummary/);
  assert.match(pro,/Les scores sont indicatifs/);
  assert.match(server,/\['\/radar\.js','text\/javascript/);

@@ -1,4 +1,3 @@
-import {buildRadar} from './radar.js';
 // Prefer the chosen username over a corporate legal label or technical identifier.
 export function professionalGreetingLabel(state){
  const user=state.session?.user, metadata=user?.user_metadata||{};
@@ -42,25 +41,37 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  let serverRadar=null,radarKey='',radarAt=0,radarLoading=false;
  let radarFilter='all',radarSort='score',radarQuery='';
  let tenderRefreshing=false,priorityOnly=false,trackingBusy=false;
+ let forceLiveRadar=false,radarError='';
  async function loadMatchedRadar(key,user){
   if(radarLoading||!canUsePremium()||!user)return;
   radarLoading=true;
+  const live=forceLiveRadar;forceLiveRadar=false;
   try{
    const session=(await state.db.auth.getSession()).data?.session;
-   if(!session||session.user?.id!==user)return;
-   const response=await fetch('/api/pro/matches',{
-    headers:{Authorization:'Bearer '+session.access_token},cache:'no-store'});
+   if(!session||session.user?.id!==user)throw Error('Session Premium expirée');
+   const response=await fetch('/api/pro/matches'+(live?'?refresh=1':''),
+    {headers:{Authorization:'Bearer '+session.access_token},cache:'no-store'});
    if(!response.ok)throw Error('Correspondance HTTP '+response.status);
    const data=await response.json();
-   if(!Array.isArray(data.items)||!['ai','rules'].includes(data.mode))throw Error('Format incorrect');
+   if(!Array.isArray(data.items)||!['ai','rules'].includes(data.mode)
+    ||!Array.isArray(data.liveNotices))throw Error('Format incorrect');
+   // Never display a previous account's results or outdated criteria.
    if(state.session?.user?.id!==user||key!==radarKey||!canUsePremium())return;
-   serverRadar=data;state.radarMatches=data;
+   serverRadar=data;state.radarMatches=data;radarError='';
    recommendations();metrics();alerts();
    document.dispatchEvent(new CustomEvent('offrya:ranking-updated'));
-
   }catch(error){
-   console.warn('OFFRYA: classement distant indisponible, secours local',error);
-  }finally{if(key===radarKey)radarAt=Date.now();radarLoading=false;}
+   console.warn('OFFRYA : recalcul du radar indisponible',error);
+   if(state.session?.user?.id===user&&key===radarKey&&canUsePremium()){
+    radarError='Impossible de recalculer les opportunités. Réessayez avec Actualiser.';
+    recommendations();metrics();alerts();
+   }
+  }finally{
+   radarLoading=false;
+   if(key===radarKey)radarAt=Date.now();
+   else if(state.session?.user?.id===user&&canUsePremium())
+    queueMicrotask(()=>loadMatchedRadar(radarKey,user));
+  }
  }
 
  function icon(name){return '<svg class="nav-icon" aria-hidden="true"><use href="#'+name+'"/></svg>';}
@@ -211,6 +222,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    if(response.error)throw response.error;
    if(state.session?.user?.id!==user||!canUsePremium())return;
    state.opportunityAlerts=Array.isArray(response.data)?response.data:[];
+   forceLiveRadar=true;radarError='';
    serverRadar=null;state.radarMatches=null;radarKey='';radarAt=0;
    recommendations();
   }catch(error){
@@ -228,7 +240,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const fingerprint=JSON.stringify([user,state.opportunityPrefs,
    (state.missions||[]).map(m=>[m.id,m.status,m.created_at]).slice(0,220),
    (state.opportunityAlerts||[]).map(a=>[a.tender_id,a.match_score,a.deadline]).slice(0,100)]);
-  if(fingerprint!==radarKey){radarKey=fingerprint;serverRadar=null;state.radarMatches=null;priorityOnly=false;radarAt=0;}
+  if(fingerprint!==radarKey){radarKey=fingerprint;serverRadar=null;state.radarMatches=null;priorityOnly=false;radarError='';radarAt=0;}
   if(!radarLoading&&Date.now()-radarAt>5*60*1000)queueMicrotask(()=>loadMatchedRadar(fingerprint,user));
   const p=state.opportunityPrefs||{};
   const sectors=Array.isArray(p.sectors)?p.sectors.filter(Boolean):[];
@@ -244,11 +256,24 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(p.keywords)more.push('mots-clés définis');
   if(more.length)criteria.push(more.join(' et '));
   $('proAiCriteria').innerHTML=criteria.map((value,i)=>'<span class="pro-ai-criteria-chip" title="'+esc(value)+'">'+['▦','⌖','+','⋯'][i]+' '+esc(value)+'</span>').join('');
-  const fallback=buildRadar({missions:available(),alerts:state.opportunityAlerts||[],preferences:p,userId:user});
+  if(!serverRadar){
+   // Never present saved scores as matches for newly changed criteria.
+   for(const id of ['proAiTabAll','proAiStatAll','proAiTabMissions','proAiStatMissions','proAiTabTenders','proAiStatTenders'])
+    $(id).textContent='—';
+   const message=radarError||'Actualisation des opportunités selon vos critères…';
+   $('proAiInlineSummary').textContent=message;
+   $('proV3RadarSummary').textContent=message;
+   $('proV3MatchingStatus').textContent=message;
+   $('proAiPriorityAlert').hidden=true;
+   panel.innerHTML='<div class="pro-v3-empty pro-ai-empty" role="status"><strong>'+esc(message)+'</strong>'+
+    (radarError?'<button type="button" data-refresh-radar>Réessayer l’actualisation</button>':'<p>Recherche BOAMP et correspondance métier en cours.</p>')+'</div>';
+   return;
+  }
   const missions=new Map(available().map(m=>[String(m.id),m]));
-  const notices=new Map((state.opportunityAlerts||[]).filter(a=>a?.deadline&&Date.parse(a.deadline)>Date.now()).map(a=>[String(a.tender_id),a]));
+  const notices=new Map([...(serverRadar.liveNotices||[]),...(state.opportunityAlerts||[])]
+   .filter(a=>a?.deadline&&Date.parse(a.deadline)>Date.now()).map(a=>[String(a.tender_id),a]));
   const seen=new Set();
-  const rows=(serverRadar?.items||fallback.items).filter(item=>{
+  const rows=serverRadar.items.filter(item=>{
    if(!item||!['mission','tender'].includes(item.kind))return false;
    const key=item.kind+':'+item.id;if(seen.has(key))return false;
    if(item.kind==='mission'&&!missions.has(String(item.id)))return false;
@@ -257,12 +282,13 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
       /^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(a.url||'')))return false;
     const codes=String(a.departments||'').toUpperCase().split(/[^A-Z0-9]+/).filter(Boolean).map(x=>/^\d{1,2}$/.test(x)?x.padStart(2,'0'):x);
     if(p.department&&codes.length&&!codes.includes(String(p.department).toUpperCase()))return false;
-    if(serverRadar&&p.sectors?.length&&!p.sectors.includes(item.category))return false;
+    if(p.sectors?.length&&!p.sectors.includes(item.category))return false;
    }
    seen.add(key);return true;
   }).sort((a,b)=>Number(b.score||0)-Number(a.score||0));
   const nMission=rows.filter(x=>x.kind==='mission').length,nTender=rows.filter(x=>x.kind==='tender').length;
-  $('proAiInlineSummary').textContent=rows.length+' opportunité'+(rows.length!==1?'s':'')+' correspondant à vos critères, dont '+nTender+' marché'+(nTender!==1?'s':'')+' public'+(nTender!==1?'s':'')+' et '+nMission+' mission'+(nMission!==1?'s':'')+'.';
+  $('proAiInlineSummary').textContent=rows.length+' opportunité'+(rows.length!==1?'s':'')+' correspondant à vos critères, dont '+nTender+' marché'+(nTender!==1?'s':'')+' public'+(nTender!==1?'s':'')+' et '+nMission+' mission'+(nMission!==1?'s':'')+'.'+
+   (serverRadar.truncated?' Seuls les premiers résultats sont chargés.':'');
   for(const [id,n] of [['proAiTabAll',rows.length],['proAiStatAll',rows.length],['proAiTabMissions',nMission],['proAiStatMissions',nMission],['proAiTabTenders',nTender],['proAiStatTenders',nTender]])$(id).textContent=String(n);
   const priority=serverRadar?rows.filter(item=>{
    const a=notices.get(String(item.id));
@@ -290,9 +316,10 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    const active=b.dataset.proFilter===radarFilter;
    b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',String(active));
   }
-  $('proV3MatchingStatus').textContent=serverRadar?.mode==='ai'?'Classement métier vérifié, puis affiné par IA.':
-   serverRadar?'Correspondance calculée selon le métier, la zone et l’échéance.':
-   'Correspondances provisoires, calcul métier en cours de chargement.';
+  $('proV3MatchingStatus').textContent=(serverRadar.mode==='ai'?'Classement métier vérifié, puis affiné par IA.':
+   'Correspondance calculée selon le métier, la zone et l’échéance.')+
+   (serverRadar.liveSource==='unavailable'?' Recherche BOAMP actuelle indisponible : avis précédemment collectés uniquement.':
+    serverRadar.liveSource==='partial'?' Source BOAMP partiellement disponible.':'');
   $('proV3RadarSummary').textContent=selected.length+' opportunité'+(selected.length>1?'s':'')+
    ' affichée'+(selected.length>1?'s':'')+'.';
   const tracked=new Map((state.tenderTracking||[]).map(t=>[String(t.tender_id),t]));
@@ -337,7 +364,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    (priorityOnly?'Aucune nouvelle alerte prioritaire.':radarFilter==='tender'?
     'Aucun appel d’offres officiel ne correspond à vos critères.':'Aucune opportunité correspondant à vos critères.')+
    '</strong><p>'+ (serverRadar?'Les métiers, la localisation et les échéances ont été vérifiés. Ajustez vos critères pour élargir la recherche.':
-    'Le classement métier est en cours de vérification. Actualisez si le chargement persiste.')+
+    'Vérifiez les métiers et la zone sélectionnés avant de relancer la recherche.')+
    '</p><button type="button" data-pro-screen="preferences">Modifier mes critères →</button>'+
    '<button type="button" data-pro-screen="boamp">Rechercher les avis BOAMP →</button></div>';
 
@@ -462,7 +489,8 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const current=(state.tenderTracking||[]).find(row=>String(row.tender_id)===tenderId);
   const allowed=['saved','reviewing','preparing','submitted','done'];
   if(stage!==null&&!allowed.includes(stage))return;
-  const notice=(state.opportunityAlerts||[]).find(row=>String(row.tender_id)===tenderId);
+  const notice=(state.opportunityAlerts||[]).find(row=>String(row.tender_id)===tenderId)||
+   (serverRadar?.liveNotices||[]).find(row=>String(row.tender_id)===tenderId);
   if(!current&&!notice)return;
   const url=String(current?.url||notice?.url||'');
   if(!(/^https:\/\/(www\.)?boamp\.fr\//i.test(url)||
@@ -536,6 +564,15 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    const b=e.target.closest('[data-pro-mission]');if(b)openMission(b.dataset.proMission);
     
   });
+  // A successful preferences save must invalidate this separate screen's
+  // ranking cache immediately, even when an earlier API request is in flight.
+  document.addEventListener('offrya:preferences-updated',event=>{
+   const user=state.session?.user?.id;
+   if(!user||!canUsePremium()||event.detail?.userId!==user)return;
+   forceLiveRadar=true;radarError='';serverRadar=null;state.radarMatches=null;
+   radarAt=0;
+   recommendations();metrics();alerts();
+  });
   $('proExperienceV3').addEventListener('change',event=>{
    const select=event.target.closest('[data-pro-stage-tender]');
    if(select&&canUsePremium())updateTenderTracking(select.dataset.proStageTender,select.value);
@@ -582,7 +619,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(!initialized)return;
   const premium=Boolean(canUsePremium());
   document.body.classList.toggle('offrya-pro-v3',premium);
-  if(!premium){uid=null;serverRadar=null;radarKey='';radarAt=0;return;}
+  if(!premium){uid=null;serverRadar=null;state.radarMatches=null;radarKey='';radarAt=0;radarError='';forceLiveRadar=false;return;}
   const user=state.session?.user?.id;
   if(user!==uid){uid=user;view='home';state.radarMatches=null;
   }
