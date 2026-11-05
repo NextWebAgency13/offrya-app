@@ -38,7 +38,7 @@ async function run(){
  const event={message_id:'11111111-1111-4111-8111-111111111111',timestamp:Math.floor(Date.now()/1000)};
  const spoofed=await get('/api/push/message',{method:'POST',body:event});
  assert.equal(spoofed.status,401,'Unsigned webhook must be rejected');
- for(const path of ['/api/push/subscribe','/api/push/unsubscribe']){
+ for(const path of ['/api/push/subscribe','/api/push/unsubscribe','/api/push/status','/api/push/test']){
   const anonymous=await get(path,{method:'POST',body:{}});
   assert.equal(anonymous.status,401,path+' requires a real session');
  }
