@@ -171,6 +171,9 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
    $('opWatchFeedback').textContent='Critères enregistrés. Actualisation du radar et recherche BOAMP en cours…';
    document.dispatchEvent(new CustomEvent('offrya:preferences-updated',{detail:{userId:user}}));
    notify('Critères enregistrés. Actualisation des opportunités en cours.');
+   // Return to the Premium professional radar only after Supabase confirms
+   // persistence. The existing tab router enforces access and opens home.
+   tab('boamp');
   }catch(error){
    if(current()!==user)return;
    console.warn('OFFRYA : préférence de veille non enregistrée',error);
