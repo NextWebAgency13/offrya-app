@@ -1279,3 +1279,7 @@ body.offrya-pro-v3 .pro-ai-card-side{min-width:0}
  body.offrya-pro-v3 .pro-ai-card{grid-template-columns:50px minmax(0,1fr)!important}
  body.offrya-pro-v3 .pro-ai-card-side{grid-column:2;grid-template-columns:minmax(0,1fr) auto!important}
 }
+
+/* The three redundant top-level cards were removed from the Premium markup.
+   Defensive fallback for old cached markup and Android's virtual desktop viewport. */
+body.offrya-pro-v3 #proExperienceV3 .pro-v3-primary-tabs{display:none!important}

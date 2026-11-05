@@ -87,7 +87,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(accountPanel&&!accountPanel.querySelector('#proV3AccountTools')){
    const tools=document.createElement('nav');tools.id='proV3AccountTools';tools.className='pro-v3-account-tools';
    tools.setAttribute('aria-label','Outils professionnels');
-   tools.innerHTML='<strong class="pro-v3-account-title">Outils professionnels</strong>'+secondaryMenu.map(navButton).join('');
+   tools.innerHTML='<strong class="pro-v3-account-title">Outils professionnels</strong>'+[...primaryMenu.filter(item=>item[0]!=='home'),...secondaryMenu].map(navButton).join('');
    accountPanel.prepend(tools);
   }
   const accountMenu=document.getElementById('accountMenu');
@@ -101,7 +101,8 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const root=document.createElement('div');root.id='proExperienceV3';root.className='pro-v3-experience';
   root.innerHTML=[
    '<div class="pro-v3-mobile-menu" aria-hidden="true" hidden></div>',
-   '<nav class="pro-v3-primary-tabs" aria-label="Parcours professionnel">'+primaryMenu.map(navButton).join('')+'</nav>',
+   // The three upper cards are redundant with Espace Premium and the account
+   // tools. Keep professional actions in the desktop sidebar and Android menu.
    '<section class="pro-v3-view" data-pro-panel="home">',
     '<div class="pro-ai-welcome"><div class="pro-ai-welcome-main"><span class="pro-ai-welcome-eyebrow">ESPACE PROFESSIONNEL · OFFRYA</span><h2>Bonjour, <span id="proV3Hello">professionnel</span></h2><p>Vos missions et marchés publics, sélectionnés selon votre activité.</p></div><span class="pro-ai-welcome-status" id="proV3Status">Compte professionnel</span></div>',
    '<section class="pro-ai-hero" aria-labelledby="proAiHeroTitle">',
@@ -466,7 +467,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const header=document.querySelector('.app-shell .header');
   const search=document.createElement('form');search.id='proV3Search';search.className='pro-v3-search';
   search.setAttribute('role','search');search.innerHTML='<label class="sr-only" for="proV3SearchInput">Rechercher missions et appels d’offres</label><input id="proV3SearchInput" placeholder="Rechercher une mission, un appel d’offre, une ville…" autocomplete="off" maxlength="100"><button type="submit" aria-label="Rechercher">'+icon('ic-search')+'</button>';
-  $('proExperienceV3').querySelector('.pro-v3-primary-tabs').after(search);
+  $('proExperienceV3').querySelector('[data-pro-panel="home"]').before(search);
   search.addEventListener('submit',e=>{e.preventDefault();if(!canUsePremium())return;$('missionQuery').value=$('proV3SearchInput').value;radarQuery=$('proV3SearchInput').value.trim();show('home');recommendations();});
   $('proV3SearchInput').addEventListener('input',e=>{if(!canUsePremium())return;radarQuery=e.target.value.trim();recommendations();});
   $('proAiSort').addEventListener('change',e=>{if(!canUsePremium())return;radarSort=e.target.value;recommendations();});

@@ -35,16 +35,18 @@ test('Desktop sidebar offers three primary actions plus all secondary profession
 test('Android preserves secondary actions in the account menu and primary commercial routes',()=>{
  assert.match(pro,/id='proV3AccountTools'/);
  assert.match(pro,/accountPanel\.prepend\(tools\)/);
+ assert.match(pro,/\.\.\.primaryMenu\.filter\(item=>item\[0\]!=='home'\),\.\.\.secondaryMenu/);
  assert.match(pro,/data-pro-screen/);
  assert.match(pro,/alertButton\.addEventListener\('click'/);
  assert.match(parity,/@media\(max-width:620px\)/);
  assert.match(parity,/body\.offrya-pro-v3 #proV3AccountTools\{display:grid!important\}/);
- assert.match(parity,/body\.offrya-pro-v3 \.pro-v3-primary-tabs\{display:grid\}/);
+ assert.match(proCss,/body\.offrya-pro-v3 #proExperienceV3 \.pro-v3-primary-tabs\{display:none!important\}/);
+ assert.doesNotMatch(pro,/\x27<nav class="pro-v3-primary-tabs"/);
  assert.match(parity,/body\.offrya-pro-v3 \.pro-v3-search\{height:48px/);
 });
 
 test('Mission search is shared between desktop, Android and the existing secure mission feed',()=>{
- assert.match(pro,/\.querySelector\('\.pro-v3-primary-tabs'\)\.after\(search\)/);
+ assert.match(pro,/\.querySelector\('\[data-pro-panel="home"\]'\)\.before\(search\)/);
  assert.doesNotMatch(pro,/header\.querySelector\('\.header-left'\)\.after\(search\)/);
  assert.match(pro,/search\.addEventListener\('submit'/);
  assert.match(pro,/\$\('missionQuery'\)\.value=\$\('proV3SearchInput'\)\.value/);

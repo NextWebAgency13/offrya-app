@@ -38,14 +38,15 @@ test('Radar opens an authorized mission directly in proposal composer, without d
  assert.match(sales,/state\.missions\.filter\(m=>m\.owner_id!==uid\(\)&&m\.status==='open'\)/);
  assert.doesNotMatch(pro,/state\.selectedMissionId=id/);
 });
-test('Only three main professional actions; secondary tools retained',()=>{
+test('Three professional actions are retained in sidebar and mobile menu, not as top cards',()=>{
  assert.match(pro,/const primaryMenu=\[/);
  for(const label of ['Trouver des missions','Proposer mes services','Gérer mon activité'])assert.ok(pro.includes(label));
  assert.match(pro,/nav\.innerHTML=primaryMenu\.map\(navButton\)/);
  assert.match(pro,/const secondaryMenu=menu\.filter/);
  for(const word of ['Marchés publics','Veille automatisée','Messagerie','Préférences de veille','Paramètres'])assert.ok(pro.includes(word));
- assert.match(pro,/pro-v3-primary-tabs/);
- assert.match(css,/\.pro-v3-primary-tabs\s*\{\s*display:grid;grid-template-columns:repeat\(3/);
+ assert.doesNotMatch(pro,/'<nav class="pro-v3-primary-tabs"/);
+ assert.match(pro,/\.\.\.primaryMenu\.filter\(item=>item\[0\]!=='home'\),\.\.\.secondaryMenu/);
+ assert.match(css,/body\.offrya-pro-v3 #proExperienceV3 \.pro-v3-primary-tabs\{display:none!important\}/);
 });
 test('Sending remains explicit, uses existing private conversation and moves to tracking',()=>{
  assert.match(sales,/buildProposalMessage\(\$\('salesDraftText'\)\?\.value/);
