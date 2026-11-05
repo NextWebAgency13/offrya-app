@@ -62,7 +62,7 @@ test('Conversations appear one at a time with an accessible back button in Andro
 test('The same fallback retains account settings, tools and user privacy',()=>{
  assert.match(css,/body #settings \.push-notifications-settings\{flex-direction:column!important/);
  assert.match(css,/body\.offrya-pro-v3 #proV3AccountTools\{display:grid!important\}/);
- assert.match(css,/body\.offrya-pro-v3 \.pro-v3-search\{\s*display:flex!important/);
+ assert.doesNotMatch(css,/body\.offrya-pro-v3 \.pro-v3-search|#proV3Search/,'The removed search must also stay absent in the Android desktop-site viewport');
  assert.match(pro,/canUsePremium\(\)/);
  assert.match(pro,/if\(openProposal&&openProposal\(id\)\)\{show\('assistant'\);return;\}/);
  assert.match(html,/name="viewport" content="width=device-width,initial-scale=1"/);
