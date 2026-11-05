@@ -55,7 +55,7 @@ test('Render creates exactly one icon per sector or area, never a double plus',(
  assert.doesNotMatch(source,/criteria\.push\('\+'\+/);
 });
 test('Responsive chips align and wrap cleanly with identical height and pill shape',()=>{
- const css=styles.slice(styles.indexOf('/* OFFRYA Premium — readable, evenly aligned current watch criteria. */'));
+ const css=styles.slice(styles.indexOf('/* OFFRYA Premium — readable, evenly aligned current watch criteria.'));
  assert.ok(css.length>80);
  for(const part of ['flex-wrap:wrap','align-items:stretch','justify-content:flex-start',
   'gap:8px','min-height:36px','border-radius:999px','max-width:100%',
