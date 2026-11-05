@@ -15,6 +15,30 @@ export function professionalGreetingLabel(state){
  return '';
 }
 
+// Compact, readable criteria: show up to 3 trades individually, then
+// 2 trades + a grammatically correct counter. Geographic area is always separate.
+export function summarizeWatchCriteria(p={}){
+ const sectors=[...new Set((Array.isArray(p.sectors)?p.sectors:[])
+  .filter(x=>typeof x==='string').map(x=>x.trim()).filter(Boolean))];
+ const items=[];
+ const visible=sectors.length>3?sectors.slice(0,2):sectors;
+ for(const label of visible)items.push({kind:'sector',label});
+ if(!sectors.length)items.push({kind:'sector',label:'Tous les secteurs'});
+ if(sectors.length>3){
+  const remaining=sectors.slice(2);
+  items.push({kind:'overflow',label:'+'+remaining.length+' autres secteurs',
+   tooltip:'Autres secteurs : '+remaining.join(', ')});
+ }
+ const deptNames={'13':'Bouches-du-Rhône','30':'Gard','34':'Hérault','83':'Var',
+  '84':'Vaucluse','06':'Alpes-Maritimes','75':'Paris','69':'Rhône'};
+ const dept=p.department?String(p.department).trim().toUpperCase():'';
+ items.push({kind:'area',label:dept?(deptNames[dept]?deptNames[dept]+' ('+dept+')':'Département '+dept):'Toute la France'});
+ const budget=p.min_budget_cents!=null||p.max_budget_cents!=null;
+ if(budget)items.push({kind:'detail',label:'Budget défini'});
+ if(p.keywords)items.push({kind:'detail',label:'Mots-clés définis'});
+ return items;
+}
+
 // OFFRYA Pro UI v3 — visual redesign on top of existing secured modules.
 // Only authenticated, server/RLS-authorized data is displayed. No demo rows.
 export function createProExperience({state,element,canUsePremium,tab,renderMissions,loadMarkets,notify,openProposal}){
@@ -243,19 +267,16 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(fingerprint!==radarKey){radarKey=fingerprint;serverRadar=null;state.radarMatches=null;priorityOnly=false;radarError='';radarAt=0;}
   if(!radarLoading&&Date.now()-radarAt>5*60*1000)queueMicrotask(()=>loadMatchedRadar(fingerprint,user));
   const p=state.opportunityPrefs||{};
-  const sectors=Array.isArray(p.sectors)?p.sectors.filter(Boolean):[];
-  const allSectors=sectors.length>=7;
-  const sectorLabel=allSectors?'Tous les secteurs':sectors.length?sectors[0]:'Tous les secteurs';
-  const deptNames={'13':'Bouches-du-Rhône','30':'Gard','34':'Hérault','83':'Var',
-   '84':'Vaucluse','06':'Alpes-Maritimes','75':'Paris','69':'Rhône'};
-  const dept=p.department?String(p.department).toUpperCase():'';
-  const criteria=[sectorLabel,dept?(deptNames[dept]?deptNames[dept]+' ('+dept+')':'Département '+dept):'Toute la France'];
-  if(!allSectors&&sectors.length>1)criteria.push('+'+(sectors.length-1)+' secteurs');
-  const more=[];
-  if(p.min_budget_cents!=null||p.max_budget_cents!=null)more.push('budget défini');
-  if(p.keywords)more.push('mots-clés définis');
-  if(more.length)criteria.push(more.join(' et '));
-  $('proAiCriteria').innerHTML=criteria.map((value,i)=>'<span class="pro-ai-criteria-chip" title="'+esc(value)+'">'+['▦','⌖','+','⋯'][i]+' '+esc(value)+'</span>').join('');
+  const criteria=summarizeWatchCriteria(p);
+  const symbols={sector:'▦',area:'⌖',detail:'⋯'};
+  $('proAiCriteria').innerHTML=criteria.map(item=>{
+   const prefix=symbols[item.kind]?
+    '<span class="pro-ai-criteria-symbol" aria-hidden="true">'+symbols[item.kind]+'</span>':'';
+   const label=item.tooltip||item.label;
+   return '<span class="pro-ai-criteria-chip pro-ai-criteria-chip--'+item.kind+
+    '" title="'+esc(label)+'" aria-label="'+esc(label)+'">'+prefix+
+    '<span class="pro-ai-criteria-label">'+esc(item.label)+'</span></span>';
+  }).join('');
   if(!serverRadar){
    // Never present saved scores as matches for newly changed criteria.
    for(const id of ['proAiTabAll','proAiStatAll','proAiTabMissions','proAiStatMissions','proAiTabTenders','proAiStatTenders'])

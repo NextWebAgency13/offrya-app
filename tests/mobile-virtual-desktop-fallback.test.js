@@ -14,7 +14,7 @@ const start=pro.indexOf('export function professionalGreetingLabel(state){');
 const end=pro.indexOf('// OFFRYA Pro UI v3',start);
 assert.ok(start>=0&&end>start,'Greeting helper is available before the Pro UI module');
 const greeting=vm.runInNewContext(
- pro.slice(start,end).replace('export function ','function ')+'\nprofessionalGreetingLabel;');
+ pro.slice(start,end).replaceAll('export function ','function ')+'\nprofessionalGreetingLabel;');
 
 test('OFFRYA account pseudo takes priority over the company legal name',()=>{
  const state={
