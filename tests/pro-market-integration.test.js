@@ -28,15 +28,15 @@ test('Markets stay in their own Pro menu, outside dashboard quick actions and bo
  assert.match(html,/data-tab="professional"/);
  assert.match(html,/class="nav-link" data-tab="boamp"/);
 });
-test('Old /espace/marches-publics link opens Pro panel without granting access to non-Premium sessions',()=>{
+test('Legacy /espace/marches-publics opens Premium IA radar without granting access to other accounts',()=>{
  const route=slice(app,'function tab(name,fromHistory=false,preserveMissionDetail=false){',"window.addEventListener('popstate'");
  assert.match(route,/if\(name==='boamp'\)\{/);
- assert.match(route,/if\(canUsePremium\(\)\)\{proExperience\.show\('boamp',fromHistory\);return;\}/);
+ assert.match(route,/if\(canUsePremium\(\)\)\{proExperience\.show\('home',fromHistory\);return;\}/);
  assert.match(route,/name='professional';/);
  assert.match(app,/boamp:'\/espace\/marches-publics'/);
  assert.match(pro,/if\(\['inbox','settings'\]\.includes\(next\)\)/);
  assert.match(pro,/if\(!initialized\|\|!canUsePremium\(\)\)return;/);
- assert.match(pro,/route==='\/espace\/marches-publics'\)show\('boamp',true\)/);
+ assert.match(pro,/route==='\/espace\/marches-publics'\)show\('home',true\)/);
  assert.match(pro,/loadMarkets\(\)\.catch/);
  assert.match(app,/loadMarkets:\(\)=>loadBoamp\(\)/);
 });

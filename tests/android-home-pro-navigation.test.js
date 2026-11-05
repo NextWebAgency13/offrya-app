@@ -17,7 +17,7 @@ test('Normal Accueil button is not captured by professional interception',()=>{
  assert.match(pro,/closest\('#priorityAlertShortcut'\)/);
  assert.match(pro,/if\(b&&canUsePremium\(\)\)/);
  assert.match(pro,/else if\(\['dashboard','missions','inbox','settings','boamp'\]/);
- assert.match(app,/document\.querySelectorAll\('\.nav-link'\)\.forEach\(el=>el\.classList\.toggle\('active',el\.dataset\.tab===name\)\)/);
+ assert.match(app,/document\.querySelectorAll\('\.nav-link'\)\.forEach\(el=>el\.classList\.toggle\('active',el\.dataset\.tab===name\|\|\(name==='professional'&&canUsePremium\(\)&&el\.dataset\.tab==='boamp'\)\)\)/);
 });
 test('Android back and forward restore Pro screen without duplicating browser history',()=>{
  assert.match(pro,/window\.addEventListener\('popstate'/);

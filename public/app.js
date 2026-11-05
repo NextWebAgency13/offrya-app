@@ -153,10 +153,10 @@ navigator.serviceWorker?.addEventListener('message',event=>{
   openPushConversation(target).catch(error=>console.warn('OFFRYA: ouverture notification impossible',error));
 });
 function tab(name,fromHistory=false,preserveMissionDetail=false){
- // The legacy public-tenders URL now opens the Markets subsection inside Espace pro.
- // Do not expose a separate Premium tab or bypass RLS/paid-access checks.
+ // Espace Premium opens the existing, secured AI radar. Preserve the
+ // /espace/marches-publics legacy URL as an alias, without bypassing Premium access.
  if(name==='boamp'){
-  if(canUsePremium()){proExperience.show('boamp',fromHistory);return;}
+  if(canUsePremium()){proExperience.show('home',fromHistory);return;}
   name='professional';
  }
  if(!$(name))return;
@@ -170,9 +170,9 @@ function tab(name,fromHistory=false,preserveMissionDetail=false){
   renderMissions();
  }
  document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.id===name));
- document.querySelectorAll('.nav-link').forEach(el=>el.classList.toggle('active',el.dataset.tab===name));
+ document.querySelectorAll('.nav-link').forEach(el=>el.classList.toggle('active',el.dataset.tab===name||(name==='professional'&&canUsePremium()&&el.dataset.tab==='boamp')));
  document.getElementById('accountMenu')?.removeAttribute('open');
- const titles={dashboard:'Tableau de bord',missions:'Mes missions',boamp:'Marchés publics',professional:'Espace professionnel',inbox:'Messagerie',settings:'Mon compte'};
+ const titles={dashboard:'Tableau de bord',missions:'Mes missions',boamp:'Espace Premium',professional:'Espace professionnel',inbox:'Messagerie',settings:'Mon compte'};
  $('pageTitle').textContent=titles[name];$('breadcrumb').textContent='OFFRYA / '+titles[name].toUpperCase();
  if(!fromHistory&&location.pathname!==paths[name])history.pushState({tab:name},'',paths[name]);
  if(name==='boamp'&&canUsePremium()&&!state.boamp.length)loadBoamp();
