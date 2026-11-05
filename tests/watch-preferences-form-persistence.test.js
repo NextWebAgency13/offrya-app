@@ -30,7 +30,7 @@ function setup(){
    assert.equal(table,'offrya_opportunity_preferences');
    return {upsert(payload){
     callbacks.saved=payload;
-    return {select(){return {single:async()=>callbacks.saveError?{data:null,error:callbacks.saveError}:{data:{...payload,updated_at:'2026-11-05T20:42:24.254Z'},error:null}}};
+    return {select(){return {single:async()=>callbacks.saveError?{data:null,error:callbacks.saveError}:{data:{...payload,updated_at:'2026-11-05T20:42:24.254Z'},error:null}}}};
    }};
   }}};
  const element=id=>{if(!all.has(id))all.set(id,generic());return all.get(id)};
