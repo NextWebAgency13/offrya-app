@@ -10,7 +10,7 @@ test('recent mission cards carry IDs instead of tab-only navigation',()=>{
  assert.doesNotMatch(app,/class="role-mission-row" data-tab="missions"/);
 });
 test('selecting a recent own mission opens its detail and clears filters',()=>{
- const source=clip("// Open the selected owner's mission, not merely the list tab.","$('missionList').onclick=");
+ const source=clip("// Open the selected owner's mission, not merely the list tab.","$('missionScopes').addEventListener");
  const calls={};
  const rows=[{id:'own-1',owner_id:'user-1',status:'open'},{id:'other-1',owner_id:'other-user'}];
  const list={scrollIntoView:()=>{calls.scroll=true}};
@@ -27,9 +27,10 @@ test('selecting a recent own mission opens its detail and clears filters',()=>{
  assert.equal(calls.tab,'missions');assert.equal(calls.preserve,true);assert.equal(calls.render,true);assert.equal(calls.scroll,true);
  for(const field of Object.values(fields))assert.equal(field.value,'');
 });
-test('closed missions are excluded from direct detail and recent cards',()=>{
- assert.match(app,/const detail=state\.selectedMissionId\?visible\.find/);
- assert.match(app,/m\.status==='open'&&\(m\.owner_id===uid\|\|canBrowse\)/);
+test('Closed personal publications stay accessible while closed external missions stay hidden',()=>{
+ assert.match(app,/const detail=selected&&displayed\.some\(m=>m\.id===selected\.id\)\?selected:null/);
+ assert.match(app,/missionView='published'/);
+ assert.match(app,/mission\.owner_id===state\.session\?\.user\?\.id\|\|\(canUsePremium\(\)&&mission\.status==='open'\)/);
  assert.match(app,/data-back-missions/);
  assert.match(app,/activeOwn=own\.filter\(m=>m\.status==='open'\)/);
 });
