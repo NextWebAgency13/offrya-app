@@ -362,11 +362,11 @@ body.offrya-reference-ui .role-ref-deposit-nav{display:none}
  body.offrya-reference-ui #dashboard .role-ref-action-card small{font-size:12px!important}
  body.offrya-reference-ui #dashboard .role-ref-chevron{right:11px;bottom:35px;font-size:27px}
  body.offrya-reference-ui #dashboard .role-premium-top{
-  padding:18px 15px!important;border-radius:0!important;
-  min-height:61px!important;font-size:17px!important;margin:0!important;
+  padding:18px 15px!important;border-radius:18px 18px 0 0!important;
+  min-height:61px!important;font-size:17px!important;margin:0 13px!important;
  }
  body.offrya-reference-ui #dashboard .role-company{
-  margin:0 13px 17px!important;padding:13px!important;border-radius:18px!important;
+  margin:0 13px 17px!important;padding:13px!important;border-radius:0 0 18px 18px!important;
  }
  body.offrya-reference-ui #dashboard .role-company strong{font-size:15px!important}
  body.offrya-reference-ui #dashboard .role-company small{font-size:11px!important}
