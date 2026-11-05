@@ -32,7 +32,7 @@ test('Publication manuelle d’une revue, sans exécution ni fusion',async()=>{
  const result=await reviewPullRequest({env,fetchImpl});
  assert.equal(result.included,1);assert.equal(calls.length,4);
  const req=JSON.parse(calls[2].options.body);
- assert.equal(req.model,'deepseek-v4-flash');assert.match(req.messages[1].content,/public\/app.js/);
+ assert.equal(req.model,'deepseek-flash');assert.match(req.messages[1].content,/public\/app.js/);
  const comment=JSON.parse(calls[3].options.body).body;
  assert.match(comment,/Aucun problème vérifiable/);assert.match(comment,/Validation humaine obligatoire/);
  assert.ok(!calls.some(c=>/\/merge$/.test(c.url)));

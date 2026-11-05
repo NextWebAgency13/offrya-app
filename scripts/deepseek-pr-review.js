@@ -1,7 +1,7 @@
 'use strict';
 // DeepSeek reviews an approved PR diff only. It cannot edit, merge or deploy.
 const fs=require('node:fs');
-const GITHUB='https://api.github.com', ENDPOINT='https://api.deepseek.com/chat/completions', MODEL='deepseek-v4-flash';
+const GITHUB='https://api.github.com', ENDPOINT='https://api.deepseek.com/chat/completions', MODEL='deepseek-flash';
 const PRIVATE=/(?:^|\/)(?:\.env(?:\..*)?|\.npmrc|secrets?|credentials?|private[-_]?keys?|node_modules|vendor|dist)(?:\/|$)|(?:package-lock|pnpm-lock|yarn\.lock)\b|\.(?:pem|p12|pfx|key|crt)$/i;
 function redact(text){return String(text)
  .replace(/\bsk-[a-zA-Z0-9_-]{8,}\b/g,'[CLE_MASQUEE]')
