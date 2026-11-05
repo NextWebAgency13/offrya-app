@@ -27,7 +27,7 @@ test('Android has one five-item bottom navigation and secondary menu in header',
  assert.match(pro,/accountPanel\.prepend\(tools\)/);
  assert.match(css,/\.pro-v3-mobile-menu\{display:none!important\}/);
  assert.match(css,/\.sidebar #nav\{display:grid!important;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
- assert.match(css,/background:#351348/);
+ assert.match(css,/\/\* OFFRYA unified light theme:/);
  assert.match(css,/#proV3AccountTools/);
  assert.match(pro,/removeAttribute\('open'\);show\(b\.dataset\.proScreen\)/);
 });

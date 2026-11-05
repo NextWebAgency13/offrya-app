@@ -492,10 +492,12 @@ async function loadPriorityAlerts(shouldRender=true){
  if(shouldRender)renderPriorityAlerts();
 }
 function renderPriorityAlerts(){
- const visible=canUsePremium();
- $('priorityAlertsPanel').classList.toggle('hidden',!visible);
- $('priorityAlertShortcut').classList.toggle('hidden',!visible);
- if(!visible)return;
+  const visible=canUsePremium();
+  // The unified Radar contains Pro opportunities; never duplicate those
+  // on the personal /espace route or in a separate priority panel.
+  $('priorityAlertsPanel').classList.add('hidden');
+  $('priorityAlertShortcut').classList.add('hidden');
+  if(!visible)return;
  const alerts=state.priorityAlerts||[];
  const unread=alerts.filter(a=>!a.seen_at).length;
  $('priorityAlertCount').textContent=unread+' nouvelle(s)';

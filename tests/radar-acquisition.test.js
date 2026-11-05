@@ -41,7 +41,7 @@ test('Ranking rejects expired, unrelated, spoofed and invalid public notices',as
 test('The radar is displayed only behind the existing pro authorization and can never send bids',()=>{
  assert.match(pro,/import \{buildRadar\} from '\.\/radar\.js'/);
  assert.match(pro,/if\(!panel\|\|!canUsePremium\(\)\)return/);
- assert.match(pro,/missions:available\(\),alerts:\[\]/);
+ assert.match(pro,/missions:available\(\),alerts:state\.opportunityAlerts\|\|\[\]/);
  assert.match(pro,/proV3RadarRelevant/);
  assert.match(pro,/Score indicatif de correspondance/);
  assert.match(server,/\['\/radar\.js','text\/javascript/);

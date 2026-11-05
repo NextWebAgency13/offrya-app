@@ -14,7 +14,7 @@ test('Pro V3 module syntax is valid ES module JavaScript',()=>{
 });
 test('Approved nine-view navigation and existing protected modules',()=>{
  for(const name of ['Tableau de bord','Demandes de missions','Assistant IA','Marchés publics','Veille automatisée','Suivi & performances','Messagerie','Préférences de veille','Paramètres'])assert.ok(js.includes(name),'Missing Pro navigation '+name);
- for(const id of ['proV3MissionCount','proV3RecentMissionCount','proV3ConversationCount','proV3TrackingCount','proV3Recommendations','proV3Alerts','proV3Chart','proV3CommercialSlot','proV3PreferenceSlot'])assert.ok(js.includes(id),'Missing element '+id);
+ for(const id of ['proV3Recommendations','proV3RadarSummary','proV3TrackingActivity','proV3Chart','proV3CommercialSlot','proV3PreferenceSlot'])assert.ok(js.includes(id),'Missing element '+id);
  assert.match(js,/canUsePremium\(\)/);
  assert.match(js,/state\.missions/);
  assert.match(js,/state\.opportunityPrefs/);

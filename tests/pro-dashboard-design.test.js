@@ -2,58 +2,59 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
-const vm=require('node:vm');
 const {spawnSync}=require('node:child_process');
 const pro=fs.readFileSync('public/pro-experience.js','utf8');
 const css=fs.readFileSync('public/pro-experience.css','utf8');
 const app=fs.readFileSync('public/app.js','utf8');
 const html=fs.readFileSync('public/espace.html','utf8');
 const extract=(from,to)=>{const a=pro.indexOf(from),b=pro.indexOf(to,a+from.length);assert.ok(a>=0&&b>a);return pro.slice(a,b)};
-
-test('Professional dashboard contains only other users missions, not public tender listings',()=>{
+test('Professional homepage has exactly one unified opportunity Radar, no duplicate cards or statistics',()=>{
  const home=extract('data-pro-panel="home"','data-pro-panel="commercial"');
- for(const token of ['proV3MissionPreview','proV3MissionCount','proV3RecentMissionCount','proV3ConversationCount','proV3TrackingCount','proV3Alerts','proV3Chart','proV3Recommendations','data-refresh-missions'])assert.ok(home.includes(token),token);
- for(const forbidden of ['Marchés publics','Résultats BOAMP','proV3HomeMarketsSlot','pro-v3-markets-panel','proV3MarketCount','proV3BoampSlot','data-pro-screen="boamp"','Rechercher des marchés publics'])assert.equal(home.includes(forbidden),false,'Found tender data in home: '+forbidden);
- assert.match(pro,/const data=buildRadar\(\{missions:available\(\),alerts:\[\]/);
- assert.match(pro,/const node=\$\('premiumContent'\),target=\$\('proV3BoampSlot'\)/);
+ for(const token of ['proV3Recommendations','proV3RadarSummary','proV3MatchingStatus','data-refresh-radar','Radar des opportunités'])assert.ok(home.includes(token),token);
+ for(const obsolete of ['proV3MissionPreview','proV3MissionCount','proV3RecentMissionCount','proV3ConversationCount','proV3TrackingCount','proV3Alerts','proV3Chart','pro-v3-actions','Accès rapides','Missions publiées par les autres'])assert.equal(home.includes(obsolete),false,obsolete);
+ assert.equal((home.match(/id="proV3Recommendations"/g)||[]).length,1);
+ assert.match(pro,/alerts:state\.opportunityAlerts\|\|\[\]/);
+ assert.match(pro,/serverRadar\?\.items\|\|fallback\.items/);
+ assert.match(pro,/const seen=new Set\(\)/);
+ assert.match(pro,/sort\(\(a,b\)=>Number\(b\.score\|\|0\)-Number\(a\.score\|\|0\)\)/);
+});
+test('Real OFFRYA missions and official BOAMP/TED share one scored list with explanations and deadlines',()=>{
+ assert.match(pro,/MARCHÉ PUBLIC ·/);
+ assert.match(pro,/MISSION OFFRYA/);
+ assert.match(pro,/Pourquoi :/);
+ assert.match(pro,/Secteur :/);
+ assert.match(pro,/Zone :/);
+ assert.match(pro,/Budget non communiqué/);
+ assert.match(pro,/Clôture :/);
+ assert.match(pro,/data-pro-mission/);
  assert.match(pro,/\$\('proV3BoampSlot'\)\.appendChild\(\$\('premiumContent'\)\)/);
- assert.match(pro,/\$\('proV3RecentMissionCount'\)\.textContent=String\(missions\.filter/);
- assert.match(pro,/\$\('proV3TrackingCount'\)\.textContent=String\(\(state\.salesTracking\|\|\[\]\)\.filter/);
- assert.doesNotMatch(home,/marché|appel d.offres|boamp/i);
 });
-test('Android dashboard displays four mission-related KPI tiles and readable mission cards',()=>{
- assert.match(css,/@media\(max-width:620px\)/);
- assert.match(css,/\.pro-v3-metrics\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
- assert.match(css,/\.pro-v3-metric:nth-child\(n\+3\)\{display:flex!important\}/);
- assert.match(css,/\.pro-v3-home-grid\{display:flex;flex-direction:column/);
- assert.match(css,/\.pro-v3-mission-preview\{grid-template-columns:1fr/);
+test('Tracking owns the activity block rather than the professional homepage',()=>{
  const home=extract('data-pro-panel="home"','data-pro-panel="commercial"');
- const i=home.indexOf('<div class="pro-v3-action-grid">'),j=home.indexOf('</div>',i);
- const actions=home.slice(i,j);
- for(const token of ['data-pro-screen="requests"','data-refresh-missions','data-pro-screen="tracking"','data-pro-screen="inbox"'])assert.ok(actions.includes(token));
- assert.match(html,/data-tab="professional"/);
+ assert.doesNotMatch(home,/proV3ActivityStats|proV3Chart/);
+ assert.match(pro,/id="proV3TrackingActivity"/);
+ assert.match(pro,/id="proV3ActivityStats"/);
+ assert.match(pro,/id="proV3Chart"/);
+ assert.match(pro,/proV3TrackingActivity'\)\.hidden=next!=='tracking'/);
 });
-test('Mission previews show external open missions only and safely escape untrusted text',()=>{
- const source=extract(' function missionPreview(){',' function show(next,fromHistory=false){');
- const fn=source.match(/function missionPreview\(\)\{[\s\S]*?\n \}/);
- assert.ok(fn);
- const dom={proV3MissionPreview:{innerHTML:''}};
- const all=[
-  {id:'external',owner_id:'account-b',status:'open',expires_at:'2030-12-31',title:'<script>invalid</script>',category:'Autre',city:'Marseille',department:'13',created_at:'2026-11-04T20:00:00Z'},
-  {id:'closed',owner_id:'account-b',status:'closed',expires_at:'2030-12-31',title:'Closed mission'},
-  {id:'own',owner_id:'account-a',status:'open',expires_at:'2030-12-31',title:'Own mission'},
-  {id:'expired',owner_id:'account-b',status:'open',expires_at:'2020-01-01',title:'Expired mission'}
- ];
- const available=()=>all.filter(m=>m.owner_id!=='account-a'&&m.status==='open'&&Date.parse(m.expires_at)>Date.now());
- vm.runInNewContext(fn[0]+'\nmissionPreview();',{
-  $:k=>dom[k],available,icon:()=>'',Date,
-  esc:v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
- });
- assert.match(dom.proV3MissionPreview.innerHTML,/&lt;script&gt;/);
- assert.match(dom.proV3MissionPreview.innerHTML,/data-pro-mission="external"/);
- assert.doesNotMatch(dom.proV3MissionPreview.innerHTML,/<script>|Own mission|Closed mission|Expired mission/);
+test('Personal /espace never renders professional priority blocks',()=>{
+ assert.match(app,/\$\('roleClientView'\)\.classList\.remove\('hidden'\)/);
+ assert.match(app,/\$\('rolePremiumView'\)\.classList\.add\('hidden'\)/);
+ assert.match(app,/\$\('priorityAlertsPanel'\)\.classList\.add\('hidden'\)/);
+ assert.match(app,/\$\('priorityAlertShortcut'\)\.classList\.add\('hidden'\)/);
+ assert.match(html,/id="priorityAlertsPanel"/);
 });
-test('Public tenders remain available in their separate Premium protected subtab',()=>{
+test('Narrow layouts use a single column and the same light palette as the requester',()=>{
+ const override=css.slice(css.indexOf('/* OFFRYA unified light theme:'));
+ assert.ok(override.length>1000);
+ assert.match(override,/body\.offrya-pro-v3 \.app-shell \.sidebar\{/);
+ assert.match(override,/background:#fff;color:#342746/);
+ assert.match(override,/@media\(max-width:620px\)/);
+ assert.match(override,/\.pro-v3-radar-row\{display:flex;flex-direction:column/);
+ assert.match(override,/\.pro-v3-experience,/);
+ assert.match(override,/\.app-shell \.header\{background:#fff/);
+});
+test('Protected Pro subviews and original operations remain wired',()=>{
  assert.match(pro,/\['boamp','Marchés publics','ic-boamp'\]/);
  assert.match(pro,/data-pro-panel="boamp"/);
  assert.match(pro,/loadMarkets\(\)\.catch/);
@@ -61,9 +62,7 @@ test('Public tenders remain available in their separate Premium protected subtab
  assert.match(app,/boamp:'\/espace\/marches-publics'/);
  assert.match(html,/id="boampList"/);
  assert.match(html,/id="exportBoamp"/);
-});
-test('Updated Pro script is syntactically valid and has no service keys',()=>{
- const p=spawnSync(process.execPath,['--input-type=module','--check'],{input:pro,encoding:'utf8'});
- assert.equal(p.status,0,p.stderr);
+ const syntax=spawnSync(process.execPath,['--input-type=module','--check'],{input:pro,encoding:'utf8'});
+ assert.equal(syntax.status,0,syntax.stderr);
  assert.doesNotMatch(pro,/service_role|stripe\.subscriptions\.create|DUMMY_TOKEN/);
 });
