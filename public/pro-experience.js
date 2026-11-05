@@ -287,7 +287,8 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    seen.add(key);return true;
   }).sort((a,b)=>Number(b.score||0)-Number(a.score||0));
   const nMission=rows.filter(x=>x.kind==='mission').length,nTender=rows.filter(x=>x.kind==='tender').length;
-  $('proAiInlineSummary').textContent=rows.length+' opportunité'+(rows.length!==1?'s':'')+' correspondant à vos critères, dont '+nTender+' marché'+(nTender!==1?'s':'')+' public'+(nTender!==1?'s':'')+' et '+nMission+' mission'+(nMission!==1?'s':'')+'.';
+  $('proAiInlineSummary').textContent=rows.length+' opportunité'+(rows.length!==1?'s':'')+' correspondant à vos critères, dont '+nTender+' marché'+(nTender!==1?'s':'')+' public'+(nTender!==1?'s':'')+' et '+nMission+' mission'+(nMission!==1?'s':'')+'.'+
+   (serverRadar.truncated?' Seuls les premiers résultats sont chargés.':'');
   for(const [id,n] of [['proAiTabAll',rows.length],['proAiStatAll',rows.length],['proAiTabMissions',nMission],['proAiStatMissions',nMission],['proAiTabTenders',nTender],['proAiStatTenders',nTender]])$(id).textContent=String(n);
   const priority=serverRadar?rows.filter(item=>{
    const a=notices.get(String(item.id));
@@ -315,9 +316,10 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    const active=b.dataset.proFilter===radarFilter;
    b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',String(active));
   }
-  $('proV3MatchingStatus').textContent=serverRadar?.mode==='ai'?'Classement métier vérifié, puis affiné par IA.':
-   serverRadar?'Correspondance calculée selon le métier, la zone et l’échéance.':
-   'Correspondances provisoires, calcul métier en cours de chargement.';
+  $('proV3MatchingStatus').textContent=(serverRadar.mode==='ai'?'Classement métier vérifié, puis affiné par IA.':
+   'Correspondance calculée selon le métier, la zone et l’échéance.')+
+   (serverRadar.liveSource==='unavailable'?' Recherche BOAMP actuelle indisponible : avis précédemment collectés uniquement.':
+    serverRadar.liveSource==='partial'?' Source BOAMP partiellement disponible.':'');
   $('proV3RadarSummary').textContent=selected.length+' opportunité'+(selected.length>1?'s':'')+
    ' affichée'+(selected.length>1?'s':'')+'.';
   const tracked=new Map((state.tenderTracking||[]).map(t=>[String(t.tender_id),t]));
@@ -562,6 +564,15 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    const b=e.target.closest('[data-pro-mission]');if(b)openMission(b.dataset.proMission);
     
   });
+  // A successful preferences save must invalidate this separate screen's
+  // ranking cache immediately, even when an earlier API request is in flight.
+  document.addEventListener('offrya:preferences-updated',event=>{
+   const user=state.session?.user?.id;
+   if(!user||!canUsePremium()||event.detail?.userId!==user)return;
+   forceLiveRadar=true;radarError='';serverRadar=null;state.radarMatches=null;
+   radarAt=0;
+   recommendations();metrics();alerts();
+  });
   $('proExperienceV3').addEventListener('change',event=>{
    const select=event.target.closest('[data-pro-stage-tender]');
    if(select&&canUsePremium())updateTenderTracking(select.dataset.proStageTender,select.value);
@@ -608,7 +619,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(!initialized)return;
   const premium=Boolean(canUsePremium());
   document.body.classList.toggle('offrya-pro-v3',premium);
-  if(!premium){uid=null;serverRadar=null;radarKey='';radarAt=0;return;}
+  if(!premium){uid=null;serverRadar=null;state.radarMatches=null;radarKey='';radarAt=0;radarError='';forceLiveRadar=false;return;}
   const user=state.session?.user?.id;
   if(user!==uid){uid=user;view='home';state.radarMatches=null;
   }
