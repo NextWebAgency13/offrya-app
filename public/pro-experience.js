@@ -679,5 +679,5 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   }
   activeButtons();
  }
- return {init,render,show,syncTab};
+ return {init,render,show,syncTab,back:backFromProScreen};
 }
