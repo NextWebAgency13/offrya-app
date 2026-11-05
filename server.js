@@ -58,6 +58,32 @@ async function handle(req,res){
      return json(res,200,{ok:true});
     }catch(error){console.warn('OFFRYA: stockage push indisponible',error.message);return json(res,503,{error:'Impossible d’enregistrer la préférence de notification.'});}
    }
+   if((p==='/api/push/status'||p==='/api/push/test')&&req.method==='POST'){
+    if(!rateLimit(req,p==='/api/push/test'?3:20))return json(res,429,{error:'Trop de demandes. Réessayez plus tard.'});
+    if(!push.configured())return json(res,503,{error:'Notifications Android indisponibles.'});
+    let user;
+    try{user=await push.authUser(req.headers.authorization);}
+    catch(_){return json(res,503,{error:'Identification temporairement indisponible.'});}
+    if(!user)return json(res,401,{error:'Connexion requise.'});
+    let input;
+    try{input=JSON.parse(await readBody(req,3000));}
+    catch(_){return json(res,400,{error:'Requête invalide.'});}
+    if(!push.safeEndpoint(input?.endpoint))return json(res,400,{error:'Abonnement push invalide.'});
+    try{
+     if(p==='/api/push/status'){
+      const registered=Boolean(await push.findDeviceSubscription(user,input.endpoint));
+      return json(res,200,{registered});
+     }
+     const result=await push.testDevicePush(user,input.endpoint);
+     if(result.sent)return json(res,200,{ok:true,sent:1});
+     if(result.reason==='not_registered')return json(res,409,{error:'Cet appareil n’est pas enregistré pour ce compte. Réactivez les notifications.'});
+     if(result.reason==='expired')return json(res,410,{error:'L’abonnement Chrome a expiré. Réactivez les notifications.'});
+     return json(res,502,{error:'Le fournisseur Android n’a pas accepté la notification de test.'});
+    }catch(error){
+     console.warn('OFFRYA: verification push indisponible',error.message);
+     return json(res,503,{error:'Test push temporairement indisponible.'});
+    }
+   }
    if(p==='/api/push/message'&&req.method==='POST'){
     if(!rateLimit(req,100))return json(res,429,{error:'Trop de demandes.'});
     let input;

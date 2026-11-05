@@ -31,3 +31,10 @@
 - Les clés d'abonnement (endpoint + p256dh + auth) sont des données de routage sensibles, stockées côté serveur seulement.
 - Push Web n'utilise aucune API d'IA payante ; les limites des offres Render/Supabase et des fournisseurs Web Push s'appliquent.
 - Il ne s'agit pas d'une APK native, et le fonctionnement reste conditionné au navigateur et aux paramètres Android.
+
+## Vérification de l'abonnement et test réel (à partir de la PR #132)
+- Le bouton **Activer/Réactiver** n'est considéré actif que si `POST /api/push/status` confirme l'abonnement sur le serveur pour **le compte actuellement connecté**.
+- **Envoyer une notification de test** utilise `POST /api/push/test`, une session valide et l'abonnement de cet appareil. Le serveur transmet une véritable notification Web Push au fournisseur du navigateur. Il ne crée ni conversation ni message fictif.
+- Un retour de test OK signifie **acceptation par le fournisseur push**, pas garantie d'affichage par Android : régler les autorisations de Chrome, les notifications de site et les restrictions de batterie.
+- **Se déconnecter retire l'abonnement pour ce compte**. Pour tester avec deux comptes, utiliser deux navigateurs distincts sans déconnecter le compte destinataire, ou préférer le bouton de test autonome.
+- Les notifications internes (bandeaux dans la page) ne prouvent pas le fonctionnement du Web Push. Il faut voir une alerte système dans le volet Android.

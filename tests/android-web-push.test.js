@@ -97,6 +97,63 @@ test('Signed database event only notifies the other participant, never includes 
  assert.doesNotMatch(JSON.stringify(notifications),/never send my message body/);
  assert.equal(notifications[1][3].TTL,3600);
 });
+test('A push test targets only a registered subscription for the authenticated account',async()=>{
+ const calls=[],delivered=[];
+ const fetchImpl=async(url)=>{
+  calls.push(url);
+  const data=url.includes('user_id=eq.'+encodeURIComponent(client))
+   ?[{endpoint,p256dh:subscription.keys.p256dh,auth:subscription.keys.auth}]
+   :[];
+  return {ok:true,status:200,text:async()=>JSON.stringify(data)};
+ };
+ const clientMock={
+  setVapidDetails:(...args)=>delivered.push({vapid:args[0]}),
+  sendNotification:async(sub,payload,options)=>delivered.push({endpoint:sub.endpoint,payload:JSON.parse(payload),ttl:options.TTL})
+ };
+ const good=await push.testDevicePush(client,endpoint,{env,fetchImpl,pushClient:clientMock});
+ assert.deepEqual(good,{sent:true});
+ assert.equal(delivered[1].endpoint,endpoint);
+ assert.deepEqual(delivered[1].payload,{type:'test'});
+ assert.equal(delivered[1].ttl,120);
+ const wrong=await push.testDevicePush(professional,endpoint,{env,fetchImpl,pushClient:clientMock});
+ assert.deepEqual(wrong,{sent:false,reason:'not_registered'});
+ assert.equal(delivered.length,2,'Never send to subscriptions of a different account');
+ assert.ok(calls[0].includes('user_id=eq.'+client));
+ assert.ok(calls[0].includes('endpoint=eq.'));
+});
+test('Unknown and expired push devices are refused without a false success message',async()=>{
+ let removed=false;
+ const fetchImpl=async(url,options)=>{
+  if(options.method==='DELETE'){removed=true;return {ok:true,status:204};}
+  return {ok:true,status:200,text:async()=>JSON.stringify([{endpoint,p256dh:subscription.keys.p256dh,auth:subscription.keys.auth}])};
+ };
+ const expiredClient={
+  setVapidDetails(){},
+  async sendNotification(){const error=new Error('gone');error.statusCode=410;throw error;}
+ };
+ const result=await push.testDevicePush(client,endpoint,{env,fetchImpl,pushClient:expiredClient});
+ assert.deepEqual(result,{sent:false,reason:'expired'});
+ assert.equal(removed,true);
+});
+test('Android self-test and database registration are exposed as authenticated routes',()=>{
+ const server=fs.readFileSync('server.js','utf8');
+ const ui=fs.readFileSync('public/push-notifications.js','utf8');
+ const html=fs.readFileSync('public/espace.html','utf8');
+ const worker=fs.readFileSync('public/sw.js','utf8');
+ assert.match(server,/p==='\/api\/push\/status'/);
+ assert.match(server,/p==='\/api\/push\/test'/);
+ assert.match(server,/await push\.authUser\(req\.headers\.authorization\)/);
+ assert.match(server,/push\.testDevicePush\(user,input\.endpoint\)/);
+ assert.match(server,/rateLimit\(req,p==='\/api\/push\/test'\?3:20\)/);
+ assert.match(html,/id="pushTestNotification"/);
+ assert.match(ui,/api\('status',\{endpoint:sub\.endpoint\},token\)/);
+ assert.match(ui,/api\('test',\{endpoint:sub\.endpoint\},token\)/);
+ assert.match(ui,/remote\.registered===true/);
+ assert.match(ui,/Réactiver les notifications push/);
+ assert.match(worker,/isTest\?'OFFRYA · Test Android':'OFFRYA'/);
+ assert.match(worker,/self\.registration\.showNotification/);
+ assert.doesNotMatch(worker,/caches\.open|message\.body/);
+});
 test('Closed-browser worker shows a generic Android notification and opens private inbox',()=>{
  const sw=fs.readFileSync('public/sw.js','utf8');
  const manifest=JSON.parse(fs.readFileSync('public/manifest.webmanifest','utf8'));
