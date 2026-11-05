@@ -551,7 +551,7 @@ function render(){
  const personalHeading=document.querySelector('#roleClientView .client-dashboard-heading h2');
  const personalDescription=document.querySelector('#roleClientView .client-dashboard-heading p');
  if(personalEyebrow)personalEyebrow.textContent='ACCUEIL · COMPTE OFFRYA';
- if(personalHeading)personalHeading.textContent=hasProProfile?'Votre espace personnel':'Bonjour, bienvenue sur votre espace';
+ if(personalHeading)personalHeading.textContent=hasProProfile?'Mes missions et mes échanges':'Mes projets et mes échanges';
  if(personalDescription)personalDescription.textContent=hasProProfile?
   'Vos missions publiées et vos échanges. Retrouvez les opportunités dans Espace pro.':
   'Publiez vos projets et suivez les échanges avec les professionnels.';

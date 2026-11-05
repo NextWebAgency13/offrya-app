@@ -665,7 +665,7 @@ body.offrya-pro-v3 .pro-v3-work-actions{
 body.offrya-pro-v3 .pro-v3-work-actions[hidden]{display:none!important}
 body.offrya-pro-v3 .pro-v3-work-actions button{
  min-height:46px;padding:12px 17px;background:#fff;color:#6530a9;
- border:1px solid #e4d7ee;border-radius:12px;font:700 13px/1.25 inherit;cursor:pointer;
+ border:1px solid #e4d7ee;border-radius:12px;font-weight:700;font-size:13px;line-height:1.25;font-family:inherit;cursor:pointer;
 }
 body.offrya-pro-v3 .pro-v3-work-actions button:focus-visible,
 body.offrya-pro-v3 .pro-v3-primary-tabs button:focus-visible{
@@ -694,3 +694,5 @@ body.offrya-pro-v3 .pro-v3-primary-tabs button:focus-visible{
  body.offrya-pro-v3 #proV3CommercialSlot .sales-actions{display:flex;flex-direction:column;align-items:stretch}
  body.offrya-pro-v3 #proV3CommercialSlot .sales-actions button{min-height:48px}
 }
+
+body.offrya-pro-v3 #proV3CommercialSlot .sales-lead-action{display:block;margin-top:8px;color:#6e36bd;font-weight:740;font-size:12px}

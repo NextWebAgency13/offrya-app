@@ -48,7 +48,7 @@ export function createSalesWorkspace({state,element,canUsePremium,tab,notify,ref
  function leadCard(m,t){
   const status=effectiveStage(m,t);
   const loc=[m.city,m.department&&'('+m.department+')'].filter(Boolean).join(' ');
-  return '<button type="button" class="sales-lead" data-sales-open="'+esc(m.id)+'"><strong>'+esc(m.title||'Mission')+'</strong><span class="sales-chevron" aria-hidden="true">›</span><small>'+esc([m.category,loc].filter(Boolean).join(' · ')||'Localisation non précisée')+'</small><span class="sales-lead-status">'+esc(stageNames[status]||'À qualifier')+'</span></button>';
+  return '<button type="button" class="sales-lead" data-sales-open="'+esc(m.id)+'"><strong>'+esc(m.title||'Mission')+'</strong><span class="sales-chevron" aria-hidden="true">›</span><small>'+esc([m.category,loc].filter(Boolean).join(' · ')||'Localisation non précisée')+'</small><span class="sales-lead-status">'+esc(stageNames[status]||'À qualifier')+'</span><span class="sales-lead-action">Préparer une proposition →</span></button>';
  }
  function buildDraft(m){
   const area=m.area_sqm?String(m.area_sqm)+' m²':'';

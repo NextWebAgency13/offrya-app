@@ -17,7 +17,7 @@ test('Commercial dashboard mirrors request/assistant/tracking workflow without e
 test('Authorization is never granted by UI and real message sends need explicit confirmation',()=>{
  assert.match(sales,/canUsePremium\(\)/);
  assert.match(sales,/state\.profile\?\.role!=='pro'/);
- assert.match(sales,/confirm\('Envoyer cette réponse au demandeur/);
+ assert.match(sales,/confirm\('Envoyer cette proposition au demandeur/);
  assert.match(sales,/from\('offrya_messages'\)\.insert/);
  assert.match(sales,/from\('offrya_conversations'\)\.insert/);
  assert.match(sales,/from\('offrya_pro_lead_tracking'\)\.upsert/);
