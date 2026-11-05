@@ -881,8 +881,9 @@ $('newMissionBtn').onclick=()=>location.assign('/deposer-une-mission');
 $('roleRecentMissions').addEventListener('click',event=>{
  const button=event.target.closest('[data-open-own-mission]');
  if(!button||!$('roleRecentMissions').contains(button))return;
- const mission=state.missions.find(m=>m.id===button.dataset.openOwnMission&&m.owner_id===state.session?.user?.id&&m.status==='open');
+ const mission=state.missions.find(m=>m.id===button.dataset.openOwnMission&&m.owner_id===state.session?.user?.id);
  if(!mission)return;
+ missionView='published';
  state.selectedMissionId=mission.id;
  // Reset list filters so the detail is not hidden by an unrelated search.
  $('missionQuery').value='';$('missionCategory').value='';$('missionDept').value='';
@@ -890,10 +891,19 @@ $('roleRecentMissions').addEventListener('click',event=>{
  tab('missions',false,true);
  $('missionList').scrollIntoView({block:'start',behavior:'auto'});
 });
+$('missionScopes').addEventListener('click',event=>{
+ const button=event.target.closest('[data-mission-view]');
+ if(!button||!canUsePremium()||!$('missionScopes').contains(button))return;
+ const next=button.dataset.missionView;
+ if(!['available','published','followed'].includes(next))return;
+ missionView=next;state.selectedMissionId=null;
+ $('missionQuery').value='';$('missionCategory').value='';$('missionDept').value='';
+ renderMissions();
+});
 $('missionList').onclick=async e=>{
  const btn=e.target.closest('[data-back-missions],[data-view-mission],[data-contact],[data-close-mission],[data-favorite]');if(!btn)return;
  if(btn.hasAttribute('data-back-missions')){state.selectedMissionId=null;renderMissions();return;}
- if(btn.hasAttribute('data-view-mission')){const id=btn.dataset.viewMission;const mission=state.missions.find(m=>m.id===id);if(!mission||mission.status!=='open'||!(mission.owner_id===state.session?.user?.id||canUsePremium()))return;state.selectedMissionId=id;renderMissions();$('missionList').scrollIntoView({block:'start',behavior:'smooth'});return;}
+ if(btn.hasAttribute('data-view-mission')){const id=btn.dataset.viewMission;const mission=state.missions.find(m=>m.id===id);if(!mission||!(mission.owner_id===state.session?.user?.id||(canUsePremium()&&mission.status==='open')))return;state.selectedMissionId=id;renderMissions();$('missionList').scrollIntoView({block:'start',behavior:'smooth'});return;}
  if(btn.dataset.favorite){if(!requireAuth())return;const id=btn.dataset.favorite;try{const result=state.favorites.includes(id)?await state.db.from('offrya_favorites').delete().eq('user_id',state.session.user.id).eq('mission_id',id):await state.db.from('offrya_favorites').insert({user_id:state.session.user.id,mission_id:id});if(result.error)throw result.error;await refresh();toast(state.favorites.includes(id)?'Mission ajoutée aux favoris.':'Favori retiré.');}catch(err){showError(err);}return;}
  if(btn.dataset.closeMission){if(!confirm('Clôturer cette mission ? Elle ne sera plus visible dans les recherches, mais vos conversations resteront accessibles.'))return;try{const r=await state.db.rpc('offrya_close_mission',{p_id:btn.dataset.closeMission});if(r.error)throw r.error;await refresh();toast('Mission clôturée');}catch(err){showError(err);}return;}
  if(!requireRole('pro'))return;const mission=state.missions.find(m=>m.id===btn.dataset.contact);if(!mission)return;
