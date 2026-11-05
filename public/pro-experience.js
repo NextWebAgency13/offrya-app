@@ -54,8 +54,8 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    const data=await response.json();
    if(!Array.isArray(data.items)||!['ai','rules'].includes(data.mode))throw Error('Format incorrect');
    if(state.session?.user?.id!==user||key!==radarKey||!canUsePremium())return;
-   serverRadar=data;
-   recommendations();
+   serverRadar=data;state.radarMatches=data;
+   recommendations();metrics();alerts();
   }catch(error){
    console.warn('OFFRYA: classement distant indisponible, secours local',error);
   }finally{if(key===radarKey)radarAt=Date.now();radarLoading=false;}
@@ -209,7 +209,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    if(response.error)throw response.error;
    if(state.session?.user?.id!==user||!canUsePremium())return;
    state.opportunityAlerts=Array.isArray(response.data)?response.data:[];
-   serverRadar=null;radarKey='';radarAt=0;
+   serverRadar=null;state.radarMatches=null;radarKey='';radarAt=0;
    recommendations();
   }catch(error){
    console.warn('OFFRYA : lecture des alertes BOAMP/TED impossible',error);
@@ -329,7 +329,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
     '<div class="pro-v3-radar-details pro-ai-card-place"><span>⌖ '+esc(item.location||'Zone non précisée')+'</span>'+
     (tender?'<span class="pro-ai-buyer">Acheteur : '+esc(a?.buyer||'Non précisé')+'</span>':'')+
     '</div>'+desc+why+'</div>'+
-    '<div class="pro-v3-radar-side pro-ai-card-side"><strong class="pro-ai-score">'+esc(scoreLabel)+'</strong>'+
+    '<div class="pro-v3-radar-side pro-ai-card-side"><strong class="pro-ai-score'+(tender&&!serverRadar?' is-pending':'')+'">'+esc(scoreLabel)+'</strong>'+
     '<div class="pro-ai-card-budget">'+due+price+'</div>'+action+favorite+'</div></article>';
   }).join('') :'<div class="pro-v3-empty pro-ai-empty"><strong>'+
    (priorityOnly?'Aucune nouvelle alerte prioritaire.':radarFilter==='tender'?
@@ -343,7 +343,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  function metrics(){
   const missions=available(),count=unreadMatchedNotifications().length;
   $('proV3WatchState').textContent=Date.parse(state.testPremiumUntil||'')>Date.now()?'Accès test':'Automatique';
-  $('proV3AlertCount').textContent=String((state.opportunityAlerts||[]).length);
+  $('proV3AlertCount').textContent=serverRadar?String(serverRadar.items.filter(x=>x.kind==='tender'&&x.score>=75).length):'—';
   const bubble=$('proV3AlertBubble');
   if(bubble){bubble.hidden=!count;bubble.textContent=String(Math.min(count,99));}
   const trigger=$('proV3MobileAlert');
@@ -368,20 +368,25 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   $('proV3Chart').innerHTML='<svg viewBox="0 0 '+width+' '+height+'" role="img" aria-label="'+esc(counts.join(', '))+' missions quotidiennes dans les 7 derniers jours"><path d="M10 '+(height-12)+' H'+(width-10)+'" fill="none" stroke="#e5d8f1" stroke-width="1"/><polyline points="'+pts+'" stroke="#7b32dc" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" fill="none"/>'+points.map(v=>'<circle cx="'+v[0]+'" cy="'+v[1]+'" r="3.5" fill="#813dd9"/>').join('')+'</svg><small>7 derniers jours · missions publiées</small>';
  }
  function alerts(){
-  // Full official watch is retained in its protected subtab.
-  const alerts=state.opportunityAlerts||[];
-  $('proV3WatchAlertList').innerHTML=alerts.length?[...alerts]
-   .filter(a=>!a.deadline||Date.parse(a.deadline)>Date.now())
-   .sort((a,b)=>(b.match_score||0)-(a.match_score||0))
-   .slice(0,15).map(a=>{
-    const official=/^https:\/\/(www\.)?boamp\.fr\//i.test(a.url||'')||/^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(a.url||'');
-    const href=official?esc(a.url):null;
-    const name=a.source==='TED'?'TED · Union européenne':'BOAMP · DILA';
-    const score=Number.isInteger(a.match_score)?'<small>Correspondance : '+a.match_score+'/100 · '+esc(a.match_reason||'')+'</small>':'';
-    return '<div class="pro-v3-watch-item"><small>'+esc(name)+' · '+esc(a.seen_at?'Déjà consultée':'Nouvelle opportunité')+'</small><strong>'+esc(a.title||'Marché public')+'</strong>'+score+
-     '<small>Échéance : '+esc(a.deadline?new Date(a.deadline).toLocaleDateString('fr-FR'):'À vérifier')+'</small>'+
-     (href?'<a href="'+href+'" target="_blank" rel="noopener noreferrer">Consulter la publication officielle</a>':'')+'</div>';
-   }).join(''):'<div class="pro-v3-empty">Aucune nouvelle opportunité pour le moment. La veille BOAMP et TED s’exécute automatiquement pour les professionnels vérifiés et abonnés.</div>';
+  const node=$('proV3WatchAlertList');if(!node)return;
+  if(!serverRadar){node.innerHTML='<div class="pro-v3-empty">Vérification des métiers en cours. Les alertes prioritaires apparaîtront après classement.</div>';return;}
+  const notices=new Map((state.opportunityAlerts||[]).map(a=>[String(a.tender_id),a]));
+  const rows=serverRadar.items.filter(x=>x.kind==='tender'&&Number(x.score)>=75)
+   .filter(x=>notices.has(String(x.id))&&(!x.deadline||Date.parse(x.deadline)>Date.now()));
+  node.innerHTML=rows.length?rows.slice(0,15).map(item=>{
+   const a=notices.get(String(item.id));
+   const official=/^https:\/\/(www\.)?boamp\.fr\//i.test(a.url||'')||
+    /^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(a.url||'');
+   const href=official?esc(a.url):null;
+   const name=a.source==='TED'?'TED · Union européenne':'BOAMP · DILA';
+   const why=(item.reasons||[]).slice(0,2).join(' · ');
+   return '<div class="pro-v3-watch-item"><small>'+esc(name)+' · '+
+    esc(a.seen_at?'Déjà consultée':'Marché prioritaire non consulté')+'</small>'+
+    '<strong>'+esc(a.title||'Marché public')+'</strong>'+
+    '<small>Pertinence : '+Math.round(Number(item.score))+'/100 · '+esc(why)+'</small>'+
+    '<small>Échéance : '+esc(a.deadline?new Date(a.deadline).toLocaleDateString('fr-FR'):'À vérifier')+'</small>'+
+    (href?'<a href="'+href+'" target="_blank" rel="noopener noreferrer">Consulter la publication officielle</a>':'')+'</div>';
+  }).join(''):'<div class="pro-v3-empty">Aucun marché suffisamment pertinent pour une alerte prioritaire. Les avis moins pertinents restent consultables dans le radar.</div>';
  }
  function syncTab(name){
   if(!initialized||!canUsePremium())return;
@@ -577,7 +582,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   document.body.classList.toggle('offrya-pro-v3',premium);
   if(!premium){uid=null;serverRadar=null;radarKey='';radarAt=0;return;}
   const user=state.session?.user?.id;
-  if(user!==uid){uid=user;view='home';
+  if(user!==uid){uid=user;view='home';state.radarMatches=null;
   }
   const label=professionalGreetingLabel(state);
   $('proV3Hello').textContent=label||'OFFRYA';
