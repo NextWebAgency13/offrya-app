@@ -64,6 +64,18 @@ test('Push subscriptions are written and removed using server privileges only',a
  assert.match(calls[1].url,/user_id=eq\./);
  assert.equal(calls[1].options.method,'DELETE');
 });
+test('Supabase HTTP 201 with empty body confirms push subscription instead of throwing',async()=>{
+ const calls=[];
+ const fetchImpl=async(url,options)=>{
+  calls.push({url,method:options.method,prefer:options.headers.Prefer});
+  return {ok:true,status:201,text:async()=>''};
+ };
+ await assert.doesNotReject(push.saveSubscription(client,subscription,{env,fetchImpl}));
+ assert.equal(calls.length,1);
+ assert.equal(calls[0].method,'POST');
+ assert.equal(calls[0].prefer,'resolution=merge-duplicates,return=minimal');
+});
+
 test('Signed database event only notifies the other participant, never includes message text',async()=>{
  const calls=[],notifications=[];
  const fetchImpl=async(url,options)=>{
@@ -72,7 +84,7 @@ test('Signed database event only notifies the other participant, never includes 
   if(url.includes('offrya_messages?'))data=[{id:message,conversation_id:conversation,sender_id:client,created_at:new Date().toISOString(),body:'never send my message body'}];
   if(url.includes('offrya_conversations?'))data=[{id:conversation,client_id:client,professional_id:professional}];
   if(url.includes('offrya_push_subscriptions?'))data=[{endpoint,p256dh:subscription.keys.p256dh,auth:subscription.keys.auth}];
-  return {ok:true,status:200,json:async()=>data};
+  return {ok:true,status:200,json:async()=>data,text:async()=>JSON.stringify(data)};
  };
  const pushClient={
   setVapidDetails(...args){notifications.push(['keys',args[0]]);},
