@@ -11,7 +11,10 @@ test('No duplicate upper action cards remain on Premium',()=>{
  assert.doesNotMatch(pro,/'<nav class="pro-v3-primary-tabs"/);
  assert.match(pro,/data-pro-panel="home"/);
  assert.match(pro,/Ma veille intelligente OFFRYA/);
- assert.match(pro,/querySelector\('\[data-pro-panel="home"\]'\)\.before\(search\)/);
+ assert.doesNotMatch(pro,/proV3Search|proV3SearchInput|\.before\(search\)/);
+ assert.match(pro,/pro-ai-welcome/);
+ assert.match(pro,/pro-ai-filter-tabs/);
+ assert.match(pro,/proV3Recommendations/);
  assert.doesNotMatch(pro,/querySelector\('\.pro-v3-primary-tabs'\)\.after\(search\)/);
 });
 test('Proposer mes services and Gérer mon activité are retained in Android menu and desktop sidebar',()=>{
