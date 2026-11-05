@@ -13,6 +13,7 @@ function setup(){
  const callbacks={};
  const savedMessages=[];
  const events=[];
+ const navigation=[];
  const all=new Map();
  const generic=()=>({textContent:'',innerHTML:'',hidden:false,value:'',listeners:{},
   classList:{toggle(){}},addEventListener(name,callback){this.listeners[name]=callback;}});
@@ -29,7 +30,7 @@ function setup(){
    assert.equal(table,'offrya_opportunity_preferences');
    return {upsert(payload){
     callbacks.saved=payload;
-    return {select(){return {single:async()=>({data:{...payload,updated_at:'2026-11-05T20:42:24.254Z'},error:null})}}};
+    return {select(){return {single:async()=>callbacks.saveError?{data:null,error:callbacks.saveError}:{data:{...payload,updated_at:'2026-11-05T20:42:24.254Z'},error:null}}};
    }};
   }}};
  const element=id=>{if(!all.has(id))all.set(id,generic());return all.get(id)};
@@ -37,9 +38,9 @@ function setup(){
  const context=vm.createContext({document,queueMicrotask(){},setInterval(){},console,
   Date,CustomEvent:class CustomEvent{constructor(type,options){this.type=type;this.detail=options?.detail;}}});
  vm.runInContext(source.replace(/^export /gm,'')+'\nthis.makeConsole=createOpportunityConsole;',context);
- const instance=context.makeConsole({state,element,canUsePremium:()=>true,tab(){},renderMissions(){},notify:msg=>savedMessages.push(msg)});
+ const instance=context.makeConsole({state,element,canUsePremium:()=>true,tab:name=>navigation.push(name),renderMissions(){},notify:msg=>savedMessages.push(msg)});
  instance.init();
- return {instance,state,boxes,form,element,events,savedMessages,submit,callbacks};
+ return {instance,state,boxes,form,element,events,savedMessages,submit,callbacks,navigation};
 }
 test('Late-arriving saved preferences populate the already opened Premium form',()=>{
  const {instance,state,boxes,form}=setup();
@@ -67,7 +68,7 @@ test('Rerender does not overwrite unsubmitted edits, and changed server values l
  assert.match(element('opWatchFeedback').textContent,/non enregistrées/);
 });
 test('Successful save returns the persisted row and a new account starts with cleared fields',async()=>{
- const {instance,state,boxes,form,events,submit,callbacks}=setup();
+ const {instance,state,boxes,form,events,submit,callbacks,navigation}=setup();
  state.opportunityPrefs={sectors:['Espaces verts'],department:'13',keywords:'',updated_at:'2026-11-05T20:00:00Z'};
  instance.render();
  form.elements.department.value='30';form.elements.keywords.value='tonte';
@@ -80,11 +81,33 @@ test('Successful save returns the persisted row and a new account starts with cl
  assert.equal(callbacks.saved.sectors[0],'Bâtiment');
  assert.equal(state.opportunityPrefs.keywords,'tonte');
  assert.equal(events.find(e=>e.type==='offrya:preferences-updated')?.detail.userId,'pro-account-1');
+ assert.deepEqual(navigation,['boamp'],'A successful save should return to the Premium workspace');
  state.session.user.id='pro-account-2';state.opportunityPrefs=null;
  instance.render();
  assert.equal(form.elements.department.value,'');
  assert.equal(form.elements.keywords.value,'');
  assert.equal(boxes.find(x=>x.value==='Bâtiment').checked,false);
+});
+test('Invalid or rejected filter saves keep the form open for correction',async()=>{
+ const {instance,form,state,callbacks,navigation,events,element}=setup();
+ state.opportunityPrefs={sectors:['Espaces verts'],department:'13',keywords:'',updated_at:'2026-11-05T20:00:00Z'};
+ instance.render();
+ form.elements.department.value='99';
+ await form.listeners.submit({preventDefault(){},currentTarget:form});
+ assert.deepEqual(navigation,[],'Invalid department must not navigate');
+ assert.equal(events.length,0,'Invalid input must not notify radar');
+ form.elements.department.value='13';
+ callbacks.saveError=new Error('Network error');
+ await form.listeners.submit({preventDefault(){},currentTarget:form});
+ assert.deepEqual(navigation,[],'Failed Supabase save must not navigate');
+ assert.equal(events.length,0,'Failed save must not notify radar');
+ assert.match(element('opWatchFeedback').textContent,/Enregistrement impossible/);
+});
+test('Return to Espace Pro uses the existing guarded Premium navigation, not direct history manipulation',()=>{
+ const pro=fs.readFileSync('public/app.js','utf8');
+ assert.match(pro,/if\(name==='boamp'\)\{[\s\S]*?if\(canUsePremium\(\)\)\{proExperience\.show\('home',fromHistory\);return;\}/);
+ assert.match(source,/tab\('boamp'\);/);
+ assert.doesNotMatch(source,/location\.href\s*=|history\.pushState/);
 });
 test('Old fetch responses cannot roll back newly saved settings',()=>{
  assert.match(app,/else if\(key==='opportunityPrefs'\)/);
