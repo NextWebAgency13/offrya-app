@@ -240,13 +240,13 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    const description=String(m?.description||item.description||'').trim();
    const desc=description?'<p class="pro-ai-card-description">'+esc(description.slice(0,200))+(description.length>200?'…':'')+'</p>':'';
    const date=tender?item.deadline:m?.desired_date;
-   const due=date&&Number.isFinite(Date.parse(date))?'<span class="pro-ai-card-due'+(Date.parse(date)<Date.now()+7*86400000?' urgent-date':'')+'">'+(tender?'Clôture':'Date souhaitée')+' : '+esc(dateRadar(date))+'</span>':'';
+   const due=date&&Number.isFinite(Date.parse(date))?'<span class="pro-ai-card-due'+(Date.parse(date)<Date.now()+7*86400000?' urgent-date':'')+'">'+(tender?'Clôture : ':'Date souhaitée : ')+esc(dateRadar(date))+'</span>':'';
    const reasons=[...(m?.category?[m.category]:[]),...(Array.isArray(item.reasons)?item.reasons.slice(0,3):[])].filter(Boolean).slice(0,4);
    const tags=reasons.length?'<div class="pro-ai-card-tags"><span class="sr-only">Pourquoi : </span>'+reasons.map((x,i)=>'<span>'+(i===0&&m?.category?'<span class="sr-only">Secteur : </span>':'')+esc(x)+'</span>').join('')+'</div>':'';
    const score=Math.min(100,Math.max(0,Math.round(Number(item.score)||0)));
    const action=tender
     ?'<a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer" class="pro-v3-reco-btn">Voir le détail →</a>'
-    :'<button type="button" class="pro-v3-reco-btn" data-pro-view-mission="'+esc(item.id)+'" title="Voir la mission et préparer une proposition">Voir la mission →</button>';
+    :'<button type="button" class="pro-v3-reco-btn" data-pro-view-mission="'+esc(item.id)+'" title="Voir la mission et Préparer une proposition">Voir la mission →</button>';
    return '<article class="pro-v3-radar-row pro-ai-card '+(tender?'pro-ai-card-tender':'pro-ai-card-mission')+'">'+
     '<div class="pro-ai-card-icon">'+(tender?icon('ic-boamp'):icon('ic-missions'))+'</div>'+
     '<div class="pro-v3-radar-body pro-ai-card-content"><div class="pro-ai-card-labels"><span class="pro-ai-card-source">'+(tender?'<span class="sr-only">MARCHÉ PUBLIC · </span>APPEL D’OFFRE PUBLIC':'MISSION OFFRYA')+'</span>'+
