@@ -108,10 +108,10 @@ test('Mobile UI hides inflated scores until server verdict and stores stages und
  assert.match(pro,/scoreLabel/);
  assert.match(pro,/consulter/i);
  assert.match(client,/verified=new Map/);
- assert.match(client,/x\\.kind==='tender'&&Number\\(x\\.score\\)>=75/);
+ assert.match(client,/x\.kind==='tender'&&Number\(x\.score\)>=75/);
  assert.match(schema,/offrya_tender_own_insert/);
  assert.match(schema,/offrya_private\.has_active_professional_access/);
- assert.match(css,/\\.pro-ai-track-action/);
+ assert.match(css,/\.pro-ai-track-action/);
  assert.match(css,/-webkit-line-clamp:3/);
  assert.match(responsive,/#professional\.active\) \.app-shell \.main-content/);
  for(const content of [pro,client]){
