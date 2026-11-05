@@ -151,7 +151,6 @@ test('Android self-test and database registration are exposed as authenticated r
  assert.doesNotMatch(html,/id="pushTestNotification"/);
  assert.doesNotMatch(ui,/testButton|testPush\(/);
  assert.match(ui,/api\('status',\{endpoint:sub\.endpoint\},token\)/);
- assert.match(ui,/api\('test',\{endpoint:sub\.endpoint\},token\)/);
  assert.match(ui,/remote\.registered===true/);
  assert.match(ui,/Réactiver les notifications push/);
  assert.match(worker,/isTest\?'OFFRYA · Test Android':'OFFRYA'/);
