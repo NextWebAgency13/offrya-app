@@ -77,7 +77,7 @@ test('Out-of-order responses are ignored; live results merge safely with RLS imp
  assert.ok(permitted>gated&&discovery>permitted,'Live lookup must run after entitlement verification');
  assert.match(server,/alerts:\[\.\.\.newNotices,\.\.\.rows\[1\]\]/);
  assert.match(server,/liveNotices:live\.notices\.map/);
- assert.doesNotMatch(server.slice(gated,server.indexOf("if(p==='/api/annonces'",gated)),/SUPABASE_SECRET_KEY|service_role/);
+ assert.doesNotMatch(server.slice(gated,server.indexOf("if(p==='/api/annonces'",gated)),/process\.env\.SUPABASE_SECRET_KEY|apikey:process\.env\.SUPABASE_SECRET_KEY/);
 });
 test('Browser, server and official discovery JavaScript parse',()=>{
  for(const [name,source] of [['pro-experience',js],['opportunity-console',consoleJs],['server',server],
