@@ -14,7 +14,7 @@ const staticMap=new Map([
  ['/sw.js','text/javascript; charset=utf-8'],['/manifest.webmanifest','application/manifest+json; charset=utf-8'],['/push-notifications.js','text/javascript; charset=utf-8'],['/auth-captcha.mjs','text/javascript; charset=utf-8'],['/home-session.js','text/javascript; charset=utf-8'],
  ['/public.css','text/css; charset=utf-8'],['/auth.css','text/css; charset=utf-8'],['/activity.js','text/javascript; charset=utf-8'],['/deposer.js','text/javascript; charset=utf-8'],['/connexion.js','text/javascript; charset=utf-8'],['/auth-feedback.mjs','text/javascript; charset=utf-8'],['/legacy-redirect.js','text/javascript; charset=utf-8'],
  ['/index.html','text/html; charset=utf-8'],['/pro-experience.js','text/javascript; charset=utf-8'],['/pro-commercial.js','text/javascript; charset=utf-8'],['/app.js','text/javascript; charset=utf-8'],['/mission-feed.js','text/javascript; charset=utf-8'],['/radar.js','text/javascript; charset=utf-8'],['/opportunity-console.js','text/javascript; charset=utf-8'],
- ['/styles.css','text/css; charset=utf-8'],['/home.css','text/css; charset=utf-8'],['/pro.css','text/css; charset=utf-8'],['/pro-experience.css','text/css; charset=utf-8'],['/favicon.svg','image/svg+xml'],
+ ['/styles.css','text/css; charset=utf-8'],['/home.css','text/css; charset=utf-8'],['/pro.css','text/css; charset=utf-8'],['/pro-experience.css','text/css; charset=utf-8'],['/role-reference.css','text/css; charset=utf-8'],['/favicon.svg','image/svg+xml'],
  ['/confidentialite.html','text/html; charset=utf-8'],['/mentions-legales.html','text/html; charset=utf-8'],
  ['/cgv.html','text/html; charset=utf-8'],['/remboursements.html','text/html; charset=utf-8'],['/contact.html','text/html; charset=utf-8']]);
 const buckets=new Map();

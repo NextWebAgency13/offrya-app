@@ -72,6 +72,7 @@ test('Faithful visual reference is scoped without hiding protected account setti
  assert.match(css,/\.role-reference-premium:not\(\.hidden\)\{display:block!important\}/);
  assert.doesNotMatch(css,/SUPABASE_SECRET_KEY|STRIPE_SECRET_KEY|OPENAI_API_KEY/);
  assert.match(server,/\/espace\/professionnel/);
+ assert.match(server,/\['\/role-reference\.css','text\/css; charset=utf-8'\]/);
 });
 test('Existing messaging, professional workflows and Auth/RLS remain connected',()=>{
  assert.match(app,/data-role-pro-screen/);
