@@ -1,6 +1,6 @@
 // Android/Web Push: only enabled after a direct click by the account holder.
 export function createPushNotifications({state,button,status,notify}){
- let config=null,busy=false;
+ let config=null,busy=false,active=false;
  const supported=()=>window.isSecureContext && 'serviceWorker' in navigator &&
   'PushManager' in window && 'Notification' in window;
  function update(text,disabled=false){
@@ -34,7 +34,8 @@ export function createPushNotifications({state,button,status,notify}){
    return;
   }
   const reg=await registration();
-  const active=await reg.pushManager.getSubscription();
+  const subscription=await reg.pushManager.getSubscription();
+  active=Boolean(subscription);
   update(active?'Désactiver les notifications':'Activer les notifications push');
   tell(active?'Notifications activées sur cet appareil, même quand OFFRYA est fermé.':
    'Recevez une alerte Android lorsqu’un nouveau message arrive. Aucun aperçu privé.');
@@ -62,14 +63,13 @@ export function createPushNotifications({state,button,status,notify}){
   if(busy||!supported()||!config?.enabled)return;
   busy=true;update('Mise à jour…',true);
   try{
-   const reg=await registration();
-   const existing=await reg.pushManager.getSubscription();
-   if(existing){await disable();return;}
-   // Android requires the permission prompt to come from an explicit click.
+   if(active){await disable();return;}
+   // Ask synchronously from the user's tap before awaiting registration.
    const permission=await Notification.requestPermission();
    if(permission!=='granted')throw Error('Autorisation refusée. Activez-la dans Chrome si vous changez d’avis.');
    const token=await sessionToken();
    if(!token)throw Error('Reconnectez-vous pour activer les notifications.');
+   const reg=await registration();
    const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:vapidBytes(config.publicKey)});
    try{await api('subscribe',{subscription:sub.toJSON()},token);}
    catch(error){await sub.unsubscribe().catch(()=>{});throw error;}
