@@ -663,12 +663,9 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    else if(route==='/espace/marches-publics')show('home',true);
    else syncTab(route==='/espace'?'dashboard':route.includes('/missions')?'missions':route.includes('/messagerie')?'inbox':route.includes('/reglages')?'settings':'boamp');
   });
-  const header=document.querySelector('.app-shell .header');
-  const search=document.createElement('form');search.id='proV3Search';search.className='pro-v3-search';
-  search.setAttribute('role','search');search.innerHTML='<label class="sr-only" for="proV3SearchInput">Rechercher missions et appels d’offres</label><input id="proV3SearchInput" placeholder="Rechercher une mission, un appel d’offre, une ville…" autocomplete="off" maxlength="100"><button type="submit" aria-label="Rechercher">'+icon('ic-search')+'</button>';
-  $('proExperienceV3').querySelector('[data-pro-panel="home"]').before(search);
-  search.addEventListener('submit',e=>{e.preventDefault();if(!canUsePremium())return;$('missionQuery').value=$('proV3SearchInput').value;radarQuery=$('proV3SearchInput').value.trim();show('home');recommendations();});
-  $('proV3SearchInput').addEventListener('input',e=>{if(!canUsePremium())return;radarQuery=e.target.value.trim();recommendations();});
+  // The Premium home starts directly with its welcome card. Search controls
+  // remain in Missions and the protected BOAMP subsection; only the redundant
+  // cross-category top search has been removed from this workspace.
   $('proAiSort').addEventListener('change',e=>{if(!canUsePremium())return;radarSort=e.target.value;recommendations();});
  }
  function render(){
