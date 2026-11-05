@@ -13,7 +13,7 @@
    - `VAPID_PUBLIC_KEY` et `VAPID_PRIVATE_KEY` (clé privée **jamais** envoyée au navigateur).
    - `OFFRYA_PUSH_WEBHOOK_SECRET` : secret aléatoire d'au moins 32 caractères.
 3. Enregistrer **le même** `OFFRYA_PUSH_WEBHOOK_SECRET` dans Supabase Vault sous le nom `offrya_push_webhook_secret`. Ne jamais mettre les secrets en dépôt ou dans une migration.
-4. Le trigger HMAC envoie un identifiant de message signé, via `pg_net`, à `https://offrya.fr/api/push/message`. Le serveur vérifie la signature et l'ancienneté de l'événement, retrouve le destinataire en base, puis envoie le push par les fournisseurs de navigateurs. Les réponses 404/410 suppriment les abonnements expirés.
+4. Le trigger HMAC envoie un identifiant de message signé, via `pg_net`, à `https://offrya-app.onrender.com/api/push/message`. Le serveur vérifie la signature et l'ancienneté de l'événement, retrouve le destinataire en base, puis envoie le push par les fournisseurs de navigateurs. Les réponses 404/410 suppriment les abonnements expirés.
 5. Le service Render est en plan gratuit : il peut se mettre en veille après 15 minutes. `pg_net` attend jusqu'à 90 secondes pour laisser le service redémarrer. **Il n'y a toutefois aucune garantie de livraison** si Render est indisponible, si Android force l'arrêt du navigateur ou si le téléphone est hors réseau.
 
 ## Test réel Android
