@@ -1411,3 +1411,20 @@ body.offrya-pro-v3 .pro-ai-priority-alert:focus-visible{
  }
  body.offrya-pro-v3 .pro-ai-card .pro-ai-card-content h4{-webkit-line-clamp:3}
 }
+
+
+/* Contextual navigation: visible return on every Premium sub-screen.
+   The browser/Android Back key uses the same screen history. */
+body.offrya-pro-v3 .pro-v3-context-back{
+ display:inline-flex;align-items:center;justify-content:center;
+ min-height:42px;margin:2px 0 12px;padding:9px 15px;
+ border:1px solid #dfd0ed;background:#f6effc;color:#5a2988;
+ border-radius:12px;font:750 13px/1.2 'Plus Jakarta Sans',sans-serif;
+ cursor:pointer;
+}
+body.offrya-pro-v3 .pro-v3-context-back:focus-visible{
+ outline:3px solid #e7a154;outline-offset:2px;
+}
+@media(max-width:620px){
+ body.offrya-pro-v3 .pro-v3-context-back{min-height:44px;margin:0 0 10px;font-size:12px}
+}

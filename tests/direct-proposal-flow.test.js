@@ -55,7 +55,7 @@ test('Sending remains explicit, uses existing private conversation and moves to 
  assert.match(sales,/from\('offrya_messages'\)\.insert/);
  assert.match(sales,/saveStage\(mission\.id,'contacted'\)/);
  assert.match(sales,/if\(onNavigate\)onNavigate\('tracking'\)/);
- assert.match(app,/onNavigate:screen=>proExperience\.show\(screen\)/);
+ assert.match(app,/onNavigate:screen=>screen==='back'\?proExperience\.back\(\):proExperience\.show\(screen\)/);
  assert.match(pro,/data-pro-screen="inbox"/);
 });
 test('Personal space remains separate and focuses on projects and exchanges',()=>{

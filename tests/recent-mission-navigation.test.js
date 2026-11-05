@@ -18,13 +18,13 @@ test('selecting a recent own mission opens its detail and clears filters',()=>{
  const fields={missionQuery:{value:'previous'},missionCategory:{value:'Previous'},missionDept:{value:'75'}};
  const $=id=>id==='roleRecentMissions'?wrap:id==='missionList'?list:fields[id];
  const state={session:{user:{id:'user-1'}},missions:rows,selectedMissionId:null};
- const ctx={state,$,renderMissions:()=>{calls.render=true},tab:(name,fromHistory,preserve)=>{calls.tab=name;calls.preserve=preserve}};
+ const ctx={state,$,renderMissions:()=>{calls.render=true},rememberMissionRoute:id=>{calls.route=id},tab:(name,fromHistory,preserve)=>{calls.tab=name;calls.preserve=preserve}};
  vm.runInNewContext(source,ctx);
  const click=id=>calls.handler({target:{closest:()=>({dataset:{openOwnMission:id}})}});
  click('other-1');assert.equal(state.selectedMissionId,null);
  click('own-1');
  assert.equal(state.selectedMissionId,'own-1');
- assert.equal(calls.tab,'missions');assert.equal(calls.preserve,true);assert.equal(calls.render,true);assert.equal(calls.scroll,true);
+ assert.equal(calls.tab,'missions');assert.equal(calls.preserve,true);assert.equal(calls.render,true);assert.equal(calls.scroll,true);assert.equal(calls.route,'own-1');
  for(const field of Object.values(fields))assert.equal(field.value,'');
 });
 test('Closed personal publications stay accessible while closed external missions stay hidden',()=>{
@@ -45,7 +45,7 @@ test('Missions tab resets a prior detail but explicit card selection preserves i
   return nodes.get(id);
  };
  const doc={body:{classList:{toggle(){}}},querySelectorAll:()=>[],getElementById:()=>({removeAttribute(){}})};
- const ctx={state,$,document:doc,history:{pushState(){}},location:{pathname:'/espace/missions'},window:{scrollTo(){}},paths:{missions:'/espace/missions'},canUsePremium:()=>false,loadBoamp:()=>{},renderMissions:()=>{calls.render++}};
+ const ctx={state,$,document:doc,URLSearchParams,history:{pushState(){},replaceState(){}},location:{pathname:'/espace/missions',search:''},window:{scrollTo(){}},paths:{missions:'/espace/missions'},canUsePremium:()=>false,loadBoamp:()=>{},renderMissions:()=>{calls.render++}};
  vm.runInNewContext(source,ctx);
  ctx.tab('missions');
  assert.equal(state.selectedMissionId,null);
