@@ -271,6 +271,16 @@ body.offrya-reference-ui #dashboard .role-resume-mission:not([hidden]){
  display:flex!important;margin:0 0 14px;
 }
 body.offrya-reference-ui .role-ref-deposit-nav{display:none}
+
+@media (min-width:781px){
+ body.offrya-reference-ui:not(.offrya-pro-workspace) .app-shell .sidebar #nav{
+  display:grid!important;align-content:start;gap:3px;
+ }
+ body.offrya-reference-ui:not(.offrya-pro-workspace) .app-shell .sidebar :is(#proV3Sidebar,#proV3SidebarExtras,#proV3SidePlan){
+  display:none!important;
+ }
+ body.offrya-reference-ui .app-shell .sidebar #nav .role-ref-deposit-nav{display:none!important}
+}
 @media (max-width:780px){
  body.offrya-reference-ui .app-shell{display:block!important;padding-bottom:calc(83px + env(safe-area-inset-bottom,0px))!important}
  body.offrya-reference-ui .app-shell .sidebar{
