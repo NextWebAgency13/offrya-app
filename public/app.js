@@ -72,6 +72,10 @@ function paintMessageBadges(){
   badge.textContent=label;badge.hidden=!total;
  }
  if($('roleConversationCount'))$('roleConversationCount').textContent=String(total);
+ if($('clientHomeUnread'))$('clientHomeUnread').textContent=String(total);
+ if($('clientHomeUnreadLabel'))$('clientHomeUnreadLabel').textContent=total+' message'+(total>1?'s':'');
+ if($('clientHomeNotificationText'))$('clientHomeNotificationText').textContent=
+  total?total+' nouveau'+(total>1?'x':'')+' message'+(total>1?'s':''):'Aucune nouvelle';
 }
 function acknowledgeConversation(conversationId,messages){
  const uid=state.session?.user?.id;
@@ -177,6 +181,13 @@ function tab(name,fromHistory=false,preserveMissionDetail=false){
 }
 window.addEventListener('popstate',()=>tab(pathsReverse[location.pathname]||'dashboard',true));
 for(const n of document.querySelectorAll('[data-tab]'))n.addEventListener('click',()=>tab(n.dataset.tab));
+for(const n of document.querySelectorAll('[data-role-deposit]'))n.addEventListener('click',()=>{
+ if(!state.session?.user?.email_confirmed_at){toast('Confirmez votre adresse e-mail avant de publier une mission.');return;}
+ location.assign('/deposer-une-mission');
+});
+for(const n of document.querySelectorAll('[data-role-pro-screen]'))n.addEventListener('click',()=>{
+ if(canUsePremium())proExperience.show(n.dataset.roleProScreen);
+});
 function isGuest(){return Boolean(state.session?.user?.is_anonymous);}
 function requireAuth(){if(!state.db){toast('Le service de connexion est momentanément indisponible.');return false;}if(!state.session){location.assign('/connexion?next='+encodeURIComponent(location.pathname));return false;}return true;}
 function requireRole(role){if(!requireAuth())return false;if(!state.profile){tab('settings');toast('Complétez votre profil avant de commencer.');return false;}if(role==='pro'&&(state.profile.role!=='pro'||!canUsePremium())){toast('Activez votre compte professionnel pour répondre aux missions.');tab('professional');return false;}return true;}
@@ -627,6 +638,8 @@ function renderPriorityAlerts(){
  const unread=alerts.filter(a=>!a.seen_at).length;
  $('priorityAlertCount').textContent=unread+' nouvelle(s)';
  $('priorityAlertBubble').textContent=String(unread);
+  if($('roleAlertCount'))$('roleAlertCount').textContent=String(unread+
+   (state.opportunityAlerts||[]).filter(a=>!a.seen_at).length);
  $('priorityAlertShortcut').setAttribute('aria-label',unread+' opportunité(s) prioritaires non consultée(s)');
  $('priorityAlertsList').innerHTML=alerts.length?alerts.map(a=>
   `<article class="data-item">
@@ -680,15 +693,19 @@ function render(){
  if(personalDescription)personalDescription.textContent=hasProProfile?
   'Vos missions publiées et vos échanges. Retrouvez les opportunités dans Espace pro.':
   'Publiez vos projets et suivez les échanges avec les professionnels.';
- $('roleClientView').classList.remove('hidden');
- $('rolePremiumView').classList.add('hidden');
+ document.body.classList.add('offrya-reference-ui');
+ // Role presentation follows exactly the authenticated premium authorization.
+ $('roleClientView').classList.toggle('hidden',eligiblePro);
+ $('rolePremiumView').classList.toggle('hidden',!eligiblePro);
  document.querySelector('#rolePremiumView .role-premium-stats')?.classList.toggle('hidden',!eligiblePro);
  document.querySelector('#rolePremiumView .role-pro-links')?.classList.toggle('hidden',!eligiblePro);
- document.body.dataset.offryaRole=hasProProfile?'professional':'client';
+ document.body.dataset.offryaRole=eligiblePro?'premium':'client';
  const navMission=document.querySelector('.sidebar .nav-link[data-tab="missions"]');
  const navPro=document.querySelector('.sidebar .nav-link[data-tab="professional"]');
  const navBoamp=document.querySelector('.sidebar .nav-link[data-tab="boamp"]');
  if(navBoamp)navBoamp.classList.toggle('hidden',!eligiblePro);
+ const missionsLabel=navMission?.querySelector('span');
+ if(missionsLabel)missionsLabel.textContent=eligiblePro?'Missions':'Mes missions';
 
  document.getElementById('roleLegacyDetails')?.classList.add('hidden');
  const own=state.missions.filter(m=>m.owner_id===state.session?.user?.id);
@@ -697,14 +714,31 @@ function render(){
  $('clientStatOpen').textContent=String(own.filter(m=>m.status==='open').length);
  $('clientStatConversations').textContent=String(state.conversations.filter(c=>own.some(m=>m.id===c.mission_id)).length);
  $('clientStatClosed').textContent=String(own.filter(m=>m.status==='closed'||m.status==='awarded').length);
- $('roleRecentMissions').innerHTML=activeOwn.length?activeOwn.slice(0,3).map(m=>'<button type="button" class="role-mission-row" data-open-own-mission="'+esc(m.id)+'" aria-label="Consulter la mission '+esc(m.title)+'"><span class="role-mission-icon">▣</span><span><strong>'+esc(m.title)+'</strong><small>'+esc(m.city||'France')+' · '+esc(m.status==='open'?'En cours':'Clôturée')+'</small></span><b aria-hidden="true">›</b></button>').join(''):'<p class="role-empty">Retrouvez vos annonces ici. Publiez votre première mission pour suivre son statut et les échanges avec les professionnels.</p>';
- $('roleBusinessName').textContent=state.premium?.legal_name||'Entreprise à vérifier';
- $('rolePremiumUntil').textContent=eligiblePro?(state.subscription?.paid_through?'Actif jusqu’au '+date(state.subscription.paid_through):'Abonnement actif'):'Accès en cours';
- $('roleCompanyVerifiedText').textContent=state.testPremiumUntil?'Accès de test temporaire':eligiblePro?'✓ Compte vérifié':'Vérification en cours';
- $('roleAvailableCount').textContent=state.missions.filter(m=>m.status==='open').length;
- $('roleOwnCount').textContent=state.conversations.filter(x=>x.professional_id===state.session?.user?.id).length;
+ $('roleRecentMissions').innerHTML=own.length?own.slice(0,3).map(m=>{
+  const picture=m.category==='Bâtiment'
+   ?'<img class="role-mission-image" loading="lazy" decoding="async" src="https://images.pexels.com/photos/1454806/pexels-photo-1454806.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=240" alt="Illustration du secteur bâtiment">'
+   :'<span class="role-mission-placeholder" aria-hidden="true"><svg class="nav-icon"><use href="#ic-missions"/></svg></span>';
+  const statusLabel=m.status==='open'?'En cours de réponses':m.status==='awarded'?'Mission pourvue':'Mission clôturée';
+  return '<button type="button" class="role-mission-row" data-open-own-mission="'+esc(m.id)+'" aria-label="Consulter la mission '+esc(m.title)+'">'+picture+
+   '<span class="role-ref-mission-data"><strong>'+esc(m.title)+'</strong><small>Publiée le '+esc(date(m.created_at))+'</small><span class="role-ref-status">'+esc(statusLabel)+'</span></span><b aria-hidden="true">›</b></button>';
+ }).join(''):'<p class="role-empty">Vous n’avez pas encore publié de mission. Déposez gratuitement votre première demande.</p>';
+ $('roleBusinessName').textContent=state.premium?.legal_name||state.profile?.display_name||'Entreprise à vérifier';
+ const endDate=state.subscription?.paid_through;
+ const validEnd=endDate&&Number.isFinite(Date.parse(endDate))?new Intl.DateTimeFormat('fr-FR',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(endDate)):null;
+ $('rolePremiumUntil').textContent=!eligiblePro?'Accès en cours'
+  :hasVerifiedProfessionalIdentity()?(validEnd?'Actif jusqu’au '+validEnd:'Abonnement actif'):'Accès de test';
+ $('roleCompanyVerifiedText').textContent=hasVerifiedProfessionalIdentity()?'✓ Compte vérifié':eligiblePro?'Accès de test temporaire':'Vérification en cours';
+ $('roleAvailableCount').textContent=String(eligiblePro
+  ?state.missions.filter(m=>m.status==='open'&&m.owner_id!==state.session?.user?.id).length:0);
+ const submitted=new Set([
+  ...(state.salesTracking||[]).filter(x=>['contacted','followup','quote','won'].includes(x.stage)).map(x=>x.mission_id),
+  ...state.conversations.filter(x=>x.professional_id===state.session?.user?.id).map(x=>x.mission_id)
+ ].filter(Boolean));
+ $('roleOwnCount').textContent=String(eligiblePro?submitted.size:0);
  $('roleConversationCount').textContent=state.messageUnreadCount||0;
- $('roleAlertCount').textContent=state.priorityAlerts?.length||0;
+ $('roleAlertCount').textContent=String(eligiblePro?(
+  (state.priorityAlerts||[]).filter(x=>!x.seen_at).length+
+  (state.opportunityAlerts||[]).filter(x=>!x.seen_at).length):0);
 
 
  const banner=$('proVerificationBanner');const pro=state.profile?.role==='pro';
@@ -874,6 +908,9 @@ async function init(){
     const prev=new Set((state.opportunityAlerts||[]).map(x=>x.tender_id));
     const rows=r.data||[];
     state.opportunityAlerts=rows;proExperience.render();opportunityConsole.render();
+     if($('roleAlertCount'))$('roleAlertCount').textContent=String(
+      (state.priorityAlerts||[]).filter(x=>!x.seen_at).length+
+      rows.filter(x=>!x.seen_at).length);
     const newCount=rows.filter(x=>!x.seen_at&&!prev.has(x.tender_id)).length;
     if(newCount)toast(newCount+' nouvelle(s) opportunité(s) publique(s) dans votre veille.');
    }

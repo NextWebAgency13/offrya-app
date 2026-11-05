@@ -37,9 +37,9 @@ test('Tracking owns the activity block rather than the professional homepage',()
  assert.match(pro,/id="proV3Chart"/);
  assert.match(pro,/proV3TrackingActivity'\)\.hidden=next!=='tracking'/);
 });
-test('Personal /espace never renders professional priority blocks',()=>{
- assert.match(app,/\$\('roleClientView'\)\.classList\.remove\('hidden'\)/);
- assert.match(app,/\$\('rolePremiumView'\)\.classList\.add\('hidden'\)/);
+test('Personal /espace keeps priority blocks hidden, and Premium dashboard is access-gated',()=>{
+ assert.match(app,/\$\('roleClientView'\)\.classList\.toggle\('hidden',eligiblePro\)/);
+ assert.match(app,/\$\('rolePremiumView'\)\.classList\.toggle\('hidden',!eligiblePro\)/);
  assert.match(app,/\$\('priorityAlertsPanel'\)\.classList\.add\('hidden'\)/);
  assert.match(app,/\$\('priorityAlertShortcut'\)\.classList\.add\('hidden'\)/);
  assert.match(html,/id="priorityAlertsPanel"/);
