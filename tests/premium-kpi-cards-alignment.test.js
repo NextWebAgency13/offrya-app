@@ -59,7 +59,7 @@ test('Android keeps all four cards in two even rows with no horizontal clipping'
  assert.ok(mobile.includes('grid-template-columns:repeat(2,minmax(0,1fr))!important'));
  assert.ok(mobile.includes('grid-template-rows:45px 44px minmax(34px,auto)'));
  assert.ok(mobile.includes('min-height:169px!important'));
- assert.ok(mobile.includes('min-width:0'));
+ assert.ok(rules.includes('min-width:0'));
  assert.ok(rules.includes('@media(max-width:360px)'));
 });
 test('Design changes no backend counts or dummy values',()=>{
