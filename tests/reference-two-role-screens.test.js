@@ -24,7 +24,7 @@ test('Premium reference home requires the real paid or explicitly temporary auth
  for(const id of ['roleBusinessName','roleCompanyVerifiedText','rolePremiumUntil','roleAvailableCount','roleOwnCount','roleConversationCount','roleAlertCount'])
   assert.match(second,new RegExp('id="'+id+'"'));
  for(const title of ['Compte Professionnel','Premium','Missions disponibles','Mes réponses','Nouveaux messages','Alertes secteur',
-  'Consulter les missions','Marchés publics','Mon activité','Mon profil pro'])
+  'Consulter les missions','Espace Premium','Mon activité','Mon profil pro'])
   assert.ok(second.includes(title),title);
  assert.match(app,/const eligiblePro=canUsePremium\(\)/);
  assert.match(app,/roleClientView'\)\.classList\.toggle\('hidden',eligiblePro\)/);
