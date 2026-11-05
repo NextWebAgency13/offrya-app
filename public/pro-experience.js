@@ -449,6 +449,46 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(openProposal&&openProposal(id)){show('assistant');return;}
   notify('Impossible d’ouvrir cette mission. Actualisez vos opportunités et réessayez.');
  }
+ async function updateTenderTracking(tenderId,stage){
+  if(trackingBusy||!canUsePremium()||!state.session?.user?.id||!state.db)return;
+  const user=state.session.user.id;
+  const current=(state.tenderTracking||[]).find(row=>String(row.tender_id)===tenderId);
+  const allowed=['saved','reviewing','preparing','submitted','done'];
+  if(stage!==null&&!allowed.includes(stage))return;
+  const notice=(state.opportunityAlerts||[]).find(row=>String(row.tender_id)===tenderId);
+  if(!current&&!notice)return;
+  const url=String(current?.url||notice?.url||'');
+  if(!(/^https:\/\/(www\.)?boamp\.fr\//i.test(url)||
+   /^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(url)))return;
+  trackingBusy=true;
+  try{
+   let result;
+   if(stage===null){
+    result=await state.db.from('offrya_tender_tracking').delete().eq('user_id',user).eq('tender_id',tenderId);
+   }else if(current){
+    result=await state.db.from('offrya_tender_tracking').update({stage,updated_at:new Date().toISOString()})
+     .eq('user_id',user).eq('tender_id',tenderId);
+   }else{
+    result=await state.db.from('offrya_tender_tracking').insert({
+     user_id:user,tender_id:tenderId,title:String(notice.title).slice(0,500),
+     url,stage:'saved',updated_at:new Date().toISOString()
+    });
+   }
+   if(result.error)throw result.error;
+   if(state.session?.user?.id!==user||!canUsePremium())return;
+   state.tenderTracking=(state.tenderTracking||[]).filter(t=>String(t.tender_id)!==tenderId);
+   if(stage!==null){
+    state.tenderTracking.push(current?{...current,stage,updated_at:new Date().toISOString()}:
+     {user_id:user,tender_id:tenderId,title:String(notice.title).slice(0,500),url,stage:'saved'});
+   }
+   recommendations();
+   notify(stage===null?'Marché retiré du suivi.':current?'Suivi du marché mis à jour.':'Marché enregistré dans votre suivi.');
+  }catch(error){
+   console.warn('OFFRYA : suivi du marché inaccessible',error);
+   notify('Impossible de modifier ce suivi. Vérifiez votre accès Premium et réessayez.');
+   recommendations();
+  }finally{trackingBusy=false;}
+ }
  function init(){
   if(initialized)return;
   makeMarkup();
@@ -459,6 +499,14 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    e.preventDefault();document.getElementById('accountMenu')?.removeAttribute('open');show(b.dataset.proScreen);
   });
   $('proExperienceV3').addEventListener('click',e=>{
+   const priority=e.target.closest('[data-pro-priority]');
+   if(priority&&canUsePremium()){
+    priorityOnly=!priorityOnly;radarFilter=priorityOnly?'tender':'all';recommendations();return;
+   }
+   const save=e.target.closest('[data-pro-save-tender]');
+   if(save&&canUsePremium()){updateTenderTracking(save.dataset.proSaveTender,'saved');return;}
+   const remove=e.target.closest('[data-pro-remove-tender]');
+   if(remove&&canUsePremium()){updateTenderTracking(remove.dataset.proRemoveTender,null);return;}
    const radarButton=e.target.closest('[data-refresh-radar]');
    if(radarButton&&canUsePremium()){refreshTenderRadar();return;}
    const refreshButton=e.target.closest('[data-refresh-missions]');
@@ -480,6 +528,10 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    if(detail&&canUsePremium()){openMissionDetail(detail.dataset.proViewMission);return;}
    const b=e.target.closest('[data-pro-mission]');if(b)openMission(b.dataset.proMission);
     
+  });
+  $('proExperienceV3').addEventListener('change',event=>{
+   const select=event.target.closest('[data-pro-stage-tender]');
+   if(select&&canUsePremium())updateTenderTracking(select.dataset.proStageTender,select.value);
   });
   window.addEventListener('storage',event=>{
    const user=state.session?.user?.id;
