@@ -918,3 +918,239 @@ body.offrya-pro-v3 .pro-v3-search:focus-within{
  body.offrya-pro-v3 .pro-v3-reco p{font-size:15px!important}
  body.offrya-pro-v3 .pro-v3-radar-summary{font-size:16px!important}
 }
+
+
+/* OFFRYA — maquette Veille intelligente, 05/11/2026.
+   Scoped to the verified Premium workspace; all cards are live authorized data. */
+body.offrya-pro-v3 .pro-ai-hero{
+ position:relative;isolation:isolate;overflow:hidden;min-width:0;
+ padding:24px 25px 17px;margin:0 0 21px;
+ background:radial-gradient(ellipse at 80% 34%,#7222ac 0%,#4c1475 32%,#301147 80%);
+ border:1px solid #5b2486;border-radius:18px;color:#fff;
+ box-shadow:0 11px 26px #30103e16;
+}
+body.offrya-pro-v3 .pro-ai-hero:before{
+ content:"";position:absolute;width:300px;height:300px;border-radius:50%;
+ right:-85px;top:-118px;background:radial-gradient(circle,#b24bfe67,transparent 66%);
+ pointer-events:none;z-index:-1;
+}
+body.offrya-pro-v3 .pro-ai-hero-main{position:relative;z-index:2;max-width:calc(100% - 215px);min-height:132px}
+body.offrya-pro-v3 .pro-ai-intelligence{
+ display:inline-flex;align-items:center;gap:7px;padding:5px 9px;border-radius:10px;
+ border:1px solid #cd9af34f;background:#ad7ae735;color:#f3dfff;
+ font:800 11px 'Plus Jakarta Sans',sans-serif;margin-bottom:9px;
+}
+body.offrya-pro-v3 .pro-ai-intelligence svg{width:15px;height:15px}
+body.offrya-pro-v3 .pro-ai-hero h2{
+ color:#fff;font:850 clamp(22px,2.2vw,30px)/1.17 'Plus Jakarta Sans',sans-serif;
+ letter-spacing:-.8px;margin:0 0 11px;
+}
+body.offrya-pro-v3 .pro-ai-hero-main p{
+ max-width:780px;color:#f2e5fc;font:520 14px/1.55 'DM Sans',sans-serif;margin:0;
+}
+body.offrya-pro-v3 .pro-ai-robot{
+ position:absolute;right:35px;top:12px;width:150px;height:160px;
+ filter:drop-shadow(0 11px 15px #19062c96);z-index:1;transform:rotate(-10deg);
+}
+body.offrya-pro-v3 .pro-ai-robot-glow{
+ position:absolute;inset:30px -30px 0;border-radius:50%;
+ background:radial-gradient(ellipse,#a357f1b8 5%,#8a3ce046 45%,transparent 68%);
+ filter:blur(12px);
+}
+body.offrya-pro-v3 .pro-ai-robot-antenna{
+ position:absolute;width:12px;height:22px;top:4px;left:70px;border-radius:9px;
+ border:3px solid #dad7ff;background:#8749df;transform:rotate(-7deg);
+}
+body.offrya-pro-v3 .pro-ai-robot-antenna:before{content:"";position:absolute;top:-8px;left:-6px;background:#ad8eff;border-radius:50%;width:18px;height:13px}
+body.offrya-pro-v3 .pro-ai-robot-head{
+ position:absolute;top:23px;left:12px;width:130px;height:89px;
+ border:8px solid #dac6fc;border-bottom-color:#a886e2;border-radius:42% 42% 37% 37%;
+ box-shadow:inset 0 -13px 17px #19103b,0 5px 0 #8c65db;
+ background:linear-gradient(130deg,#251b60,#120f38 62%,#361369);
+ display:flex;justify-content:center;align-items:center;gap:29px;
+}
+body.offrya-pro-v3 .pro-ai-robot-head:before,
+body.offrya-pro-v3 .pro-ai-robot-head:after{
+ content:"";position:absolute;top:33px;width:15px;height:22px;border-radius:10px;
+ background:linear-gradient(#f0eaff,#7b47d2);
+}
+body.offrya-pro-v3 .pro-ai-robot-head:before{left:-19px}
+body.offrya-pro-v3 .pro-ai-robot-head:after{right:-19px}
+body.offrya-pro-v3 .pro-ai-robot-head b{
+ width:16px;height:22px;border-radius:50%;
+ background:radial-gradient(circle at 50% 40%,#b4f2ff 16%,#5db6ff 60%,#338ef4 85%);
+ box-shadow:0 0 17px #4aabff;
+}
+body.offrya-pro-v3 .pro-ai-robot-body{
+ position:absolute;top:116px;left:31px;width:102px;height:67px;border-radius:45% 45% 20px 20px;
+ background:linear-gradient(135deg,#e4d9ff,#9c78dc 65%,#592aad);
+ box-shadow:inset 0 -10px 14px #643ca48a;color:#6733c1;
+ font:900 27px/1.9 'Plus Jakarta Sans',sans-serif;text-align:center;
+}
+body.offrya-pro-v3 .pro-ai-robot-body:before,
+body.offrya-pro-v3 .pro-ai-robot-body:after{
+ content:"";position:absolute;top:7px;width:23px;height:42px;border-radius:18px;
+ background:linear-gradient(#d4c3f7,#7247c4);
+}
+body.offrya-pro-v3 .pro-ai-robot-body:before{left:-17px;transform:rotate(18deg)}
+body.offrya-pro-v3 .pro-ai-robot-body:after{right:-17px;transform:rotate(-18deg)}
+body.offrya-pro-v3 .pro-ai-criteria{
+ position:relative;z-index:3;border:1px solid #ffffff19;
+ background:linear-gradient(90deg,#ffffff18,#ffffff0d);border-radius:15px;
+ padding:12px 14px 13px;backdrop-filter:blur(8px);
+}
+body.offrya-pro-v3 .pro-ai-criteria-head{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 11px;
+}
+body.offrya-pro-v3 .pro-ai-criteria-head strong{
+ font:800 14px/1.3 'Plus Jakarta Sans',sans-serif;color:#fff;
+}
+body.offrya-pro-v3 .pro-ai-criteria-head button{
+ min-height:32px;display:inline-flex;align-items:center;gap:5px;padding:5px 12px;
+ border:1px solid #e9cffa99;border-radius:999px;background:#ffffff18;color:#fff;
+ font:750 12px 'Plus Jakarta Sans',sans-serif;cursor:pointer;
+}
+body.offrya-pro-v3 .pro-ai-criteria-head button svg{height:15px;width:15px}
+body.offrya-pro-v3 .pro-ai-criteria-chips{display:flex;align-items:center;flex-wrap:wrap;gap:9px}
+body.offrya-pro-v3 .pro-ai-criteria-chip{
+ display:inline-flex;align-items:center;gap:7px;min-height:31px;min-width:0;
+ padding:6px 11px;border-radius:12px;border:1px solid #c9b5e8;
+ background:#f7f0ff;color:#37204d;
+ font:750 12px/1.3 'Plus Jakarta Sans',sans-serif;overflow-wrap:anywhere;
+}
+body.offrya-pro-v3 .pro-ai-filter-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:0 0 15px}
+body.offrya-pro-v3 .pro-ai-filter-tabs button{
+ display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;
+ min-width:0;padding:9px 10px;border:1px solid #e4ddf0;border-radius:13px;
+ background:#fff;color:#45355f;box-shadow:0 2px 8px #2313330c;
+ font:750 13px/1.3 'Plus Jakarta Sans',sans-serif;cursor:pointer;
+}
+body.offrya-pro-v3 .pro-ai-filter-tabs button svg{width:19px;height:19px;flex-shrink:0}
+body.offrya-pro-v3 .pro-ai-filter-tabs button.is-active{
+ background:linear-gradient(115deg,#a63ce3,#6123bd);border-color:#8034d4;color:#fff;
+ box-shadow:0 7px 13px #6d2cb12e;
+}
+body.offrya-pro-v3 .pro-ai-stats{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:0 0 25px;
+}
+body.offrya-pro-v3 .pro-ai-stat{
+ display:flex;align-items:center;justify-content:flex-start;min-width:0;gap:12px;
+ padding:15px 15px;min-height:80px;border:1px solid;border-radius:15px;
+}
+body.offrya-pro-v3 .pro-ai-stat svg{width:31px;height:31px;flex-shrink:0}
+body.offrya-pro-v3 .pro-ai-stat div{display:flex;flex-direction:column;min-width:0}
+body.offrya-pro-v3 .pro-ai-stat strong{font:850 26px/1.2 'Plus Jakarta Sans',sans-serif}
+body.offrya-pro-v3 .pro-ai-stat small{font:720 11px/1.3 'DM Sans',sans-serif}
+body.offrya-pro-v3 .pro-ai-stat.is-green{background:#e7f9e8;border-color:#b5e7bd;color:#07712c}
+body.offrya-pro-v3 .pro-ai-stat.is-violet{background:#f4eaff;border-color:#dfc9f8;color:#6024b7}
+body.offrya-pro-v3 .pro-ai-stat.is-blue{background:#eaf2ff;border-color:#c7dcfb;color:#085cc9}
+body.offrya-pro-v3 .pro-ai-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:0 0 13px}
+body.offrya-pro-v3 .pro-ai-heading h3{display:flex;align-items:center;gap:9px;margin:0;font:850 20px/1.3 'Plus Jakarta Sans',sans-serif;letter-spacing:-.5px;color:#27123c}
+body.offrya-pro-v3 .pro-ai-heading h3 svg{width:26px;height:26px;color:#862fd7}
+body.offrya-pro-v3 .pro-ai-toolbar{display:flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid #e2d7ed;border-radius:20px;background:#fff}
+body.offrya-pro-v3 .pro-ai-toolbar label{font-size:11px;font-weight:700;color:#706382;white-space:nowrap}
+body.offrya-pro-v3 .pro-ai-toolbar select{border:0;min-height:26px;max-width:145px;outline-offset:3px;color:#432661;background:transparent;font-weight:750;font-size:12px}
+body.offrya-pro-v3 .pro-ai-toolbar button{border:0;border-left:1px solid #e2d7ed;background:none;padding:5px 0 5px 8px;color:#762bc0;cursor:pointer}
+body.offrya-pro-v3 .pro-ai-toolbar button svg{width:16px;height:16px}
+body.offrya-pro-v3 .pro-ai-results{display:grid;gap:13px}
+body.offrya-pro-v3 .pro-ai-card{
+ display:grid!important;grid-template-columns:65px minmax(0,1fr) minmax(174px,220px)!important;
+ flex-direction:initial!important;align-items:start!important;gap:14px!important;
+ background:#fff!important;border:1px solid #e6e1ed!important;border-radius:18px!important;
+ box-shadow:0 3px 9px #2413420e;padding:17px!important;min-width:0;
+}
+body.offrya-pro-v3 .pro-ai-card-icon{width:60px;height:60px;display:grid;place-items:center;border-radius:15px;background:#f2e7ff;color:#6d2abf}
+body.offrya-pro-v3 .pro-ai-card-icon svg{width:30px;height:30px}
+body.offrya-pro-v3 .pro-ai-card-labels{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+body.offrya-pro-v3 .pro-ai-card-source,.offrya-pro-v3 .pro-ai-card-origin{
+ display:inline-flex;align-items:center;min-height:23px;padding:4px 9px;border-radius:999px;
+ font:850 10px/1.2 'Plus Jakarta Sans',sans-serif;letter-spacing:.01em;
+ background:#692bc5;color:#fff;
+}
+body.offrya-pro-v3 .pro-ai-card-tender .pro-ai-card-source{background:#155ecb}
+body.offrya-pro-v3 .pro-ai-card-origin{background:#edf2ff;color:#2451a5;border:1px solid #d9e6fd}
+body.offrya-pro-v3 .pro-ai-card-urgent{
+ display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;
+ color:#af3206;background:#fff0e4;font-weight:800;font-size:11px;
+}
+body.offrya-pro-v3 .pro-ai-card-content h4{margin:0 0 5px;color:#251237;font:850 18px/1.32 'Plus Jakarta Sans',sans-serif;overflow-wrap:anywhere}
+body.offrya-pro-v3 .pro-ai-card-place{display:flex;flex-wrap:wrap;gap:5px 14px;font-size:12px;color:#453558}
+body.offrya-pro-v3 .pro-ai-card-description{margin:8px 0 0!important;color:#4d405d!important;line-height:1.5!important;font-size:12px!important}
+body.offrya-pro-v3 .pro-ai-card-tags{display:flex;gap:6px;flex-wrap:wrap;margin:11px 0 0}
+body.offrya-pro-v3 .pro-ai-card-tags span{
+ display:inline-flex;align-items:center;padding:5px 9px;max-width:100%;border-radius:999px;
+ background:#f1e9fa;border:1px solid #e5d9f1;color:#43245f;font-size:11px;font-weight:680;overflow-wrap:anywhere;
+}
+body.offrya-pro-v3 .pro-ai-card-side{
+ display:flex!important;flex-direction:column;align-items:stretch!important;justify-content:flex-start!important;gap:10px!important;
+ min-width:0!important;width:100%!important;justify-items:initial!important;
+}
+body.offrya-pro-v3 .pro-ai-card-side>.pro-ai-score{
+ padding:6px 11px!important;border-radius:999px!important;background:#d8f9d9!important;color:#186b2b!important;
+ font:800 11px/1.3 'Plus Jakarta Sans',sans-serif!important;text-align:center;white-space:normal;
+}
+body.offrya-pro-v3 .pro-ai-card-budget{
+ display:flex;flex-direction:column;gap:3px;min-width:0;
+ padding:8px 0 8px 14px;border-left:1px solid #e3dcec;
+}
+body.offrya-pro-v3 .pro-ai-card-budget small{font-size:11px;color:#524266}
+body.offrya-pro-v3 .pro-ai-card-budget strong{font:850 17px/1.3 'Plus Jakarta Sans',sans-serif;color:#5715a2;overflow-wrap:anywhere}
+body.offrya-pro-v3 .pro-ai-card-due{margin-top:5px;color:#725681;font-size:11px;font-weight:750}
+body.offrya-pro-v3 .pro-ai-card-due.urgent-date{color:#b52c24}
+body.offrya-pro-v3 .pro-ai-card-side .pro-v3-reco-btn{
+ display:flex;align-items:center;justify-content:center;width:100%;min-height:41px;
+ background:linear-gradient(105deg,#9c35de,#661dc0)!important;border:0;border-radius:10px;
+ color:#fff!important;font:800 12px 'Plus Jakarta Sans',sans-serif!important;text-decoration:none;cursor:pointer;
+}
+body.offrya-pro-v3 .pro-ai-disclaimer{padding:0 2px;color:#766985}
+body.offrya-pro-v3 .pro-ai-filter-tabs button:focus-visible,
+body.offrya-pro-v3 .pro-ai-criteria-head button:focus-visible,
+body.offrya-pro-v3 .pro-ai-toolbar :is(select,button):focus-visible,
+body.offrya-pro-v3 .pro-ai-card-side .pro-v3-reco-btn:focus-visible{outline:3px solid #ef9a42;outline-offset:3px}
+@media(max-width:900px){
+ body.offrya-pro-v3 .pro-ai-hero-main{max-width:calc(100% - 145px)}
+ body.offrya-pro-v3 .pro-ai-robot{right:20px;top:18px;transform:scale(.83) rotate(-10deg);transform-origin:top right}
+ body.offrya-pro-v3 .pro-ai-card{grid-template-columns:55px minmax(0,1fr)!important;gap:11px!important}
+ body.offrya-pro-v3 .pro-ai-card-icon{width:52px;height:52px}
+ body.offrya-pro-v3 .pro-ai-card-side{grid-column:2;display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center!important;gap:8px!important}
+ body.offrya-pro-v3 .pro-ai-card-side>.pro-ai-score{grid-column:1/-1;justify-self:start}
+ body.offrya-pro-v3 .pro-ai-card-budget{padding:5px 7px 5px 12px}
+ body.offrya-pro-v3 .pro-ai-card-side .pro-v3-reco-btn{max-width:175px;min-width:130px}
+}
+@media(max-width:620px){
+ body.offrya-pro-v3 .pro-ai-hero{padding:17px 13px 12px;border-radius:15px}
+ body.offrya-pro-v3 .pro-ai-hero-main{max-width:calc(100% - 105px);min-height:145px}
+ body.offrya-pro-v3 .pro-ai-hero h2{font-size:20px;line-height:1.18}
+ body.offrya-pro-v3 .pro-ai-hero-main p{font-size:12px;line-height:1.43}
+ body.offrya-pro-v3 .pro-ai-robot{right:0;top:29px;transform:scale(.63) rotate(-10deg);transform-origin:top right}
+ body.offrya-pro-v3 .pro-ai-criteria{padding:10px 9px}
+ body.offrya-pro-v3 .pro-ai-criteria-head strong{font-size:12px}
+ body.offrya-pro-v3 .pro-ai-criteria-chip{font-size:11px;padding:6px 9px}
+ body.offrya-pro-v3 .pro-ai-filter-tabs{gap:5px;margin-bottom:11px}
+ body.offrya-pro-v3 .pro-ai-filter-tabs button{font-size:10px;gap:4px;padding:8px 3px;min-height:51px;flex-direction:column}
+ body.offrya-pro-v3 .pro-ai-filter-tabs button svg{width:17px;height:17px}
+ body.offrya-pro-v3 .pro-ai-stats{gap:6px;margin-bottom:19px}
+ body.offrya-pro-v3 .pro-ai-stat{padding:9px 5px;min-height:68px;gap:4px;flex-direction:column;text-align:center}
+ body.offrya-pro-v3 .pro-ai-stat svg{width:21px;height:21px}
+ body.offrya-pro-v3 .pro-ai-stat strong{font-size:19px}
+ body.offrya-pro-v3 .pro-ai-stat small{font-size:10px}
+ body.offrya-pro-v3 .pro-ai-heading h3{font-size:16px}
+ body.offrya-pro-v3 .pro-ai-heading h3 svg{width:22px;height:22px}
+ body.offrya-pro-v3 .pro-ai-toolbar{margin-left:auto}
+ body.offrya-pro-v3 .pro-ai-card{padding:11px!important;grid-template-columns:40px minmax(0,1fr)!important;gap:9px!important}
+ body.offrya-pro-v3 .pro-ai-card-icon{width:38px;height:38px;border-radius:11px}
+ body.offrya-pro-v3 .pro-ai-card-icon svg{width:21px;height:21px}
+ body.offrya-pro-v3 .pro-ai-card-content h4{font-size:15px}
+ body.offrya-pro-v3 .pro-ai-card-side{grid-column:1/-1}
+ body.offrya-pro-v3 .pro-ai-card-side .pro-v3-reco-btn{min-width:125px}
+ body.offrya-pro-v3 .pro-ai-card-budget strong{font-size:14px}
+}
+@media screen and (pointer:coarse) and (orientation:portrait) and (min-width:621px) and (max-width:1100px) and (max-aspect-ratio:3/5){
+ body.offrya-pro-v3 .pro-ai-hero-main{max-width:calc(100% - 175px)}
+ body.offrya-pro-v3 .pro-ai-robot{right:35px;top:20px;transform:scale(.95) rotate(-10deg);transform-origin:top right}
+ body.offrya-pro-v3 .pro-ai-card{grid-template-columns:60px minmax(0,1fr)!important}
+ body.offrya-pro-v3 .pro-ai-card-side{grid-column:2;display:grid!important;grid-template-columns:1fr auto;align-items:center!important}
+ body.offrya-pro-v3 .pro-ai-card-side>.pro-ai-score{grid-column:1/-1;justify-self:start}
+ body.offrya-pro-v3 .pro-ai-filter-tabs button{font-size:15px}
+ body.offrya-pro-v3 .pro-ai-stats strong{font-size:24px}
+}

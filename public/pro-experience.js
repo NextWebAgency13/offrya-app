@@ -40,6 +40,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  const secondaryMenu=menu.filter(item=>!['home','requests','tracking','assistant'].includes(item[0]));
  let initialized=false,view='home',uid=null;
  let serverRadar=null,radarKey='',radarAt=0,radarLoading=false;
+ let radarFilter='all',radarSort='score',radarQuery='';
  async function loadMatchedRadar(key,user){
   if(radarLoading||!canUsePremium()||!user)return;
   radarLoading=true;
@@ -101,13 +102,20 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    '<div class="pro-v3-mobile-menu" aria-hidden="true" hidden></div>',
    '<nav class="pro-v3-primary-tabs" aria-label="Parcours professionnel">'+primaryMenu.map(navButton).join('')+'</nav>',
    '<section class="pro-v3-view" data-pro-panel="home">',
-    '<div class="pro-v3-intro"><div><span class="pro-v3-eyebrow">ESPACE PROFESSIONNEL OFFRYA</span><h2>Bonjour, <span id="proV3Hello">professionnel</span></h2><p>Les opportunités adaptées à votre activité, au même endroit.</p></div><span class="pro-v3-status" id="proV3Status">Accès professionnel</span></div>',
-    '<section class="pro-v3-panel pro-v3-opportunities" aria-labelledby="proV3OpTitle">',
-     '<div class="pro-v3-panel-head"><div><h3 id="proV3OpTitle">'+icon('ic-sparkles')+' Radar des opportunités</h3><p>Missions OFFRYA et marchés publics BOAMP / TED, classés par pertinence.</p></div><button type="button" data-refresh-radar="true">Actualiser</button></div>',
-     '<p class="pro-v3-radar-summary" id="proV3RadarSummary" role="status" aria-live="polite">Recherche des opportunités pertinentes…</p>',
-     '<div id="proV3Recommendations" class="pro-v3-reco-list"><p class="pro-v3-empty">Analyse des opportunités autorisées…</p></div>',
-     '<p class="pro-v3-radar-disclaimer">Les scores sont indicatifs. Aucune mission fictive ni prise de contact automatique. <span id="proV3MatchingStatus"></span></p>',
-    '</section>',
+    '<p class="sr-only">Bonjour, <span id="proV3Hello">professionnel</span></p><span id="proV3Status" class="sr-only">Compte professionnel</span>',
+   '<section class="pro-ai-hero" aria-labelledby="proAiHeroTitle">',
+    '<div class="pro-ai-hero-main"><span class="pro-ai-intelligence">'+icon('ic-sparkles')+' IA</span><h2 id="proAiHeroTitle">Ma veille intelligente OFFRYA</h2><p>L’IA analyse les nouveaux appels d’offres et missions et vous propose les opportunités les plus pertinentes selon vos critères.</p></div>',
+    '<div class="pro-ai-robot" aria-hidden="true"><i class="pro-ai-robot-glow"></i><i class="pro-ai-robot-antenna"></i><i class="pro-ai-robot-head"><b></b><b></b></i><i class="pro-ai-robot-body">✦</i></div>',
+    '<div class="pro-ai-criteria"><div class="pro-ai-criteria-head"><strong>Mes critères actuels</strong><button type="button" data-pro-screen="preferences">'+icon('ic-settings')+' Modifier</button></div><div id="proAiCriteria" class="pro-ai-criteria-chips"></div></div>',
+   '</section>',
+   '<section class="pro-v3-opportunities pro-ai-discovery" aria-label="Radar des opportunités">',
+    '<div class="pro-ai-filter-tabs" role="group" aria-label="Type d’opportunité"><button class="is-active" type="button" data-pro-filter="all" aria-pressed="true">'+icon('ic-sparkles')+' Tout (<span id="proAiTabAll">0</span>)</button><button type="button" data-pro-filter="mission" aria-pressed="false">'+icon('ic-missions')+' Missions OFFRYA (<span id="proAiTabMissions">0</span>)</button><button type="button" data-pro-filter="tender" aria-pressed="false">'+icon('ic-boamp')+' Appels d’offres (<span id="proAiTabTenders">0</span>)</button></div>',
+    '<div class="pro-ai-stats" aria-label="Opportunités correspondantes"><div class="pro-ai-stat is-green">'+icon('ic-check')+'<div><strong id="proAiStatAll">0</strong><small>opportunités trouvées</small></div></div><div class="pro-ai-stat is-violet">'+icon('ic-sparkles')+'<div><strong id="proAiStatTenders">0</strong><small>appels d’offres BOAMP / TED</small></div></div><div class="pro-ai-stat is-blue">'+icon('ic-missions')+'<div><strong id="proAiStatMissions">0</strong><small>missions OFFRYA</small></div></div></div>',
+    '<div class="pro-ai-heading"><h3>'+icon('ic-sparkles')+' Opportunités recommandées par l’IA</h3><div class="pro-ai-toolbar"><label for="proAiSort">Trier par :</label><select id="proAiSort" aria-label="Trier les opportunités"><option value="score">Pertinence</option><option value="recent">Plus récentes</option><option value="deadline">Échéance proche</option></select><button type="button" data-refresh-radar="true" aria-label="Actualiser" title="Actualiser">'+icon('ic-bolt')+'</button></div></div>',
+    '<p class="sr-only" id="proV3RadarSummary" role="status" aria-live="polite">Analyse des opportunités…</p>',
+    '<div id="proV3Recommendations" class="pro-v3-reco-list pro-ai-results"><p class="pro-v3-empty">Analyse des opportunités accessibles…</p></div>',
+    '<p class="pro-v3-radar-disclaimer pro-ai-disclaimer">Les scores sont indicatifs et calculés sur des annonces réelles. Aucun budget inventé ni contact automatique. <span id="proV3MatchingStatus"></span></p>',
+   '</section>',
    '</section>',
    '<section class="pro-v3-view" data-pro-panel="commercial" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">VOTRE ACTIVITÉ · OFFRYA</span><h2 id="proV3CommercialHeading">Proposer mes services</h2><p id="proV3CommercialDescription">Choisissez une mission et envoyez votre proposition.</p></div><div id="proV3CommercialSlot"></div><div class="pro-v3-work-actions" id="proV3WorkActions" hidden><button type="button" data-pro-screen="inbox">Voir mes échanges →</button><button type="button" data-pro-screen="home">Trouver d’autres missions →</button></div><div id="proV3FollowupSlot" class="pro-v3-followup" hidden></div><section id="proV3TrackingActivity" class="pro-v3-panel pro-v3-tracking-activity" hidden><div class="pro-v3-panel-head"><h3>Mon activité</h3></div><div class="pro-v3-activity"><div id="proV3ActivityStats"></div><div id="proV3Chart" class="pro-v3-chart" aria-label="Missions visibles des 7 derniers jours"></div></div></section></section>',
    '<section class="pro-v3-view" data-pro-panel="boamp" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">MARCHÉS PUBLICS · DILA</span><h2>Marchés publics</h2><p>Recherchez les appels d’offres officiels, consultez leurs échéances et exportez les résultats.</p></div><div id="proV3BoampSlot"></div></section>',
@@ -179,6 +187,9 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(/transport/i.test(category))return '↗';
   return '▣';
  }
+ function euroRadar(c){return c==null?'Budget non communiqué':(Number(c)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0});}
+ function normRadar(x){return String(x??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
+ function dateRadar(x){return Number.isFinite(Date.parse(x||''))?new Date(x).toLocaleDateString('fr-FR'):'À vérifier';}
  function recommendations(){
   const panel=$('proV3Recommendations');if(!panel||!canUsePremium())return;
   const user=state.session?.user?.id;
@@ -186,51 +197,66 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    (state.missions||[]).map(m=>[m.id,m.status,m.created_at]).slice(0,220),
    (state.opportunityAlerts||[]).map(a=>[a.tender_id,a.match_score,a.deadline]).slice(0,100)]);
   if(fingerprint!==radarKey){radarKey=fingerprint;serverRadar=null;radarAt=0;}
-  if(!radarLoading&&Date.now()-radarAt>5*60*1000)
-   queueMicrotask(()=>loadMatchedRadar(fingerprint,user));
-  const fallback=buildRadar({missions:available(),alerts:state.opportunityAlerts||[],
-   preferences:state.opportunityPrefs||{},userId:user});
-  const matches=serverRadar?.items||fallback.items;
+  if(!radarLoading&&Date.now()-radarAt>5*60*1000)queueMicrotask(()=>loadMatchedRadar(fingerprint,user));
+  const p=state.opportunityPrefs||{};
+  const criteria=[p.sectors?.length?p.sectors.join(' / '):'Tous les secteurs',
+   p.department?'Département '+p.department:'Toute la France',
+   p.min_budget_cents!=null||p.max_budget_cents!=null
+    ?'Budget : '+(p.min_budget_cents!=null?euroRadar(p.min_budget_cents):'0 €')+' – '+(p.max_budget_cents!=null?euroRadar(p.max_budget_cents):'sans plafond')
+    :'Budget : tous',p.keywords?'Mots-clés : '+p.keywords:''].filter(Boolean);
+  $('proAiCriteria').innerHTML=criteria.map((value,i)=>'<span class="pro-ai-criteria-chip">'+['▦','⌖','€','⌕'][i]+' '+esc(value)+'</span>').join('');
+  const fallback=buildRadar({missions:available(),alerts:state.opportunityAlerts||[],preferences:p,userId:user});
+  const missions=new Map(available().map(m=>[String(m.id),m]));
+  const notices=new Map((state.opportunityAlerts||[]).filter(a=>a?.deadline&&Date.parse(a.deadline)>Date.now()).map(a=>[String(a.tender_id),a]));
   const seen=new Set();
-  const rows=matches.filter(item=>{
+  const rows=(serverRadar?.items||fallback.items).filter(item=>{
    if(!item||!['mission','tender'].includes(item.kind))return false;
-   const id=item.kind+':'+item.id;if(seen.has(id))return false;
-   seen.add(id);return true;
+   const key=item.kind+':'+item.id;if(seen.has(key))return false;
+   if(item.kind==='mission'&&!missions.has(String(item.id)))return false;
+   if(item.kind==='tender'){const a=notices.get(String(item.id));
+    if(!a||a.url!==item.url||!(/^https:\/\/(www\.)?boamp\.fr\//i.test(a.url||'')||
+      /^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(a.url||'')))return false;}
+   seen.add(key);return true;
   }).sort((a,b)=>Number(b.score||0)-Number(a.score||0));
-  const mode=$('proV3MatchingStatus');
-  if(mode)mode.textContent=serverRadar?.mode==='ai'?'Classement affiné par IA.'
-   :serverRadar?'Classement automatique explicable.':'Classement local provisoire.';
-  $('proV3RadarSummary').textContent=rows.length
-   ?rows.length+' opportunité'+(rows.length>1?'s':'')+' classée'+(rows.length>1?'s':'')+' par pertinence.'
-   :'Aucune opportunité correspondante pour le moment.';
-  panel.innerHTML=rows.length?rows.slice(0,12).map(item=>{
-   const isTender=item.kind==='tender';
-   const official=isTender&&(
-    /^https:\/\/(www\.)?boamp\.fr\//i.test(item.url||'')||
-    /^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(item.url||''));
-   const mission=isTender?null:available().find(m=>m.id===item.id);
-   if((isTender&&!official)||(!isTender&&!mission))return '';
-   const source=isTender?'MARCHÉ PUBLIC · '+esc(item.source):'MISSION OFFRYA';
-   const location=String(item.location||'').trim()||'Lieu à préciser';
-   const budget=mission?.budget_cents!=null
-    ?(mission.budget_cents/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'})
-    :'Budget non communiqué';
-   const deadline=isTender&&item.deadline&&Number.isFinite(Date.parse(item.deadline))
-    ?'<span>Clôture : '+esc(new Date(item.deadline).toLocaleDateString('fr-FR'))+'</span>':'';
-   const sector=mission?.category?'Secteur : '+mission.category:null;
-   const reasons=Array.isArray(item.reasons)?item.reasons.slice(0,4).filter(Boolean):[];
-   const rationale=[...(sector?[sector]:[]),...reasons].slice(0,4).join(' · ');
-   const action=isTender
-    ?'<a class="pro-v3-reco-btn" href="'+esc(item.url)+'" target="_blank" rel="noopener noreferrer">Voir l’avis officiel</a>'
-    :'<button type="button" class="pro-v3-reco-btn" data-pro-mission="'+esc(item.id)+'">Préparer une proposition</button>';
-   return '<article class="pro-v3-radar-row"><div class="pro-v3-radar-body"><small class="pro-v3-radar-source">'+source+'</small>'+
-    '<strong>'+esc(item.title)+'</strong><div class="pro-v3-radar-details"><span>Zone : '+esc(location)+'</span>'+
-    (isTender?'':'<span>'+esc(budget)+'</span>')+deadline+'</div>'+
-    '<p class="pro-v3-radar-explain"><b>Pourquoi :</b> '+esc(rationale||'Correspondance à examiner')+'</p></div>'+
-    '<div class="pro-v3-radar-side"><strong aria-label="Correspondance estimée '+esc(item.score)+' sur 100">'+esc(item.score)+'/100</strong>'+action+'</div></article>';
-  }).join(''):'<div class="pro-v3-empty"><strong>Pas d’opportunité correspondant à votre activité.</strong><p>Vous pouvez ajuster vos critères depuis le menu professionnel.</p></div>';
+  const nMission=rows.filter(x=>x.kind==='mission').length,nTender=rows.filter(x=>x.kind==='tender').length;
+  for(const [id,n] of [['proAiTabAll',rows.length],['proAiStatAll',rows.length],['proAiTabMissions',nMission],['proAiStatMissions',nMission],['proAiTabTenders',nTender],['proAiStatTenders',nTender]])$(id).textContent=String(n);
+  const selected=rows.filter(item=>{
+   if(radarFilter!=='all'&&radarFilter!==item.kind)return false;
+   if(!radarQuery)return true;
+   const m=missions.get(String(item.id)),a=notices.get(String(item.id));
+   return normRadar([item.title,item.location,item.source,item.description,m?.description,m?.category,a?.buyer,...(item.reasons||[])].join(' ')).includes(normRadar(radarQuery));
+  }).sort((a,b)=>radarSort==='recent'
+   ?(Date.parse(b.created_at||0)||0)-(Date.parse(a.created_at||0)||0)
+   :radarSort==='deadline'
+    ?(Date.parse(a.deadline||'')||Infinity)-(Date.parse(b.deadline||'')||Infinity)
+    :Number(b.score||0)-Number(a.score||0));
+  for(const b of $('proExperienceV3').querySelectorAll('[data-pro-filter]')){
+   const active=b.dataset.proFilter===radarFilter;b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',String(active));
+  }
+  $('proV3MatchingStatus').textContent=serverRadar?.mode==='ai'?'Classement affiné par IA.':serverRadar?'Classement automatique explicable.':'Classement automatique provisoire.';
+  $('proV3RadarSummary').textContent=selected.length+' opportunité(s) affichée(s).';
+  panel.innerHTML=selected.length?selected.slice(0,24).map(item=>{
+   const tender=item.kind==='tender',m=missions.get(String(item.id)),a=notices.get(String(item.id));
+   const description=String(m?.description||item.description||'').trim();
+   const desc=description?'<p class="pro-ai-card-description">'+esc(description.slice(0,200))+(description.length>200?'…':'')+'</p>':'';
+   const date=tender?item.deadline:m?.desired_date;
+   const due=date&&Number.isFinite(Date.parse(date))?'<span class="pro-ai-card-due'+(Date.parse(date)<Date.now()+7*86400000?' urgent-date':'')+'">'+(tender?'Clôture : ':'Date souhaitée : ')+esc(dateRadar(date))+'</span>':'';
+   const reasons=[...(m?.category?[m.category]:[]),...(Array.isArray(item.reasons)?item.reasons.slice(0,3):[])].filter(Boolean).slice(0,4);
+   const tags=reasons.length?'<div class="pro-ai-card-tags"><span class="sr-only">Pourquoi : </span>'+reasons.map((x,i)=>'<span>'+(i===0&&m?.category?'<span class="sr-only">Secteur : </span>':'')+esc(x)+'</span>').join('')+'</div>':'';
+   const score=Math.min(100,Math.max(0,Math.round(Number(item.score)||0)));
+   const action=tender
+    ?'<a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer" class="pro-v3-reco-btn">Voir le détail →</a>'
+    :'<button type="button" class="pro-v3-reco-btn" data-pro-view-mission="'+esc(item.id)+'" title="Voir la mission et Préparer une proposition">Voir la mission →</button>';
+   return '<article class="pro-v3-radar-row pro-ai-card '+(tender?'pro-ai-card-tender':'pro-ai-card-mission')+'">'+
+    '<div class="pro-ai-card-icon">'+(tender?icon('ic-boamp'):icon('ic-missions'))+'</div>'+
+    '<div class="pro-v3-radar-body pro-ai-card-content"><div class="pro-ai-card-labels"><span class="pro-ai-card-source">'+(tender?'<span class="sr-only">MARCHÉ PUBLIC · </span>APPEL D’OFFRE PUBLIC':'MISSION OFFRYA')+'</span>'+
+    (tender?'<span class="pro-ai-card-origin">'+esc(item.source==='TED'?'TED (UE)':'BOAMP')+'</span>':'')+
+    (m?.urgency==='urgent'?'<span class="pro-ai-card-urgent">⚡ Urgent</span>':'')+'</div>'+
+    '<h4>'+esc(item.title)+'</h4><div class="pro-v3-radar-details pro-ai-card-place"><span><span class="sr-only">Zone : </span>⌖ '+esc(item.location||'Lieu à préciser')+'</span>'+(a?.buyer?'<span>'+esc(a.buyer)+'</span>':'')+'</div>'+desc+tags+'</div>'+
+    '<div class="pro-v3-radar-side pro-ai-card-side"><strong class="pro-ai-score">★ '+score+' % de pertinence</strong>'+
+    '<div class="pro-ai-card-budget"><small>Budget'+(tender?' de l’avis':'')+'</small><strong>'+esc(tender?'Non communiqué':euroRadar(m?.budget_cents))+'</strong>'+due+'</div>'+action+'</div></article>';
+  }).join(''):'<div class="pro-v3-empty"><strong>Aucune opportunité correspondant à vos filtres.</strong><p>Élargissez votre zone ou vos secteurs. Aucune annonce fictive n’est affichée.</p><button type="button" data-pro-screen="preferences">Modifier mes critères →</button></div>';
  }
-
  function metrics(){
   const missions=available(),count=unreadMatchedNotifications().length;
   $('proV3WatchState').textContent=Date.parse(state.testPremiumUntil||'')>Date.now()?'Accès test':'Automatique';
@@ -324,6 +350,14 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   activeButtons();
   window.scrollTo({top:0,behavior:'auto'});
  }
+ function openMissionDetail(id){
+  const mission=available().find(m=>String(m.id)===String(id));if(!mission)return;
+  acknowledgeMatchedNotifications(id);
+  $('missionQuery').value='';$('missionCategory').value='';$('missionDept').value='';
+  renderMissions();tab('missions');
+  const button=[...$('missionList').querySelectorAll('[data-view-mission]')].find(b=>String(b.dataset.viewMission)===String(id));
+  if(button)button.click();else notify('Fiche indisponible. Actualisez les missions.');
+ }
  function openMission(id){
   const m=available().find(x=>x.id===id);if(!m)return;
   acknowledgeMatchedNotifications(id);
@@ -355,6 +389,10 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
     });
     $('boampSearch').click();return;
    }
+   const typeFilter=e.target.closest('[data-pro-filter]');
+   if(typeFilter&&canUsePremium()){radarFilter=typeFilter.dataset.proFilter;recommendations();return;}
+   const detail=e.target.closest('[data-pro-view-mission]');
+   if(detail&&canUsePremium()){openMissionDetail(detail.dataset.proViewMission);return;}
    const b=e.target.closest('[data-pro-mission]');if(b)openMission(b.dataset.proMission);
     
   });
@@ -390,10 +428,11 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   });
   const header=document.querySelector('.app-shell .header');
   const search=document.createElement('form');search.id='proV3Search';search.className='pro-v3-search';
-  search.setAttribute('role','search');search.innerHTML='<label class="sr-only" for="proV3SearchInput">Rechercher des missions</label><input id="proV3SearchInput" placeholder="Rechercher une mission, une ville, un mot-clé…" autocomplete="off" maxlength="100"><button type="submit" aria-label="Rechercher">'+icon('ic-search')+'</button>';
-  // Same professional search on desktop and Android.
+  search.setAttribute('role','search');search.innerHTML='<label class="sr-only" for="proV3SearchInput">Rechercher missions et appels d’offres</label><input id="proV3SearchInput" placeholder="Rechercher une mission, un appel d’offre, une ville…" autocomplete="off" maxlength="100"><button type="submit" aria-label="Rechercher">'+icon('ic-search')+'</button>';
   $('proExperienceV3').querySelector('.pro-v3-primary-tabs').after(search);
-  search.addEventListener('submit',e=>{e.preventDefault();if(!canUsePremium())return;$('missionQuery').value=$('proV3SearchInput').value;renderMissions();tab('missions');syncTab('missions');});
+  search.addEventListener('submit',e=>{e.preventDefault();if(!canUsePremium())return;$('missionQuery').value=$('proV3SearchInput').value;radarQuery=$('proV3SearchInput').value.trim();show('home');recommendations();});
+  $('proV3SearchInput').addEventListener('input',e=>{if(!canUsePremium())return;radarQuery=e.target.value.trim();recommendations();});
+  $('proAiSort').addEventListener('change',e=>{if(!canUsePremium())return;radarSort=e.target.value;recommendations();});
  }
  function render(){
   if(!initialized)return;
