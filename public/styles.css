@@ -471,3 +471,21 @@
 #settings .push-notification-actions button{width:100%;min-height:46px;white-space:normal}
 #settings #pushTestNotification[hidden]{display:none!important}
 @media(max-width:720px){#settings .push-notification-actions{width:100%}}
+
+/* Shared account chrome: a single OFFRYA violet header on PC and Android.
+   Layout changes with screen size; visual identity and account controls do not. */
+@media(min-width:621px){
+ body:has(.app-shell) .app-shell .header{
+  background:linear-gradient(110deg,#351045,#4b1662)!important;
+  color:#fff!important;border-bottom:1px solid #5c3170!important;
+ }
+ body:has(.app-shell) .app-shell .header :is(.header-heading h1,.overline,.mobile-brand){
+  color:#fff!important;
+ }
+ body:has(.app-shell) .app-shell .header :is(.header-shortcut,.account-menu summary){
+  background:#ffffff1c!important;color:#fff!important;border-color:#ffffff45!important;
+ }
+ body:has(.app-shell) .app-shell .header .account-menu .avatar{
+  background:#70409c;color:#fff;border:2px solid #e3c9fb;
+ }
+}
