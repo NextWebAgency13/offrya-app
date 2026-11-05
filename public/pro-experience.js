@@ -63,7 +63,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  const secondaryMenu=menu.filter(item=>!['home','requests','tracking','assistant'].includes(item[0]));
  let initialized=false,view='home',uid=null;
  let serverRadar=null,radarKey='',radarAt=0,radarLoading=false;
- let radarFilter='all',radarSort='score',radarQuery='';
+ let radarFilter='all',radarQuery='';
  let tenderRefreshing=false,priorityOnly=false,trackingBusy=false;
  let forceLiveRadar=false,radarError='';
  async function loadMatchedRadar(key,user){
@@ -87,7 +87,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   }catch(error){
    console.warn('OFFRYA : recalcul du radar indisponible',error);
    if(state.session?.user?.id===user&&key===radarKey&&canUsePremium()){
-    radarError='Impossible de recalculer les opportunités. Réessayez avec Actualiser.';
+    radarError='Impossible de recalculer les opportunités. Utilisez « Réessayer » ci-dessous.';
     recommendations();metrics();alerts();
    }
   }finally{
@@ -151,7 +151,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
     '<div class="pro-ai-filter-tabs" role="group" aria-label="Type d’opportunité"><button class="is-active" type="button" data-pro-filter="all" aria-pressed="true">'+icon('ic-sparkles')+' Tout <span class="pro-ai-tab-count" id="proAiTabAll">0</span></button><button type="button" data-pro-filter="mission" aria-pressed="false">'+icon('ic-missions')+' Missions <span class="pro-ai-tab-count" id="proAiTabMissions">0</span></button><button type="button" data-pro-filter="tender" aria-pressed="false">'+icon('ic-boamp')+' Marchés <span class="pro-ai-tab-count" id="proAiTabTenders">0</span></button></div>',
     '<p class="pro-ai-inline-summary" id="proAiInlineSummary" role="status">Analyse des opportunités en cours…</p>',
     '<div class="pro-ai-stats" aria-label="Opportunités correspondantes"><div class="pro-ai-stat is-green">'+icon('ic-check')+'<div><strong id="proAiStatAll">0</strong><small>opportunités trouvées</small></div></div><div class="pro-ai-stat is-violet">'+icon('ic-sparkles')+'<div><strong id="proAiStatTenders">0</strong><small>appels d’offres BOAMP / TED</small></div></div><div class="pro-ai-stat is-blue">'+icon('ic-missions')+'<div><strong id="proAiStatMissions">0</strong><small>missions OFFRYA</small></div></div></div>',
-    '<div class="pro-ai-heading"><h3>'+icon('ic-sparkles')+' Opportunités recommandées par l’IA</h3><div class="pro-ai-toolbar"><label for="proAiSort">Trier par :</label><select id="proAiSort" aria-label="Trier les opportunités"><option value="score">Pertinence</option><option value="recent">Plus récentes</option><option value="deadline">Échéance proche</option></select><button type="button" data-refresh-radar="true" aria-label="Actualiser" title="Actualiser">'+icon('ic-bolt')+'</button></div></div>',
+    '<div class="pro-ai-heading"><h3>'+icon('ic-sparkles')+' Opportunités recommandées par l’IA</h3></div>',
     '<button class="pro-ai-priority-alert" id="proAiPriorityAlert" type="button" data-pro-priority="true" hidden></button>',
     '<p class="sr-only" id="proV3RadarSummary" role="status" aria-live="polite">Analyse des opportunités…</p>',
     '<div id="proV3Recommendations" class="pro-v3-reco-list pro-ai-results"><p class="pro-v3-empty">Analyse des opportunités accessibles…</p></div>',
@@ -328,11 +328,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    if(!radarQuery)return true;
    const m=missions.get(String(item.id)),a=notices.get(String(item.id));
    return normRadar([item.title,item.location,item.source,item.description,m?.description,m?.category,a?.buyer,...(item.reasons||[])].join(' ')).includes(normRadar(radarQuery));
-  }).sort((a,b)=>radarSort==='recent'
-   ?(Date.parse(b.created_at||0)||0)-(Date.parse(a.created_at||0)||0)
-   :radarSort==='deadline'
-    ?(Date.parse(a.deadline||'')||Infinity)-(Date.parse(b.deadline||'')||Infinity)
-    :Number(b.score||0)-Number(a.score||0));
+  }).sort((a,b)=>Number(b.score||0)-Number(a.score||0));
   for(const b of $('proExperienceV3').querySelectorAll('[data-pro-filter]')){
    const active=b.dataset.proFilter===radarFilter;
    b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',String(active));
@@ -666,7 +662,6 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   // The Premium home starts directly with its welcome card. Search controls
   // remain in Missions and the protected BOAMP subsection; only the redundant
   // cross-category top search has been removed from this workspace.
-  $('proAiSort').addEventListener('change',e=>{if(!canUsePremium())return;radarSort=e.target.value;recommendations();});
  }
  function render(){
   if(!initialized)return;

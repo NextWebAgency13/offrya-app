@@ -10,9 +10,10 @@ const html=fs.readFileSync('public/espace.html','utf8');
 const extract=(from,to)=>{const a=pro.indexOf(from),b=pro.indexOf(to,a+from.length);assert.ok(a>=0&&b>a);return pro.slice(a,b)};
 test('Professional homepage has exactly one unified opportunity Radar, no duplicate cards or statistics',()=>{
  const home=extract('data-pro-panel="home"','data-pro-panel="commercial"');
- for(const token of ['proV3Recommendations','proV3RadarSummary','proV3MatchingStatus','data-refresh-radar','Radar des opportunités'])assert.ok(home.includes(token),token);
+ for(const token of ['proV3Recommendations','proV3RadarSummary','proV3MatchingStatus','Radar des opportunités'])assert.ok(home.includes(token),token);
  for(const obsolete of ['proV3MissionPreview','proV3MissionCount','proV3RecentMissionCount','proV3ConversationCount','proV3TrackingCount','proV3Alerts','proV3Chart','pro-v3-actions','Accès rapides','Missions publiées par les autres'])assert.equal(home.includes(obsolete),false,obsolete);
  assert.equal((home.match(/id="proV3Recommendations"/g)||[]).length,1);
+ assert.doesNotMatch(home,/pro-ai-toolbar|data-refresh-radar|proAiSort/);
  assert.match(pro,/serverRadar\.items\.filter/);
  assert.match(pro,/serverRadar\.liveNotices/);
  assert.doesNotMatch(pro,/serverRadar\?\.items\|\|fallback\.items/);

@@ -24,14 +24,14 @@ test('Approved Premium layout starts directly with the welcome card, without a s
  assert.match(experience,/id="proV3Status"/);
 });
 
-test('AI matching results and sorting remain functional, never replaced by mock data or an empty space',()=>{
+test('AI ranking and results remain functional without removed toolbar',()=>{
  for(const id of ['proAiCriteria','proAiTabAll','proAiTabMissions','proAiTabTenders',
-  'proAiInlineSummary','proAiSort','proV3Recommendations','proV3MatchingStatus']){
+  'proAiInlineSummary','proV3Recommendations','proV3MatchingStatus']){
   assert.match(home,new RegExp(id));
  }
  assert.match(experience,/serverRadar\.items\.filter/);
- assert.match(experience,/\$\('proAiSort'\)\.addEventListener\('change'/);
- assert.match(experience,/radarSort=e\.target\.value;recommendations\(\)/);
+ assert.doesNotMatch(experience,/proAiSort|radarSort/);
+ assert.match(experience,/\.sort\(\(a,b\)=>Number\(b.score\|\|0\)-Number\(a.score\|\|0\)\)/);
  assert.match(experience,/data-refresh-radar/);
  assert.match(experience,/data-pro-filter="tender"/);
  assert.match(experience,/data-pro-screen="preferences"/);
@@ -48,7 +48,7 @@ test('Missions and official public tender search remain available only in their 
  assert.match(experience,/if\(!initialized\|\|!canUsePremium\(\)\)return/);
 });
 
-test('Android welcome, AI header, summary, sorting and result cards stay compact and readable',()=>{
+test('Android welcome, AI header, summary and result cards stay compact and readable',()=>{
  const marker=css.indexOf('/* OFFRYA Premium — approved mobile layout without the redundant top search.');
  assert.ok(marker>0);
  const rules=css.slice(marker);
@@ -56,7 +56,7 @@ test('Android welcome, AI header, summary, sorting and result cards stay compact
  assert.match(rules,/\.pro-ai-welcome\{\s*margin-top:0;/);
  assert.match(rules,/@media\(max-width:620px\)/);
  assert.match(rules,/\.pro-ai-heading\{\s*display:grid;/);
- assert.match(rules,/\.pro-ai-toolbar\{\s*justify-self:end;/);
+ assert.doesNotMatch(rules,/\.pro-ai-toolbar/);
  assert.match(rules,/\.pro-ai-results\{\s*min-width:0;/);
  assert.doesNotMatch(rules,/display:none!important/);
 });

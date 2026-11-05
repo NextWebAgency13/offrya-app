@@ -52,8 +52,8 @@ test('Premium has no redundant global search; secure mission and BOAMP filters s
  assert.match(html,/id="boampKeyword"/);
  assert.match(html,/id="boampSearch"/);
  assert.match(pro,/placeMarketSearch\(\)/);
- assert.match(pro,/\$\('proAiSort'\)\.addEventListener\('change'/);
- assert.match(pro,/radarSort=e\.target\.value;recommendations\(\)/);
+ assert.doesNotMatch(pro,/proAiSort|radarSort|pro-ai-toolbar/);
+ assert.match(pro,/\.sort\(\(a,b\)=>Number\(b.score\|\|0\)-Number\(a.score\|\|0\)\)/);
  assert.match(parity,/@media\(min-width:621px\) and \(max-width:930px\)/);
 });
 
