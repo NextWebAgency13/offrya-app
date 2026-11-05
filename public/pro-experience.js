@@ -436,6 +436,24 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const node=$('premiumContent'),target=$('proV3BoampSlot');
   if(node&&target&&node.parentElement!==target)target.appendChild(node);
  }
+ // Give the watch preferences their own browser-history step. Without this,
+ // Android Back skips the Premium radar and returns to the preceding Missions tab.
+ function syncPreferencesHistory(next,fromHistory){
+  if(fromHistory||window.location.pathname!=='/espace/professionnel')return;
+  const params=new URLSearchParams(window.location.search);
+  const wasPreferences=params.get('view')==='preferences';
+  if(next==='preferences'&&!wasPreferences){
+   params.set('view','preferences');
+   history.pushState({tab:'professional',proScreen:'preferences'},'',
+    '/espace/professionnel?'+params.toString());
+  }else if(next!=='preferences'&&wasPreferences){
+   // Explicit navigation / successful save leaves the editor. Replace, rather
+   // than adding another entry that would reopen it on the next Back press.
+   params.delete('view');
+   history.replaceState({tab:'professional',proScreen:next},'',
+    '/espace/professionnel'+(params.toString()?'?'+params.toString():''));
+  }
+ }
  function show(next,fromHistory=false){
   if(!initialized||!canUsePremium())return;
   if(['inbox','settings'].includes(next)){tab(next);syncTab(next);return;}
@@ -443,6 +461,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   view=next;
   placeMarketSearch();
   tab('professional',fromHistory);
+  syncPreferencesHistory(next,fromHistory);
   if(next==='boamp'&&state.boampStatus!=='loading'&&state.boampStatus!=='ready')
    loadMarkets().catch(error=>console.warn('OFFRYA: marchés publics indisponibles',error));
   const commercial=['requests','assistant','tracking'].includes(next);
@@ -603,7 +622,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   window.addEventListener('popstate',()=>{
    if(!canUsePremium())return;
    const route=window.location.pathname;
-   if(route==='/espace/professionnel')show('home',true);
+   if(route==='/espace/professionnel')show(new URLSearchParams(window.location.search).get('view')==='preferences'?'preferences':'home',true);
    else if(route==='/espace/marches-publics')show('home',true);
    else syncTab(route==='/espace'?'dashboard':route.includes('/missions')?'missions':route.includes('/messagerie')?'inbox':route.includes('/reglages')?'settings':'boamp');
   });
@@ -621,7 +640,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   document.body.classList.toggle('offrya-pro-v3',premium);
   if(!premium){uid=null;serverRadar=null;state.radarMatches=null;radarKey='';radarAt=0;radarError='';forceLiveRadar=false;return;}
   const user=state.session?.user?.id;
-  if(user!==uid){uid=user;view='home';state.radarMatches=null;
+  if(user!==uid){uid=user;view=window.location.pathname==='/espace/professionnel'&&new URLSearchParams(window.location.search).get('view')==='preferences'?'preferences':'home';state.radarMatches=null;
   }
   const label=professionalGreetingLabel(state);
   $('proV3Hello').textContent=label||'OFFRYA';
