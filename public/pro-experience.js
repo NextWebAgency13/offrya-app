@@ -1,7 +1,7 @@
 import {buildRadar} from './radar.js';
 // OFFRYA Pro UI v3 — visual redesign on top of existing secured modules.
 // Only authenticated, server/RLS-authorized data is displayed. No demo rows.
-export function createProExperience({state,element,canUsePremium,tab,renderMissions,loadMarkets,notify}){
+export function createProExperience({state,element,canUsePremium,tab,renderMissions,loadMarkets,notify,openProposal}){
  const $=element;
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const menu=[
@@ -15,6 +15,12 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   ['preferences','Préférences de veille','ic-settings'],
   ['settings','Paramètres','ic-user']
  ];
+ const primaryMenu=[
+  ['home','Trouver des missions','ic-dashboard'],
+  ['requests','Proposer mes services','ic-missions'],
+  ['tracking','Gérer mon activité','ic-check']
+ ];
+ const secondaryMenu=menu.filter(item=>!['home','requests','tracking','assistant'].includes(item[0]));
  let initialized=false,view='home',uid=null;
  let serverRadar=null,radarKey='',radarAt=0,radarLoading=false;
  async function loadMatchedRadar(key,user){
@@ -48,7 +54,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  function caption(v){return '<span>'+esc(v)+'</span>';}
  function navButton(item){return '<button type="button" class="pro-v3-nav-btn" data-pro-screen="'+item[0]+'">'+icon(item[2])+'<span>'+esc(item[1])+'</span><span class="pro-v3-nav-count" data-pro-count="'+item[0]+'" hidden></span></button>';}
  function makeMarkup(){
-  const nav=document.createElement('nav');nav.id='proV3Sidebar';nav.className='pro-v3-sidebar-nav';nav.setAttribute('aria-label','Navigation professionnelle');nav.innerHTML=menu.map(navButton).join('');
+  const nav=document.createElement('nav');nav.id='proV3Sidebar';nav.className='pro-v3-sidebar-nav';nav.setAttribute('aria-label','Navigation professionnelle');nav.innerHTML=primaryMenu.map(navButton).join('');
   $('nav').after(nav);
   const badge=document.createElement('div');badge.id='proV3SidePlan';badge.className='pro-v3-side-plan';
   badge.innerHTML='<strong>♛ Offre professionnelle</strong><span id="proV3PlanState">Accès en cours</span><small>34,99 € TTC / mois</small><button type="button" data-pro-screen="settings">Gérer mon abonnement →</button>';
@@ -58,7 +64,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(accountPanel&&!accountPanel.querySelector('#proV3AccountTools')){
    const tools=document.createElement('nav');tools.id='proV3AccountTools';tools.className='pro-v3-account-tools';
    tools.setAttribute('aria-label','Outils professionnels');
-   tools.innerHTML='<strong class="pro-v3-account-title">Outils professionnels</strong>'+menu.map(item=>navButton(item[0]==='home'?['home','Tableau professionnel',item[2]]:item)).join('');
+   tools.innerHTML='<strong class="pro-v3-account-title">Outils professionnels</strong>'+secondaryMenu.map(navButton).join('');
    accountPanel.prepend(tools);
   }
   const accountMenu=document.getElementById('accountMenu');
@@ -72,6 +78,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const root=document.createElement('div');root.id='proExperienceV3';root.className='pro-v3-experience';
   root.innerHTML=[
    '<div class="pro-v3-mobile-menu" aria-hidden="true" hidden></div>',
+   '<nav class="pro-v3-primary-tabs" aria-label="Parcours professionnel">'+primaryMenu.map(navButton).join('')+'</nav>',
    '<section class="pro-v3-view" data-pro-panel="home">',
     '<div class="pro-v3-intro"><div><span class="pro-v3-eyebrow">ESPACE PROFESSIONNEL OFFRYA</span><h2>Bonjour, <span id="proV3Hello">professionnel</span></h2><p>Les opportunités adaptées à votre activité, au même endroit.</p></div><span class="pro-v3-status" id="proV3Status">Accès professionnel</span></div>',
     '<section class="pro-v3-panel pro-v3-opportunities" aria-labelledby="proV3OpTitle">',
@@ -81,7 +88,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
      '<p class="pro-v3-radar-disclaimer">Les scores sont indicatifs. Aucune mission fictive ni prise de contact automatique. <span id="proV3MatchingStatus"></span></p>',
     '</section>',
    '</section>',
-   '<section class="pro-v3-view" data-pro-panel="commercial" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">GESTION DES DEMANDES · OFFRYA</span><h2 id="proV3CommercialHeading">Demandes de missions</h2><p id="proV3CommercialDescription">Qualifiez les demandes, préparez vos réponses et suivez vos échanges.</p></div><div id="proV3CommercialSlot"></div><div id="proV3FollowupSlot" class="pro-v3-followup" hidden></div><section id="proV3TrackingActivity" class="pro-v3-panel pro-v3-tracking-activity" hidden><div class="pro-v3-panel-head"><h3>Mon activité</h3></div><div class="pro-v3-activity"><div id="proV3ActivityStats"></div><div id="proV3Chart" class="pro-v3-chart" aria-label="Missions visibles des 7 derniers jours"></div></div></section></section>',
+   '<section class="pro-v3-view" data-pro-panel="commercial" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">VOTRE ACTIVITÉ · OFFRYA</span><h2 id="proV3CommercialHeading">Proposer mes services</h2><p id="proV3CommercialDescription">Choisissez une mission et envoyez votre proposition.</p></div><div id="proV3CommercialSlot"></div><div class="pro-v3-work-actions" id="proV3WorkActions" hidden><button type="button" data-pro-screen="inbox">Voir mes échanges →</button><button type="button" data-pro-screen="home">Trouver d’autres missions →</button></div><div id="proV3FollowupSlot" class="pro-v3-followup" hidden></div><section id="proV3TrackingActivity" class="pro-v3-panel pro-v3-tracking-activity" hidden><div class="pro-v3-panel-head"><h3>Mon activité</h3></div><div class="pro-v3-activity"><div id="proV3ActivityStats"></div><div id="proV3Chart" class="pro-v3-chart" aria-label="Missions visibles des 7 derniers jours"></div></div></section></section>',
    '<section class="pro-v3-view" data-pro-panel="boamp" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">MARCHÉS PUBLICS · DILA</span><h2>Marchés publics</h2><p>Recherchez les appels d’offres officiels, consultez leurs échéances et exportez les résultats.</p></div><div id="proV3BoampSlot"></div></section>',
    '<section class="pro-v3-view" data-pro-panel="watch" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">VEILLE · OFFRYA</span><h2>Veille automatisée</h2><p>OFFRYA surveille les annonces publiques BOAMP et TED automatiquement. Vos filtres restent facultatifs.</p></div><div class="pro-v3-metrics pro-v3-small-metrics"><div class="pro-v3-metric purple">'+icon('ic-bolt')+'<span><small>État de ma veille</small><strong id="proV3WatchState">—</strong><em>Incluse dans l’abonnement professionnel</em></span></div><div class="pro-v3-metric blue">'+icon('ic-boamp')+'<span><small>Alertes reçues</small><strong id="proV3AlertCount">0</strong><em>Publications BOAMP et TED</em></span></div></div><section class="pro-v3-panel"><div class="pro-v3-panel-head"><h3>Dernières alertes</h3><button data-pro-screen="preferences">Modifier mes critères →</button></div><div id="proV3WatchAlertList" class="pro-v3-alerts"></div><p class="pro-v3-helper">Les e-mails ne sont envoyés que si vous avez activé les préférences correspondantes et que le service d’envoi est configuré.</p></section></section>',
    '<section class="pro-v3-view" data-pro-panel="preferences" hidden><div class="pro-v3-page-intro"><span class="pro-v3-eyebrow">PERSONNALISATION · OFFRYA</span><h2>Préférences de veille</h2><p>Affinez les secteurs, la zone ou les mots-clés si nécessaire. La veille reste automatique.</p></div><div class="pro-v3-panel" id="proV3PreferenceSlot"></div><p class="pro-v3-helper">Les opportunités publiques s’affichent automatiquement pour les professionnels vérifiés et abonnés. Les e-mails nécessitent une autorisation distincte.</p></section>',
@@ -194,7 +201,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    const rationale=[...(sector?[sector]:[]),...reasons].slice(0,4).join(' · ');
    const action=isTender
     ?'<a class="pro-v3-reco-btn" href="'+esc(item.url)+'" target="_blank" rel="noopener noreferrer">Voir l’avis officiel</a>'
-    :'<button type="button" class="pro-v3-reco-btn" data-pro-mission="'+esc(item.id)+'">Voir la mission</button>';
+    :'<button type="button" class="pro-v3-reco-btn" data-pro-mission="'+esc(item.id)+'">Préparer une proposition</button>';
    return '<article class="pro-v3-radar-row"><div class="pro-v3-radar-body"><small class="pro-v3-radar-source">'+source+'</small>'+
     '<strong>'+esc(item.title)+'</strong><div class="pro-v3-radar-details"><span>Zone : '+esc(location)+'</span>'+
     (isTender?'':'<span>'+esc(budget)+'</span>')+deadline+'</div>'+
@@ -256,7 +263,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  function activeButtons(){
   const professionalVisible=$('professional')?.classList.contains('active')===true;
   document.querySelectorAll('.pro-v3-nav-btn').forEach(b=>{
-   const active=professionalVisible&&b.dataset.proScreen===view;
+   const active=professionalVisible&&(b.dataset.proScreen===view||(view==='assistant'&&b.dataset.proScreen==='requests'));
    b.classList.toggle('active',active);
    if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
   });
@@ -280,11 +287,12 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    section.hidden=!on;section.classList.toggle('active',on);
   }
   $('proV3FollowupSlot').hidden=next!=='tracking';
+  $('proV3WorkActions').hidden=next!=='tracking';
   if($('proV3TrackingActivity'))$('proV3TrackingActivity').hidden=next!=='tracking';
   const headings={
-   requests:['Demandes de missions','Consultez les demandes réelles accessibles à votre compte professionnel.'],
-   assistant:['Assistant IA OFFRYA','Préparez des réponses modifiables et validez chaque envoi avant transmission.'],
-   tracking:['Suivi & performances','Retrouvez vos dossiers commerciaux et les marchés publics que vous suivez.']
+   requests:['Proposer mes services','Choisissez une mission accessible pour rédiger votre proposition.'],
+   assistant:['Ma proposition','Décrivez votre intervention, précisez éventuellement un montant et un délai, puis validez l’envoi.'],
+   tracking:['Gérer mon activité','Retrouvez vos propositions, vos dossiers suivis et vos échanges avec les clients.']
   };
   if(commercial){
    $('proV3CommercialHeading').textContent=headings[next][0];
@@ -298,10 +306,8 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  function openMission(id){
   const m=available().find(x=>x.id===id);if(!m)return;
   acknowledgeMatchedNotifications(id);
-  state.selectedMissionId=id;
-  $('missionQuery').value='';$('missionCategory').value='';$('missionDept').value='';
-  renderMissions();tab('missions',false,true);
-  syncTab('missions');$('missionList').scrollIntoView({block:'start',behavior:'auto'});
+  if(openProposal&&openProposal(id)){show('assistant');return;}
+  notify('Impossible d’ouvrir cette mission. Actualisez vos opportunités et réessayez.');
  }
  function init(){
   if(initialized)return;
@@ -388,6 +394,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   metrics();recommendations();activity();alerts();
   const commercial=['requests','assistant','tracking'].includes(view);
   if($('proV3TrackingActivity'))$('proV3TrackingActivity').hidden=view!=='tracking';
+  $('proV3WorkActions').hidden=view!=='tracking';
   for(const section of $('proExperienceV3').querySelectorAll('[data-pro-panel]')){
    const on=section.dataset.proPanel===(commercial?'commercial':view);
    section.hidden=!on;
