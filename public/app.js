@@ -4,13 +4,14 @@ import {createOpportunityConsole} from './opportunity-console.js';
 import {createSalesWorkspace} from './pro-commercial.js';
 import {createProExperience} from './pro-experience.js';
 import {createPushNotifications} from './push-notifications.js';
-import {fetchMissionFeed} from './mission-feed.js';
+import {fetchMissionFeed,missionBuckets} from './mission-feed.js';
 const $=id=>document.getElementById(id);
 const authCaptcha=createAuthCaptcha($('modalAuthCaptcha'));
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
+let missionView='available';
 const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,testPremiumUntil:null,boampStatus:'idle',opportunityPrefs:null,tenderTracking:[],opportunityAlerts:[],salesTracking:[],draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login',messageHeaders:[],messageUnreadCount:0};
 $('dashboardLoadingRetry')?.addEventListener('click',()=>location.reload());
 setTimeout(()=>{
@@ -196,6 +197,7 @@ function profileName(id){return state.profiles.find(p=>p.id===id)?.display_name|
 async function refresh(){
  if(!state.db){state.loaded=true;render();return;}
  if(!state.session){
+  missionView='available';
   state.draft=null;state.proStep=1;state.proStepUserId=null;
   state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.messageHeaders=[];state.messageUnreadCount=0;
   state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;
@@ -205,6 +207,7 @@ async function refresh(){
  const uid=state.session.user.id;
  // Never expose a previous account's cached private rows during account switches.
  if(state.currentUserId!==uid){
+  missionView='available';
   state.currentUserId=uid;state.missions=[];state.profile=null;state.premium=null;state.subscription=null;state.testPremiumUntil=null;
   state.conversations=[];state.messages=[];state.messageHeaders=[];state.messageUnreadCount=0;messageKnownAccount=null;messageKnownIds=null;state.prefs=null;state.opportunityPrefs=null;state.tenderTracking=[];state.opportunityAlerts=[];state.salesTracking=[];state.profiles=[];state.favorites=[];
   state.draft=null;state.manualIdentity=null;state.priorityAlerts=[];state.loaded=false;
