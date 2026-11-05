@@ -164,6 +164,7 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
    details.scrollIntoView({block:'start',behavior:'smooth'});
   });
   $('opGoMessages')?.addEventListener('click',()=>tab('inbox'));
+  document.addEventListener('offrya:ranking-updated',()=>{if(canUsePremium())renderAlerts();});
   $('opWatchForm')?.addEventListener('submit',saveWatch);
   $('opTenderRefresh')?.addEventListener('click',()=>refreshTenders());
   $('opAllMissions')?.addEventListener('click',()=>tab('missions'));
