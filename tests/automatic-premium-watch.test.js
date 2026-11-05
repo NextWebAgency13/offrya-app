@@ -27,13 +27,17 @@ test('Professionals may refine matching without being forced to choose a sector'
  assert.match(sql,/coalesce\(op\.department,''\)/);
  assert.match(sql,/pf\.specialty/);
 });
-test('Only paid verified professionals are selected; email preferences remain separate',()=>{
+test('Only verified paid professionals or expressly granted professional QA accounts are monitored',()=>{
  assert.match(sql,/s\.status='active' and s\.paid_through>now\(\)/);
  assert.match(sql,/v\.identity_live_verified is true/);
  assert.match(sql,/u\.email_confirmed_at is not null/);
  assert.match(sql,/revoke all on function public\.offrya_agent_watch_targets\(\) from public,anon,authenticated/);
  assert.match(sql,/grant execute on function public\.offrya_agent_watch_targets\(\) to service_role/);
- assert.doesNotMatch(sql,/temporary_premium_grants/);
+ assert.match(sql,/offrya_private\.temporary_premium_grants g/);
+ assert.match(sql,/g\.user_id=pf\.id and g\.expires_at>now\(\)/);
+ assert.match(sql,/pf\.role='pro'/);
+ assert.match(sql,/or exists \(/);
+ assert.match(sql,/v\.status='verified'/);
  assert.doesNotMatch(sql,/offrya_alert_preferences/);
 });
 test('UI exposes no activation toggle or compulsory sector and describes automatic watch',()=>{
