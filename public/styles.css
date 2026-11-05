@@ -465,3 +465,9 @@
  #settings .push-notifications-settings{flex-direction:column;align-items:stretch}
  #settings #pushNotificationToggle{width:100%;font-size:14px}
 }
+
+/* Consent and a real Web Push self-test belong to the same account setting. */
+#settings .push-notification-actions{display:flex;flex-direction:column;gap:10px;flex:none;width:min(100%,290px)}
+#settings .push-notification-actions button{width:100%;min-height:46px;white-space:normal}
+#settings #pushTestNotification[hidden]{display:none!important}
+@media(max-width:720px){#settings .push-notification-actions{width:100%}}
