@@ -56,6 +56,8 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    if(state.session?.user?.id!==user||key!==radarKey||!canUsePremium())return;
    serverRadar=data;state.radarMatches=data;
    recommendations();metrics();alerts();
+   document.dispatchEvent(new CustomEvent('offrya:ranking-updated'));
+
   }catch(error){
    console.warn('OFFRYA: classement distant indisponible, secours local',error);
   }finally{if(key===radarKey)radarAt=Date.now();radarLoading=false;}
@@ -226,7 +228,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const fingerprint=JSON.stringify([user,state.opportunityPrefs,
    (state.missions||[]).map(m=>[m.id,m.status,m.created_at]).slice(0,220),
    (state.opportunityAlerts||[]).map(a=>[a.tender_id,a.match_score,a.deadline]).slice(0,100)]);
-  if(fingerprint!==radarKey){radarKey=fingerprint;serverRadar=null;radarAt=0;}
+  if(fingerprint!==radarKey){radarKey=fingerprint;serverRadar=null;state.radarMatches=null;priorityOnly=false;radarAt=0;}
   if(!radarLoading&&Date.now()-radarAt>5*60*1000)queueMicrotask(()=>loadMatchedRadar(fingerprint,user));
   const p=state.opportunityPrefs||{};
   const sectors=Array.isArray(p.sectors)?p.sectors.filter(Boolean):[];
@@ -528,7 +530,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
     $('boampSearch').click();return;
    }
    const typeFilter=e.target.closest('[data-pro-filter]');
-   if(typeFilter&&canUsePremium()){radarFilter=typeFilter.dataset.proFilter;recommendations();return;}
+   if(typeFilter&&canUsePremium()){priorityOnly=false;radarFilter=typeFilter.dataset.proFilter;recommendations();return;}
    const detail=e.target.closest('[data-pro-view-mission]');
    if(detail&&canUsePremium()){openMissionDetail(detail.dataset.proViewMission);return;}
    const b=e.target.closest('[data-pro-mission]');if(b)openMission(b.dataset.proMission);
