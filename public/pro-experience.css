@@ -885,3 +885,36 @@ body.offrya-pro-v3 .pro-v3-search:focus-within{
  body.offrya-pro-v3 .pro-v3-radar-side{width:100%!important}
  body.offrya-pro-v3 .pro-v3-reco{max-width:100%!important;min-width:0!important}
 }
+
+/* Keep content readable in the simulated 980px portrait viewport too. */
+@media screen and (pointer:coarse) and (orientation:portrait)
+ and (min-width:621px) and (max-width:1100px) and (max-aspect-ratio:3/5){
+ body{font-size:16px!important;overflow-x:clip!important}
+ body :is(.two-col,.inbox-grid,.form-grid){grid-template-columns:minmax(0,1fr)!important}
+ body .app-shell :is(.panel,.inbox-conversations,.message-panel){
+  min-width:0!important;max-width:100%!important;
+ }
+ body .app-shell .panel{padding:19px!important}
+ body .app-shell :is(.panel h3,.message-panel h3){font-size:20px!important}
+ body .app-shell :is(.inbox-hint,.inbox-thread-context){font-size:15px!important}
+ body .app-shell #dashboard :is(.role-quick-grid,.role-pro-links){
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:13px!important;
+ }
+ body .app-shell #dashboard .role-hero{
+  min-height:0!important;padding:25px 21px!important;
+ }
+ body .app-shell #dashboard .role-hero>div{max-width:100%!important}
+ body .app-shell #dashboard .role-hero h2{font-size:30px!important}
+ body .app-shell #dashboard .role-hero p{font-size:16px!important}
+ body .app-shell #dashboard .role-mission-row{min-width:0!important}
+ body .app-shell .filters{flex-wrap:wrap!important}
+ body .app-shell .filters :is(input,select){flex:1 1 250px!important}
+ body .app-shell :is(input,select,textarea,.field){max-width:100%!important}
+ body .app-shell #settings .settings-form{max-width:100%!important}
+ body .app-shell #settings .push-notifications-settings{flex-direction:column!important}
+ body.offrya-pro-v3 .pro-v3-panel{padding:18px!important}
+ body.offrya-pro-v3 .pro-v3-intro h2{font-size:29px!important}
+ body.offrya-pro-v3 .pro-v3-reco strong{font-size:18px!important}
+ body.offrya-pro-v3 .pro-v3-reco p{font-size:15px!important}
+ body.offrya-pro-v3 .pro-v3-radar-summary{font-size:16px!important}
+}
