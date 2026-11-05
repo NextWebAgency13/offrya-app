@@ -50,6 +50,6 @@ as $$
        where g.user_id=pf.id and g.expires_at>now()
      )
    );
-$;
+$$;
 revoke all on function public.offrya_agent_watch_targets() from public,anon,authenticated;
 grant execute on function public.offrya_agent_watch_targets() to service_role;
