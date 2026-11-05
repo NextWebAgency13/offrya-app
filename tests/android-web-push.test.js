@@ -3,6 +3,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const crypto=require('node:crypto');
+const vm=require('node:vm');
 const {spawnSync}=require('node:child_process');
 const push=require('../lib/push');
 
@@ -94,6 +95,8 @@ test('Signed database event only notifies the other participant, never includes 
  assert.equal(result.sent,1);
  assert.match(calls[2].url,new RegExp(professional));
  assert.equal(notifications[1][2].body,'Vous avez reçu un nouveau message.');
+ assert.equal(notifications[1][2].conversationId,conversation);
+ assert.equal(notifications[1][2].messageId,message);
  assert.doesNotMatch(JSON.stringify(notifications),/never send my message body/);
  assert.equal(notifications[1][3].TTL,3600);
 });
@@ -145,14 +148,86 @@ test('Android self-test and database registration are exposed as authenticated r
  assert.match(server,/await push\.authUser\(req\.headers\.authorization\)/);
  assert.match(server,/push\.testDevicePush\(user,input\.endpoint\)/);
  assert.match(server,/rateLimit\(req,p==='\/api\/push\/test'\?3:20\)/);
- assert.match(html,/id="pushTestNotification"/);
+ assert.doesNotMatch(html,/id="pushTestNotification"/);
+ assert.doesNotMatch(ui,/testButton|testPush\(/);
  assert.match(ui,/api\('status',\{endpoint:sub\.endpoint\},token\)/);
- assert.match(ui,/api\('test',\{endpoint:sub\.endpoint\},token\)/);
  assert.match(ui,/remote\.registered===true/);
  assert.match(ui,/Réactiver les notifications push/);
  assert.match(worker,/isTest\?'OFFRYA · Test Android':'OFFRYA'/);
  assert.match(worker,/self\.registration\.showNotification/);
  assert.doesNotMatch(worker,/caches\.open|message\.body/);
+});
+test('Android notification click opens the precise conversation and message even if no tab exists',async()=>{
+ const source=fs.readFileSync('public/sw.js','utf8');
+ const handlers={};
+ let notification=null,opened=null,focused=0,closed=0;
+ const client={async focus(){focused++;return client;}};
+ const sandbox={
+  URLSearchParams,
+  console:{warn(){}},
+  self:{
+   location:{origin:'https://offrya.fr'},
+   registration:{async showNotification(title,options){notification={title,options};}},
+   addEventListener(name,handler){handlers[name]=handler;},
+   clients:{
+    async matchAll(){return [];},
+    async openWindow(url){opened=url;return client;}
+   }
+  }
+ };
+ vm.runInNewContext(source,sandbox);
+ const eventPush={data:{json:()=>({conversationId:conversation,messageId:message})},
+  waitUntil(task){this.promise=task;}};
+ handlers.push(eventPush);
+ await eventPush.promise;
+ assert.match(notification.options.tag,/offrya-message-/);
+ const tap={notification:{data:notification.options.data,close(){closed++;}},
+  waitUntil(task){this.promise=task;}};
+ handlers.notificationclick(tap);
+ await tap.promise;
+ assert.equal(opened,'https://offrya.fr/espace/messagerie?conversation='+conversation+'&message='+message);
+ assert.equal(focused,1);
+ assert.equal(closed,1);
+});
+test('Android existing-window navigation failure falls back to focusing and opening the conversation in the SPA',async()=>{
+ const source=fs.readFileSync('public/sw.js','utf8'),handlers={};
+ let posted=null,focused=0,opened=0,closed=0;
+ const existing={
+  url:'https://offrya.fr/espace',
+  async navigate(){throw Error('Android Custom Tab cannot navigate');},
+  async focus(){focused++;return existing;},
+  postMessage(payload){posted=payload;}
+ };
+ vm.runInNewContext(source,{
+  URLSearchParams,console:{warn(){}},
+  self:{
+   location:{origin:'https://offrya.fr'},
+   addEventListener(name,handler){handlers[name]=handler;},
+   clients:{async matchAll(){return [existing];},async openWindow(){opened++;}}
+  }
+ });
+ const event={notification:{
+  data:{conversationId:conversation,messageId:message},close(){closed++;}
+ },waitUntil(task){this.promise=task;}};
+ handlers.notificationclick(event);
+ await event.promise;
+ assert.equal(posted.type,'OFFRYA_PUSH_OPEN');
+ assert.equal(posted.conversationId,conversation);
+ assert.equal(posted.messageId,message);
+ assert.equal(focused,1);assert.equal(opened,0);assert.equal(closed,1);
+});
+test('Push deep links require a real RLS-authorized conversation, and the optional message gets focused',()=>{
+ const app=fs.readFileSync('public/app.js','utf8');
+ const auth=fs.readFileSync('public/connexion.js','utf8');
+ assert.match(app,/function verifiedPushTarget\(/);
+ assert.match(app,/event\.data\?\.type!=='OFFRYA_PUSH_OPEN'/);
+ assert.match(app,/\.eq\('id',conversationId\)\.maybeSingle\(\)/);
+ assert.match(app,/\[r\.data\.client_id,r\.data\.professional_id\]\.includes\(uid\)/);
+ assert.match(app,/history\.replaceState\(\{tab:'inbox'\}/);
+ assert.match(app,/data-message-id="/);
+ assert.match(app,/bubble\.scrollIntoView\(/);
+ assert.match(auth,/pushConversationPath\.test\(value\)/);
+ assert.match(app,/encodeURIComponent\(location\.pathname\+location\.search\)/);
 });
 test('Closed-browser worker shows a generic Android notification and opens private inbox',()=>{
  const sw=fs.readFileSync('public/sw.js','utf8');

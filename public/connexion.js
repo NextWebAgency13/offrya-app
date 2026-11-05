@@ -2,7 +2,10 @@ import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2
 import {authFeedback} from './auth-feedback.mjs';
 import {createAuthCaptcha} from './auth-captcha.mjs';
 const $=id=>document.getElementById(id),query=new URLSearchParams(location.search);
-const value=query.get('next')||'/espace',next=(value==='/deposer-une-mission'||/^\/espace(?:\/(?:missions|marches-publics|messagerie|reglages|professionnel))?$/.test(value))?value:'/espace';
+const value=query.get('next')||'/espace';
+const uuidPart='[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';
+const pushConversationPath=new RegExp('^/espace/messagerie\\?conversation='+uuidPart+'(?:&message='+uuidPart+')?$','i');
+const next=(value==='/deposer-une-mission'||/^\/espace(?:\/(?:missions|marches-publics|messagerie|reglages|professionnel))?$/.test(value)||pushConversationPath.test(value))?value:'/espace';
 // Les liens de confirmation finissent sur /connexion pour permettre à Supabase
 // de lire les jetons d'authentification. L'utilisateur rejoint ensuite son dashboard.
 // Prend aussi en charge les anciens liens implicites contenant #type=signup.
