@@ -41,7 +41,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  let initialized=false,view='home',uid=null;
  let serverRadar=null,radarKey='',radarAt=0,radarLoading=false;
  let radarFilter='all',radarSort='score',radarQuery='';
- let tenderRefreshing=false;
+ let tenderRefreshing=false,priorityOnly=false,trackingBusy=false;
  async function loadMatchedRadar(key,user){
   if(radarLoading||!canUsePremium()||!user)return;
   radarLoading=true;
@@ -111,10 +111,11 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
     '<div class="pro-ai-criteria"><div class="pro-ai-criteria-head"><strong>Mes critères actuels</strong><button type="button" data-pro-screen="preferences">'+icon('ic-settings')+' Modifier</button></div><div id="proAiCriteria" class="pro-ai-criteria-chips"></div></div>',
    '</section>',
    '<section class="pro-v3-opportunities pro-ai-discovery" aria-label="Radar des opportunités">',
-    '<div class="pro-ai-filter-tabs" role="group" aria-label="Type d’opportunité"><button class="is-active" type="button" data-pro-filter="all" aria-pressed="true">'+icon('ic-sparkles')+' Tout (<span id="proAiTabAll">0</span>)</button><button type="button" data-pro-filter="mission" aria-pressed="false">'+icon('ic-missions')+' Missions (<span id="proAiTabMissions">0</span>)</button><button type="button" data-pro-filter="tender" aria-pressed="false">'+icon('ic-boamp')+' Marchés publics (<span id="proAiTabTenders">0</span>)</button></div>',
+    '<div class="pro-ai-filter-tabs" role="group" aria-label="Type d’opportunité"><button class="is-active" type="button" data-pro-filter="all" aria-pressed="true">'+icon('ic-sparkles')+' Tout <span class="pro-ai-tab-count" id="proAiTabAll">0</span></button><button type="button" data-pro-filter="mission" aria-pressed="false">'+icon('ic-missions')+' Missions <span class="pro-ai-tab-count" id="proAiTabMissions">0</span></button><button type="button" data-pro-filter="tender" aria-pressed="false">'+icon('ic-boamp')+' Marchés <span class="pro-ai-tab-count" id="proAiTabTenders">0</span></button></div>',
     '<p class="pro-ai-inline-summary" id="proAiInlineSummary" role="status">Analyse des opportunités en cours…</p>',
     '<div class="pro-ai-stats" aria-label="Opportunités correspondantes"><div class="pro-ai-stat is-green">'+icon('ic-check')+'<div><strong id="proAiStatAll">0</strong><small>opportunités trouvées</small></div></div><div class="pro-ai-stat is-violet">'+icon('ic-sparkles')+'<div><strong id="proAiStatTenders">0</strong><small>appels d’offres BOAMP / TED</small></div></div><div class="pro-ai-stat is-blue">'+icon('ic-missions')+'<div><strong id="proAiStatMissions">0</strong><small>missions OFFRYA</small></div></div></div>',
     '<div class="pro-ai-heading"><h3>'+icon('ic-sparkles')+' Opportunités recommandées par l’IA</h3><div class="pro-ai-toolbar"><label for="proAiSort">Trier par :</label><select id="proAiSort" aria-label="Trier les opportunités"><option value="score">Pertinence</option><option value="recent">Plus récentes</option><option value="deadline">Échéance proche</option></select><button type="button" data-refresh-radar="true" aria-label="Actualiser" title="Actualiser">'+icon('ic-bolt')+'</button></div></div>',
+    '<button class="pro-ai-priority-alert" id="proAiPriorityAlert" type="button" data-pro-priority="true" hidden></button>',
     '<p class="sr-only" id="proV3RadarSummary" role="status" aria-live="polite">Analyse des opportunités…</p>',
     '<div id="proV3Recommendations" class="pro-v3-reco-list pro-ai-results"><p class="pro-v3-empty">Analyse des opportunités accessibles…</p></div>',
     '<p class="pro-v3-radar-disclaimer pro-ai-disclaimer">Les scores sont indicatifs et calculés sur des annonces réelles. Aucun budget inventé ni contact automatique. <span id="proV3MatchingStatus"></span></p>',
@@ -228,12 +229,19 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(fingerprint!==radarKey){radarKey=fingerprint;serverRadar=null;radarAt=0;}
   if(!radarLoading&&Date.now()-radarAt>5*60*1000)queueMicrotask(()=>loadMatchedRadar(fingerprint,user));
   const p=state.opportunityPrefs||{};
-  const criteria=[p.sectors?.length?p.sectors.join(' / '):'Tous les secteurs',
-   p.department?'Département '+p.department:'Toute la France',
-   p.min_budget_cents!=null||p.max_budget_cents!=null
-    ?'Budget : '+(p.min_budget_cents!=null?euroRadar(p.min_budget_cents):'0 €')+' – '+(p.max_budget_cents!=null?euroRadar(p.max_budget_cents):'sans plafond')
-    :'Budget : tous',p.keywords?'Mots-clés : '+p.keywords:''].filter(Boolean);
-  $('proAiCriteria').innerHTML=criteria.map((value,i)=>'<span class="pro-ai-criteria-chip">'+['▦','⌖','€','⌕'][i]+' '+esc(value)+'</span>').join('');
+  const sectors=Array.isArray(p.sectors)?p.sectors.filter(Boolean):[];
+  const allSectors=sectors.length>=7;
+  const sectorLabel=allSectors?'Tous les secteurs':sectors.length?sectors[0]:'Tous les secteurs';
+  const deptNames={'13':'Bouches-du-Rhône','30':'Gard','34':'Hérault','83':'Var',
+   '84':'Vaucluse','06':'Alpes-Maritimes','75':'Paris','69':'Rhône'};
+  const dept=p.department?String(p.department).toUpperCase():'';
+  const criteria=[sectorLabel,dept?(deptNames[dept]?deptNames[dept]+' ('+dept+')':'Département '+dept):'Toute la France'];
+  if(!allSectors&&sectors.length>1)criteria.push('+'+(sectors.length-1)+' secteurs');
+  const more=[];
+  if(p.min_budget_cents!=null||p.max_budget_cents!=null)more.push('budget défini');
+  if(p.keywords)more.push('mots-clés définis');
+  if(more.length)criteria.push(more.join(' et '));
+  $('proAiCriteria').innerHTML=criteria.map((value,i)=>'<span class="pro-ai-criteria-chip" title="'+esc(value)+'">'+['▦','⌖','+','⋯'][i]+' '+esc(value)+'</span>').join('');
   const fallback=buildRadar({missions:available(),alerts:state.opportunityAlerts||[],preferences:p,userId:user});
   const missions=new Map(available().map(m=>[String(m.id),m]));
   const notices=new Map((state.opportunityAlerts||[]).filter(a=>a?.deadline&&Date.parse(a.deadline)>Date.now()).map(a=>[String(a.tender_id),a]));
