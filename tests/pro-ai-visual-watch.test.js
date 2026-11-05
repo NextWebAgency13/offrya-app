@@ -14,7 +14,7 @@ test('The Premium discovery mockup compiles and contains the five visual section
   assert.ok(js.includes(label),'Missing visual section: '+label);
  }
  for(const id of ['proAiHeroTitle','proAiCriteria','proAiTabAll','proAiTabMissions','proAiTabTenders',
-  'proAiStatAll','proAiStatMissions','proAiStatTenders','proAiSort','proV3Recommendations']){
+  'proAiStatAll','proAiStatMissions','proAiStatTenders','proV3Recommendations']){
   assert.match(js,new RegExp('id="'+id+'"'));
  }
  assert.match(css,/\.pro-ai-hero/);
@@ -33,7 +33,7 @@ test('Recommendations and controls use live authorized data instead of mock valu
  assert.match(js,/data-pro-view-mission/);
  assert.match(js,/data-pro-screen="preferences"/);
  assert.match(js,/radarQuery=/);
- assert.match(js,/radarSort=/);
+ assert.doesNotMatch(js,/radarSort=|proAiSort/);
  assert.match(js,/proAiInlineSummary/);
  assert.match(js,/pro-ai-welcome/);
  assert.match(js,/pro-ai-buyer/);
