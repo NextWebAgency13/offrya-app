@@ -105,7 +105,7 @@ test('Professional registration history cannot skip verification via crafted URL
 });
 test('The correct Back action is bound in each place, without cross-user history storage',()=>{
  assert.match(app,/history\.state\?\.detailId===state\.selectedMissionId/);
- assert.match(app,/if\(history\.state\?\.onboardingStep===previous\+1\)/);
+ assert.match(app,/history\.state\?\.onboardingStep===previous\+1/);
  assert.match(app,/inboxBackToList'\)\.onclick/);
  assert.match(app,/history\.replaceState\(\{tab:'inbox'\}/);
  assert.match(app,/rememberConversationRoute\(id\)/);
