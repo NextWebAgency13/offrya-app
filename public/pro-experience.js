@@ -389,8 +389,8 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
     });
     $('boampSearch').click();return;
    }
-   const filter=e.target.closest('[data-pro-filter]');
-   if(filter&&canUsePremium()){radarFilter=filter.dataset.proFilter;recommendations();return;}
+   const typeFilter=e.target.closest('[data-pro-filter]');
+   if(typeFilter&&canUsePremium()){radarFilter=typeFilter.dataset.proFilter;recommendations();return;}
    const detail=e.target.closest('[data-pro-view-mission]');
    if(detail&&canUsePremium()){openMissionDetail(detail.dataset.proViewMission);return;}
    const b=e.target.closest('[data-pro-mission]');if(b)openMission(b.dataset.proMission);
