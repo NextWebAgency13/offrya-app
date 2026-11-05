@@ -68,7 +68,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   alertButton.setAttribute('aria-label','Consulter les nouvelles missions');
   alertButton.innerHTML='<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"/><path d="M10 21h4"/></svg><span id="proV3AlertBubble" hidden></span>';
   if(accountMenu)accountMenu.before(alertButton);
-  alertButton.addEventListener('click',()=>{if(canUsePremium())show('requests');});
+  alertButton.addEventListener('click',()=>{if(!canUsePremium())return;acknowledgeMatchedNotifications();show('requests');});
   const root=document.createElement('div');root.id='proExperienceV3';root.className='pro-v3-experience';
   root.innerHTML=[
    '<div class="pro-v3-mobile-menu" aria-hidden="true" hidden></div>',
@@ -110,6 +110,38 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    &&(p.min_budget_cents==null||m.budget_cents==null||m.budget_cents>=p.min_budget_cents)
    &&(p.max_budget_cents==null||m.budget_cents==null||m.budget_cents<=p.max_budget_cents))
    .sort((a,b)=>Date.parse(b.created_at||0)-Date.parse(a.created_at||0));
+ }
+ // A match is not an unread alert. Store acknowledgements per account.
+ const acknowledgedMissionIds=new Map();
+ function alertReadKey(user){return 'offrya:pro:mission-notifications-read:v1:'+user;}
+ function readMissionNotifications(user){
+  if(!user)return new Set();
+  if(acknowledgedMissionIds.has(user))return acknowledgedMissionIds.get(user);
+  let stored=[];
+  try{stored=JSON.parse(window.localStorage.getItem(alertReadKey(user))||'[]');}catch(_){}
+  const seen=new Set(Array.isArray(stored)?stored.filter(id=>typeof id==='string'&&id.length<=128):[]);
+  acknowledgedMissionIds.set(user,seen);
+  return seen;
+ }
+ function unreadMatchedNotifications(){
+  const user=state.session?.user?.id;
+  if(!user||!canUsePremium())return [];
+  const seen=readMissionNotifications(user);
+  return matched().filter(m=>m.id&&!seen.has(String(m.id)));
+ }
+ function acknowledgeMatchedNotifications(missionId=null){
+  const user=state.session?.user?.id;
+  if(!user||!canUsePremium())return;
+  const seen=readMissionNotifications(user);
+  const toMark=missionId==null?matched():matched().filter(m=>String(m.id)===String(missionId));
+  for(const m of toMark)if(m.id){
+   const id=String(m.id);seen.delete(id);seen.add(id);
+  }
+  // The feed is capped at 200; retain enough prior IDs across refreshes.
+  const recent=[...seen].slice(-1000);
+  acknowledgedMissionIds.set(user,new Set(recent));
+  try{window.localStorage.setItem(alertReadKey(user),JSON.stringify(recent));}catch(_){}
+  metrics();
  }
  function categoryIcon(category){
   if(/vert|jardin|élag|agric/i.test(category))return '♧';
@@ -172,7 +204,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  }
 
  function metrics(){
-  const missions=available(),count=matched().length;
+  const missions=available(),count=unreadMatchedNotifications().length;
   $('proV3WatchState').textContent=Date.parse(state.testPremiumUntil||'')>Date.now()?'Accès test':'Automatique';
   $('proV3AlertCount').textContent=String((state.opportunityAlerts||[]).length);
   const bubble=$('proV3AlertBubble');
@@ -265,6 +297,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  }
  function openMission(id){
   const m=available().find(x=>x.id===id);if(!m)return;
+  acknowledgeMatchedNotifications(id);
   state.selectedMissionId=id;
   $('missionQuery').value='';$('missionCategory').value='';$('missionDept').value='';
   renderMissions();tab('missions',false,true);
@@ -297,6 +330,12 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    }
    const b=e.target.closest('[data-pro-mission]');if(b)openMission(b.dataset.proMission);
     
+  });
+  window.addEventListener('storage',event=>{
+   const user=state.session?.user?.id;
+   if(!user||event.key!==alertReadKey(user))return;
+   acknowledgedMissionIds.delete(user);
+   if(canUsePremium())metrics();
   });
   // Accueil remains the personal dashboard; only the explicit Pro shortcut
   // opens the professional screen. Do not intercept the bottom Accueil tab.
