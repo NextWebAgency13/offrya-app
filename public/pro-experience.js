@@ -219,7 +219,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const trigger=$('proV3MobileAlert');
   if(trigger)trigger.setAttribute('aria-label',count?'Ouvrir '+count+' mission(s) correspondant à mes filtres':'Consulter les missions disponibles');
   for(const el of document.querySelectorAll('[data-pro-count="requests"]')){el.textContent=String(missions.length);el.hidden=!missions.length;}
-  for(const el of document.querySelectorAll('[data-pro-count="inbox"]')){el.textContent=String((state.conversations||[]).length);el.hidden=!(state.conversations||[]).length;}
+  for(const el of document.querySelectorAll('[data-pro-count="inbox"]')){const count=Number(state.messageUnreadCount||0);el.textContent=count>99?'99+':String(count);el.hidden=!count;}
  }
 
  function activity(){

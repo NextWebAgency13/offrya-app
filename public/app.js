@@ -10,7 +10,7 @@ const authCaptcha=createAuthCaptcha($('modalAuthCaptcha'));
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,testPremiumUntil:null,boampStatus:'idle',opportunityPrefs:null,tenderTracking:[],opportunityAlerts:[],salesTracking:[],draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login'};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,testPremiumUntil:null,boampStatus:'idle',opportunityPrefs:null,tenderTracking:[],opportunityAlerts:[],salesTracking:[],draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login',messageHeaders:[],messageUnreadCount:0};
 $('dashboardLoadingRetry')?.addEventListener('click',()=>location.reload());
 setTimeout(()=>{
  if(state.loaded)return;
@@ -18,6 +18,115 @@ setTimeout(()=>{
  if(message)message.textContent='Le chargement prend plus de temps que prévu. Vous pouvez réessayer.';
  $('dashboardLoadingRetry')?.classList.remove('hidden');
 },10000);
+// Private in-app message notifications; read cursors are device-local metadata.
+const MESSAGE_READ_PREFIX='offrya:messages-read:v1:';
+let messageReadAccount=null,messageReadCursors={};
+let messagePollPromise=null,messagePollAccount=null,messageKnownAccount=null,messageKnownIds=null;
+function messageReadKey(user){return MESSAGE_READ_PREFIX+user;}
+function readMessageCursors(user){
+ if(messageReadAccount!==user){
+  messageReadAccount=user;messageReadCursors={};
+  try{
+   const saved=JSON.parse(localStorage.getItem(messageReadKey(user))||'{}');
+   if(saved&&typeof saved==='object'&&!Array.isArray(saved)){
+    for(const [thread,timestamp] of Object.entries(saved))
+     if(/^[a-f0-9-]{36}$/i.test(thread)&&Number.isSafeInteger(timestamp)&&timestamp>0)
+      messageReadCursors[thread]=timestamp;
+   }
+  }catch(_){}
+ }
+ return messageReadCursors;
+}
+function messageUnread(){
+ const uid=state.session?.user?.id,byThread=new Map();
+ if(!uid)return {total:0,byThread};
+ const read=readMessageCursors(uid);
+ const permitted=new Set((state.conversations||[]).map(c=>c.id));
+ let total=0;
+ for(const message of state.messageHeaders||[]){
+  if(!permitted.has(message.conversation_id)||message.sender_id===uid)continue;
+  const time=Date.parse(message.created_at||'');
+  if(!Number.isFinite(time)||time<=Number(read[message.conversation_id]||0))continue;
+  total++;
+  byThread.set(message.conversation_id,(byThread.get(message.conversation_id)||0)+1);
+ }
+ return {total,byThread};
+}
+function paintMessageBadges(){
+ const {total}=messageUnread();
+ state.messageUnreadCount=total;
+ const label=total>99?'99+':String(total);
+ for(const id of ['messageNavBadge','messageShortcutBubble']){
+  const node=$(id);if(node){node.hidden=!total;node.textContent=label;}
+ }
+ const shortcut=$('messageShortcut');
+ if(shortcut)shortcut.setAttribute('aria-label',total
+  ?'Ouvrir la messagerie : '+total+' message'+(total>1?'s':'')+' non lu'+(total>1?'s':'')
+  :'Ouvrir la messagerie');
+ const navigation=document.querySelector('.sidebar .nav-link[data-tab="inbox"]');
+ if(navigation)navigation.setAttribute('aria-label',total
+  ?'Messages : '+total+' non lu'+(total>1?'s':'')
+  :'Messages');
+ for(const badge of document.querySelectorAll('[data-pro-count="inbox"]')){
+  badge.textContent=label;badge.hidden=!total;
+ }
+ if($('roleConversationCount'))$('roleConversationCount').textContent=String(total);
+}
+function acknowledgeConversation(conversationId,messages){
+ const uid=state.session?.user?.id;
+ if(!uid||!state.conversations.some(c=>c.id===conversationId))return;
+ const incoming=(messages||[]).filter(m=>m.conversation_id===conversationId&&m.sender_id!==uid)
+  .map(m=>Date.parse(m.created_at||'')).filter(Number.isFinite);
+ if(!incoming.length)return;
+ const cursor=Math.max(...incoming),seen=readMessageCursors(uid);
+ if(cursor<=Number(seen[conversationId]||0))return;
+ seen[conversationId]=cursor;
+ // Only per-thread timestamps, never message text or session secrets.
+ try{localStorage.setItem(messageReadKey(uid),JSON.stringify(seen));}catch(_){}
+ paintMessageBadges();
+}
+async function loadMessageNotifications(){
+ const uid=state.session?.user?.id;
+ if(!uid||!state.db)return;
+ if(messagePollPromise&&messagePollAccount===uid)return messagePollPromise;
+ const task=(async()=>{
+  // New conversations must be discovered too, or a first message would never
+  // generate a notification until a full dashboard refresh.
+  const conversations=await state.db.from('offrya_conversations')
+   .select('*').order('created_at',{ascending:false}).limit(100);
+  if(conversations.error)throw conversations.error;
+  if(uid!==state.session?.user?.id||uid!==state.currentUserId)return;
+  state.conversations=conversations.data||[];
+  const ids=state.conversations.map(c=>c.id).filter(Boolean);
+  if(state.thread&&!ids.includes(state.thread)){state.thread=null;state.messages=[];}
+  if(!ids.length){
+   state.messageHeaders=[];paintMessageBadges();
+   if($('inbox').classList.contains('active'))renderInbox();
+   return;
+  }
+  const result=await state.db.from('offrya_messages')
+   .select('id,conversation_id,sender_id,created_at')
+   .in('conversation_id',ids).order('created_at',{ascending:false}).limit(500);
+  if(result.error)throw result.error;
+  if(uid!==state.session?.user?.id||uid!==state.currentUserId)return;
+  const rows=result.data||[];
+  if(messageKnownAccount!==uid){messageKnownAccount=uid;messageKnownIds=null;}
+  const previous=messageKnownIds;
+  state.messageHeaders=rows;
+  const stats=messageUnread();
+  if(previous&&rows.some(m=>!previous.has(m.id)&&m.sender_id!==uid&&
+   (stats.byThread.get(m.conversation_id)||0)>0)&&!document.hidden)
+   toast('Nouveau message reçu. Ouvrez votre messagerie.');
+  messageKnownIds=new Set(rows.map(m=>m.id));
+  if($('inbox').classList.contains('active')&&state.thread&&stats.byThread.has(state.thread)){
+   try{await loadMessages(state.thread,false);}catch(error){console.warn('OFFRYA: fil de discussion indisponible',error);}
+  }
+  paintMessageBadges();
+  if($('inbox').classList.contains('active'))renderInbox();
+ })();
+ messagePollPromise=task;messagePollAccount=uid;
+ try{await task;}finally{if(messagePollPromise===task){messagePollPromise=null;messagePollAccount=null;}}
+}
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
@@ -62,7 +171,7 @@ async function refresh(){
  if(!state.db){state.loaded=true;render();return;}
  if(!state.session){
   state.draft=null;state.proStep=1;state.proStepUserId=null;
-  state.missions=[];state.profile=null;state.conversations=[];state.messages=[];
+  state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.messageHeaders=[];state.messageUnreadCount=0;
   state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;
   state.subscription=null;state.testPremiumUntil=null;state.opportunityPrefs=null;state.tenderTracking=[];state.opportunityAlerts=[];state.salesTracking=[];state.manualIdentity=null;state.boamp=[];
   state.priorityAlerts=[];state.lastPriorityIds=null;state.loaded=true;render();return;
@@ -71,7 +180,7 @@ async function refresh(){
  // Never expose a previous account's cached private rows during account switches.
  if(state.currentUserId!==uid){
   state.currentUserId=uid;state.missions=[];state.profile=null;state.premium=null;state.subscription=null;state.testPremiumUntil=null;
-  state.conversations=[];state.messages=[];state.prefs=null;state.opportunityPrefs=null;state.tenderTracking=[];state.opportunityAlerts=[];state.salesTracking=[];state.profiles=[];state.favorites=[];
+  state.conversations=[];state.messages=[];state.messageHeaders=[];state.messageUnreadCount=0;messageKnownAccount=null;messageKnownIds=null;state.prefs=null;state.opportunityPrefs=null;state.tenderTracking=[];state.opportunityAlerts=[];state.salesTracking=[];state.profiles=[];state.favorites=[];
   state.draft=null;state.manualIdentity=null;state.priorityAlerts=[];state.loaded=false;
  }
  // Load the owner's missions first. RLS also independently enforces ownership.
@@ -140,6 +249,7 @@ async function refresh(){
  if(state.proStepUserId!==uid){state.proStepUserId=uid;state.proStep=Math.max(1,Math.min(3,Number(state.draft?.step||1)));}
  if(state.thread&&!state.conversations.find(x=>x.id===state.thread))state.thread=null;
  if(state.thread)try{await loadMessages(state.thread,false);}catch(error){console.warn('OFFRYA: messages unavailable',error);}
+ try{await loadMessageNotifications();}catch(error){console.warn('OFFRYA: unread notifications unavailable',error);}
  try{await loadPriorityAlerts(false);}catch(error){console.warn('OFFRYA: priority alerts unavailable',error);}
  state.loaded=true;
  render();
@@ -194,7 +304,7 @@ function renderMissions(){
 }
 function renderInbox(){
  const items=state.conversations;
- $('conversationList').innerHTML=items.length?items.map(c=>{const mine=c.client_id===state.session?.user.id;const contact=profileName(mine?c.professional_id:c.client_id);const selected=state.thread===c.id;return `<button type="button" class="conv-item offrya-conversation ${selected?'selected':''}" data-thread="${esc(c.id)}" aria-pressed="${selected}"><span class="offrya-conversation-icon" aria-hidden="true">${mine?'P':'D'}</span><span class="offrya-conversation-body"><strong>${esc(titleForMission(c.mission_id))}</strong><small>${mine?'Professionnel':'Demandeur'} : ${esc(contact)}</small><time datetime="${esc(c.created_at)}">Discussion ouverte le ${date(c.created_at)}</time></span><span class="offrya-conversation-chevron" aria-hidden="true">›</span></button>`;}).join(''):'<div class="empty">Aucune conversation pour le moment. Retrouvez vos échanges ici après une prise de contact au sujet d’une mission.</div>';
+ $('conversationList').innerHTML=items.length?items.map(c=>{const mine=c.client_id===state.session?.user.id;const contact=profileName(mine?c.professional_id:c.client_id);const selected=state.thread===c.id,unread=messageUnread().byThread.get(c.id)||0;return `<button type="button" class="conv-item offrya-conversation ${selected?'selected':''} ${unread?'has-unread':''}" data-thread="${esc(c.id)}" aria-pressed="${selected}"><span class="offrya-conversation-icon" aria-hidden="true">${mine?'P':'D'}</span><span class="offrya-conversation-body"><strong>${esc(titleForMission(c.mission_id))}</strong><small>${mine?'Professionnel':'Demandeur'} : ${esc(contact)}</small><time datetime="${esc(c.created_at)}">Discussion ouverte le ${date(c.created_at)}</time></span>${unread?'<span class="message-thread-badge" aria-label="'+unread+' message(s) non lu(s)">'+(unread>99?'99+':unread)+'</span>':''}<span class="offrya-conversation-chevron" aria-hidden="true">›</span></button>`;}).join(''):'<div class="empty">Aucune conversation pour le moment. Retrouvez vos échanges ici après une prise de contact au sujet d’une mission.</div>';
  $('messageForm').querySelector('button').disabled=!state.thread;
  const activeConversation=items.find(c=>c.id===state.thread);
  $('threadTitle').textContent=activeConversation?titleForMission(activeConversation.mission_id):'Sélectionnez une discussion';
@@ -578,7 +688,7 @@ function render(){
  $('roleCompanyVerifiedText').textContent=state.testPremiumUntil?'Accès de test temporaire':eligiblePro?'✓ Compte vérifié':'Vérification en cours';
  $('roleAvailableCount').textContent=state.missions.filter(m=>m.status==='open').length;
  $('roleOwnCount').textContent=state.conversations.filter(x=>x.professional_id===state.session?.user?.id).length;
- $('roleConversationCount').textContent=state.conversations.length;
+ $('roleConversationCount').textContent=state.messageUnreadCount||0;
  $('roleAlertCount').textContent=state.priorityAlerts?.length||0;
 
 
@@ -595,10 +705,15 @@ $('homePrivateDashboard').classList.toggle('hidden',!yes);$('statOpenLabel').tex
  ]){
   try{draw();}catch(error){console.error('OFFRYA: rendu '+name+' indisponible',error);}
  }
+ paintMessageBadges();
 }
 async function loadMessages(id,doRender=true){
  const r=await state.db.from('offrya_messages').select('*').eq('conversation_id',id).order('created_at',{ascending:true}).limit(200);
- if(r.error)throw r.error;state.messages=r.data||[];if(doRender){renderInbox();tab('inbox');}
+ if(r.error)throw r.error;
+ if(id!==state.thread||!state.session)return;
+ state.messages=r.data||[];
+ acknowledgeConversation(id,state.messages);
+ if(doRender){renderInbox();tab('inbox');}
 }
 $('missionSearch').onclick=renderMissions;
 $('missionRefresh').onclick=async()=>{
@@ -669,11 +784,26 @@ async function init(){
  // Updates after another user publishes a mission, without exposing listings
  // to visitors or unsubscribed accounts. Also refreshes on returning to Android.
  const refreshOnReturn=()=>{
-  if(!document.hidden&&state.session&&state.loaded)
+  if(!document.hidden&&state.session&&state.loaded){
    refreshLiveMissions().catch(error=>console.warn('OFFRYA: mission sync unavailable',error));
+   loadMessageNotifications().catch(error=>console.warn('OFFRYA: message sync unavailable',error));
+  }
  };
  document.addEventListener('visibilitychange',refreshOnReturn);
  window.addEventListener('focus',refreshOnReturn);
+ window.addEventListener('storage',event=>{
+  const uid=state.session?.user?.id;
+  if(!uid||event.key!==messageReadKey(uid))return;
+  messageReadAccount=null;
+  paintMessageBadges();
+  if($('inbox').classList.contains('active'))renderInbox();
+ });
+ // In-app polling works without requiring browser push permissions or a
+ // Supabase Realtime publication for the private messages table.
+ setInterval(()=>{
+  if(state.session&&state.loaded&&!document.hidden)
+   loadMessageNotifications().catch(error=>console.warn('OFFRYA: notifications messages indisponibles',error));
+ },20000);
  setInterval(()=>{
   if(state.session&&state.loaded&&!document.hidden&&
     ($('missions').classList.contains('active')||$('professional').classList.contains('active')))

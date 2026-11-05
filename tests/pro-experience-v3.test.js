@@ -18,7 +18,8 @@ test('Approved nine-view navigation and existing protected modules',()=>{
  assert.match(js,/canUsePremium\(\)/);
  assert.match(js,/state\.missions/);
  assert.match(js,/state\.opportunityPrefs/);
- assert.match(js,/state\.conversations/);
+ assert.match(js,/state\.messageUnreadCount/);
+ assert.match(app,/state\.conversations/);
  assert.match(js,/appendChild\(\$\('opWatchDetails'\)\)/);
  assert.match(js,/appendChild\(document\.querySelector\('#proDashboard \.sales-workspace'\)\)/);
  assert.match(js,/if\(openProposal&&openProposal\(id\)\)\{show\('assistant'\);return;\}/);
