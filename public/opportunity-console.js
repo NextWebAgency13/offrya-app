@@ -7,6 +7,7 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
  const search={Nettoyage:'nettoyage', 'Espaces verts':'espaces verts',Bâtiment:'travaux',Informatique:'informatique',Transport:'transport','Restauration & Hôtellerie':'restauration','Bien-être & Beauté':'beauté',Autre:''};
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\x27':'&#39;'}[c]));
  let ready=false,loadedUser=null,lastSearch=0,searching=false,tenders=[],scanError=null,previousFingerprint='',refreshInProgress=false,watchRevision=0;
+ let hydratedPreferencesVersion='',watchFormDirty=false,watchSaving=false;
  let activeView='missions';
  function selectView(view){
   if(view!=='missions'&&view!=='tenders')return;
@@ -40,13 +41,25 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
  function render(){
   if(!$('opWatchForm')||!canUsePremium())return;
   const uid=current();
-  if(uid!==loadedUser){loadedUser=uid;ready=false;lastSearch=0;previousFingerprint='';tenders=[];watchRevision++;}
+  if(uid!==loadedUser){
+   loadedUser=uid;ready=false;lastSearch=0;previousFingerprint='';tenders=[];watchRevision++;
+   hydratedPreferencesVersion='';watchFormDirty=false;watchSaving=false;
+   // Never keep the previous user's selections visible on an account switch.
+   const form=$('opWatchForm');
+   form.elements.department.value='';form.elements.keywords.value='';
+   for(const c of $('opSectorChoices').querySelectorAll('input'))c.checked=false;
+  }
   const p=prefs();
-  if(!ready){
+  // Optional Supabase preferences arrive AFTER the initial Premium screen.
+  // Rehydrate once their contents change, without erasing unsaved form edits.
+  const version=JSON.stringify([uid,p.sectors||[],p.department||'',p.keywords||'',p.updated_at||'']);
+  if((!ready||version!==hydratedPreferencesVersion)&&!watchFormDirty&&!watchSaving){
    const form=$('opWatchForm');
    form.elements.department.value=p.department||'';
    form.elements.keywords.value=p.keywords||'';
-   for(const c of $('opSectorChoices').querySelectorAll('input'))c.checked=Boolean(p.sectors?.includes(c.value));
+   for(const c of $('opSectorChoices').querySelectorAll('input'))
+    c.checked=Boolean(p.sectors?.includes(c.value));
+   hydratedPreferencesVersion=version;
    ready=true;
   }
   const ms=missions();
@@ -135,21 +148,40 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
   }
  }
  async function saveWatch(event){
-  event.preventDefault();if(!canUsePremium())return;
-  const f=event.currentTarget,p={user_id:current(),
+  event.preventDefault();if(!canUsePremium()||watchSaving)return;
+  const user=current(),f=event.currentTarget,p={user_id:user,
    sectors:[...$('opSectorChoices').querySelectorAll('input:checked')].map(x=>x.value).filter(x=>sectors.includes(x)),
    department:f.elements.department.value.trim().toUpperCase(),keywords:f.elements.keywords.value.trim(),
    alerts_enabled:true,updated_at:new Date().toISOString()};
-  if(p.department&&!/^(0[1-9]|[1-8][0-9]|9[0-5]|2A|2B|97[1-6])$/.test(p.department)){notify('Indiquez un département valide ou laissez vide.');return;}
-  const result=await state.db.from('offrya_opportunity_preferences').upsert(p,{onConflict:'user_id'});
-  if(result.error){notify('Préférences non enregistrées.');console.warn(result.error);return;}
-  state.opportunityPrefs=p;watchRevision++;lastSearch=0;previousFingerprint='';
-  $('opWatchFeedback').textContent='Critères enregistrés. Actualisation du radar et recherche BOAMP en cours…';
-  // Notify the Premium radar immediately; a normal rerender of this console
-  // alone never invalidated its independent 5-minute matching cache.
-  document.dispatchEvent(new CustomEvent('offrya:preferences-updated',{detail:{userId:current()}}));
-  render();notify('Critères enregistrés. Actualisation des opportunités en cours.');
+  if(p.department&&!/^(0[1-9]|[1-8][0-9]|9[0-5]|2A|2B|97[1-6])$/.test(p.department)){
+   notify('Indiquez un département valide ou laissez vide.');return;
+  }
+  const submit=f.querySelector('button[type="submit"]');
+  watchSaving=true;if(submit)submit.disabled=true;
+  $('opWatchFeedback').textContent='Enregistrement de vos critères…';
+  try{
+   const result=await state.db.from('offrya_opportunity_preferences')
+    .upsert(p,{onConflict:'user_id'}).select('*').single();
+   if(current()!==user)return;
+   if(result.error)throw result.error;
+   // Read the persisted values returned by PostgREST, not the temporary input.
+   state.opportunityPrefs=result.data||p;
+   watchFormDirty=false;hydratedPreferencesVersion='';ready=false;
+   watchRevision++;lastSearch=0;previousFingerprint='';
+   $('opWatchFeedback').textContent='Critères enregistrés. Actualisation du radar et recherche BOAMP en cours…';
+   document.dispatchEvent(new CustomEvent('offrya:preferences-updated',{detail:{userId:user}}));
+   notify('Critères enregistrés. Actualisation des opportunités en cours.');
+  }catch(error){
+   if(current()!==user)return;
+   console.warn('OFFRYA : préférence de veille non enregistrée',error);
+   $('opWatchFeedback').textContent='Enregistrement impossible. Vos modifications ne sont pas enregistrées.';
+   notify('Préférences non enregistrées. Réessayez.');
+  }finally{
+   watchSaving=false;if(submit)submit.disabled=false;
+   if(current()===user&&canUsePremium())render();
+  }
  }
+
  async function trackTender(t){
   if(!canUsePremium())return;
   const record={user_id:current(),tender_id:t.id,title:String(t.title).slice(0,500),url:t.url,stage:'saved',updated_at:new Date().toISOString()};
@@ -173,7 +205,15 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
   });
   $('opGoMessages')?.addEventListener('click',()=>tab('inbox'));
   document.addEventListener('offrya:ranking-updated',()=>{if(canUsePremium())renderAlerts();});
-  $('opWatchForm')?.addEventListener('submit',saveWatch);
+  const form=$('opWatchForm');
+  const markUnsaved=()=>{
+   if(!canUsePremium()||watchSaving)return;
+   watchFormDirty=true;
+   $('opWatchFeedback').textContent='Modifications non enregistrées. Cliquez sur Enregistrer pour les conserver.';
+  };
+  form?.addEventListener('input',markUnsaved);
+  form?.addEventListener('change',markUnsaved);
+  form?.addEventListener('submit',saveWatch);
   $('opTenderRefresh')?.addEventListener('click',()=>refreshTenders());
   $('opAllMissions')?.addEventListener('click',()=>tab('missions'));
   $('opAllTenders')?.addEventListener('click',()=>tab('boamp'));
