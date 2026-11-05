@@ -42,16 +42,18 @@ test('Android preserves secondary actions in the account menu and primary commer
  assert.match(parity,/body\.offrya-pro-v3 #proV3AccountTools\{display:grid!important\}/);
  assert.match(proCss,/body\.offrya-pro-v3 #proExperienceV3 \.pro-v3-primary-tabs\{display:none!important\}/);
  assert.doesNotMatch(pro,/\x27<nav class="pro-v3-primary-tabs"/);
- assert.match(parity,/body\.offrya-pro-v3 \.pro-v3-search\{height:48px/);
+ assert.doesNotMatch(pro,/proV3Search|proV3SearchInput/,'No premium-wide search in Android or desktop');
 });
 
-test('Mission search is shared between desktop, Android and the existing secure mission feed',()=>{
- assert.match(pro,/\.querySelector\('\[data-pro-panel="home"\]'\)\.before\(search\)/);
- assert.doesNotMatch(pro,/header\.querySelector\('\.header-left'\)\.after\(search\)/);
- assert.match(pro,/search\.addEventListener\('submit'/);
- assert.match(pro,/\$\('missionQuery'\)\.value=\$\('proV3SearchInput'\)\.value/);
- assert.match(parity,/body\.offrya-pro-v3 \.pro-v3-search\{\s*display:flex!important/);
- assert.match(parity,/body\.offrya-pro-v3 \.pro-v3-search input\{font-size:16px\}/);
+test('Premium has no redundant global search; secure mission and BOAMP filters still work',()=>{
+ assert.doesNotMatch(pro,/proV3Search|proV3SearchInput|\.before\(search\)/);
+ assert.doesNotMatch(proCss,/\.pro-v3-search|#proV3Search/);
+ assert.match(html,/id="missionQuery"/);
+ assert.match(html,/id="boampKeyword"/);
+ assert.match(html,/id="boampSearch"/);
+ assert.match(pro,/placeMarketSearch\(\)/);
+ assert.match(pro,/\$\('proAiSort'\)\.addEventListener\('change'/);
+ assert.match(pro,/radarSort=e\.target\.value;recommendations\(\)/);
  assert.match(parity,/@media\(min-width:621px\) and \(max-width:930px\)/);
 });
 

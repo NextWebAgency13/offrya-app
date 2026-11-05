@@ -1,7 +1,6 @@
 /* Keep the new navigation absent for client/unverified sessions. */
 body:not(.offrya-pro-v3) #proV3Sidebar,
-body:not(.offrya-pro-v3) #proV3SidePlan,
-body:not(.offrya-pro-v3) #proV3Search{display:none!important}
+body:not(.offrya-pro-v3) #proV3SidePlan{display:none!important}
 /* OFFRYA Pro V3 — approved plum/violet dashboard. Applies only to eligible Pro UI. */
 body.offrya-pro-v3{
  --v3-plum:#271040;--v3-plum-deep:#200c35;--v3-purple:#7d35da;
@@ -40,10 +39,6 @@ body.offrya-pro-v3 .header-heading h1{color:#2d1743;font-size:17px}
 body.offrya-pro-v3 .header .overline{color:#9353d4}
 body.offrya-pro-v3 .header-actions .live-dot{display:none}
 body.offrya-pro-v3 .header .account-menu summary{background:#f0e9fc}
-body.offrya-pro-v3 .pro-v3-search{display:flex;align-items:center;min-width:190px;max-width:590px;width:100%;height:42px;flex:1;border-radius:25px;background:#f8f5fc;border:1px solid #e6daf1;overflow:hidden}
-body.offrya-pro-v3 .pro-v3-search input{min-width:0;width:100%;height:100%;border:0;outline:none;background:transparent;padding:0 16px;color:#39254a;font-size:12px}
-body.offrya-pro-v3 .pro-v3-search button{height:35px;width:40px;flex:none;display:grid;place-items:center;border:0;border-radius:18px;margin-right:4px;background:linear-gradient(130deg,#8c40ed,#6126bb);color:white;cursor:pointer}
-body.offrya-pro-v3 .pro-v3-search button svg{height:18px;width:18px}
 body.offrya-pro-v3 .app-shell .main-content{max-width:1820px;padding:24px 30px 85px}
 body.offrya-pro-v3 #professional{margin:0}
 body.offrya-pro-v3 #proWorkspace.op-dashboard-active,
@@ -151,7 +146,6 @@ body.offrya-pro-v3 :is(#boamp,#inbox,#settings,#missions)>.section-top h2{color:
 body.offrya-pro-v3 :is(#boamp,#inbox,#settings,#missions)>.panel,
 body.offrya-pro-v3 :is(#boamp,#inbox,#settings,#missions) .panel{border-color:var(--v3-border);border-radius:17px;background:white}
 body.offrya-pro-v3 :is(#boamp,#inbox,#settings,#missions) .button.primary{background:linear-gradient(105deg,#8b3cdd,#6127c7);border-color:transparent}
-body.offrya-pro-v3 .pro-v3-search .sr-only{position:absolute;width:1px;height:1px;clip:rect(0,0,0,0);overflow:hidden}
 
 @media(max-width:1180px){
  body.offrya-pro-v3 .app-shell{grid-template-columns:233px minmax(0,1fr)}
@@ -188,7 +182,6 @@ body.offrya-pro-v3 .pro-v3-search .sr-only{position:absolute;width:1px;height:1p
  body.offrya-pro-v3 .mobile-brand{color:#fff}
  body.offrya-pro-v3 .header .header-shortcut{color:#fff;background:#ffffff20;border:0}
  body.offrya-pro-v3 .app-shell .main-content{padding:16px 13px 35px}
- body.offrya-pro-v3 .pro-v3-search{display:none}
  body.offrya-pro-v3 .pro-v3-mobile-menu{display:flex;gap:7px;overflow-x:auto;padding:4px 0 13px;scrollbar-width:none;scroll-snap-type:x proximity}
  body.offrya-pro-v3 .pro-v3-mobile-menu::-webkit-scrollbar{display:none}
  body.offrya-pro-v3 .pro-v3-mobile-menu .pro-v3-nav-btn{width:auto;white-space:nowrap;flex:none;min-height:36px;padding:9px 12px;border:1px solid #e5d7f4;border-radius:19px;background:white;color:#583c6f;font-size:11px;scroll-snap-align:start}
@@ -375,9 +368,6 @@ body.offrya-pro-v3 .pro-v3-side-plan{margin:30px 5px 0;border:1px solid #9b64bc8
 body.offrya-pro-v3 .pro-v3-side-plan button{background:linear-gradient(100deg,#e8c9ff,#b66bfb);border-radius:10px;color:#2c1640;padding:12px 10px;text-align:center;margin-top:10px}
 body.offrya-pro-v3 .app-shell .header{height:72px;background:#fff;border-bottom:1px solid #ebe3f4;padding:0 30px}
 body.offrya-pro-v3 .header-heading h1{font-size:20px;letter-spacing:-.6px}
-body.offrya-pro-v3 .pro-v3-search{height:44px;border-radius:15px;max-width:630px;background:#faf8ff;border-color:#dcd0f2;box-shadow:0 0 0 1px #eeebf9}
-body.offrya-pro-v3 .pro-v3-search input{font-size:13px}
-body.offrya-pro-v3 .pro-v3-search button{border-radius:12px;height:36px;width:40px}
 body.offrya-pro-v3 .app-shell .main-content{max-width:none;padding:25px clamp(16px,2.1vw,35px) 70px;background:linear-gradient(180deg,#fcfaff 0%,#faf7ff 50%,#f9f6fd 100%)}
 body.offrya-pro-v3 .pro-v3-intro{position:relative;min-height:100px;overflow:hidden;padding:17px 22px;border-radius:24px;margin:-6px -2px 15px;background:radial-gradient(ellipse 45% 145% at 75% 9%,#e6d2ffb9 0%,transparent 72%),linear-gradient(115deg,#fbf8ff,#f5effe)}
 body.offrya-pro-v3 .pro-v3-intro h2{font-size:clamp(26px,2.3vw,34px);letter-spacing:-1.25px}
@@ -525,8 +515,7 @@ body.offrya-pro-v3 .pro-v3-nav-btn:focus-visible{outline:3px solid #a45fe4;outli
    Eligible professionals retain their account navigation outside Espace pro,
    instead of seeing "Tableau de bord" on a Pro sidebar alongside personal data. */
 body.offrya-pro-v3:not(.offrya-pro-workspace) #proV3Sidebar,
-body.offrya-pro-v3:not(.offrya-pro-workspace) #proV3SidePlan,
-body.offrya-pro-v3:not(.offrya-pro-workspace) #proV3Search{display:none!important}
+body.offrya-pro-v3:not(.offrya-pro-workspace) #proV3SidePlan{display:none!important}
 @media(min-width:621px){
  body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar .workspace-label{display:block!important;color:#d9bae9}
  body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar #nav{display:flex!important;flex-direction:column;gap:6px;margin-top:12px}
@@ -714,20 +703,6 @@ body.offrya-pro-v3 .header .account-menu .avatar{
  background:#70409c;color:#fff;border-color:#e3c9fb;
 }
 body.offrya-pro-v3 #proV3SidebarExtras{display:none!important}
-body.offrya-pro-v3 .pro-v3-search{
- display:flex!important;width:100%;max-width:100%;height:48px;min-width:0;
- margin:0 0 18px;flex:none;border-radius:13px;background:#fff;
- border:1px solid #e5dcef;box-shadow:0 4px 13px #30144208;
-}
-body.offrya-pro-v3 .pro-v3-search input{
- min-width:0;flex:1;font-size:14px;
-}
-body.offrya-pro-v3 .pro-v3-search button{
- height:40px;width:46px;margin-right:4px;
-}
-body.offrya-pro-v3 .pro-v3-search:focus-within{
- border-color:#8848d2;box-shadow:0 0 0 3px #8848d223;
-}
 @media(min-width:621px){
  body.offrya-pro-v3.offrya-pro-workspace .app-shell .sidebar{
   background:#351045!important;border-right:1px solid #5c3170!important;
@@ -754,7 +729,6 @@ body.offrya-pro-v3 .pro-v3-search:focus-within{
   font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;
  }
  body.offrya-pro-v3 .pro-v3-primary-tabs{display:none!important}
- body.offrya-pro-v3 .pro-v3-search{margin-top:2px}
 }
 @media(min-width:621px) and (max-width:930px){
  body.offrya-pro-v3.offrya-pro-workspace .app-shell{
@@ -772,9 +746,6 @@ body.offrya-pro-v3 .pro-v3-search:focus-within{
 }
 @media(max-width:620px){
  body.offrya-pro-v3 .app-shell .header{height:76px}
- body.offrya-pro-v3 .pro-v3-search{height:48px;margin-bottom:14px}
- body.offrya-pro-v3 .pro-v3-search input{font-size:16px}
- body.offrya-pro-v3 .pro-v3-search button{height:40px;width:46px}
  body.offrya-pro-v3 .pro-v3-primary-tabs{display:grid}
  body.offrya-pro-v3 .pro-v3-primary-tabs .pro-v3-nav-btn{min-height:64px}
  body.offrya-pro-v3 #proV3AccountTools{display:grid!important}
@@ -873,11 +844,6 @@ body.offrya-pro-v3 .pro-v3-search:focus-within{
   display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
   font-size:14px!important;min-height:70px!important;white-space:normal!important;
  }
- body.offrya-pro-v3 .pro-v3-search{
-  display:flex!important;max-width:100%!important;min-width:0!important;
-  height:52px!important;margin:0 0 16px!important;
- }
- body.offrya-pro-v3 .pro-v3-search input{font-size:18px!important}
  body.offrya-pro-v3 #proV3AccountTools{display:grid!important}
  body.offrya-pro-v3 .pro-v3-radar-row{
   display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:12px!important;
@@ -1484,5 +1450,38 @@ body.offrya-pro-v3 .pro-ai-criteria-chip--overflow{
   padding:6px 10px;
   gap:5px;
   font-size:11px;
+ }
+}
+
+
+/* OFFRYA Premium — approved mobile layout without the redundant top search.
+   The first visible block is the welcome card. Keep the radar and real offers. */
+body.offrya-pro-v3 #proExperienceV3 > [data-pro-panel="home"]{
+ min-width:0;
+ margin:0;
+ padding:0;
+}
+body.offrya-pro-v3 #proExperienceV3 .pro-ai-welcome{
+ margin-top:0;
+}
+@media(max-width:620px){
+ body.offrya-pro-v3 #proExperienceV3 .pro-ai-heading{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  align-items:start;
+  row-gap:9px;
+ }
+ body.offrya-pro-v3 #proExperienceV3 .pro-ai-heading h3{
+  min-width:0;
+  overflow-wrap:anywhere;
+ }
+ body.offrya-pro-v3 #proExperienceV3 .pro-ai-toolbar{
+  justify-self:end;
+  margin-left:0;
+  max-width:100%;
+ }
+ body.offrya-pro-v3 #proExperienceV3 .pro-ai-results{
+  min-width:0;
+  padding-bottom:0;
  }
 }
