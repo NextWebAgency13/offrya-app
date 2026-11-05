@@ -175,7 +175,7 @@ export function createSalesWorkspace({state,element,canUsePremium,tab,notify,ref
   $('salesRequestsList')?.addEventListener('click',openLead);
   $('salesTrackingList')?.addEventListener('click',openLead);
   $('salesAssistantContent')?.addEventListener('click',e=>{
-   if(e.target.closest('[data-sales-back]')){if(onNavigate)onNavigate('requests');else switchView('requests');return;}
+   if(e.target.closest('[data-sales-back]')){if(onNavigate)onNavigate('back');else switchView('requests');return;}
    if(e.target.closest('[data-sales-copy]')){const text=$('salesDraftText')?.value||'';if(!text)return;navigator.clipboard?.writeText(text).then(()=>notify('Réponse copiée.')).catch(()=>notify('Copie indisponible.'));return;}
    if(e.target.closest('[data-sales-generate]')){generate();return;}
    if(e.target.closest('[data-sales-send]'))send();
