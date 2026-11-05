@@ -88,10 +88,22 @@ function acknowledgeConversation(conversationId,messages){
 async function loadMessageNotifications(){
  const uid=state.session?.user?.id;
  if(!uid||!state.db)return;
- const ids=(state.conversations||[]).map(c=>c.id).filter(Boolean);
- if(!ids.length){state.messageHeaders=[];paintMessageBadges();return;}
  if(messagePollPromise&&messagePollAccount===uid)return messagePollPromise;
  const task=(async()=>{
+  // New conversations must be discovered too, or a first message would never
+  // generate a notification until a full dashboard refresh.
+  const conversations=await state.db.from('offrya_conversations')
+   .select('*').order('created_at',{ascending:false}).limit(100);
+  if(conversations.error)throw conversations.error;
+  if(uid!==state.session?.user?.id||uid!==state.currentUserId)return;
+  state.conversations=conversations.data||[];
+  const ids=state.conversations.map(c=>c.id).filter(Boolean);
+  if(state.thread&&!ids.includes(state.thread)){state.thread=null;state.messages=[];}
+  if(!ids.length){
+   state.messageHeaders=[];paintMessageBadges();
+   if($('inbox').classList.contains('active'))renderInbox();
+   return;
+  }
   const result=await state.db.from('offrya_messages')
    .select('id,conversation_id,sender_id,created_at')
    .in('conversation_id',ids).order('created_at',{ascending:false}).limit(500);
@@ -772,11 +784,26 @@ async function init(){
  // Updates after another user publishes a mission, without exposing listings
  // to visitors or unsubscribed accounts. Also refreshes on returning to Android.
  const refreshOnReturn=()=>{
-  if(!document.hidden&&state.session&&state.loaded)
+  if(!document.hidden&&state.session&&state.loaded){
    refreshLiveMissions().catch(error=>console.warn('OFFRYA: mission sync unavailable',error));
+   loadMessageNotifications().catch(error=>console.warn('OFFRYA: message sync unavailable',error));
+  }
  };
  document.addEventListener('visibilitychange',refreshOnReturn);
  window.addEventListener('focus',refreshOnReturn);
+ window.addEventListener('storage',event=>{
+  const uid=state.session?.user?.id;
+  if(!uid||event.key!==messageReadKey(uid))return;
+  messageReadAccount=null;
+  paintMessageBadges();
+  if($('inbox').classList.contains('active'))renderInbox();
+ });
+ // In-app polling works without requiring browser push permissions or a
+ // Supabase Realtime publication for the private messages table.
+ setInterval(()=>{
+  if(state.session&&state.loaded&&!document.hidden)
+   loadMessageNotifications().catch(error=>console.warn('OFFRYA: notifications messages indisponibles',error));
+ },20000);
  setInterval(()=>{
   if(state.session&&state.loaded&&!document.hidden&&
     ($('missions').classList.contains('active')||$('professional').classList.contains('active')))
