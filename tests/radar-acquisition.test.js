@@ -42,8 +42,8 @@ test('The radar is displayed only behind the existing pro authorization and can 
  assert.match(pro,/import \{buildRadar\} from '\.\/radar\.js'/);
  assert.match(pro,/if\(!panel\|\|!canUsePremium\(\)\)return/);
  assert.match(pro,/missions:available\(\),alerts:state\.opportunityAlerts\|\|\[\]/);
- assert.match(pro,/proV3RadarRelevant/);
- assert.match(pro,/Score indicatif de correspondance/);
+ assert.match(pro,/proV3RadarSummary/);
+ assert.match(pro,/Les scores sont indicatifs/);
  assert.match(server,/\['\/radar\.js','text\/javascript/);
  assert.doesNotMatch(radarSource,/fetch\(|sendMail|smtp|authorization|stripe|openai/);
  const parsed=spawnSync(process.execPath,['--input-type=module','--check'],{input:radarSource,encoding:'utf8'});

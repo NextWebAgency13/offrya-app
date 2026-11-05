@@ -73,6 +73,6 @@ test('New client-side feed is syntactically valid, only served as an import and 
  assert.match(app,/window\.addEventListener\('focus',refreshOnReturn\)/);
  assert.match(app,/\},30000\)/);
  assert.match(app,/if\(\(name==='missions'\|\|name==='professional'\)\&\&state\.loaded\&\&state\.session\)/);
- assert.match(pro,/Voir toutes les missions/);
+ assert.match(pro,/data-refresh-radar/);
  assert.doesNotMatch(source,/service_role|secret|supabaseKey|authorization|Bearer|create policy/);
 });

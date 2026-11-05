@@ -248,7 +248,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    section.hidden=!on;section.classList.toggle('active',on);
   }
   $('proV3FollowupSlot').hidden=next!=='tracking';
-  $('proV3TrackingActivity').hidden=next!=='tracking';
+  if($('proV3TrackingActivity'))$('proV3TrackingActivity').hidden=next!=='tracking';
   const headings={
    requests:['Demandes de missions','Consultez les demandes réelles accessibles à votre compte professionnel.'],
    assistant:['Assistant IA OFFRYA','Préparez des réponses modifiables et validez chaque envoi avant transmission.'],
@@ -348,7 +348,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   placeMarketSearch();
   metrics();recommendations();activity();alerts();
   const commercial=['requests','assistant','tracking'].includes(view);
-  $('proV3TrackingActivity').hidden=view!=='tracking';
+  if($('proV3TrackingActivity'))$('proV3TrackingActivity').hidden=view!=='tracking';
   for(const section of $('proExperienceV3').querySelectorAll('[data-pro-panel]')){
    const on=section.dataset.proPanel===(commercial?'commercial':view);
    section.hidden=!on;

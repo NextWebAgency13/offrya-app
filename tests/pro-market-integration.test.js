@@ -20,11 +20,10 @@ test('Marchés publics appears as a real Pro subsection, with the original BOAMP
  assert.match(css,/#proV3BoampSlot #exportBoamp/);
 });
 test('Markets stay in their own Pro menu, outside dashboard quick actions and bottom tabs',()=>{
- const i=pro.indexOf('<div class="pro-v3-action-grid">'),j=pro.indexOf('</div>',i);
- const quick=pro.slice(i,j);
- assert.equal(quick.includes('data-pro-screen="boamp"'),false);
- assert.ok(quick.includes('data-pro-screen="requests"'));
- assert.match(css,/pro-v3-action-grid>\*:nth-child\(n\+3\)\{display:flex\}/);
+ const home=slice(pro,'data-pro-panel="home"','data-pro-panel="commercial"');
+ assert.doesNotMatch(home,/pro-v3-action-grid|Accès rapides|proV3MissionPreview/);
+ assert.match(home,/Radar des opportunités/);
+ assert.match(pro,/\['boamp','Marchés publics','ic-boamp'\]/);
  assert.match(css,/pro-v3-mobile-menu\{display:none!important\}/);
  assert.match(html,/data-tab="professional"/);
  assert.match(html,/class="nav-link" data-tab="boamp"/);
