@@ -460,7 +460,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    if(!canUsePremium())return;
    const route=window.location.pathname;
    if(route==='/espace/professionnel')show('home',true);
-   else if(route==='/espace/marches-publics')show('boamp',true);
+   else if(route==='/espace/marches-publics')show('home',true);
    else syncTab(route==='/espace'?'dashboard':route.includes('/missions')?'missions':route.includes('/messagerie')?'inbox':route.includes('/reglages')?'settings':'boamp');
   });
   const header=document.querySelector('.app-shell .header');
