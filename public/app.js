@@ -138,6 +138,52 @@ function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
 const paths={dashboard:'/espace',missions:'/espace/missions',boamp:'/espace/marches-publics',professional:'/espace/professionnel',inbox:'/espace/messagerie',settings:'/espace/reglages'};
 const pathsReverse=Object.fromEntries(Object.entries(paths).map(([name,p])=>[p,name]));
+// Only trusted data already returned through Supabase RLS can be opened through
+// a URL. Route state is presentation metadata, never an authorization grant.
+function authorizedMissionForRoute(id){
+ const mission=state.missions.find(m=>m.id===id);
+ if(!mission||!state.session)return null;
+ if(mission.owner_id===state.session.user.id)return mission;
+ if(!canUsePremium()||mission.status!=='open')return null;
+ if(mission.expires_at&&Date.parse(mission.expires_at)<=Date.now())return null;
+ return mission;
+}
+function rememberMissionRoute(id){
+ if(location.pathname!==paths.missions||!authorizedMissionForRoute(id))return;
+ const query=new URLSearchParams(location.search);
+ if(query.get('mission')===id)return;
+ query.set('mission',id);
+ history.pushState({tab:'missions',detailId:id},'',
+  paths.missions+'?'+query.toString());
+}
+function rememberConversationRoute(id){
+ if(location.pathname!==paths.inbox||!state.conversations.some(c=>c.id===id))return;
+ const query=new URLSearchParams(location.search);
+ if(query.get('conversation')===id)return;
+ query.delete('message');
+ query.set('conversation',id);
+ history.pushState({tab:'inbox',threadId:id},'',paths.inbox+'?'+query.toString());
+}
+function restoreContextualRoute(name){
+ if(name==='missions'){
+  const id=new URLSearchParams(location.search).get('mission');
+  const mission=id?authorizedMissionForRoute(id):null;
+  state.selectedMissionId=mission?mission.id:null;
+  tab('missions',true,Boolean(mission));renderMissions();
+  return;
+ }
+ if(name==='inbox'){
+  const id=new URLSearchParams(location.search).get('conversation');
+  const valid=id&&state.conversations.some(c=>c.id===id);
+  state.thread=valid?id:null;
+  if(!valid)state.messages=[];
+  tab('inbox',true);renderInbox();
+  if(valid)loadMessages(id,false).then(()=>{if(state.thread===id)renderInbox();})
+   .catch(error=>console.warn('OFFRYA: retour conversation indisponible',error));
+  return;
+ }
+ tab(name,true);
+}
 const PUSH_MESSAGE_UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 let pushNavigationReady=false,pendingPushOpen=null;
 function verifiedPushTarget(conversationId,messageId){
@@ -165,9 +211,12 @@ function tab(name,fromHistory=false,preserveMissionDetail=false){
  document.body.classList.toggle('offrya-pro-workspace',name==='professional');
  // Selecting the Missions tab means "show the list"; opening a specific card
  // explicitly preserves its detail. Other tabs never mutate this selection.
- if(name==='missions'&&!preserveMissionDetail&&state.selectedMissionId){
-  state.selectedMissionId=null;
-  renderMissions();
+ if(name==='missions'&&!preserveMissionDetail){
+  if(state.selectedMissionId){state.selectedMissionId=null;renderMissions();}
+  if(!fromHistory&&location.pathname===paths.missions&&new URLSearchParams(location.search).has('mission')){
+   const params=new URLSearchParams(location.search);params.delete('mission');
+   history.replaceState({tab:'missions'},'',paths.missions+(params.toString()?'?'+params.toString():''));
+  }
  }
  document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.id===name));
  document.querySelectorAll('.nav-link').forEach(el=>el.classList.toggle('active',el.dataset.tab===name||(name==='professional'&&canUsePremium()&&el.dataset.tab==='boamp')));
@@ -180,7 +229,7 @@ function tab(name,fromHistory=false,preserveMissionDetail=false){
  if((name==='missions'||name==='professional')&&state.loaded&&state.session)
   refreshLiveMissions().catch(error=>console.warn('OFFRYA: mission refresh unavailable',error));
 }
-window.addEventListener('popstate',()=>tab(pathsReverse[location.pathname]||'dashboard',true));
+window.addEventListener('popstate',()=>restoreContextualRoute(pathsReverse[location.pathname]||'dashboard'));
 for(const n of document.querySelectorAll('[data-tab]'))n.addEventListener('click',()=>tab(n.dataset.tab));
 for(const n of document.querySelectorAll('[data-role-deposit]'))n.addEventListener('click',()=>{
  if(!state.session?.user?.email_confirmed_at){toast('Confirmez votre adresse e-mail avant de publier une mission.');return;}
@@ -857,7 +906,7 @@ async function openPushConversation(target){
  }
  const params=new URLSearchParams({conversation:conversationId});
  if(messageId)params.set('message',messageId);
- history.replaceState({tab:'inbox'},'','/espace/messagerie?'+params.toString());
+ history.replaceState({tab:'inbox',threadId:conversationId},'','/espace/messagerie?'+params.toString());
  if(messageId){
   const bubble=Array.from($('messageList').querySelectorAll('[data-message-id]'))
    .find(el=>el.dataset.messageId===messageId);
@@ -872,7 +921,7 @@ async function loadMessages(id,doRender=true){
  if(id!==state.thread||!state.session)return;
  state.messages=r.data||[];
  acknowledgeConversation(id,state.messages);
- if(doRender){renderInbox();tab('inbox');}
+ if(doRender){renderInbox();tab('inbox');rememberConversationRoute(id);}
 }
 $('missionSearch').onclick=renderMissions;
 $('missionRefresh').onclick=async()=>{
@@ -897,6 +946,7 @@ $('roleRecentMissions').addEventListener('click',event=>{
  $('missionQuery').value='';$('missionCategory').value='';$('missionDept').value='';
  renderMissions();
  tab('missions',false,true);
+ rememberMissionRoute(mission.id);
  $('missionList').scrollIntoView({block:'start',behavior:'auto'});
 });
 $('missionScopes').addEventListener('click',event=>{
@@ -910,14 +960,29 @@ $('missionScopes').addEventListener('click',event=>{
 });
 $('missionList').onclick=async e=>{
  const btn=e.target.closest('[data-back-missions],[data-view-mission],[data-contact],[data-close-mission],[data-favorite]');if(!btn)return;
- if(btn.hasAttribute('data-back-missions')){state.selectedMissionId=null;renderMissions();return;}
- if(btn.hasAttribute('data-view-mission')){const id=btn.dataset.viewMission;const mission=state.missions.find(m=>m.id===id);if(!mission||!(mission.owner_id===state.session?.user?.id||(canUsePremium()&&mission.status==='open')))return;state.selectedMissionId=id;renderMissions();$('missionList').scrollIntoView({block:'start',behavior:'smooth'});return;}
+ if(btn.hasAttribute('data-back-missions')){
+  if(history.state?.detailId===state.selectedMissionId){history.back();return;}
+  state.selectedMissionId=null;
+  if(location.pathname===paths.missions){
+   const params=new URLSearchParams(location.search);params.delete('mission');
+   history.replaceState({tab:'missions'},'',paths.missions+(params.toString()?'?'+params.toString():''));
+  }
+  renderMissions();return;
+ }
+ if(btn.hasAttribute('data-view-mission')){const id=btn.dataset.viewMission;const mission=state.missions.find(m=>m.id===id);if(!mission||!(mission.owner_id===state.session?.user?.id||(canUsePremium()&&mission.status==='open')))return;state.selectedMissionId=id;renderMissions();rememberMissionRoute(id);$('missionList').scrollIntoView({block:'start',behavior:'smooth'});return;}
  if(btn.dataset.favorite){if(!requireAuth())return;const id=btn.dataset.favorite;try{const result=state.favorites.includes(id)?await state.db.from('offrya_favorites').delete().eq('user_id',state.session.user.id).eq('mission_id',id):await state.db.from('offrya_favorites').insert({user_id:state.session.user.id,mission_id:id});if(result.error)throw result.error;await refresh();toast(state.favorites.includes(id)?'Mission ajoutée aux favoris.':'Favori retiré.');}catch(err){showError(err);}return;}
  if(btn.dataset.closeMission){if(!confirm('Clôturer cette mission ? Elle ne sera plus visible dans les recherches, mais vos conversations resteront accessibles.'))return;try{const r=await state.db.rpc('offrya_close_mission',{p_id:btn.dataset.closeMission});if(r.error)throw r.error;await refresh();toast('Mission clôturée');}catch(err){showError(err);}return;}
  if(!requireRole('pro'))return;const mission=state.missions.find(m=>m.id===btn.dataset.contact);if(!mission)return;
  try{let c=state.conversations.find(c=>c.mission_id===mission.id&&c.professional_id===state.session.user.id);if(!c){const r=await state.db.from('offrya_conversations').insert({mission_id:mission.id,client_id:mission.owner_id,professional_id:state.session.user.id}).select().single();if(r.error){if(r.error.code==='23505'){await refresh();c=state.conversations.find(x=>x.mission_id===mission.id&&x.professional_id===state.session.user.id);}else throw r.error;}else c=r.data;}if(!c)throw Error('Discussion introuvable');state.thread=c.id;await loadMessages(c.id);await refresh();tab('inbox');}catch(err){showError(err);}
 };
-$('inboxBackToList').onclick=()=>{$('inbox').classList.remove('has-active-thread');};
+$('inboxBackToList').onclick=()=>{
+ state.thread=null;state.messages=[];
+ if(location.pathname===paths.inbox){
+  const params=new URLSearchParams(location.search);params.delete('conversation');params.delete('message');
+  history.replaceState({tab:'inbox'},'',paths.inbox+(params.toString()?'?'+params.toString():''));
+ }
+ renderInbox();
+};
 $('conversationList').onclick=async e=>{const btn=e.target.closest('[data-thread]');if(!btn)return;state.thread=btn.dataset.thread;renderInbox();try{await loadMessages(state.thread);}catch(err){showError(err);}};
 $('messageForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth()||!state.thread)return;const f=e.currentTarget,body=f.elements.body.value.trim();if(!body)return;try{const r=await state.db.from('offrya_messages').insert({conversation_id:state.thread,sender_id:state.session.user.id,body});if(r.error)throw r.error;f.reset();await loadMessages(state.thread);}catch(err){showError(err);}};
 $('preferencesForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget;const payload={user_id:state.session.user.id,missions_enabled:f.elements.missions_enabled.checked,messages_enabled:f.elements.messages_enabled.checked,department:f.elements.department.value.trim().toUpperCase(),category:f.elements.category.value};try{let r;if(state.prefs){delete payload.user_id;r=await state.db.from('offrya_alert_preferences').update(payload).eq('user_id',state.session.user.id);}else r=await state.db.from('offrya_alert_preferences').insert(payload);if(r.error)throw r.error;toast('Préférences enregistrées.');await refresh();}catch(err){showError(err);}};
@@ -1004,7 +1069,7 @@ async function init(){
   finally{tenderAlertRefresh=false;}
  },300000);
  const initialScreen=pathsReverse[location.pathname]||'dashboard';
- tab(initialScreen,true);
+ restoreContextualRoute(initialScreen);
  proExperience.syncTab(initialScreen);
  pushNavigationReady=true;
  const queryPush=new URLSearchParams(location.search);
@@ -1018,7 +1083,7 @@ async function init(){
   if(p.has('identity'))toast('Retour de Stripe Identity : consultez le statut de votre dossier.');
 }
 const opportunityConsole=createOpportunityConsole({state,element:$,canUsePremium,tab,renderMissions,notify:toast});
-const salesWorkspace=createSalesWorkspace({state,element:$,canUsePremium,tab,notify:toast,refresh,onNavigate:screen=>proExperience.show(screen)});
+const salesWorkspace=createSalesWorkspace({state,element:$,canUsePremium,tab,notify:toast,refresh,onNavigate:screen=>screen==='back'?proExperience.back():proExperience.show(screen)});
 const proExperience=createProExperience({state,element:$,canUsePremium,tab,renderMissions,loadMarkets:()=>loadBoamp(),notify:toast,openProposal:id=>salesWorkspace.openMission(id)});
 const pushNotifications=createPushNotifications({state,button:$('pushNotificationToggle'),status:$('pushNotificationStatus'),notify:toast});
 proExperience.init();opportunityConsole.init();salesWorkspace.init();
