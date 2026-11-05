@@ -446,3 +446,230 @@ body.offrya-reference-ui .role-ref-deposit-nav{display:none}
   gap:9px 15px!important;font-size:13px!important;
  }
 }
+
+
+/* OFFRYA / Mon compte — approved Android card composition.
+   Presentation only. Account, subscription and Push states remain authoritative. */
+body.offrya-reference-ui #settings{
+ --account-ink:#291139;
+ --account-deep:#321040;
+ --account-violet:#7922ce;
+ --account-line:#e7dff0;
+ color:var(--account-ink);
+}
+body.offrya-reference-ui #settings .section-top{
+ margin:0 0 24px;padding:0 4px;align-items:start;
+}
+body.offrya-reference-ui #settings .section-top h2{
+ font:850 clamp(27px,3vw,38px)/1.2 'Plus Jakarta Sans',sans-serif;
+ letter-spacing:-1.4px;color:var(--account-deep);
+ margin:7px 0 12px;
+}
+body.offrya-reference-ui #settings .section-top .eyebrow{
+ color:#7526c2;font:850 11px/1.3 'Plus Jakarta Sans',sans-serif;
+ letter-spacing:2.4px;
+}
+body.offrya-reference-ui #settings .section-top p:not(.eyebrow){
+ font-size:14px;line-height:1.6;color:#685674;max-width:670px;
+}
+body.offrya-reference-ui #settings .offrya-settings-card{
+ border:1px solid var(--account-line);border-radius:25px!important;
+ background:#fff;box-shadow:0 7px 26px #3110430d;
+ padding:28px 30px;margin:0 0 18px;
+}
+body.offrya-reference-ui #settings .account-setting-heading{
+ display:grid;grid-template-columns:64px minmax(0,1fr) auto;
+ gap:21px;align-items:center;min-width:0;
+}
+body.offrya-reference-ui #settings .account-setting-icon{
+ display:grid;place-items:center;width:64px;height:64px;flex:none;
+ border-radius:18px;background:linear-gradient(145deg,#f6edff,#ece0ff);
+ color:#62179d;box-shadow:0 5px 13px #4b19620b;
+}
+body.offrya-reference-ui #settings .account-setting-icon svg{width:36px;height:36px}
+body.offrya-reference-ui #settings .account-setting-heading>h3{
+ min-width:0;margin:0;padding-left:20px;border-left:1px solid #d8cde2;
+ color:var(--account-deep);
+ font:850 clamp(17px,1.8vw,23px)/1.24 'Plus Jakarta Sans',sans-serif;
+ letter-spacing:-.5px;
+}
+body.offrya-reference-ui #settings .push-notifications-settings{
+ display:block!important;min-height:172px;
+}
+body.offrya-reference-ui #settings #pushNotificationToggle.push-settings-switch{
+ position:relative;display:block;flex:none;width:71px;height:41px;min-height:41px;
+ border:1px solid #d3d5e1;border-radius:999px!important;
+ padding:3px;background:#c4cad9;box-shadow:inset 0 1px 2px #1d1b3311;
+ cursor:pointer;transition:background .15s,border-color .15s;
+}
+body.offrya-reference-ui #settings #pushNotificationToggle.push-settings-switch[aria-checked="true"]{
+ background:linear-gradient(120deg,#973fe0,#7125c0);border-color:#7125c0;
+}
+body.offrya-reference-ui #settings #pushNotificationToggle.push-settings-switch .push-settings-switch-thumb{
+ display:block;width:33px;height:33px;border-radius:50%;background:#fff;
+ box-shadow:0 2px 6px #23122a27;transform:translateX(0);
+ transition:transform .15s;
+}
+body.offrya-reference-ui #settings #pushNotificationToggle.push-settings-switch[aria-checked="true"] .push-settings-switch-thumb{
+ transform:translateX(30px);
+}
+body.offrya-reference-ui #settings #pushNotificationToggle.push-settings-switch:disabled{
+ opacity:.55;cursor:not-allowed;
+}
+body.offrya-reference-ui #settings #pushNotificationToggle.push-settings-switch:focus-visible{
+ outline:3px solid #f6a15e;outline-offset:4px;
+}
+body.offrya-reference-ui #settings .account-screen-reader-only{
+ position:absolute!important;width:1px!important;height:1px!important;padding:0!important;
+ margin:-1px!important;border:0!important;overflow:hidden!important;
+ clip:rect(0 0 0 0)!important;white-space:nowrap!important;
+}
+body.offrya-reference-ui #settings .account-billing-heading{
+ grid-template-columns:64px minmax(0,1fr);
+}
+body.offrya-reference-ui #settings .account-plan-heading{
+ min-width:0;padding-left:20px;border-left:1px solid #d8cde2;
+}
+body.offrya-reference-ui #settings .account-plan-heading h3{
+ margin:0 0 10px;color:var(--account-deep);
+ font:850 clamp(17px,1.8vw,23px)/1.27 'Plus Jakarta Sans',sans-serif;
+ letter-spacing:-.5px;
+}
+body.offrya-reference-ui #settings .account-plan-badge{
+ display:inline-flex;align-items:center;gap:7px;max-width:100%;
+ padding:5px 12px;border-radius:999px;background:#f0edf5;color:#654872;
+ font:800 12px/1.3 'Plus Jakarta Sans',sans-serif;
+}
+body.offrya-reference-ui #settings .account-plan-badge[data-status="test"],
+body.offrya-reference-ui #settings .account-plan-badge[data-status="paid"]{
+ background:#e4f8e9;color:#176a2e;
+}
+body.offrya-reference-ui #settings .account-plan-badge[data-status="test"]::before,
+body.offrya-reference-ui #settings .account-plan-badge[data-status="paid"]::before{
+ content:'✓';display:grid;place-items:center;background:#32b54c;color:#fff;
+ width:21px;height:21px;border-radius:50%;font-size:12px;
+}
+body.offrya-reference-ui #settings .account-plan-expiry{
+ margin:8px 0 0;color:#716382;font-size:13px;line-height:1.45;
+}
+body.offrya-reference-ui #settings .account-billing-divider{
+ height:1px;background:#eee5f1;margin:22px 0 18px;
+}
+body.offrya-reference-ui #settings .account-billing-description{
+ font-size:15px;line-height:1.55;color:#6c5b7d;margin:0 0 22px;
+}
+body.offrya-reference-ui #settings #accountBillingPortal.account-billing-cta{
+ display:flex;width:100%;gap:12px;align-items:center;justify-content:center;
+ min-height:59px;padding:12px 19px;
+ color:white;background:linear-gradient(105deg,#9238df,#6420c1);
+ border:0;border-radius:15px;
+ font:800 15px/1.3 'Plus Jakarta Sans',sans-serif;
+ box-shadow:0 7px 16px #7726bd20;
+ white-space:normal;text-align:center;
+}
+body.offrya-reference-ui #settings #accountBillingPortal.account-billing-cta svg{
+ width:23px;height:23px;flex:none;
+}
+body.offrya-reference-ui #settings #accountBillingPortal.account-billing-cta .account-billing-arrow{
+ margin-left:5px;
+}
+body.offrya-reference-ui #settings #accountBillingPortal.account-billing-cta:disabled{
+ opacity:.7;box-shadow:none;cursor:not-allowed;
+}
+body.offrya-reference-ui #settings #accountBillingPortal.account-billing-cta:not(:disabled):hover{
+ background:linear-gradient(105deg,#a045e6,#6b21ba);
+}
+body.offrya-reference-ui #settings>.two-col{
+ margin-top:25px;
+}
+@media(max-width:620px){
+ body.offrya-reference-ui #settings{
+  padding:5px 0 0;
+ }
+ body.offrya-reference-ui #settings .section-top{
+  margin-bottom:22px;padding:0 3px;
+ }
+ body.offrya-reference-ui #settings .section-top h2{
+  font-size:29px;letter-spacing:-1.1px;
+ }
+ body.offrya-reference-ui #settings .section-top p:not(.eyebrow){
+  font-size:14px;line-height:1.55;
+ }
+ body.offrya-reference-ui #settings .offrya-settings-card{
+  padding:22px 17px;margin:0 0 15px;border-radius:22px!important;
+ }
+ body.offrya-reference-ui #settings .account-setting-heading{
+  grid-template-columns:53px minmax(0,1fr) 57px;gap:9px;
+ }
+ body.offrya-reference-ui #settings .account-setting-icon{
+  width:53px;height:53px;border-radius:16px;
+ }
+ body.offrya-reference-ui #settings .account-setting-icon svg{
+  width:32px;height:32px;
+ }
+ body.offrya-reference-ui #settings .account-setting-heading>h3{
+  padding-left:11px;font-size:16px;line-height:1.3;
+ }
+ body.offrya-reference-ui #settings .push-notifications-settings{
+  min-height:177px;
+ }
+ body.offrya-reference-ui #settings #pushNotificationToggle.push-settings-switch{
+  width:57px;height:35px;min-height:35px;padding:2px;justify-self:end;
+ }
+ body.offrya-reference-ui #settings #pushNotificationToggle.push-settings-switch .push-settings-switch-thumb{
+  width:29px;height:29px;
+ }
+ body.offrya-reference-ui #settings #pushNotificationToggle.push-settings-switch[aria-checked="true"] .push-settings-switch-thumb{
+  transform:translateX(23px);
+ }
+ body.offrya-reference-ui #settings .account-billing-heading{
+  grid-template-columns:53px minmax(0,1fr);align-items:start;
+ }
+ body.offrya-reference-ui #settings .account-plan-heading{
+  padding-left:11px;
+ }
+ body.offrya-reference-ui #settings .account-plan-heading h3{
+  font-size:16px;line-height:1.3;margin-bottom:10px;
+ }
+ body.offrya-reference-ui #settings .account-plan-badge{
+  padding:5px 9px;font-size:11px;
+ }
+ body.offrya-reference-ui #settings .account-plan-expiry{
+  font-size:12px;overflow-wrap:anywhere;
+ }
+ body.offrya-reference-ui #settings .account-billing-divider{
+  margin:18px 0 15px;
+ }
+ body.offrya-reference-ui #settings .account-billing-description{
+  font-size:14px;line-height:1.55;margin-bottom:20px;
+ }
+ body.offrya-reference-ui #settings #accountBillingPortal.account-billing-cta{
+  min-height:55px;font-size:14px;padding:12px 9px;gap:8px;
+ }
+ body.offrya-reference-ui #settings #accountBillingPortal.account-billing-cta svg{
+  width:21px;height:21px;
+ }
+ body.offrya-reference-ui #settings>.two-col{
+  margin-top:21px;
+ }
+}
+@media(max-width:370px){
+ body.offrya-reference-ui #settings .account-setting-heading{
+  grid-template-columns:45px minmax(0,1fr) 53px;gap:7px;
+ }
+ body.offrya-reference-ui #settings .account-setting-icon{
+  width:45px;height:45px;border-radius:13px;
+ }
+ body.offrya-reference-ui #settings .account-setting-heading>h3{
+  font-size:14px;padding-left:8px;
+ }
+ body.offrya-reference-ui #settings .account-billing-heading{
+  grid-template-columns:45px minmax(0,1fr);
+ }
+ body.offrya-reference-ui #settings .account-plan-heading{
+  padding-left:8px;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ body.offrya-reference-ui #settings .push-settings-switch-thumb{transition:none!important}
+}
