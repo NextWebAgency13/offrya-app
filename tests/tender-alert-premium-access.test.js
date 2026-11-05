@@ -9,7 +9,8 @@ const pro=fs.readFileSync('public/pro-experience.js','utf8');
 test('Tender alerts use the same active Premium access predicate as protected opportunities',()=>{
  assert.match(sql,/create policy offrya_tender_alerts_read[\s\S]*?for select to authenticated/);
  assert.match(sql,/create policy offrya_tender_alerts_seen[\s\S]*?for update to authenticated/);
- assert.equal((sql.match(/offrya_private\.has_active_professional_access\(\)/g)||[]).length,3);
+ const statements=sql.split('\n').filter(line=>!line.trimStart().startsWith('--')).join('\n');
+ assert.equal((statements.match(/offrya_private\.has_active_professional_access\(\)/g)||[]).length,3);
  assert.equal((sql.match(/user_id = \(select auth\.uid\(\)\)/g)||[]).length,3);
  assert.match(sql,/with check/);
  assert.match(sql,/enable row level security/);
