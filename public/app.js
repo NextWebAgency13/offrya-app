@@ -18,6 +18,103 @@ setTimeout(()=>{
  if(message)message.textContent='Le chargement prend plus de temps que prévu. Vous pouvez réessayer.';
  $('dashboardLoadingRetry')?.classList.remove('hidden');
 },10000);
+// Private in-app message notifications; read cursors are device-local metadata.
+const MESSAGE_READ_PREFIX='offrya:messages-read:v1:';
+let messageReadAccount=null,messageReadCursors={};
+let messagePollPromise=null,messagePollAccount=null,messageKnownAccount=null,messageKnownIds=null;
+function messageReadKey(user){return MESSAGE_READ_PREFIX+user;}
+function readMessageCursors(user){
+ if(messageReadAccount!==user){
+  messageReadAccount=user;messageReadCursors={};
+  try{
+   const saved=JSON.parse(localStorage.getItem(messageReadKey(user))||'{}');
+   if(saved&&typeof saved==='object'&&!Array.isArray(saved)){
+    for(const [thread,timestamp] of Object.entries(saved))
+     if(/^[a-f0-9-]{36}$/i.test(thread)&&Number.isSafeInteger(timestamp)&&timestamp>0)
+      messageReadCursors[thread]=timestamp;
+   }
+  }catch(_){}
+ }
+ return messageReadCursors;
+}
+function messageUnread(){
+ const uid=state.session?.user?.id,byThread=new Map();
+ if(!uid)return {total:0,byThread};
+ const read=readMessageCursors(uid);
+ const permitted=new Set((state.conversations||[]).map(c=>c.id));
+ let total=0;
+ for(const message of state.messageHeaders||[]){
+  if(!permitted.has(message.conversation_id)||message.sender_id===uid)continue;
+  const time=Date.parse(message.created_at||'');
+  if(!Number.isFinite(time)||time<=Number(read[message.conversation_id]||0))continue;
+  total++;
+  byThread.set(message.conversation_id,(byThread.get(message.conversation_id)||0)+1);
+ }
+ return {total,byThread};
+}
+function paintMessageBadges(){
+ const {total}=messageUnread();
+ state.messageUnreadCount=total;
+ const label=total>99?'99+':String(total);
+ for(const id of ['messageNavBadge','messageShortcutBubble']){
+  const node=$(id);if(node){node.hidden=!total;node.textContent=label;}
+ }
+ const shortcut=$('messageShortcut');
+ if(shortcut)shortcut.setAttribute('aria-label',total
+  ?'Ouvrir la messagerie : '+total+' message'+(total>1?'s':'')+' non lu'+(total>1?'s':'')
+  :'Ouvrir la messagerie');
+ const navigation=document.querySelector('.sidebar .nav-link[data-tab="inbox"]');
+ if(navigation)navigation.setAttribute('aria-label',total
+  ?'Messages : '+total+' non lu'+(total>1?'s':'')
+  :'Messages');
+ for(const badge of document.querySelectorAll('[data-pro-count="inbox"]')){
+  badge.textContent=label;badge.hidden=!total;
+ }
+ if($('roleConversationCount'))$('roleConversationCount').textContent=String(total);
+}
+function acknowledgeConversation(conversationId,messages){
+ const uid=state.session?.user?.id;
+ if(!uid||!state.conversations.some(c=>c.id===conversationId))return;
+ const incoming=(messages||[]).filter(m=>m.conversation_id===conversationId&&m.sender_id!==uid)
+  .map(m=>Date.parse(m.created_at||'')).filter(Number.isFinite);
+ if(!incoming.length)return;
+ const cursor=Math.max(...incoming),seen=readMessageCursors(uid);
+ if(cursor<=Number(seen[conversationId]||0))return;
+ seen[conversationId]=cursor;
+ // Only per-thread timestamps, never message text or session secrets.
+ try{localStorage.setItem(messageReadKey(uid),JSON.stringify(seen));}catch(_){}
+ paintMessageBadges();
+}
+async function loadMessageNotifications(){
+ const uid=state.session?.user?.id;
+ if(!uid||!state.db)return;
+ const ids=(state.conversations||[]).map(c=>c.id).filter(Boolean);
+ if(!ids.length){state.messageHeaders=[];paintMessageBadges();return;}
+ if(messagePollPromise&&messagePollAccount===uid)return messagePollPromise;
+ const task=(async()=>{
+  const result=await state.db.from('offrya_messages')
+   .select('id,conversation_id,sender_id,created_at')
+   .in('conversation_id',ids).order('created_at',{ascending:false}).limit(500);
+  if(result.error)throw result.error;
+  if(uid!==state.session?.user?.id||uid!==state.currentUserId)return;
+  const rows=result.data||[];
+  if(messageKnownAccount!==uid){messageKnownAccount=uid;messageKnownIds=null;}
+  const previous=messageKnownIds;
+  state.messageHeaders=rows;
+  const stats=messageUnread();
+  if(previous&&rows.some(m=>!previous.has(m.id)&&m.sender_id!==uid&&
+   (stats.byThread.get(m.conversation_id)||0)>0)&&!document.hidden)
+   toast('Nouveau message reçu. Ouvrez votre messagerie.');
+  messageKnownIds=new Set(rows.map(m=>m.id));
+  if($('inbox').classList.contains('active')&&state.thread&&stats.byThread.has(state.thread)){
+   try{await loadMessages(state.thread,false);}catch(error){console.warn('OFFRYA: fil de discussion indisponible',error);}
+  }
+  paintMessageBadges();
+  if($('inbox').classList.contains('active'))renderInbox();
+ })();
+ messagePollPromise=task;messagePollAccount=uid;
+ try{await task;}finally{if(messagePollPromise===task){messagePollPromise=null;messagePollAccount=null;}}
+}
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
