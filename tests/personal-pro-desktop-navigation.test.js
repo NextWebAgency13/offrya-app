@@ -26,7 +26,7 @@ test('Android has five tabs in personal and Pro contexts',()=>{
 });
 test('Pro dashboard and client dashboard continue to be separate routes, not automatic redirects',()=>{
  assert.match(app,/const initialScreen=pathsReverse\[location\.pathname\]\|\|'dashboard';/);
- assert.match(app,/tab\(initialScreen,true\)/);
+ assert.match(app,/restoreContextualRoute\(initialScreen\)/);
  assert.match(pro,/tab\('professional',fromHistory\)/);
  assert.match(app,/Vos missions publiées et vos échanges\. Retrouvez les opportunités dans Espace pro/);
  assert.doesNotMatch(app,/canUsePremium\(\)&&location\.pathname===paths\.dashboard\?'professional'/);
