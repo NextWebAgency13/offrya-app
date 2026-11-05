@@ -4,7 +4,15 @@ export function createPushNotifications({state,button,status,notify}){
  const supported=()=>window.isSecureContext && 'serviceWorker' in navigator &&
   'PushManager' in window && 'Notification' in window;
  function update(label,disabled=false){
-  if(button){button.textContent=label;button.disabled=disabled;}
+  if(button){
+   // A switch must retain its visible thumb and expose the REAL server state.
+   // Never present an active subscription as off or a failed check as on.
+   button.disabled=disabled;
+   button.setAttribute('role','switch');
+   button.setAttribute('aria-label',label);
+   button.setAttribute('aria-checked',active?'true':'false');
+   button.title=label;
+  }
  }
  function tell(message){if(status)status.textContent=message;}
  async function registration(){return navigator.serviceWorker.register('/sw.js',{scope:'/'});}
