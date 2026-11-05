@@ -74,6 +74,20 @@ test('Faithful visual reference is scoped without hiding protected account setti
  assert.match(server,/\/espace\/professionnel/);
  assert.match(server,/\['\/role-reference\.css','text\/css; charset=utf-8'\]/);
 });
+test('Premium mobile card has the same rounded contours and inset as desktop',()=>{
+ const mobile=css.slice(css.indexOf('@media (max-width:780px)'),css.indexOf('@media (max-width:360px)'));
+ const header=mobile.match(/body\.offrya-reference-ui #dashboard \.role-premium-top\{([^}]*)\}/)?.[1];
+ const company=mobile.match(/body\.offrya-reference-ui #dashboard \.role-company\{([^}]*)\}/)?.[1];
+ assert.ok(header,'Mobile Premium header CSS must exist');
+ assert.ok(company,'Mobile company card CSS must exist');
+ assert.match(header,/border-radius:18px 18px 0 0!important/);
+ assert.match(header,/margin:0 13px!important/);
+ assert.match(company,/border-radius:0 0 18px 18px!important/);
+ assert.match(company,/margin:0 13px 17px!important/);
+ assert.doesNotMatch(header,/border-radius:0!important/);
+ assert.match(css,/body\.offrya-reference-ui #dashboard \.role-premium-top\{/);
+});
+
 test('Existing messaging, professional workflows and Auth/RLS remain connected',()=>{
  assert.match(app,/data-role-pro-screen/);
  assert.match(app,/proExperience\.show\(n\.dataset\.roleProScreen\)/);
