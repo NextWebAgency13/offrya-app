@@ -253,17 +253,29 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    if(item.kind==='tender'){const a=notices.get(String(item.id));
     if(!a||a.url!==item.url||!(/^https:\/\/(www\.)?boamp\.fr\//i.test(a.url||'')||
       /^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(a.url||'')))return false;
-    const codes=String(a.departments||'').toUpperCase().split(/[^A-Z0-9]+/).filter(Boolean);
-    if(p.department&&!codes.includes(String(p.department).toUpperCase()))return false;
-    if(p.sectors?.length&&!p.sectors.some(sector=>normRadar(a.match_reason||'').includes(normRadar('secteur : '+sector))))return false;
+    const codes=String(a.departments||'').toUpperCase().split(/[^A-Z0-9]+/).filter(Boolean).map(x=>/^\d{1,2}$/.test(x)?x.padStart(2,'0'):x);
+    if(p.department&&codes.length&&!codes.includes(String(p.department).toUpperCase()))return false;
+    if(serverRadar&&p.sectors?.length&&!p.sectors.includes(item.category))return false;
    }
    seen.add(key);return true;
   }).sort((a,b)=>Number(b.score||0)-Number(a.score||0));
   const nMission=rows.filter(x=>x.kind==='mission').length,nTender=rows.filter(x=>x.kind==='tender').length;
   $('proAiInlineSummary').textContent=rows.length+' opportunité'+(rows.length!==1?'s':'')+' correspondant à vos critères, dont '+nTender+' marché'+(nTender!==1?'s':'')+' public'+(nTender!==1?'s':'')+' et '+nMission+' mission'+(nMission!==1?'s':'')+'.';
   for(const [id,n] of [['proAiTabAll',rows.length],['proAiStatAll',rows.length],['proAiTabMissions',nMission],['proAiStatMissions',nMission],['proAiTabTenders',nTender],['proAiStatTenders',nTender]])$(id).textContent=String(n);
+  const priority=serverRadar?rows.filter(item=>{
+   const a=notices.get(String(item.id));
+   return item.kind==='tender'&&Number(item.score)>=75&&a&&!a.seen_at;
+  }):[];
+  const priorityButton=$('proAiPriorityAlert');
+  if(priorityButton){
+   priorityButton.hidden=!priority.length;
+   priorityButton.textContent=priority.length+' nouveau'+(priority.length>1?'x':'')+
+    ' marché'+(priority.length>1?'s':'')+' prioritaire'+(priority.length>1?'s':'')+' · Voir les alertes';
+   priorityButton.setAttribute('aria-pressed',String(priorityOnly));
+  }
   const selected=rows.filter(item=>{
    if(radarFilter!=='all'&&radarFilter!==item.kind)return false;
+   if(priorityOnly&&(!priority.some(x=>x.id===item.id)||item.kind!=='tender'))return false;
    if(!radarQuery)return true;
    const m=missions.get(String(item.id)),a=notices.get(String(item.id));
    return normRadar([item.title,item.location,item.source,item.description,m?.description,m?.category,a?.buyer,...(item.reasons||[])].join(' ')).includes(normRadar(radarQuery));
@@ -273,33 +285,60 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
     ?(Date.parse(a.deadline||'')||Infinity)-(Date.parse(b.deadline||'')||Infinity)
     :Number(b.score||0)-Number(a.score||0));
   for(const b of $('proExperienceV3').querySelectorAll('[data-pro-filter]')){
-   const active=b.dataset.proFilter===radarFilter;b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',String(active));
+   const active=b.dataset.proFilter===radarFilter;
+   b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',String(active));
   }
-  $('proV3MatchingStatus').textContent=serverRadar?.mode==='ai'?'Classement affiné par IA.':serverRadar?'Classement automatique explicable.':'Classement automatique provisoire.';
-  $('proV3RadarSummary').textContent=selected.length+' opportunité(s) affichée(s).';
+  $('proV3MatchingStatus').textContent=serverRadar?.mode==='ai'?'Classement métier vérifié, puis affiné par IA.':
+   serverRadar?'Correspondance calculée selon le métier, la zone et l’échéance.':
+   'Correspondances provisoires, calcul métier en cours de chargement.';
+  $('proV3RadarSummary').textContent=selected.length+' opportunité'+(selected.length>1?'s':'')+
+   ' affichée'+(selected.length>1?'s':'')+'.';
+  const tracked=new Map((state.tenderTracking||[]).map(t=>[String(t.tender_id),t]));
   panel.innerHTML=selected.length?selected.slice(0,24).map(item=>{
    const tender=item.kind==='tender',m=missions.get(String(item.id)),a=notices.get(String(item.id));
+   const follow=tender?tracked.get(String(item.id)):null;
    const description=String(m?.description||item.description||'').trim();
-   const desc=description?'<p class="pro-ai-card-description">'+esc(description.slice(0,200))+(description.length>200?'…':'')+'</p>':'';
+   const desc=description?'<p class="pro-ai-card-description">'+esc(description.slice(0,175))+(description.length>175?'…':'')+'</p>':'';
    const date=tender?item.deadline:m?.desired_date;
-   const due=date&&Number.isFinite(Date.parse(date))?'<span class="pro-ai-card-due'+(Date.parse(date)<Date.now()+7*86400000?' urgent-date':'')+'">'+(tender?'Clôture : ':'Date souhaitée : ')+esc(dateRadar(date))+'</span>':'';
+   const due=date&&Number.isFinite(Date.parse(date))?
+    '<span class="pro-ai-card-due'+(Date.parse(date)<Date.now()+7*86400000?' urgent-date':'')+'">'+
+    (tender?'Date limite : ':'Date souhaitée : ')+esc(dateRadar(date))+'</span>':'';
    const reasons=(Array.isArray(item.reasons)?item.reasons.slice(0,3):[]).filter(Boolean);
-   const tags=m?.category?'<div class="pro-ai-card-tags"><span>Secteur : '+esc(m.category)+'</span></div>':'';
-   const reason=tender?String(a?.match_reason||reasons.join(' · ')).trim():reasons.join(' · ');
-   const why=reason?'<p class="pro-ai-match-reason"><b>Pourquoi :</b> '+esc(reason.slice(0,230))+'</p>':'';
+   const reason=tender&&!serverRadar?'Classement métier en cours de vérification.':reasons.join(' · ');
+   const why=reason?'<p class="pro-ai-match-reason"><b>Pourquoi ce marché ?</b> '+esc(reason.slice(0,240))+'</p>':'';
    const score=Math.min(100,Math.max(0,Math.round(Number(item.score)||0)));
+   const scoreLabel=tender&&!serverRadar?'Pertinence en cours de calcul':
+    score+' % pertinent'+(item.locationType==='unknown'?' · Zone à confirmer':'');
+   const source=tender?esc(item.source==='TED'?'TED':'BOAMP'):'MISSION OFFRYA';
    const action=tender
-    ?'<a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer" class="pro-v3-reco-btn">Voir le détail →</a>'
+    ?'<a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer" class="pro-v3-reco-btn">Consulter l’appel d’offres →</a>'
     :'<button type="button" class="pro-v3-reco-btn" data-pro-view-mission="'+esc(item.id)+'" title="Voir la mission et Préparer une proposition">Voir la mission →</button>';
+   const favorite=tender?'<div class="pro-ai-follow-actions">'+
+    (follow?'<label class="pro-ai-stage-label">Suivi <select class="pro-ai-stage-select" data-pro-stage-tender="'+esc(item.id)+'">'+
+      [['saved','Enregistré'],['reviewing','À analyser'],['preparing','Dossier en préparation'],['submitted','Candidature déposée'],['done','Terminé']]
+       .map(([value,label])=>'<option value="'+value+'"'+(follow.stage===value?' selected':'')+'>'+label+'</option>').join('')+
+      '</select></label><button type="button" class="pro-ai-track-action" data-pro-remove-tender="'+esc(item.id)+'" aria-label="Retirer du suivi">Retirer</button>':
+      '<button type="button" class="pro-ai-track-action" data-pro-save-tender="'+esc(item.id)+'" aria-label="Enregistrer ce marché">☆ Enregistrer</button>')+'</div>':'';
+   const price=!tender&&m?.budget_cents!=null?'<span class="pro-ai-mission-budget">Budget : '+esc(euroRadar(m.budget_cents))+'</span>':'';
    return '<article class="pro-v3-radar-row pro-ai-card '+(tender?'pro-ai-card-tender':'pro-ai-card-mission')+'">'+
     '<div class="pro-ai-card-icon">'+(tender?icon('ic-boamp'):icon('ic-missions'))+'</div>'+
-    '<div class="pro-v3-radar-body pro-ai-card-content"><div class="pro-ai-card-labels"><span class="pro-ai-card-source">'+(tender?'<span class="sr-only">MARCHÉ PUBLIC · </span>APPEL D’OFFRE PUBLIC':'MISSION OFFRYA')+'</span>'+
-    (tender?'<span class="pro-ai-card-origin">'+esc(item.source==='TED'?'TED (UE)':'BOAMP')+'</span>':'')+
-    (m?.urgency==='urgent'?'<span class="pro-ai-card-urgent">⚡ Urgent</span>':'')+'</div>'+
-    '<h4>'+esc(item.title)+'</h4><div class="pro-v3-radar-details pro-ai-card-place"><span><span class="sr-only">Zone : </span>⌖ '+esc(item.location||'Lieu à préciser')+'</span>'+(tender?'<span class="pro-ai-buyer">Acheteur : '+esc(a?.buyer||'Non précisé')+'</span>':'')+'</div>'+desc+tags+why+'</div>'+
-    '<div class="pro-v3-radar-side pro-ai-card-side"><strong class="pro-ai-score">★ '+score+' % de pertinence</strong>'+
-    '<div class="pro-ai-card-budget"><small>Budget'+(tender?' de l’avis':'')+'</small><strong>'+esc(tender?'Non communiqué':euroRadar(m?.budget_cents))+'</strong>'+due+'</div>'+action+'</div></article>';
-  }).join('') :'<div class="pro-v3-empty pro-ai-empty"><strong>'+ (radarFilter==='tender'?'Aucun appel d’offres officiel ne correspond à vos critères.':'Aucune opportunité correspondant à vos critères.')+'</strong><p>'+ (radarFilter==='tender'?'La veille BOAMP/TED ne présente aucun avis qualifié dans cette zone et ces secteurs. Réessayez plus tard ou ajustez vos critères.':'Élargissez votre zone ou vos secteurs. Aucune annonce fictive n’est affichée.')+'</p><button type="button" data-pro-screen="preferences">Modifier mes critères →</button><button type="button" data-pro-screen="boamp">Rechercher les avis BOAMP →</button></div>';
+    '<div class="pro-v3-radar-body pro-ai-card-content"><div class="pro-ai-card-labels">'+
+    '<span class="pro-ai-card-origin">'+source+'</span>'+
+    (m?.urgency==='urgent'?'<span class="pro-ai-card-urgent">Urgent</span>':'')+
+    '</div><h4 title="'+esc(item.title)+'">'+esc(item.title)+'</h4>'+
+    '<div class="pro-v3-radar-details pro-ai-card-place"><span>⌖ '+esc(item.location||'Zone non précisée')+'</span>'+
+    (tender?'<span class="pro-ai-buyer">Acheteur : '+esc(a?.buyer||'Non précisé')+'</span>':'')+
+    '</div>'+desc+why+'</div>'+
+    '<div class="pro-v3-radar-side pro-ai-card-side"><strong class="pro-ai-score">'+esc(scoreLabel)+'</strong>'+
+    '<div class="pro-ai-card-budget">'+due+price+'</div>'+action+favorite+'</div></article>';
+  }).join('') :'<div class="pro-v3-empty pro-ai-empty"><strong>'+
+   (priorityOnly?'Aucune nouvelle alerte prioritaire.':radarFilter==='tender'?
+    'Aucun appel d’offres officiel ne correspond à vos critères.':'Aucune opportunité correspondant à vos critères.')+
+   '</strong><p>'+ (serverRadar?'Les métiers, la localisation et les échéances ont été vérifiés. Ajustez vos critères pour élargir la recherche.':
+    'Le classement métier est en cours de vérification. Actualisez si le chargement persiste.')+
+   '</p><button type="button" data-pro-screen="preferences">Modifier mes critères →</button>'+
+   '<button type="button" data-pro-screen="boamp">Rechercher les avis BOAMP →</button></div>';
+
  }
  function metrics(){
   const missions=available(),count=unreadMatchedNotifications().length;
