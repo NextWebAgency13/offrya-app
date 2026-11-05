@@ -18,3 +18,5 @@ jobs:
           node-version: '22'
       - name: Contrôler Render, la sécurité BOAMP et les routes Stripe sans paiement
         run: node scripts/smoke-production.js
+      - name: Contrôler les notifications Android Web Push en production
+        run: node scripts/check-push-production.js
