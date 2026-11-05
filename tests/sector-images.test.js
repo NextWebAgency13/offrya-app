@@ -35,7 +35,7 @@ test('Chaque secteur affiche une photo du métier correspondant, sans réutilisa
 test('Maquette et parcours conservés sans modifier les missions',()=>{
  assert.equal(sectors.length,7);
  assert.match(html,/Votre projet mérite<br>le bon <span>professionnel/);
- assert.match(html,/id="choisir-compte"/);
+ assert.match(html,/class="offrya-entry-paths"/);
  assert.match(html,/href="\/deposer-une-mission"/);
  assert.match(html,/href="\/professionnels"/);
  assert.doesNotMatch(html,/id="publicActivity"|mock-activity/);

@@ -931,3 +931,83 @@
 @media(prefers-reduced-motion:reduce){
  html{scroll-behavior:auto}
 }
+
+/* OFFRYA : trois parcours, trois actions. Pas de doublon de cartes de compte.
+   Le parcours de publication reste verrouillé par Auth + Supabase RLS. */
+.mock-home .offrya-entry-hero{
+ height:auto!important;min-height:0!important;overflow:visible;
+ background:linear-gradient(165deg,#fbf9ff 0%,#f4f0fc 100%);
+ border-bottom:1px solid #ece5f6;
+}
+.mock-home .offrya-entry-hero .mock-hero-inner{height:auto;display:block}
+.mock-home .offrya-entry-hero .mock-hero-text{
+ width:100%;max-width:1120px;margin:0 auto;
+ padding:clamp(38px,6vw,82px) 0 clamp(34px,5vw,66px);
+ color:#302143;text-align:center;
+}
+.mock-home .offrya-entry-hero .mock-eyebrow{
+ margin:0 0 14px;color:#773fbd;letter-spacing:.14em;
+}
+.mock-home .offrya-entry-hero h1{
+ max-width:760px;margin:0 auto 18px;color:#2a173f;
+ font-size:clamp(32px,4.5vw,56px);line-height:1.12;letter-spacing:-.055em;
+}
+.mock-home .offrya-entry-hero h1 span{color:#7531bd}
+.mock-home .offrya-entry-hero .mock-hero-lead{
+ max-width:670px;margin:0 auto 29px;color:#625570;
+ font-size:clamp(15px,1.6vw,18px);line-height:1.55;
+}
+.mock-home .offrya-entry-paths{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:12px;margin:0 auto;max-width:1100px;
+}
+.mock-home .offrya-entry-path{
+ display:flex;align-items:center;gap:12px;min-width:0;
+ min-height:106px;padding:20px 16px;border:1px solid #e6ddec;
+ border-radius:18px;background:#fff;color:#37244b;text-decoration:none;
+ text-align:left;box-shadow:0 8px 23px #39244d0c;
+ transition:border-color .18s ease,transform .18s ease,box-shadow .18s ease;
+}
+.mock-home .offrya-entry-path-primary{
+ background:#672cba;color:#fff;border-color:#672cba;
+ box-shadow:0 10px 25px #672cba25;
+}
+.mock-home .offrya-entry-icon{
+ display:grid;place-items:center;flex:none;width:40px;height:40px;
+ border-radius:11px;background:#f2e9ff;color:#7338c3;
+}
+.mock-home .offrya-entry-path-primary .offrya-entry-icon{background:#ffffff25;color:#fff}
+.mock-home .offrya-entry-icon svg{width:21px;height:21px}
+.mock-home .offrya-entry-copy{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
+.mock-home .offrya-entry-copy strong{font-size:15px;font-weight:820;line-height:1.25}
+.mock-home .offrya-entry-copy small{font-size:12px;line-height:1.35;color:#756881}
+.mock-home .offrya-entry-path-primary .offrya-entry-copy small{color:#eee2ff}
+.mock-home .offrya-entry-arrow{font-size:19px;font-weight:700;flex:none}
+.mock-home .offrya-entry-fineprint{
+ margin:21px auto 0;max-width:900px;
+ color:#756782;font-size:12px;line-height:1.6;
+}
+.mock-home .mock-sectors{padding-top:clamp(34px,5vw,65px)}
+.mock-home .offrya-entry-path:focus-visible{outline:3px solid #e38a49;outline-offset:4px}
+@media(hover:hover) and (pointer:fine){
+ .mock-home .offrya-entry-path:hover{
+  transform:translateY(-3px);border-color:#c4a1ee;
+  box-shadow:0 12px 30px #5030711b;filter:none;
+ }
+}
+@media(max-width:820px){
+ .mock-home .offrya-entry-paths{grid-template-columns:1fr;max-width:590px}
+ .mock-home .offrya-entry-path{min-height:76px;padding:15px 16px;border-radius:15px}
+ .mock-home .offrya-entry-hero .mock-hero-text{padding:36px 0 40px}
+ .mock-home .offrya-entry-hero .mock-hero-lead{margin-bottom:21px}
+}
+@media(max-width:560px){
+ .mock-home .offrya-entry-hero h1{font-size:clamp(29px,8vw,40px)}
+ .mock-home .offrya-entry-path{min-height:72px}
+ .mock-home .offrya-entry-copy strong{font-size:15px}
+ .mock-home .offrya-entry-copy small{font-size:12px}
+ .mock-home .offrya-entry-fineprint{font-size:11px;margin-top:18px}
+}
+@media(prefers-reduced-motion:reduce){
+ .mock-home .offrya-entry-path{transition:none;transform:none!important}
+}
