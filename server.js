@@ -4,6 +4,7 @@ const fs=require('node:fs/promises');
 const path=require('node:path');
 const {queryBoamp}=require('./lib/boamp');
 const {verifyPremiumAccess}=require('./lib/premium');
+const {rankCandidates,aiRerank}=require('./lib/ai-matching');
 const {lookupCompany,verifyProfessional}=require('./lib/company');
 const {beginIdentity,processIdentityEvent,configured:identityConfigured,identityConfigChecks}=require('./lib/identity');
 const {billingEnabled,startCheckout,verifyStripeSignature,syncSubscription,portal}=require('./lib/billing');
@@ -165,6 +166,47 @@ async function handle(req,res){
    return res.end('<!doctype html><html lang="fr"><meta charset="utf-8"><title>OFFRYA</title><body><h1>Désabonnement effectué</h1><p>Les alertes e-mail sont désactivées.</p><a href="/">Retour au site</a></body></html>');
   }
   if(!['GET','HEAD'].includes(req.method))return json(res,405,{error:'Méthode non autorisée'});
+  if(p==='/api/pro/matches'){
+   if(!rateLimit(req,12))return json(res,429,{error:'Trop de recherches. Réessayez plus tard.'});
+   let premium;
+   try{premium=await verifyPremiumAccess(req.headers.authorization,{
+    url:process.env.SUPABASE_URL,key:process.env.SUPABASE_PUBLISHABLE_KEY});}
+   catch(e){console.error('Matching entitlement:',e.message);return json(res,503,{error:'Vérification Premium indisponible.'});}
+   if(!premium.allowed)return json(res,premium.status,{error:premium.error});
+   // Never use service_role for client-visible opportunities: each query obeys
+   // Supabase row-level policies with the professional's verified JWT.
+   const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
+   const key=process.env.SUPABASE_PUBLISHABLE_KEY;
+   const jwt=req.headers.authorization;
+   const headers={apikey:key,Authorization:jwt,Accept:'application/json'};
+   const userId=premium.userId;
+   const id=encodeURIComponent(userId);
+   const paths=[
+    'offrya_missions?select=id,owner_id,title,description,category,department,city,budget_cents,status,urgency,created_at,expires_at&status=eq.open&order=created_at.desc&limit=200',
+    'offrya_tender_alerts?select=tender_id,title,url,source,deadline,detected_at,departments,match_score,match_reason&user_id=eq.'+id+'&order=detected_at.desc&limit=100',
+    'offrya_opportunity_preferences?select=sectors,department,keywords,min_budget_cents,max_budget_cents&user_id=eq.'+id+'&limit=1',
+    'offrya_profiles?select=id,specialty,role&id=eq.'+id+'&limit=1'
+   ];
+   try{
+    const responses=await Promise.all(paths.map(s=>fetch(base+'/rest/v1/'+s,{headers,signal:AbortSignal.timeout(9000)})));
+    if(responses.some(r=>!r.ok))return json(res,503,{error:'Lecture sécurisée des opportunités indisponible.'});
+    const rows=await Promise.all(responses.map(r=>r.json()));
+    if(rows.some(x=>!Array.isArray(x)))return json(res,503,{error:'Résultats des opportunités invalides.'});
+    if(rows[3][0]?.role!=='pro'||rows[3][0]?.id!==userId)
+     return json(res,403,{error:'Compte professionnel requis.'});
+    const preferences=rows[2][0]||{};
+    const result=rankCandidates({missions:rows[0],alerts:rows[1],preferences,
+     profile:rows[3][0],userId});
+    const enhanced=process.env.OFFRYA_AI_MATCHING_ENABLED==='true'?
+     await aiRerank(result,{apiKey:process.env.OPENAI_API_KEY,
+      model:process.env.OFFRYA_AI_MODEL||'gpt-4.1-mini',profile:rows[3][0],preferences}):
+     {...result,mode:'rules'};
+    return json(res,200,{mode:enhanced.mode,total:enhanced.total,relevant:enhanced.relevant,
+     urgent:enhanced.urgent,items:enhanced.items.slice(0,30).map(({description, ...x})=>x)},
+     {'Cache-Control':'private,no-store'});
+   }catch(e){console.error('Opportunity matching:',e.message);
+    return json(res,503,{error:'Moteur de correspondance momentanément indisponible.'});}
+  }
   if(p==='/api/annonces'||p==='/api/export'){
    if(!rateLimit(req,p==='/api/export'?10:35))return json(res,429,{error:'Trop de requêtes'});
    let premium;

@@ -558,3 +558,83 @@ body.offrya-pro-v3:not(.offrya-pro-workspace) #proV3Search{display:none!importan
  body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar #nav .nav-link span{display:inline!important;font-size:12px}
  body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar #nav .nav-icon{flex:none}
 }
+
+
+/* OFFRYA unified light theme: identical surface language for personal and Pro. */
+body.offrya-pro-v3{
+ --v3-bg:#f8f7fc;--v3-ink:#261b36;--v3-muted:#655e73;--v3-border:#e8e3ef;
+ background:#f8f7fc;color:#261b36;
+}
+body.offrya-pro-v3 .app-shell,
+body.offrya-pro-v3 .app-shell .main-content{background:#f8f7fc}
+body.offrya-pro-v3 .app-shell .sidebar{
+ background:#fff;color:#342746;border-right:1px solid #e8e3ef;box-shadow:none;
+}
+body.offrya-pro-v3 .sidebar .brand,
+body.offrya-pro-v3 .sidebar .workspace-label{color:#30253e}
+body.offrya-pro-v3 .pro-v3-nav-btn{color:#463653}
+body.offrya-pro-v3 .pro-v3-nav-btn:hover{background:#f4effc;color:#5d2aa8}
+body.offrya-pro-v3 .pro-v3-nav-btn.active{background:#f0e8fc;color:#632ab3;box-shadow:none}
+body.offrya-pro-v3 .pro-v3-nav-count{background:#eee1fb;color:#622ca2}
+body.offrya-pro-v3 .pro-v3-side-plan{background:#fbf9ff;color:#372748;border:1px solid #e4d7f1;box-shadow:none}
+body.offrya-pro-v3 .pro-v3-side-plan small{color:#6e5a81}
+body.offrya-pro-v3 .pro-v3-side-plan button{color:#6326b5;background:#f0e8fc}
+body.offrya-pro-v3 .app-shell .header{background:#fff;color:#2b2039;border-bottom:1px solid #e8e3ef}
+body.offrya-pro-v3 .mobile-brand,
+body.offrya-pro-v3 .header .header-shortcut{color:#332440}
+body.offrya-pro-v3 .header .header-shortcut,
+body.offrya-pro-v3 .header .account-menu summary{background:#f3eff9;color:#5f367f;border:1px solid #e9e1f0}
+body.offrya-pro-v3 .pro-v3-intro{background:#fff;border:1px solid #e8e3ef;box-shadow:none}
+body.offrya-pro-v3 .pro-v3-panel{background:#fff;box-shadow:0 5px 18px #25163b08}
+body.offrya-pro-v3 .pro-v3-opportunities{max-width:1060px;margin-inline:auto}
+body.offrya-pro-v3 .pro-v3-panel-head{flex-wrap:wrap}
+body.offrya-pro-v3 .pro-v3-panel-head p{font-size:13px;line-height:1.5}
+body.offrya-pro-v3 .pro-v3-panel-head button[data-refresh-radar]{border:1px solid #decff0;border-radius:11px;padding:10px 14px;font-size:13px;background:#f7f2fd}
+body.offrya-pro-v3 .pro-v3-radar-summary{font-size:14px;font-weight:700;color:#604779;margin:0 0 16px}
+body.offrya-pro-v3 .pro-v3-radar-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:18px;border-color:#e8e3ee}
+body.offrya-pro-v3 .pro-v3-radar-body{gap:9px}
+body.offrya-pro-v3 .pro-v3-radar-body strong{font-size:16px;color:#2e213d;line-height:1.4}
+body.offrya-pro-v3 .pro-v3-radar-body .pro-v3-radar-source{font-size:12px;letter-spacing:.045em}
+body.offrya-pro-v3 .pro-v3-radar-details{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:#534c61}
+body.offrya-pro-v3 .pro-v3-radar-details span{display:inline-flex;align-items:center}
+body.offrya-pro-v3 .pro-v3-radar-body p.pro-v3-radar-explain{font-size:13px;line-height:1.55;margin:0;color:#63566c}
+body.offrya-pro-v3 .pro-v3-radar-explain b{color:#49315c}
+body.offrya-pro-v3 .pro-v3-radar-side>strong{font-size:16px;padding:8px 12px}
+body.offrya-pro-v3 .pro-v3-radar-side .pro-v3-reco-btn{font-size:13px;padding:12px 14px;min-height:44px;white-space:normal}
+body.offrya-pro-v3 .pro-v3-radar-disclaimer{font-size:12px;line-height:1.6}
+body.offrya-pro-v3 #proV3TrackingActivity{margin-top:16px}
+body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar .nav-link{color:#493851!important}
+body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar .nav-link.active{color:#6325b2!important;background:#f0e8fc!important}
+body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar .founder-card{background:#f6f1ff;color:#412b55;border-color:#e9dff1}
+body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar .founder-card p{color:#625371}
+@media(max-width:880px){
+ body.offrya-pro-v3 .app-shell{grid-template-columns:minmax(0,1fr)}
+ body.offrya-pro-v3 .pro-v3-home-grid{display:block}
+}
+@media(max-width:620px){
+ body.offrya-pro-v3 .app-shell{display:block;width:100%;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+ body.offrya-pro-v3 .app-shell .header{background:#fff;color:#302341;height:66px;padding:0 13px}
+ body.offrya-pro-v3 .header .header-shortcut{background:#f3eff9;color:#533a75}
+ body.offrya-pro-v3 .header .account-menu summary{background:#f3eff9;color:#533a75;border:1px solid #e6d9ed}
+ body.offrya-pro-v3 .app-shell .sidebar{
+  position:fixed;top:auto;left:0;right:0;bottom:0;z-index:30;
+  background:#fff;border:0;border-top:1px solid #e9e3f0;box-shadow:0 -4px 18px #33214511;
+ }
+ body.offrya-pro-v3 .sidebar #nav .nav-link{color:#61576e!important;background:transparent}
+ body.offrya-pro-v3 .sidebar #nav .nav-link.active{color:#6933bd!important;background:#f3edfc!important}
+ body.offrya-pro-v3 .app-shell .main-content{width:100%;max-width:100%;padding:15px 12px 32px;overflow-x:clip}
+ body.offrya-pro-v3 .pro-v3-experience,
+ body.offrya-pro-v3 .pro-v3-view,
+ body.offrya-pro-v3 .pro-v3-opportunities{display:block;width:100%;max-width:100%;min-width:0}
+ body.offrya-pro-v3 .pro-v3-intro{padding:16px;margin:0 0 12px}
+ body.offrya-pro-v3 .pro-v3-panel{padding:15px}
+ body.offrya-pro-v3 .pro-v3-panel-head{flex-direction:column;align-items:stretch;gap:8px}
+ body.offrya-pro-v3 .pro-v3-panel-head button[data-refresh-radar]{align-self:flex-start;min-height:44px;font-size:14px}
+ body.offrya-pro-v3 .pro-v3-radar-row{display:flex;flex-direction:column;align-items:stretch;gap:14px;padding:14px}
+ body.offrya-pro-v3 .pro-v3-radar-body strong{font-size:16px}
+ body.offrya-pro-v3 .pro-v3-radar-body .pro-v3-radar-source{font-size:12px}
+ body.offrya-pro-v3 .pro-v3-radar-details{flex-direction:column;gap:5px;font-size:13px}
+ body.offrya-pro-v3 .pro-v3-radar-side{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-width:0}
+ body.offrya-pro-v3 .pro-v3-radar-side .pro-v3-reco-btn{font-size:14px;min-height:44px}
+ body.offrya-pro-v3 .pro-v3-radar-summary{font-size:14px}
+}
