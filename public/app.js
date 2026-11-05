@@ -133,6 +133,20 @@ function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
 const paths={dashboard:'/espace',missions:'/espace/missions',boamp:'/espace/marches-publics',professional:'/espace/professionnel',inbox:'/espace/messagerie',settings:'/espace/reglages'};
 const pathsReverse=Object.fromEntries(Object.entries(paths).map(([name,p])=>[p,name]));
+const PUSH_MESSAGE_UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+let pushNavigationReady=false,pendingPushOpen=null;
+function verifiedPushTarget(conversationId,messageId){
+ if(typeof conversationId!=='string'||!PUSH_MESSAGE_UUID.test(conversationId))return null;
+ return {conversationId,messageId:typeof messageId==='string'&&PUSH_MESSAGE_UUID.test(messageId)?messageId:null};
+}
+navigator.serviceWorker?.addEventListener('message',event=>{
+ if(event.data?.type!=='OFFRYA_PUSH_OPEN')return;
+ const target=verifiedPushTarget(event.data.conversationId,event.data.messageId);
+ if(!target)return;
+ pendingPushOpen=target;
+ if(pushNavigationReady)
+  openPushConversation(target).catch(error=>console.warn('OFFRYA: ouverture notification impossible',error));
+});
 function tab(name,fromHistory=false,preserveMissionDetail=false){
  // The legacy public-tenders URL now opens the Markets subsection inside Espace pro.
  // Do not expose a separate Premium tab or bypass RLS/paid-access checks.
@@ -314,7 +328,7 @@ function renderInbox(){
  if(state.thread)renderMessages();else $('messageList').innerHTML='<div class="empty">Choisissez une discussion.</div>';
 }
 function renderMessages(){
- $('messageList').innerHTML=state.messages.length?state.messages.map(m=>`<div class="bubble ${m.sender_id===state.session?.user.id?'mine':''}">${esc(m.body)}<time>${date(m.created_at)} · ${new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time></div>`).join(''):'<div class="empty">Commencez la conversation.</div>';
+ $('messageList').innerHTML=state.messages.length?state.messages.map(m=>`<div class="bubble ${m.sender_id===state.session?.user.id?'mine':''}" data-message-id="${esc(m.id)}" tabindex="-1">${esc(m.body)}<time>${date(m.created_at)} · ${new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time></div>`).join(''):'<div class="empty">Commencez la conversation.</div>';
  $('messageList').scrollTop=$('messageList').scrollHeight;
 }
 function renderSettings(){
@@ -708,6 +722,40 @@ $('homePrivateDashboard').classList.toggle('hidden',!yes);$('statOpenLabel').tex
  }
  paintMessageBadges();
 }
+async function openPushConversation(target){
+ if(!target||!state.session||!state.db||!state.loaded)return false;
+ const {conversationId,messageId}=target,uid=state.session.user.id;
+ if(!state.conversations.some(c=>c.id===conversationId)){
+  // The deep link cannot grant access. Supabase RLS and participant membership
+  // must both confirm the requested conversation before displaying messages.
+  const r=await state.db.from('offrya_conversations')
+   .select('id,mission_id,client_id,professional_id,created_at')
+   .eq('id',conversationId).maybeSingle();
+  if(r.error||!r.data||![r.data.client_id,r.data.professional_id].includes(uid)){
+   tab('inbox');toast('Cette conversation n’est pas accessible depuis votre compte.');return false;
+  }
+  state.conversations.unshift(r.data);
+ }
+ tab('inbox');
+ state.thread=conversationId;
+ renderInbox();
+ try{await loadMessages(conversationId);}
+ catch(error){
+  console.warn('OFFRYA: conversation push indisponible',error);
+  toast('Impossible d’ouvrir les messages. Réessayez depuis la messagerie.');
+  return false;
+ }
+ const params=new URLSearchParams({conversation:conversationId});
+ if(messageId)params.set('message',messageId);
+ history.replaceState({tab:'inbox'},'','/espace/messagerie?'+params.toString());
+ if(messageId){
+  const bubble=Array.from($('messageList').querySelectorAll('[data-message-id]'))
+   .find(el=>el.dataset.messageId===messageId);
+  if(bubble){bubble.focus({preventScroll:true});bubble.scrollIntoView({block:'center',behavior:'auto'});}
+ }
+ pendingPushOpen=null;
+ return true;
+}
 async function loadMessages(id,doRender=true){
  const r=await state.db.from('offrya_messages').select('*').eq('conversation_id',id).order('created_at',{ascending:true}).limit(200);
  if(r.error)throw r.error;
@@ -775,7 +823,7 @@ async function init(){
  const cfg=await fetch('/api/config').then(r=>r.json());await authCaptcha.init(cfg.guestCaptchaSiteKey);state.billingEnabled=Boolean(cfg.billingEnabled);state.identityEnabled=Boolean(cfg.identityEnabled);
  if(cfg.supabaseUrl&&cfg.supabaseKey&&!cfg.supabaseUrl.includes('VOTRE')){
   state.db=createClient(cfg.supabaseUrl,cfg.supabaseKey);const {data}=await state.db.auth.getSession();state.session=data?.session||null;
-   if(!state.session){location.replace('/connexion?next='+encodeURIComponent(location.pathname));return;}
+   if(!state.session){location.replace('/connexion?next='+encodeURIComponent(location.pathname+location.search));return;}
   state.db.auth.onAuthStateChange((event,session)=>{state.session=session;if(event==='SIGNED_OUT'){location.replace('/connexion?next='+encodeURIComponent(location.pathname));return;}if(event==='PASSWORD_RECOVERY'){state.authMode='recover';$('authTitle').textContent='Choisissez un nouveau mot de passe';$('authSubmit').textContent='Enregistrer le mot de passe';$('authPasswordRow').classList.remove('hidden');authModal(true);}setTimeout(()=>refresh().catch(showError),0);});
   try{await refresh();}catch(err){state.loaded=true;info('Certaines fonctionnalités sont momentanément indisponibles. Veuillez réessayer ultérieurement.',true);render();}
  }else{info('La connexion au service est momentanément indisponible. Veuillez réessayer ultérieurement.',true);render();}
@@ -835,6 +883,13 @@ async function init(){
  const initialScreen=pathsReverse[location.pathname]||'dashboard';
  tab(initialScreen,true);
  proExperience.syncTab(initialScreen);
+ pushNavigationReady=true;
+ const queryPush=new URLSearchParams(location.search);
+ const target=pendingPushOpen||(
+  location.pathname==='/espace/messagerie'
+   ?verifiedPushTarget(queryPush.get('conversation'),queryPush.get('message'))
+   :null);
+ if(target)await openPushConversation(target);
   const p=new URLSearchParams(location.search);
   if(p.has('checkout'))toast(p.get('checkout')==='success'?'Retour de Stripe : confirmation du paiement en cours.':'Paiement non finalisé.');
   if(p.has('identity'))toast('Retour de Stripe Identity : consultez le statut de votre dossier.');
@@ -842,6 +897,6 @@ async function init(){
 const opportunityConsole=createOpportunityConsole({state,element:$,canUsePremium,tab,renderMissions,notify:toast});
 const salesWorkspace=createSalesWorkspace({state,element:$,canUsePremium,tab,notify:toast,refresh,onNavigate:screen=>proExperience.show(screen)});
 const proExperience=createProExperience({state,element:$,canUsePremium,tab,renderMissions,loadMarkets:()=>loadBoamp(),notify:toast,openProposal:id=>salesWorkspace.openMission(id)});
-const pushNotifications=createPushNotifications({state,button:$('pushNotificationToggle'),testButton:$('pushTestNotification'),status:$('pushNotificationStatus'),notify:toast});
+const pushNotifications=createPushNotifications({state,button:$('pushNotificationToggle'),status:$('pushNotificationStatus'),notify:toast});
 proExperience.init();opportunityConsole.init();salesWorkspace.init();
 init().catch(showError);
