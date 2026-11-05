@@ -42,7 +42,7 @@ test('navigation and reload stay mapped to five mobile destinations',()=>{
  for(const tab of ['dashboard','missions','professional','inbox','settings'])
   assert.match(html,new RegExp('class="nav-link[^"]*" data-tab="'+tab+'"'));
  assert.match(app,/window\.addEventListener\('popstate'/);
- assert.match(app,/tab\(pathsReverse\[location\.pathname\]\|\|'dashboard',true\)/);
+ assert.match(app,/restoreContextualRoute\(pathsReverse\[location\.pathname\]\|\|'dashboard'\)/);
  assert.match(app,/if\(!state\.session\)\{location\.replace\('\/connexion/);
 });
 
