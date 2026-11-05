@@ -26,7 +26,8 @@ test('Radar refreshes RLS-authorized BOAMP/TED rows, then resets ranking cache',
  assert.match(pro,/if\(state\.session\?\.user\?\.id!==user\|\|!canUsePremium\(\)\)return/);
  assert.match(pro,/if\(response\.error\)throw response\.error/);
  assert.match(pro,/state\.opportunityAlerts=Array\.isArray\(response\.data\)/);
- assert.match(pro,/serverRadar=null;radarKey='';radarAt=0/);
+ assert.match(pro,/serverRadar=null;state\.radarMatches=null;radarKey='';radarAt=0/);
+ assert.match(pro,/forceLiveRadar=true/);
  assert.match(pro,/if\(radarButton&&canUsePremium\(\)\)\{refreshTenderRadar\(\)/);
  assert.doesNotMatch(pro,/service_role|OFFRYA_SUPABASE_SECRET_KEY/);
  const check=spawnSync(process.execPath,['--input-type=module','--check'],{input:pro,encoding:'utf8'});
