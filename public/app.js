@@ -708,14 +708,31 @@ function render(){
  $('clientStatOpen').textContent=String(own.filter(m=>m.status==='open').length);
  $('clientStatConversations').textContent=String(state.conversations.filter(c=>own.some(m=>m.id===c.mission_id)).length);
  $('clientStatClosed').textContent=String(own.filter(m=>m.status==='closed'||m.status==='awarded').length);
- $('roleRecentMissions').innerHTML=activeOwn.length?activeOwn.slice(0,3).map(m=>'<button type="button" class="role-mission-row" data-open-own-mission="'+esc(m.id)+'" aria-label="Consulter la mission '+esc(m.title)+'"><span class="role-mission-icon">▣</span><span><strong>'+esc(m.title)+'</strong><small>'+esc(m.city||'France')+' · '+esc(m.status==='open'?'En cours':'Clôturée')+'</small></span><b aria-hidden="true">›</b></button>').join(''):'<p class="role-empty">Retrouvez vos annonces ici. Publiez votre première mission pour suivre son statut et les échanges avec les professionnels.</p>';
- $('roleBusinessName').textContent=state.premium?.legal_name||'Entreprise à vérifier';
- $('rolePremiumUntil').textContent=eligiblePro?(state.subscription?.paid_through?'Actif jusqu’au '+date(state.subscription.paid_through):'Abonnement actif'):'Accès en cours';
- $('roleCompanyVerifiedText').textContent=state.testPremiumUntil?'Accès de test temporaire':eligiblePro?'✓ Compte vérifié':'Vérification en cours';
- $('roleAvailableCount').textContent=state.missions.filter(m=>m.status==='open').length;
- $('roleOwnCount').textContent=state.conversations.filter(x=>x.professional_id===state.session?.user?.id).length;
+ $('roleRecentMissions').innerHTML=own.length?own.slice(0,3).map(m=>{
+  const picture=m.category==='Bâtiment'
+   ?'<img class="role-mission-image" loading="lazy" decoding="async" src="https://images.pexels.com/photos/1454806/pexels-photo-1454806.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=240" alt="Illustration du secteur bâtiment">'
+   :'<span class="role-mission-placeholder" aria-hidden="true"><svg class="nav-icon"><use href="#ic-missions"/></svg></span>';
+  const statusLabel=m.status==='open'?'En cours de réponses':m.status==='awarded'?'Mission pourvue':'Mission clôturée';
+  return '<button type="button" class="role-mission-row" data-open-own-mission="'+esc(m.id)+'" aria-label="Consulter la mission '+esc(m.title)+'">'+picture+
+   '<span class="role-ref-mission-data"><strong>'+esc(m.title)+'</strong><small>Publiée le '+esc(date(m.created_at))+'</small><span class="role-ref-status">'+esc(statusLabel)+'</span></span><b aria-hidden="true">›</b></button>';
+ }).join(''):'<p class="role-empty">Vous n’avez pas encore publié de mission. Déposez gratuitement votre première demande.</p>';
+ $('roleBusinessName').textContent=state.premium?.legal_name||state.profile?.display_name||'Entreprise à vérifier';
+ const endDate=state.subscription?.paid_through;
+ const validEnd=endDate&&Number.isFinite(Date.parse(endDate))?new Intl.DateTimeFormat('fr-FR',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(endDate)):null;
+ $('rolePremiumUntil').textContent=!eligiblePro?'Accès en cours'
+  :hasVerifiedProfessionalIdentity()?(validEnd?'Actif jusqu’au '+validEnd:'Abonnement actif'):'Accès de test';
+ $('roleCompanyVerifiedText').textContent=hasVerifiedProfessionalIdentity()?'✓ Compte vérifié':eligiblePro?'Accès de test temporaire':'Vérification en cours';
+ $('roleAvailableCount').textContent=String(eligiblePro
+  ?state.missions.filter(m=>m.status==='open'&&m.owner_id!==state.session?.user?.id).length:0);
+ const submitted=new Set([
+  ...(state.salesTracking||[]).filter(x=>['contacted','followup','quote','won'].includes(x.stage)).map(x=>x.mission_id),
+  ...state.conversations.filter(x=>x.professional_id===state.session?.user?.id).map(x=>x.mission_id)
+ ].filter(Boolean));
+ $('roleOwnCount').textContent=String(eligiblePro?submitted.size:0);
  $('roleConversationCount').textContent=state.messageUnreadCount||0;
- $('roleAlertCount').textContent=state.priorityAlerts?.length||0;
+ $('roleAlertCount').textContent=String(eligiblePro?(
+  (state.priorityAlerts||[]).filter(x=>!x.seen_at).length+
+  (state.opportunityAlerts||[]).filter(x=>!x.seen_at).length):0);
 
 
  const banner=$('proVerificationBanner');const pro=state.profile?.role==='pro';
