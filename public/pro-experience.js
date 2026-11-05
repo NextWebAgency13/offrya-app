@@ -1,4 +1,21 @@
 import {buildRadar} from './radar.js';
+// Prefer the chosen username over a corporate legal label or technical identifier.
+export function professionalGreetingLabel(state){
+ const user=state.session?.user, metadata=user?.user_metadata||{};
+ const candidates=[
+  state.profile?.display_name, metadata.offrya_username, metadata.username,
+  metadata.display_name, metadata.full_name, state.premium?.legal_name,
+  typeof user?.email==='string'?user.email.split('@')[0]:''
+ ];
+ for(const item of candidates){
+  const label=String(item??'').replace(/[\r\n\t]+/g,' ').trim().replace(/\s+/g,' ');
+  if(!label||label.length>80)continue;
+  if(/^(?:professionnel|utilisateur offrya|user[_-][a-z0-9_-]{6,}|[a-f0-9-]{24,}|[0-9]{10,})$/i.test(label))continue;
+  return label.length>32?label.slice(0,29).trimEnd()+'…':label;
+ }
+ return '';
+}
+
 // OFFRYA Pro UI v3 — visual redesign on top of existing secured modules.
 // Only authenticated, server/RLS-authorized data is displayed. No demo rows.
 export function createProExperience({state,element,canUsePremium,tab,renderMissions,loadMarkets,notify,openProposal}){
@@ -386,11 +403,12 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const user=state.session?.user?.id;
   if(user!==uid){uid=user;view='home';
   }
-  const rawLabel=String(state.premium?.legal_name||state.profile?.display_name||'').trim();
-  const technical=/^(?:user[_-][a-z0-9_-]{6,}|[a-f0-9-]{24,}|[0-9]{10,})$/i.test(rawLabel);
-  const label=rawLabel&&!technical?rawLabel:'professionnel';
-  $('proV3Hello').textContent=label.length>32?label.slice(0,29).trimEnd()+'…':label;
-  $('proV3Hello').title=label;
+  const label=professionalGreetingLabel(state);
+  $('proV3Hello').textContent=label||'OFFRYA';
+  $('proV3Hello').title=label||'OFFRYA';
+  const greeting=$('proV3Hello').parentElement;
+  if(greeting?.firstChild?.nodeType===Node.TEXT_NODE)
+   greeting.firstChild.textContent=label?'Bonjour, ':'Bienvenue sur ';
   const temporary=Date.parse(state.testPremiumUntil||'')>Date.now();
   const status=temporary?'Accès temporaire':state.premium?.status==='verified'?'Compte vérifié · abonnement actif':'Compte professionnel actif';
   $('proV3Status').textContent=status;

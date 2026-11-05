@@ -779,3 +779,142 @@ body.offrya-pro-v3 .pro-v3-search:focus-within{
  body.offrya-pro-v3 .pro-v3-primary-tabs .pro-v3-nav-btn{min-height:64px}
  body.offrya-pro-v3 #proV3AccountTools{display:grid!important}
 }
+
+/* OFFRYA mobile fallback for Chrome Android's "Desktop site" virtual viewport.
+ * Browser-controlled viewport can be ~980px on a phone, so width-only rules
+ * miss the mobile layout. The tall touch/portrait media query avoids changing
+ * normal desktop and landscape tablet experiences.
+ */
+@media screen and (pointer:coarse) and (orientation:portrait)
+ and (min-width:621px) and (max-width:1100px) and (max-aspect-ratio:3/5){
+ body .app-shell,
+ body.offrya-pro-v3 .app-shell{
+  display:block!important;grid-template-columns:minmax(0,1fr)!important;
+  min-height:100dvh!important;padding-bottom:calc(95px + env(safe-area-inset-bottom,0px))!important;
+ }
+ body .app-shell .sidebar,
+ body.offrya-pro-v3 .app-shell .sidebar{
+  position:fixed!important;inset:auto 0 0!important;top:auto!important;
+  left:0!important;right:0!important;bottom:0!important;
+  width:100%!important;max-width:100%!important;height:calc(82px + env(safe-area-inset-bottom,0px))!important;
+  min-height:0!important;padding:5px 10px calc(6px + env(safe-area-inset-bottom,0px))!important;
+  display:block!important;background:#351348!important;color:#fff!important;
+  border:0!important;border-top:1px solid #69487c!important;
+  border-radius:15px 15px 0 0!important;box-shadow:0 -5px 20px #220b3d27!important;
+  z-index:60!important;overflow:visible!important;
+ }
+ body .sidebar :is(.brand-area,.sidebar-bottom,.workspace-label,.pro-v3-sidebar-nav,#proV3SidebarExtras,.pro-v3-side-plan){
+  display:none!important;
+ }
+ body .sidebar #nav,
+ body.offrya-pro-v3 .sidebar #nav{
+  display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  height:100%!important;min-height:0!important;align-items:stretch!important;
+  gap:3px!important;margin:0!important;padding:0!important;
+ }
+ body .sidebar #nav .nav-link,
+ body.offrya-pro-v3 .sidebar #nav .nav-link{
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  height:100%!important;min-height:0!important;min-width:0!important;
+  gap:4px!important;padding:6px 3px!important;
+  border-radius:12px!important;color:#f4e5ff!important;background:transparent!important;
+ }
+ body .sidebar #nav .nav-link[data-tab="boamp"]{display:none!important}
+ body .sidebar #nav .nav-link.active,
+ body.offrya-pro-v3 .sidebar #nav .nav-link.active{background:#7534c5!important;color:white!important}
+ body .sidebar #nav .nav-link span,
+ body.offrya-pro-v3 .sidebar #nav .nav-link span{
+  display:block!important;white-space:normal!important;font-size:14px!important;
+  font-weight:700!important;line-height:1.15!important;text-align:center!important;
+ }
+ body .sidebar #nav .nav-icon{width:26px!important;height:26px!important}
+ body .app-shell .main,body.offrya-pro-v3 .app-shell .main{
+  width:100%!important;max-width:100%!important;min-width:0!important;
+ }
+ body .app-shell .header,body.offrya-pro-v3 .app-shell .header{
+  position:sticky!important;top:0!important;z-index:20!important;
+  width:100%!important;height:81px!important;padding:0 20px!important;
+  background:linear-gradient(110deg,#351045,#4b1662)!important;color:#fff!important;
+ }
+ body .header-heading{display:none!important}
+ body .mobile-brand,body.offrya-pro-v3 .mobile-brand{
+  display:flex!important;align-items:center!important;color:#fff!important;font-size:23px!important;
+ }
+ body .app-shell .main-content,body.offrya-pro-v3 .app-shell .main-content{
+  max-width:100%!important;width:100%!important;min-width:0!important;
+  overflow-x:clip!important;padding:20px 20px 95px!important;
+ }
+ body .section-top h2{font-size:29px!important}
+ body .section-top p:not(.eyebrow){font-size:16px!important;line-height:1.5!important}
+ body .offrya-global-footer{margin-top:0!important;padding:19px 20px 110px!important;gap:12px!important}
+ body .offrya-global-footer a{font-size:14px!important}
+ body #inbox .inbox-grid{display:block!important;grid-template-columns:1fr!important}
+ body #inbox .inbox-conversations,body #inbox .message-panel{
+  width:100%!important;min-width:0!important;max-width:100%!important;
+ }
+ body #inbox .message-panel{display:none!important}
+ body #inbox.has-active-thread .inbox-conversations{display:none!important}
+ body #inbox.has-active-thread .message-panel{display:block!important}
+ body #inbox .inbox-mobile-back{display:inline-flex!important;font-size:16px!important;min-height:44px!important}
+ body #inbox .offrya-conversation{min-height:82px!important}
+ body #inbox .offrya-conversation-body strong{font-size:17px!important}
+ body #inbox .offrya-conversation-body small{font-size:14px!important}
+ body #inbox .messages{max-height:min(65dvh,900px)!important;min-height:44dvh!important}
+ body #inbox .send-form{display:flex!important;gap:10px!important}
+ body #inbox .send-form input{min-width:0!important;flex:1!important;font-size:18px!important}
+ body #inbox .send-form .button{min-height:49px!important;font-size:16px!important}
+ body #settings .push-notifications-settings{flex-direction:column!important;align-items:stretch!important}
+ body #settings .push-notification-actions{width:100%!important}
+ body.offrya-pro-v3 .pro-v3-primary-tabs{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:10px!important;margin-bottom:14px!important;
+ }
+ body.offrya-pro-v3 .pro-v3-primary-tabs .pro-v3-nav-btn{
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  font-size:14px!important;min-height:70px!important;white-space:normal!important;
+ }
+ body.offrya-pro-v3 .pro-v3-search{
+  display:flex!important;max-width:100%!important;min-width:0!important;
+  height:52px!important;margin:0 0 16px!important;
+ }
+ body.offrya-pro-v3 .pro-v3-search input{font-size:18px!important}
+ body.offrya-pro-v3 #proV3AccountTools{display:grid!important}
+ body.offrya-pro-v3 .pro-v3-radar-row{
+  display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:12px!important;
+ }
+ body.offrya-pro-v3 .pro-v3-radar-side{width:100%!important}
+ body.offrya-pro-v3 .pro-v3-reco{max-width:100%!important;min-width:0!important}
+}
+
+/* Keep content readable in the simulated 980px portrait viewport too. */
+@media screen and (pointer:coarse) and (orientation:portrait)
+ and (min-width:621px) and (max-width:1100px) and (max-aspect-ratio:3/5){
+ body{font-size:16px!important;overflow-x:clip!important}
+ body :is(.two-col,.inbox-grid,.form-grid){grid-template-columns:minmax(0,1fr)!important}
+ body .app-shell :is(.panel,.inbox-conversations,.message-panel){
+  min-width:0!important;max-width:100%!important;
+ }
+ body .app-shell .panel{padding:19px!important}
+ body .app-shell :is(.panel h3,.message-panel h3){font-size:20px!important}
+ body .app-shell :is(.inbox-hint,.inbox-thread-context){font-size:15px!important}
+ body .app-shell #dashboard :is(.role-quick-grid,.role-pro-links){
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:13px!important;
+ }
+ body .app-shell #dashboard .role-hero{
+  min-height:0!important;padding:25px 21px!important;
+ }
+ body .app-shell #dashboard .role-hero>div{max-width:100%!important}
+ body .app-shell #dashboard .role-hero h2{font-size:30px!important}
+ body .app-shell #dashboard .role-hero p{font-size:16px!important}
+ body .app-shell #dashboard .role-mission-row{min-width:0!important}
+ body .app-shell .filters{flex-wrap:wrap!important}
+ body .app-shell .filters :is(input,select){flex:1 1 250px!important}
+ body .app-shell :is(input,select,textarea,.field){max-width:100%!important}
+ body .app-shell #settings .settings-form{max-width:100%!important}
+ body .app-shell #settings .push-notifications-settings{flex-direction:column!important}
+ body.offrya-pro-v3 .pro-v3-panel{padding:18px!important}
+ body.offrya-pro-v3 .pro-v3-intro h2{font-size:29px!important}
+ body.offrya-pro-v3 .pro-v3-reco strong{font-size:18px!important}
+ body.offrya-pro-v3 .pro-v3-reco p{font-size:15px!important}
+ body.offrya-pro-v3 .pro-v3-radar-summary{font-size:16px!important}
+}
