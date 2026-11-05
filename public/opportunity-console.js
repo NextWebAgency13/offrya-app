@@ -77,17 +77,29 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
  }
  function renderAlerts(){
   const node=$('opAlertsList');if(!node)return;
-  const rows=[...(state.opportunityAlerts||[])].filter(a=>!a.deadline||Date.parse(a.deadline)>Date.now())
-   .sort((a,b)=>(b.match_score||0)-(a.match_score||0));
+  // Discovery includes lower-scoring opportunities. Notifications only promote
+  // verified sector matches above 75/100, as computed by the secure server.
+  const scored=state.radarMatches?.items;
+  if(!Array.isArray(scored)){
+   node.innerHTML='<p class="muted">Le classement métier est en cours de vérification. Les alertes prioritaires apparaîtront ici.</p>';
+   return;
+  }
+  const verified=new Map(scored.filter(x=>x.kind==='tender'&&Number(x.score)>=75).map(x=>[String(x.id),x]));
+  const rows=[...(state.opportunityAlerts||[])]
+   .filter(a=>verified.has(String(a.tender_id))&&(!a.deadline||Date.parse(a.deadline)>Date.now()))
+   .sort((a,b)=>verified.get(String(b.tender_id)).score-verified.get(String(a.tender_id)).score);
   node.innerHTML=rows.length?rows.slice(0,15).map(a=>{
+   const item=verified.get(String(a.tender_id));
    const source=a.source==='TED'?'TED · Union européenne':'BOAMP · DILA';
    const allowed=/^https:\/\/(www\.)?boamp\.fr\//i.test(a.url||'')
     ||/^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(a.url||'');
-   const link=allowed?'<a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer">Consulter l’annonce publique officielle</a>':'';
-   const score=Number.isInteger(a.match_score)?' · Correspondance '+a.match_score+'/100':'';
-   return '<article class="op-result"><div><span class="op-source">'+esc(source)+' · '+(a.seen_at?'DÉJÀ CONSULTÉ':'NOUVELLE OPPORTUNITÉ')+'</span><h5>'+esc(a.title)+'</h5><p>Détectée le '+esc(fmtDate(a.detected_at))+' · Échéance : '+esc(fmtDate(a.deadline))+score+'</p>'+link+'</div>'+
+   const link=allowed?'<a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer">Consulter l’avis officiel</a>':'';
+   return '<article class="op-result"><div><span class="op-source">'+esc(source)+' · '+
+    (a.seen_at?'CONSULTÉ':'NOUVELLE ALERTE PRIORITAIRE')+'</span><h5>'+esc(a.title)+'</h5>'+
+    '<p>Date limite : '+esc(fmtDate(a.deadline))+' · Pertinence vérifiée : '+Math.round(item.score)+'/100</p>'+
+    '<p>'+esc((item.reasons||[]).slice(0,2).join(' · '))+'</p>'+link+'</div>'+
     (a.seen_at?'':'<button class="button secondary" data-op-seen="'+esc(a.tender_id)+'">Marquer comme lu</button>')+'</article>';
-  }).join(''):'<p class="muted">Aucune opportunité qualifiée enregistrée. Activez la veille pour recevoir les annonces publiques BOAMP et TED correspondant à vos critères.</p>';
+  }).join(''):'<p class="muted">Aucune nouvelle alerte suffisamment pertinente. Les autres avis restent consultables dans l’Espace Premium.</p>';
  }
  function renderTracked(){
   const rows=state.tenderTracking||[];
