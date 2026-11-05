@@ -551,7 +551,7 @@ function render(){
  const personalHeading=document.querySelector('#roleClientView .client-dashboard-heading h2');
  const personalDescription=document.querySelector('#roleClientView .client-dashboard-heading p');
  if(personalEyebrow)personalEyebrow.textContent='ACCUEIL · COMPTE OFFRYA';
- if(personalHeading)personalHeading.textContent=hasProProfile?'Votre espace personnel':'Bonjour, bienvenue sur votre espace';
+ if(personalHeading)personalHeading.textContent=hasProProfile?'Mes missions et mes échanges':'Mes projets et mes échanges';
  if(personalDescription)personalDescription.textContent=hasProProfile?
   'Vos missions publiées et vos échanges. Retrouvez les opportunités dans Espace pro.':
   'Publiez vos projets et suivez les échanges avec les professionnels.';
@@ -708,7 +708,7 @@ async function init(){
   if(p.has('identity'))toast('Retour de Stripe Identity : consultez le statut de votre dossier.');
 }
 const opportunityConsole=createOpportunityConsole({state,element:$,canUsePremium,tab,renderMissions,notify:toast});
-const salesWorkspace=createSalesWorkspace({state,element:$,canUsePremium,tab,notify:toast,refresh});
-const proExperience=createProExperience({state,element:$,canUsePremium,tab,renderMissions,loadMarkets:()=>loadBoamp(),notify:toast});
+const salesWorkspace=createSalesWorkspace({state,element:$,canUsePremium,tab,notify:toast,refresh,onNavigate:screen=>proExperience.show(screen)});
+const proExperience=createProExperience({state,element:$,canUsePremium,tab,renderMissions,loadMarkets:()=>loadBoamp(),notify:toast,openProposal:id=>salesWorkspace.openMission(id)});
 proExperience.init();opportunityConsole.init();salesWorkspace.init();
 init().catch(showError);

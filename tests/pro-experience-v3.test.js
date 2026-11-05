@@ -21,7 +21,7 @@ test('Approved nine-view navigation and existing protected modules',()=>{
  assert.match(js,/state\.conversations/);
  assert.match(js,/appendChild\(\$\('opWatchDetails'\)\)/);
  assert.match(js,/appendChild\(document\.querySelector\('#proDashboard \.sales-workspace'\)\)/);
- assert.match(js,/state\.selectedMissionId=id/);
+ assert.match(js,/if\(openProposal&&openProposal\(id\)\)\{show\('assistant'\);return;\}/);
  assert.doesNotMatch(js,/Entretien complet d.un jardin|Bâtisud Services|12 nouvelles missions/);
 });
 test('Core business access control and signed-in client screens remain untouched',()=>{

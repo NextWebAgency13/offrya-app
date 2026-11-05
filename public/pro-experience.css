@@ -638,3 +638,61 @@ body.offrya-pro-v3:not(.offrya-pro-workspace) .sidebar .founder-card p{color:#62
  body.offrya-pro-v3 .pro-v3-radar-side .pro-v3-reco-btn{font-size:14px;min-height:44px}
  body.offrya-pro-v3 .pro-v3-radar-summary{font-size:14px}
 }
+
+/* OFFRYA — three intentional professional actions, no duplicate navigation. */
+body.offrya-pro-v3 .pro-v3-primary-tabs{display:none}
+body.offrya-pro-v3 #proV3CommercialSlot .sales-heading,
+body.offrya-pro-v3 #proV3CommercialSlot .sales-stats,
+body.offrya-pro-v3 #proV3CommercialSlot .sales-tabs{display:none!important}
+body.offrya-pro-v3 #proV3CommercialSlot .sales-workspace{
+ padding:clamp(14px,2.4vw,25px);
+}
+body.offrya-pro-v3 #proV3CommercialSlot .sales-draft .sales-proposal-fields{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+ margin:14px 0 18px;
+}
+body.offrya-pro-v3 .sales-proposal-fields label{display:flex;flex-direction:column;gap:7px;font-weight:680;font-size:13px}
+body.offrya-pro-v3 .sales-proposal-fields label small{display:inline;color:#70637a;font-weight:450}
+body.offrya-pro-v3 .sales-proposal-fields .field{width:100%;max-width:100%;min-height:47px;font-size:16px}
+body.offrya-pro-v3 .sales-optional-tools{
+ margin-top:16px;padding:12px 14px;background:#f9f7fc;border:1px solid #ebe3f1;border-radius:12px;
+}
+body.offrya-pro-v3 .sales-optional-tools summary{cursor:pointer;font-weight:660;color:#63438c}
+body.offrya-pro-v3 .sales-optional-tools .button{margin-top:12px;min-height:44px}
+body.offrya-pro-v3 .pro-v3-work-actions{
+ display:flex;flex-wrap:wrap;gap:10px;margin:16px 0;
+}
+body.offrya-pro-v3 .pro-v3-work-actions[hidden]{display:none!important}
+body.offrya-pro-v3 .pro-v3-work-actions button{
+ min-height:46px;padding:12px 17px;background:#fff;color:#6530a9;
+ border:1px solid #e4d7ee;border-radius:12px;font-weight:700;font-size:13px;line-height:1.25;font-family:inherit;cursor:pointer;
+}
+body.offrya-pro-v3 .pro-v3-work-actions button:focus-visible,
+body.offrya-pro-v3 .pro-v3-primary-tabs button:focus-visible{
+ outline:3px solid #df8b4c;outline-offset:3px;
+}
+@media(max-width:820px){
+ body.offrya-pro-v3 .pro-v3-primary-tabs{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;
+  margin:0 0 16px;padding:0;
+ }
+ body.offrya-pro-v3 .pro-v3-primary-tabs .pro-v3-nav-btn{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:5px;min-height:60px;min-width:0;padding:8px 5px;
+  background:#fff;color:#684f84;border:1px solid #e7deef;border-radius:12px;
+  font-size:11px;text-align:center;line-height:1.23;box-shadow:none;
+ }
+ body.offrya-pro-v3 .pro-v3-primary-tabs .pro-v3-nav-btn.active{
+  background:#f2eafd;color:#6729b2;border-color:#bd9de0;
+ }
+ body.offrya-pro-v3 .pro-v3-primary-tabs .pro-v3-nav-count{display:none!important}
+ body.offrya-pro-v3 .pro-v3-primary-tabs .nav-icon{width:17px;height:17px;flex:none}
+ body.offrya-pro-v3 .pro-v3-primary-tabs .pro-v3-nav-btn span:not(.pro-v3-nav-count){
+  display:block;font-size:11px;font-weight:700;white-space:normal;
+ }
+ body.offrya-pro-v3 #proV3CommercialSlot .sales-proposal-fields{grid-template-columns:1fr}
+ body.offrya-pro-v3 #proV3CommercialSlot .sales-actions{display:flex;flex-direction:column;align-items:stretch}
+ body.offrya-pro-v3 #proV3CommercialSlot .sales-actions button{min-height:48px}
+}
+
+body.offrya-pro-v3 #proV3CommercialSlot .sales-lead-action{display:block;margin-top:8px;color:#6e36bd;font-weight:740;font-size:12px}
