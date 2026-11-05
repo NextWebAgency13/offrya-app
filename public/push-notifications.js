@@ -1,11 +1,10 @@
 // OFFRYA Android push: browser permission + actual account-specific server registration.
-export function createPushNotifications({state,button,status,testButton,notify}){
+export function createPushNotifications({state,button,status,notify}){
  let config=null,busy=false,active=false;
  const supported=()=>window.isSecureContext && 'serviceWorker' in navigator &&
   'PushManager' in window && 'Notification' in window;
  function update(label,disabled=false){
   if(button){button.textContent=label;button.disabled=disabled;}
-  if(testButton)testButton.hidden=!active;
  }
  function tell(message){if(status)status.textContent=message;}
  async function registration(){return navigator.serviceWorker.register('/sw.js',{scope:'/'});}
@@ -28,7 +27,6 @@ export function createPushNotifications({state,button,status,testButton,notify})
  }
  async function refreshStatus(){
   active=false;
-  if(testButton)testButton.hidden=true;
   if(!supported()){update('Notifications non compatibles',true);tell('Ouvrez OFFRYA dans Chrome sur Android (HTTPS).');return;}
   if(!config?.enabled){update('Notifications indisponibles',true);tell('Le service push est temporairement indisponible.');return;}
   if(Notification.permission==='denied'){
@@ -91,32 +89,13 @@ export function createPushNotifications({state,button,status,testButton,notify})
     if(!previous)await sub.unsubscribe().catch(()=>{});
     throw error;
    }
-   notify('Enregistrement push terminé. Utilisez le bouton de test pour vérifier Android.');
+   notify('Notifications Android activées pour ce compte.');
   }catch(error){notify(error.message||'Activation indisponible.');}
   finally{busy=false;await refreshStatus().catch(()=>{});}
- }
- async function testPush(){
-  if(busy||!active||!supported())return;
-  busy=true;
-  if(testButton)testButton.disabled=true;
-  tell('Envoi du test au fournisseur Android…');
-  try{
-   const reg=await registration(),sub=await reg.pushManager.getSubscription(),token=await sessionToken();
-   if(!sub||!token)throw Error('Reconnectez-vous et réactivez les notifications.');
-   await api('test',{endpoint:sub.endpoint},token);
-   tell('Test transmis au fournisseur push. Vérifiez la barre de notifications Android, y compris si OFFRYA est fermé.');
-  }catch(error){
-   tell('Test non envoyé : '+(error.message||'erreur inconnue'));
-   await refreshStatus().catch(()=>{});
-  }finally{
-   busy=false;
-   if(testButton)testButton.disabled=false;
-  }
  }
  async function init(){
   if(!button)return;
   button.addEventListener('click',toggle);
-  if(testButton)testButton.addEventListener('click',testPush);
   if(!supported()){await refreshStatus();return;}
   try{
    const response=await fetch('/api/push/config',{cache:'no-store'});
