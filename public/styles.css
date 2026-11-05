@@ -430,3 +430,27 @@
  .app-shell .mission-header-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}
  .app-shell .mission-header-actions .button{width:100%;min-height:44px;padding:10px 9px;white-space:normal}
 }
+
+/* OFFRYA: message notifications for client and professional spaces. */
+.message-nav-link,.message-header-shortcut{position:relative}
+.message-header-shortcut{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px}
+.message-unread-badge,.message-thread-badge{
+ display:inline-flex;justify-content:center;align-items:center;
+ flex:none;min-width:19px;height:19px;padding:0 5px;border-radius:999px;
+ background:#d94662;color:#fff;font-size:11px;font-weight:800;line-height:1;
+ font-variant-numeric:tabular-nums;
+}
+.message-unread-badge[hidden],.message-thread-badge[hidden]{display:none!important}
+.message-header-shortcut .message-unread-badge{position:absolute;top:0;right:0;border:2px solid #fff;min-width:22px;height:22px}
+.message-nav-link .message-unread-badge{position:absolute;top:6px;right:8px;border:2px solid #fff;min-width:21px;height:21px}
+#inbox .offrya-conversation.has-unread{background:#fbf7ff;border-color:#d9c5ed}
+#inbox .offrya-conversation.has-unread .offrya-conversation-body strong{font-weight:850;color:#311d4f}
+#inbox .message-thread-badge{margin-left:auto}
+@media(max-width:930px){
+ .message-nav-link .message-unread-badge{top:0;right:0}
+}
+@media(max-width:620px){
+ .message-nav-link{overflow:visible!important}
+ .message-nav-link .message-unread-badge{top:2px;right:calc(50% - 24px)}
+ .message-header-shortcut .message-unread-badge{right:-3px;top:-3px}
+}
