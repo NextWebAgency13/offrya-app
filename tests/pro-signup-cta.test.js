@@ -1,34 +1,27 @@
 'use strict';
-const {test}=require('node:test');
-const assert=require('node:assert/strict');
-const fs=require('node:fs');
-const path=require('node:path');
-const root=path.join(__dirname,'..');
-const html=fs.readFileSync(path.join(root,'public','index.html'),'utf8');
-const css=fs.readFileSync(path.join(root,'public','public.css'),'utf8');
-const auth=fs.readFileSync(path.join(root,'public','connexion.js'),'utf8');
-const pro=html.match(/<article class="mock-choice-card mock-pro">([\s\S]*?)<\/article>/)?.[1];
-
-test('Accueil : le bloc professionnel propose un bouton explicite de création de compte',()=>{
- assert.ok(pro,'Encart OFFRYA Professionnel présent');
- assert.match(pro,/Vous êtes professionnel \?/);
- assert.match(pro,/34,99 € TTC \/ mois/);
- assert.match(pro,/href="\/connexion\?mode=signup&amp;next=%2Fespace%2Fprofessionnel">Créer un compte professionnel/);
- assert.match(pro,/class="mock-pro-details" href="\/professionnels">Découvrir l’offre OFFRYA Professionnel/);
- assert.equal((pro.match(/mock-pro-signup/g)||[]).length,1);
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
+const html=fs.readFileSync('public/index.html','utf8');
+const css=fs.readFileSync('public/public.css','utf8');
+const auth=fs.readFileSync('public/connexion.js','utf8');
+const premium=fs.readFileSync('public/professionnels.html','utf8');
+test('Accueil : une entrée Pro unique, renvoyant à l’offre et à la vérification',()=>{
+ assert.equal((html.match(/data-journey="professional"/g)||[]).length,1);
+ assert.match(html,/href="\/professionnels" data-journey="professional"/);
+ assert.match(html,/Je suis professionnel/);
+ assert.match(html,/34,99 € TTC \/ mois/);
+ assert.doesNotMatch(html,/mock-pro-signup|Créer un compte professionnel/);
 });
-test('Redirection : inscription Pro pré-sélectionnée sans supprimer la vérification',()=>{
+test('L inscription professionnelle est disponible sur la page dédiée et conserve le contrôle du dirigeant',()=>{
+ assert.match(premium,/href="\/connexion\?mode=signup&amp;next=%2Fespace%2Fprofessionnel"/);
+ assert.match(premium,/Vérifiez votre entreprise/);
+ assert.match(premium,/Confirmez votre identité/);
+ assert.match(premium,/Activez votre abonnement/);
  assert.match(auth,/query\.get\('mode'\)==='signup'\)change\('signup'\)/);
  assert.match(auth,/next==='\/espace\/professionnel'\?'pro':'client'/);
  assert.match(auth,/email_confirmed_at/);
- assert.match(html,/href="\/connexion\?mode=signup&amp;role=client&amp;next=%2Fespace"/);
 });
-test('Carte Pro : le bouton reste visible sur smartphone même lorsque la liste grandit',()=>{
- assert.match(css,/\.mock-home \.mock-pro\{height:auto;min-height:310px\}/);
- assert.match(css,/\.mock-home \.mock-pro \.mock-choice-content\{height:auto;min-height:0\}/);
- assert.match(css,/\.mock-home \.mock-pro \.mock-card-cta\{margin-top:16px;/);
- assert.match(css,/@media\(max-width:560px\)\{\s*\.mock-home \.mock-pro\{height:auto;min-height:0;overflow:hidden;/);
- assert.match(css,/\.mock-home \.mock-pro \.mock-card-cta\{min-height:54px;/);
- assert.match(css,/\.mock-home \.mock-pro \.mock-card-cta:focus-visible/);
- assert.doesNotMatch(pro,/href="#"/);
+test('Les entrées publique Pro et demandeur restent accessibles sur smartphone et au clavier',()=>{
+ assert.match(css,/@media\(max-width:820px\)\{\s*\.mock-home \.offrya-entry-paths\{grid-template-columns:1fr/);
+ assert.match(css,/\.offrya-entry-path:focus-visible/);
+ assert.match(html,/href="\/deposer-une-mission" data-journey="client"/);
 });

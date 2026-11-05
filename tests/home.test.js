@@ -6,7 +6,7 @@ const home=read('public/index.html'),privatePage=read('public/espace.html'),app=
 test('Vitrine publique autonome : accroche unique, contenu SEO et aucun tableau de bord',()=>{
  assert.equal((home.match(/<h1\b/g)||[]).length,1);
  assert.match(home,/<h1 id="heroHeading">Votre projet mérite<br>le bon <span>professionnel\.<\/span><\/h1>/);
- assert.match(home,/Déposez gratuitement votre mission et recevez des réponses de professionnels vérifiés/);
+ assert.match(home,/Choisissez votre parcours, OFFRYA vous guide/);
  assert.match(home,/href="\/deposer-une-mission"/);
  assert.match(home,/href="\/professionnels"/);
  assert.match(home,/34,99 €/);
