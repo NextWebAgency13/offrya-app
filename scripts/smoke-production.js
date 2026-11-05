@@ -193,6 +193,28 @@ async function run(){
  for(const marker of ['mission-detail-description','mission-listing-actions','offrya-conversation','has-active-thread'])
   assert.ok(styleLatest.text.includes(marker),'Style récent absent de la production : '+marker);
  console.log('PASS: tableaux de bord, fiches de mission et messagerie mobile servis en production');
+ // The private design depends on an explicitly allowlisted CSS asset.
+ // Verify the asset and the role-specific data UI are actually served by Render.
+ let referenceReady=false;
+ for(let attempt=0;attempt<16;attempt++){
+  const [page,skin,script]=await Promise.all([
+   request('/espace',{headers:{'Cache-Control':'no-cache'}}),
+   request('/role-reference.css',{headers:{'Cache-Control':'no-cache'}}),
+   request('/app.js',{headers:{'Cache-Control':'no-cache'}})
+  ]);
+  referenceReady=page.status===200&&skin.status===200&&script.status===200
+   &&page.text.includes('id="roleClientView"')
+   &&page.text.includes('id="rolePremiumView"')
+   &&page.text.includes('href="/role-reference.css"')
+   &&skin.text.includes('OFFRYA — account-specific dashboards')
+   &&script.text.includes("classList.toggle('hidden',eligiblePro)")
+   &&script.text.includes("classList.toggle('hidden',!eligiblePro)");
+  if(referenceReady)break;
+  if(attempt<15)await new Promise(resolve=>setTimeout(resolve,10000));
+ }
+ assert.ok(referenceReady,'Le CSS privé demandeur/Premium ne se charge pas depuis Render');
+ console.log('PASS: feuilles de style et deux tableaux de bord distincts livrés en production');
+
  // Contrôle du vrai code Pro déployé, sans envoyer de message ou de paiement.
  const [commercialJs,proExperienceJs,proStyles]=await Promise.all([
   request('/pro-commercial.js',{headers:{'Cache-Control':'no-cache'}}),
