@@ -63,24 +63,29 @@ test('Compte Premium : second chargement limité aux annonces ouvertes, avec ann
  assert.equal(missionQueries.length,2);
  assert.deepEqual(Array.from(missionQueries[1].filters,x=>Array.from(x)),[['status','open']]);
 });
-test('Recherche générale masquée avant certification, sans masquer les annonces personnelles',()=>{
+test('Non Premium sees only personal publications, including closed ones, with professional filters hidden',async()=>{
+ const model=fs.readFileSync(path.join(__dirname,'../public/mission-feed.js'),'utf8');
+ const {missionBuckets}=await import('data:text/javascript;base64,'+Buffer.from(model).toString('base64'));
  const elements=new Map();
  const $=id=>{
   if(!elements.has(id))elements.set(id,{
    value:'',textContent:'',innerHTML:'',hidden:false,
-   classList:{states:new Map(),toggle(name,enabled){this.states.set(name,enabled)}}
+   classList:{states:new Map(),toggle(name,enabled){this.states.set(name,enabled)}},
+   querySelectorAll:()=>[]
   });
   return elements.get(id);
  };
- const state={session:{user:{id:uid,email_confirmed_at:'2026-11-01T10:00:00Z'}},missions:rows,favorites:[]};
- const ctx={state,$,canUsePremium:()=>false,isGuest:()=>false,
-   row:m=>'<article>'+m.id+'</article>',esc:String};
+ const state={session:{user:{id:uid,email_confirmed_at:'2026-11-01T10:00:00Z'}},
+  missions:rows,favorites:[],salesTracking:[],conversations:[]};
+ const ctx={state,$,missionBuckets,canUsePremium:()=>false,
+  row:m=>'<article>'+m.id+'</article>',esc:String};
  vm.runInNewContext(renderSource,ctx);
  ctx.renderMissions();
  assert.equal($('missionSearchFilters').classList.states.get('hidden'),true);
- assert.equal($('missionsListHeading').textContent,'Mes annonces publiées');
+ assert.equal($('missionScopes').classList.states.get('hidden'),true);
+ assert.equal($('missionsListHeading').textContent,'Mes publications');
  assert.match($('missionList').innerHTML,/own-open/);
- assert.doesNotMatch($('missionList').innerHTML,/own-closed/);
+ assert.match($('missionList').innerHTML,/own-closed/);
  assert.doesNotMatch($('missionList').innerHTML,/other-open/);
  assert.doesNotMatch($('dashMissions').innerHTML,/other-open/);
  assert.doesNotMatch($('dashMissions').innerHTML,/own-closed/);

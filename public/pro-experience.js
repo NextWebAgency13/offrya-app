@@ -389,9 +389,11 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const mission=available().find(m=>String(m.id)===String(id));if(!mission)return;
   acknowledgeMatchedNotifications(id);
   $('missionQuery').value='';$('missionCategory').value='';$('missionDept').value='';
-  renderMissions();tab('missions');
-  const button=[...$('missionList').querySelectorAll('[data-view-mission]')].find(b=>String(b.dataset.viewMission)===String(id));
-  if(button)button.click();else notify('Fiche indisponible. Actualisez les missions.');
+  state.selectedMissionId=mission.id;
+  // Preserve the detail selection. renderMissions switches to the available
+  // scope when an opportunity is opened from the professional radar.
+  renderMissions();
+  tab('missions',false,true);
  }
  function openMission(id){
   const m=available().find(x=>x.id===id);if(!m)return;

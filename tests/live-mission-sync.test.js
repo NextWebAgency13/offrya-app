@@ -64,7 +64,7 @@ test('New client-side feed is syntactically valid, only served as an import and 
  const chk=spawnSync(process.execPath,['--input-type=module','--check'],{input:source,encoding:'utf8'});
  assert.equal(chk.status,0,chk.stderr);
  assert.match(server,/\['\/mission-feed\.js','text\/javascript/);
- assert.match(app,/import \{fetchMissionFeed\} from '\.\/mission-feed\.js'/);
+ assert.match(app,/import \{fetchMissionFeed,missionBuckets\} from '\.\/mission-feed\.js'/);
  assert.match(app,/const latest=await fetchMissionFeed\(state\.db,uid,premium\)/);
  assert.match(app,/uid!==state\.session\?\.user\?\.id\|\|uid!==state\.currentUserId\|\|premium!==canUsePremium\(\)/);
  assert.match(html,/id="missionRefresh"/);

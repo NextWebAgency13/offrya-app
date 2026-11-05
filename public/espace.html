@@ -125,8 +125,25 @@
           <div class="panel"><div class="panel-heading"><h3>Mon activité</h3><span class="tag">Espace privé</span></div><div id="dashActivity" class="data-list"><div class="empty">Aucune activité récente. <a href="/deposer-une-mission">Publier une mission</a>.</div></div><div class="small-note">Les anciennes missions publiées en invité restent liées à leur navigateur d'origine ; effacer ses données peut rendre leur suivi inaccessible. OFFRYA ne gère pas le règlement des prestations.</div></div>
         </div>
       </section></section>
-     <section class="tab" id="missions"><div class="section-top"><div><p class="eyebrow">MISE EN RELATION</p><h2>Mes missions</h2><p>Retrouvez vos propres annonces. La recherche des missions publiées par d’autres clients est accessible uniquement aux professionnels certifiés avec un abonnement actif.</p></div><div class="mission-header-actions"><button class="button secondary" type="button" id="missionRefresh" aria-label="Actualiser les missions">↻ Actualiser</button><button class="button primary" id="newMissionBtn">+ Publier une mission</button></div></div>
-      <div class="panel filters hidden" id="missionSearchFilters"><input class="field" id="missionQuery" placeholder="Métier, prestation, ville…" aria-label="Rechercher une mission"><select class="field" id="missionCategory"><option value="">Tous les secteurs</option><option>Nettoyage</option><option>Espaces verts</option><option>Bâtiment</option><option>Informatique</option><option>Transport</option><option>Restauration &amp; Hôtellerie</option><option>Bien-être &amp; Beauté</option><option>Autre</option></select><input class="field" id="missionDept" maxlength="3" placeholder="Dépt. ex : 31" aria-label="Département"><button class="button secondary" id="missionSearch">Rechercher</button></div><div class="panel"><div class="panel-heading"><h3 id="missionsListHeading">Mes annonces publiées</h3><span class="tag" id="missionsCount">0 annonce</span></div><div id="missionList" class="data-list"><div class="empty">Vos propres missions apparaîtront ici. Les missions d’autrui nécessitent un abonnement OFFRYA Professionnel actif.</div></div></div>
+     <section class="tab" id="missions">
+       <div class="section-top mission-section-head">
+        <div><p class="eyebrow">MISSIONS · OFFRYA</p><h2 id="missionPageTitle">Mes missions</h2><p id="missionPageDescription">Consultez et suivez les missions que vous avez publiées.</p></div>
+        <div class="mission-header-actions"><button class="button secondary" type="button" id="missionRefresh" aria-label="Actualiser les missions">↻ Actualiser</button><button class="button primary" type="button" id="newMissionBtn">+ Publier une mission</button></div>
+       </div>
+       <nav class="mission-scopes hidden" id="missionScopes" aria-label="Choisir le type de missions">
+        <button type="button" data-mission-view="available" class="is-active" aria-pressed="true" aria-label="Missions disponibles"><span>Disponibles</span><strong id="missionScopeAvailable">0</strong></button>
+        <button type="button" data-mission-view="published" aria-pressed="false" aria-label="Mes publications"><span>Mes publications</span><strong id="missionScopePublished">0</strong></button>
+        <button type="button" data-mission-view="followed" aria-pressed="false" aria-label="Prestations suivies"><span>Suivies</span><strong id="missionScopeFollowed">0</strong></button>
+       </nav>
+       <div class="panel filters hidden" id="missionSearchFilters">
+        <input class="field" id="missionQuery" placeholder="Métier, prestation, ville…" aria-label="Rechercher une mission">
+        <select class="field" id="missionCategory" aria-label="Secteur de la mission"><option value="">Tous les secteurs</option><option>Nettoyage</option><option>Espaces verts</option><option>Bâtiment</option><option>Informatique</option><option>Transport</option><option>Restauration &amp; Hôtellerie</option><option>Bien-être &amp; Beauté</option><option>Autre</option></select>
+        <input class="field" id="missionDept" maxlength="3" placeholder="Dépt. ex : 13" aria-label="Département">
+        <button type="button" class="button secondary" id="missionSearch">Rechercher</button>
+       </div>
+       <div class="panel mission-results-panel"><div class="panel-heading"><h3 id="missionsListHeading">Mes publications</h3><span class="tag" id="missionsCount">0 publication</span></div>
+        <div id="missionList" class="data-list"><div class="empty">Vos missions publiées apparaîtront ici.</div></div>
+       </div>
     </section>
     
 <section class="tab" id="professional">

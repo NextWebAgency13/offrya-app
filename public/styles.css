@@ -489,3 +489,136 @@
   background:#70409c;color:#fff;border:2px solid #e3c9fb;
  }
 }
+
+
+/* OFFRYA / Missions v4 — three distinct private scopes, compact cards.
+   Scoped to #missions so personal dashboard and public listings stay unchanged. */
+#missions .mission-section-head{margin:0 0 17px;gap:14px}
+#missions .mission-section-head .eyebrow{margin:0;color:#8335be}
+#missions .mission-section-head h2{margin:3px 0 7px;color:#2f1749}
+#missions .mission-section-head>div>p:not(.eyebrow){max-width:670px;margin:0;font-size:13px;line-height:1.5;color:#655575}
+#missions .mission-scopes{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;
+ margin:0 0 14px;padding:4px;background:#f2eaf8;border:1px solid #ead8f3;border-radius:16px;
+}
+#missions .mission-scopes.hidden{display:none!important}
+#missions .mission-scopes button{
+ display:flex;align-items:center;justify-content:center;gap:11px;min-width:0;
+ min-height:52px;padding:10px 12px;border:1px solid transparent;border-radius:12px;
+ background:transparent;color:#604b70;font:750 13px/1.25 'Plus Jakarta Sans',sans-serif;
+ cursor:pointer;overflow-wrap:anywhere;
+}
+#missions .mission-scopes button strong{
+ min-width:24px;min-height:24px;display:inline-grid;place-items:center;
+ padding:3px 7px;border-radius:999px;background:#e1d2ef;color:#512b77;
+ font:800 11px/1.15 'Plus Jakarta Sans',sans-serif;flex:none;
+}
+#missions .mission-scopes button.is-active{
+ background:linear-gradient(110deg,#8b36d1,#6220a6);border-color:#742ab9;
+ box-shadow:0 4px 12px #50217825;color:#fff;
+}
+#missions .mission-scopes button.is-active strong{background:#ffffff35;color:#fff}
+#missions .mission-scopes button:focus-visible{outline:3px solid #efa657;outline-offset:2px}
+#missions .mission-results-panel{padding:0;border:0;background:transparent;box-shadow:none}
+#missions .mission-results-panel .panel-heading{
+ display:flex;align-items:center;justify-content:space-between;gap:10px;
+ padding:0 3px 10px;margin:0 0 2px;border:0;
+}
+#missions .mission-results-panel .panel-heading h3{
+ font:800 17px/1.25 'Plus Jakarta Sans',sans-serif;color:#322142;
+}
+#missions .mission-results-panel .panel-heading .tag{
+ background:#eee5f8;border-color:#e0d4ec;color:#693d92;
+ font-size:11px;padding:5px 11px;flex:none;
+}
+#missions .mission-listing{
+ padding:15px 17px;margin:0 0 10px;border-radius:15px;
+ box-shadow:0 3px 13px #371d4810;
+}
+#missions .mission-listing .item-top{gap:6px;justify-content:space-between}
+#missions .mission-listing .mission-category{font-size:11px;padding:4px 10px}
+#missions .mission-listing .mission-status{font-size:10px;padding:4px 9px}
+#missions .mission-listing-title{
+ margin:10px 0 5px;font:800 clamp(16px,1.8vw,19px)/1.29 'Plus Jakarta Sans',sans-serif;
+ letter-spacing:-.3px;
+}
+#missions .mission-listing-desc{font-size:12px;line-height:1.48;color:#665771;margin:0;overflow-wrap:anywhere}
+#missions .mission-listing-meta{
+ display:flex;align-items:center;gap:5px 15px;flex-wrap:wrap;
+ font-size:11px;line-height:1.35;color:#665774;
+ border-top:0;padding:0;margin:9px 0 0;
+}
+#missions .mission-listing-meta span{min-width:0}
+#missions .mission-followup-badge{
+ display:inline-flex;margin:9px 0 0;padding:4px 9px;background:#f0e8fb;
+ border-radius:9px;color:#613589;font:750 11px/1.3 'Plus Jakarta Sans',sans-serif;
+}
+#missions .mission-listing-actions{
+ display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;
+ gap:7px;margin-top:11px;padding-top:10px;border-top:1px solid #f0eaf5;
+}
+#missions .mission-listing-actions .button{
+ min-height:42px;padding:9px 14px;border-radius:10px;font-size:12px;
+ box-shadow:none;white-space:normal;line-height:1.2;
+}
+#missions .mission-listing-actions .mission-action-main{
+ background:linear-gradient(105deg,#8e33d8,#6321b1);border:0;
+}
+#missions .mission-listing-actions .mission-action-secondary{
+ background:#f4edf9;color:#64368c;border-color:#e4d6ec;
+}
+#missions .mission-favorite{
+ flex:none;display:grid;place-items:center;width:43px;height:43px;
+ background:#fff;color:#7937bd;border:1px solid #dfcaee;
+ border-radius:10px;font-size:24px;line-height:1;
+}
+#missions .mission-favorite[aria-pressed="true"]{background:#eee3fa;color:#6320aa}
+#missions .mission-favorite:focus-visible{outline:3px solid #efa657;outline-offset:2px}
+#missions .mission-empty{padding:22px 17px;border:1px dashed #d8c5e7;border-radius:15px;background:#fff;color:#635373;font-size:13px;line-height:1.55}
+#missions .mission-empty a{color:#702caf;text-decoration:underline;font-weight:700}
+#missions #missionSearchFilters{grid-template-columns:minmax(0,2fr) minmax(145px,1fr) 120px auto;gap:10px;margin:0 0 15px;padding:14px}
+#missions #missionSearchFilters .field{width:100%;min-width:0}
+#missions #missionSearchFilters button{min-height:42px}
+@media(max-width:900px){
+ #missions #missionSearchFilters{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #missions #missionSearchFilters #missionQuery{grid-column:1/-1}
+}
+@media(max-width:620px){
+ #missions{padding:15px 13px 0}
+ #missions .mission-section-head{margin:0 0 12px;gap:10px}
+ #missions .mission-section-head .eyebrow{font-size:10px}
+ #missions .mission-section-head h2{font-size:23px;line-height:1.2;margin:3px 0 5px}
+ #missions .mission-section-head>div>p:not(.eyebrow){font-size:12px;line-height:1.45}
+ #missions .mission-header-actions{display:grid;grid-template-columns:1fr 1fr;width:100%;gap:7px}
+ #missions .mission-header-actions .button{min-height:42px;padding:8px 6px;font-size:12px}
+ #missions .mission-scopes{padding:4px;gap:4px;border-radius:14px;margin:0 0 11px}
+ #missions .mission-scopes button{
+  display:flex;flex-direction:column;gap:3px;min-height:58px;
+  text-align:center;padding:6px 3px;font-size:11px;line-height:1.16;
+ }
+ #missions .mission-scopes button strong{min-height:19px;min-width:20px;font-size:10px;padding:2px 6px}
+ #missions #missionSearchFilters{grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding:10px;gap:8px;margin-bottom:11px}
+ #missions #missionSearchFilters #missionQuery{grid-column:1/-1}
+ #missions #missionSearchFilters #missionDept{grid-column:1}
+ #missions #missionSearchFilters #missionSearch{grid-column:2;width:100%;min-height:44px}
+ #missions .mission-results-panel .panel-heading{padding:2px 0 9px}
+ #missions .mission-results-panel .panel-heading h3{font-size:16px}
+ #missions .mission-listing{padding:12px 13px;margin-bottom:9px;border-radius:14px}
+ #missions .mission-listing-title{font-size:16px;margin:8px 0 5px}
+ #missions .mission-listing-desc{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:12px;line-height:1.4}
+ #missions .mission-listing-meta{display:flex;flex-direction:row;flex-wrap:wrap;gap:5px 12px;margin:8px 0 0;font-size:11px;line-height:1.4}
+ #missions .mission-listing-meta .mission-meta-date{display:none}
+ #missions .mission-listing-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:9px;padding-top:9px}
+ #missions .mission-listing-actions:has(.mission-favorite){grid-template-columns:minmax(0,1fr) minmax(0,1fr) 44px}
+ #missions .mission-listing-actions .button{width:100%;min-width:0;min-height:44px;padding:8px 6px;font-size:11px;line-height:1.17}
+ #missions .mission-favorite{width:44px;height:44px;font-size:23px}
+ #missions .mission-empty{padding:17px;font-size:12px}
+ #missions .mission-detail{padding:17px 14px}
+}
+@media(max-width:350px){
+ #missions{padding-inline:9px}
+ #missions .mission-scopes button{font-size:10px}
+ #missions .mission-listing{padding:10px 11px}
+ #missions .mission-listing-actions{gap:5px}
+ #missions .mission-listing-actions .button{font-size:10px;padding:8px 4px}
+}
