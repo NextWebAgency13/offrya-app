@@ -72,6 +72,9 @@ function paintMessageBadges(){
   badge.textContent=label;badge.hidden=!total;
  }
  if($('roleConversationCount'))$('roleConversationCount').textContent=String(total);
+ if($('clientHomeUnread'))$('clientHomeUnread').textContent=String(total);
+ if($('clientHomeNotificationText'))$('clientHomeNotificationText').textContent=
+  total?total+' nouveau'+(total>1?'x':'')+' message'+(total>1?'s':''):'Aucune nouvelle';
 }
 function acknowledgeConversation(conversationId,messages){
  const uid=state.session?.user?.id;
@@ -634,6 +637,8 @@ function renderPriorityAlerts(){
  const unread=alerts.filter(a=>!a.seen_at).length;
  $('priorityAlertCount').textContent=unread+' nouvelle(s)';
  $('priorityAlertBubble').textContent=String(unread);
+  if($('roleAlertCount'))$('roleAlertCount').textContent=String(unread+
+   (state.opportunityAlerts||[]).filter(a=>!a.seen_at).length);
  $('priorityAlertShortcut').setAttribute('aria-label',unread+' opportunité(s) prioritaires non consultée(s)');
  $('priorityAlertsList').innerHTML=alerts.length?alerts.map(a=>
   `<article class="data-item">
@@ -902,6 +907,9 @@ async function init(){
     const prev=new Set((state.opportunityAlerts||[]).map(x=>x.tender_id));
     const rows=r.data||[];
     state.opportunityAlerts=rows;proExperience.render();opportunityConsole.render();
+     if($('roleAlertCount'))$('roleAlertCount').textContent=String(
+      (state.priorityAlerts||[]).filter(x=>!x.seen_at).length+
+      rows.filter(x=>!x.seen_at).length);
     const newCount=rows.filter(x=>!x.seen_at&&!prev.has(x.tender_id)).length;
     if(newCount)toast(newCount+' nouvelle(s) opportunité(s) publique(s) dans votre veille.');
    }
