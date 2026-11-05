@@ -46,6 +46,7 @@ async function run({boamp=queryBoamp,ted=queryTed,store=rest,logger=console}={})
   throw Error('OFFRYA veille indisponible : vérifier les secrets Supabase du dépôt GitHub.');
  const targets=await store('rpc/offrya_agent_watch_targets',{method:'POST',body:'{}'});
  if(!Array.isArray(targets))throw Error('Invalid professional watch targets response');
+ if(!targets.length)logger.warn('OFFRYA : aucun professionnel éligible à la veille (abonnement vérifié ou dérogation QA active), aucun avis interrogé.');
  const cache=new Map();
  let processed=0,qualified=0,insertedCandidates=0,failures=0,queries=0;
  for(const pref of targets.slice(0,60)){
