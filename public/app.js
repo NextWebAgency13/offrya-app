@@ -177,6 +177,13 @@ function tab(name,fromHistory=false,preserveMissionDetail=false){
 }
 window.addEventListener('popstate',()=>tab(pathsReverse[location.pathname]||'dashboard',true));
 for(const n of document.querySelectorAll('[data-tab]'))n.addEventListener('click',()=>tab(n.dataset.tab));
+for(const n of document.querySelectorAll('[data-role-deposit]'))n.addEventListener('click',()=>{
+ if(!state.session?.user?.email_confirmed_at){toast('Confirmez votre adresse e-mail avant de publier une mission.');return;}
+ location.assign('/deposer-une-mission');
+});
+for(const n of document.querySelectorAll('[data-role-pro-screen]'))n.addEventListener('click',()=>{
+ if(canUsePremium())proExperience.show(n.dataset.roleProScreen);
+});
 function isGuest(){return Boolean(state.session?.user?.is_anonymous);}
 function requireAuth(){if(!state.db){toast('Le service de connexion est momentanément indisponible.');return false;}if(!state.session){location.assign('/connexion?next='+encodeURIComponent(location.pathname));return false;}return true;}
 function requireRole(role){if(!requireAuth())return false;if(!state.profile){tab('settings');toast('Complétez votre profil avant de commencer.');return false;}if(role==='pro'&&(state.profile.role!=='pro'||!canUsePremium())){toast('Activez votre compte professionnel pour répondre aux missions.');tab('professional');return false;}return true;}
@@ -680,15 +687,19 @@ function render(){
  if(personalDescription)personalDescription.textContent=hasProProfile?
   'Vos missions publiées et vos échanges. Retrouvez les opportunités dans Espace pro.':
   'Publiez vos projets et suivez les échanges avec les professionnels.';
- $('roleClientView').classList.remove('hidden');
- $('rolePremiumView').classList.add('hidden');
+ document.body.classList.add('offrya-reference-ui');
+ // Role presentation follows exactly the authenticated premium authorization.
+ $('roleClientView').classList.toggle('hidden',eligiblePro);
+ $('rolePremiumView').classList.toggle('hidden',!eligiblePro);
  document.querySelector('#rolePremiumView .role-premium-stats')?.classList.toggle('hidden',!eligiblePro);
  document.querySelector('#rolePremiumView .role-pro-links')?.classList.toggle('hidden',!eligiblePro);
- document.body.dataset.offryaRole=hasProProfile?'professional':'client';
+ document.body.dataset.offryaRole=eligiblePro?'premium':'client';
  const navMission=document.querySelector('.sidebar .nav-link[data-tab="missions"]');
  const navPro=document.querySelector('.sidebar .nav-link[data-tab="professional"]');
  const navBoamp=document.querySelector('.sidebar .nav-link[data-tab="boamp"]');
  if(navBoamp)navBoamp.classList.toggle('hidden',!eligiblePro);
+ const missionsLabel=navMission?.querySelector('span');
+ if(missionsLabel)missionsLabel.textContent=eligiblePro?'Missions':'Mes missions';
 
  document.getElementById('roleLegacyDetails')?.classList.add('hidden');
  const own=state.missions.filter(m=>m.owner_id===state.session?.user?.id);
