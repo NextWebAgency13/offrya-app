@@ -139,8 +139,12 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
   if(p.department&&!/^(0[1-9]|[1-8][0-9]|9[0-5]|2A|2B|97[1-6])$/.test(p.department)){notify('Indiquez un département valide ou laissez vide.');return;}
   const result=await state.db.from('offrya_opportunity_preferences').upsert(p,{onConflict:'user_id'});
   if(result.error){notify('Préférences non enregistrées.');console.warn(result.error);return;}
-  state.opportunityPrefs=p;lastSearch=0;previousFingerprint='';$('opWatchFeedback').textContent='Veille automatique incluse dans votre abonnement Premium. Vos critères facultatifs sont enregistrés.';
-  render();notify('Filtres facultatifs enregistrés. La veille reste automatique.');
+  state.opportunityPrefs=p;lastSearch=0;previousFingerprint='';
+  $('opWatchFeedback').textContent='Critères enregistrés. Actualisation du radar et recherche BOAMP en cours…';
+  // Notify the Premium radar immediately; a normal rerender of this console
+  // alone never invalidated its independent 5-minute matching cache.
+  document.dispatchEvent(new CustomEvent('offrya:preferences-updated',{detail:{userId:current()}}));
+  render();notify('Critères enregistrés. Actualisation des opportunités en cours.');
  }
  async function trackTender(t){
   if(!canUsePremium())return;
