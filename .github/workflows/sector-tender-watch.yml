@@ -5,6 +5,8 @@ on:
     paths:
       - 'scripts/watch-sector-tenders.js'
       - 'lib/ted.js'
+      - 'lib/boamp.js'
+      - 'sql/automatic_premium_watch.sql'
       - 'lib/tender-assistant.js'
       - '.github/workflows/sector-tender-watch.yml'
   schedule:
