@@ -164,13 +164,51 @@ function rememberConversationRoute(id){
  query.set('conversation',id);
  history.pushState({tab:'inbox',threadId:id},'',paths.inbox+'?'+query.toString());
 }
+function rememberProfessionalStep(step){
+ if(canUsePremium()||!state.session||state.profile?.role!=='pro'||state.premium
+  ||![2,3].includes(step)||location.pathname!==paths.professional)return;
+ const params=new URLSearchParams(location.search);
+ if(params.get('step')===String(step))return;
+ if(step===2&&!params.has('step'))
+  history.replaceState({tab:'professional',onboardingStep:1},'',location.pathname+location.search);
+ params.set('step',String(step));
+ history.pushState({tab:'professional',onboardingStep:step},'',
+  paths.professional+'?'+params.toString());
+}
+function restoreProfessionalStep(){
+ if(canUsePremium()||!state.session||state.profile?.role!=='pro'||state.premium)return;
+ const requested=Number(new URLSearchParams(location.search).get('step')||
+  (history.state?.onboardingStep===1?'1':'0'));
+ const max=Math.min(3,Math.max(1,Number(state.draft?.step||state.proStep||1)));
+ if(Number.isInteger(requested)&&requested>=1&&requested<=max){
+  state.proStep=requested;renderPremium();
+ }
+}
+function backProfessionalStep(previous){
+ if(![1,2].includes(previous))return;
+ if(location.pathname===paths.professional&&history.state?.onboardingStep===previous+1){
+  history.back();return;
+ }
+ state.proStep=previous;
+ if(location.pathname===paths.professional){
+  const params=new URLSearchParams(location.search);
+  if(previous===1)params.delete('step');else params.set('step',String(previous));
+  history.replaceState({tab:'professional',onboardingStep:previous},'',
+   paths.professional+(params.toString()?'?'+params.toString():''));
+ }
+ renderPremium();
+}
 function restoreContextualRoute(name){
  if(name==='missions'){
   const id=new URLSearchParams(location.search).get('mission');
   const mission=id?authorizedMissionForRoute(id):null;
   state.selectedMissionId=mission?mission.id:null;
+  if(mission)missionView=mission.owner_id===state.session?.user?.id?'published':'available';
   tab('missions',true,Boolean(mission));renderMissions();
   return;
+ }
+ if(name==='professional'){
+  tab('professional',true);restoreProfessionalStep();return;
  }
  if(name==='inbox'){
   const id=new URLSearchParams(location.search).get('conversation');
@@ -630,7 +668,7 @@ async function saveProfessionalDraft(step){
  updated_at:new Date().toISOString()};
  const {error}=await state.db.from('offrya_professional_drafts').upsert(record,{onConflict:'user_id'});
  if(error)throw error;
- state.draft=record;state.proStep=step;renderPremium();
+ state.draft=record;state.proStep=step;rememberProfessionalStep(step);renderPremium();
 }
 $('proBegin').onclick=async()=>{
  if(!state.db)return toast('Inscription momentanément indisponible.');
@@ -654,7 +692,7 @@ $('proNextCompany').onclick=async()=>{
   return toast('Vérifiez votre SIRET dans le registre officiel avant de continuer.');
  try{await saveProfessionalDraft(2);}catch(err){showError(err);}
 };
-$('proBackRepresentative').onclick=()=>{state.proStep=1;renderPremium();};
+$('proBackRepresentative').onclick=()=>backProfessionalStep(1);
 $('proNextRepresentative').onclick=async()=>{
  const f=$('premiumRequestForm'),name=f.elements.representative_name.value.trim(),capacity=f.elements.representative_capacity.value.trim(),kind=f.elements.representative_kind.value;
  if(f.dataset.verifiedSiret!==f.elements.siret.value.trim())return toast('Reprenez la vérification du SIRET.');
@@ -662,7 +700,7 @@ $('proNextRepresentative').onclick=async()=>{
   return toast('Complétez votre nom, votre fonction et votre situation.');
  try{await saveProfessionalDraft(3);}catch(err){showError(err);}
 };
-$('proBackReview').onclick=()=>{state.proStep=2;renderPremium();};
+$('proBackReview').onclick=()=>backProfessionalStep(2);
 $('proSubmitRequest').onclick=()=>{
  const f=$('premiumRequestForm');
  if(f.dataset.verifiedSiret!==f.elements.siret.value.trim())return toast('Vérifiez le SIRET pour déposer votre demande.');
