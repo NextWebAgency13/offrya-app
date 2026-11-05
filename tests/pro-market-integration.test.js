@@ -54,7 +54,7 @@ test('Entering Markets from Pro menu activates the embedded panel and loads offi
  const context={
   initialized:true,view:'home',canUsePremium:()=>true,
   tab:(...args)=>calls.push(['tab',...args]),
-  syncPreferencesHistory:()=>{},
+  syncProViewHistory:()=>{},
   syncTab:()=>{},activeButtons:()=>calls.push(['active']),
   state:{boampStatus:'idle'},loadMarkets:async()=>{calls.push(['marketFetch']);},
   placeMarketSearch:()=>calls.push(['moveSearch']),
