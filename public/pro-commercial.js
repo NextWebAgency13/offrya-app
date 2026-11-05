@@ -132,10 +132,14 @@ export function createSalesWorkspace({state,element,canUsePremium,tab,notify,ref
  }
  async function send(){
   if(busy||!uid()||!canUsePremium())return;
-  const mission=accessible().find(m=>m.id===selected),body=$('salesDraftText')?.value.trim();
-  if(!mission||!body||body.length>2500){notify('Sélectionnez une demande et saisissez un message valide.');return;}
+  const mission=accessible().find(m=>m.id===selected);
+  if(!mission){notify('Sélectionnez une mission autorisée.');return;}
+  let body;
+  try{body=buildProposalMessage($('salesDraftText')?.value,{
+   amount:$('salesQuoteAmount')?.value,delay:$('salesDeliveryText')?.value
+  });}catch(e){notify(e.message);return;}
   if(state.profile?.role!=='pro'){notify('La messagerie professionnelle exige un profil professionnel actif.');return;}
-  if(!confirm('Envoyer cette réponse au demandeur ? Elle sera visible dans votre messagerie privée.'))return;
+  if(!confirm('Envoyer cette proposition au demandeur ? Vos estimations éventuelles seront visibles dans la messagerie privée.'))return;
   busy=true;
   try{
    let conversation=(state.conversations||[]).find(c=>c.mission_id===mission.id&&c.professional_id===uid());
@@ -151,25 +155,39 @@ export function createSalesWorkspace({state,element,canUsePremium,tab,notify,ref
    if(!conversation)throw Error('Conversation introuvable.');
    const result=await state.db.from('offrya_messages').insert({conversation_id:conversation.id,sender_id:uid(),body});
    if(result.error)throw result.error;
-   drafts.delete(mission.id);
+   drafts.delete(mission.id);proposalMeta.delete(mission.id);
    try{await saveStage(mission.id,'contacted');}catch(e){console.warn('Suivi commercial indisponible après envoi',e);}
-   notify('Message envoyé après validation.');await refresh();
+   notify('Proposition envoyée. Retrouvez-la dans vos dossiers et vos échanges.');await refresh();
    selected=mission.id;render();
+   if(onNavigate)onNavigate('tracking');else switchView('tracking');
   }catch(error){console.error(error);notify('Envoi impossible. Vérifiez votre autorisation ou réessayez.');}
   finally{busy=false;}
  }
+ function openMission(missionId){
+  if(!uid()||!canUsePremium())return false;
+  if(accountId!==uid()){accountId=uid();selected=null;view='requests';drafts.clear();proposalMeta.clear();}
+  if(!accessible().some(m=>m.id===missionId))return false;
+  selected=missionId;view='assistant';render();return true;
+ }
  function init(){
   for(const btn of document.querySelectorAll('[data-sales-tab]'))btn.addEventListener('click',()=>switchView(btn.dataset.salesTab));
-  function openLead(e){const b=e.target.closest('[data-sales-open]');if(!b)return;if(!accessible().some(m=>m.id===b.dataset.salesOpen))return;selected=b.dataset.salesOpen;switchView('assistant');render();}
+  function openLead(e){const b=e.target.closest('[data-sales-open]');if(!b)return;if(openMission(b.dataset.salesOpen)&&onNavigate)onNavigate('assistant');}
   $('salesRequestsList')?.addEventListener('click',openLead);
   $('salesTrackingList')?.addEventListener('click',openLead);
   $('salesAssistantContent')?.addEventListener('click',e=>{
-   if(e.target.closest('[data-sales-back]')){switchView('requests');return;}
+   if(e.target.closest('[data-sales-back]')){if(onNavigate)onNavigate('requests');else switchView('requests');return;}
    if(e.target.closest('[data-sales-copy]')){const text=$('salesDraftText')?.value||'';if(!text)return;navigator.clipboard?.writeText(text).then(()=>notify('Réponse copiée.')).catch(()=>notify('Copie indisponible.'));return;}
    if(e.target.closest('[data-sales-generate]')){generate();return;}
    if(e.target.closest('[data-sales-send]'))send();
   });
-  $('salesAssistantContent')?.addEventListener('input',e=>{if(e.target.id==='salesDraftText'&&selected)drafts.set(selected,e.target.value);});
+  $('salesAssistantContent')?.addEventListener('input',e=>{
+   if(!selected)return;
+   if(e.target.id==='salesDraftText')drafts.set(selected,e.target.value);
+   if(['salesQuoteAmount','salesDeliveryText'].includes(e.target.id)){
+    const old=proposalMeta.get(selected)||{};
+    proposalMeta.set(selected,{...old,[e.target.id==='salesQuoteAmount'?'amount':'delay']:e.target.value});
+   }
+  });
   $('salesAssistantContent')?.addEventListener('change',async e=>{
    if(e.target.id!=='salesStageSelect'||!selected)return;
    try{await saveStage(selected,e.target.value);notify('Suivi mis à jour.');render();}
@@ -177,5 +195,5 @@ export function createSalesWorkspace({state,element,canUsePremium,tab,notify,ref
   });
   switchView('requests');
  }
- return {init,render};
+ return {init,render,openMission};
 }
