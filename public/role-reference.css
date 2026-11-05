@@ -404,3 +404,19 @@ body.offrya-reference-ui .role-ref-deposit-nav{display:none}
   transform:translateY(-2px);box-shadow:0 9px 25px #3413441f;
  }
 }
+
+
+/* Android Missions: avoid duplicate safe-area padding between the list and footer.
+   Leave the fixed bottom navigation and other account pages unchanged. */
+@media(max-width:780px){
+ body.offrya-reference-ui:has(#missions.active) .app-shell .main-content{
+  padding-bottom:14px!important;
+ }
+ body.offrya-reference-ui:has(#missions.active) .offrya-global-footer{
+  margin-top:12px;padding:18px 15px 22px;
+  gap:10px 15px;font-size:12px;line-height:1.45;
+ }
+ body.offrya-reference-ui:has(#missions.active) .offrya-global-footer a{
+  min-height:26px;display:inline-flex;align-items:center;
+ }
+}
