@@ -47,9 +47,9 @@ test('Official live candidates really change the radar result count after a sect
  assert.equal(ranked.items[0].category,'Espaces verts');
 });
 test('Preference save dispatches immediate scoped update; counters show a pending indicator',()=>{
- assert.match(consoleJs,/await state\.db\.from\('offrya_opportunity_preferences'\)\.upsert/);
+ assert.match(consoleJs,/await state\.db\.from\('offrya_opportunity_preferences'\)\s*\.upsert/);
  assert.match(consoleJs,/document\.dispatchEvent\(new CustomEvent\('offrya:preferences-updated'/);
- assert.match(consoleJs,/userId:current\(\)/);
+ assert.match(consoleJs,/userId:user/);
  assert.match(js,/document\.addEventListener\('offrya:preferences-updated'/);
  assert.match(js,/event\.detail\?\.userId!==user/);
  assert.match(js,/forceLiveRadar=true/);

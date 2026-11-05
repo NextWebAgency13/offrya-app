@@ -255,6 +255,14 @@ async function refresh(){
    else if(key==='salesTracking')state.salesTracking=res?.data||[];
    else if(key==='opportunityAlerts')state.opportunityAlerts=res?.data||[];
    else if(key==='conversations'||key==='profiles')state[key]=res?.data||[];
+   else if(key==='opportunityPrefs'){
+    const incoming=res?.data||null,current=state.opportunityPrefs;
+    // An older in-flight refresh must not undo a successful preference save.
+    const savedAt=Date.parse(current?.updated_at||'')||0;
+    const fetchedAt=Date.parse(incoming?.updated_at||'')||0;
+    if(savedAt>fetchedAt)continue;
+    state.opportunityPrefs=incoming;
+   }
    else state[key]=res?.data||null;
   }
  }
