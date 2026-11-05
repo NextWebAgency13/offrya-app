@@ -436,8 +436,6 @@ body.offrya-pro-v3 .pro-v3-markets-panel #boampList .data-item .item-title{grid-
 body.offrya-pro-v3 .pro-v3-markets-panel #boampList .data-item .item-desc{grid-column:1;grid-row:2;font-size:11px;color:#766886;min-width:0;overflow-wrap:anywhere}
 body.offrya-pro-v3 .pro-v3-markets-panel #boampList .data-item .meta-row{grid-column:1;grid-row:3;display:flex;flex-wrap:wrap;gap:5px 12px;color:#746c7c;font-size:10px;min-width:0}
 body.offrya-pro-v3 .pro-v3-markets-panel #boampList .data-item>a{grid-column:2;grid-row:1/4;font-size:11px;white-space:normal;text-align:center;border-radius:11px;background:#f5efff;border:1px solid #e7d5fa;color:#6730ba;padding:8px 10px}
-body.offrya-pro-v3 .pro-v3-markets-panel #boampList .data-item:nth-child(n+6){display:none}
-body.offrya-pro-v3 .pro-v3-markets-panel #boampMore{display:none!important}
 body.offrya-pro-v3 .pro-v3-market-footnote{font-size:10px;color:#8b7e98;line-height:1.6;margin:13px 0 0}
 body.offrya-pro-v3 .pro-v3-mission-preview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 13px}
 body.offrya-pro-v3 .pro-v3-mission-card{display:flex;flex-direction:column;min-width:0;padding:15px;border:1px solid #eae1f5;border-radius:15px;background:linear-gradient(145deg,#fff,#fcfaff)}
@@ -696,3 +694,88 @@ body.offrya-pro-v3 .pro-v3-primary-tabs button:focus-visible{
 }
 
 body.offrya-pro-v3 #proV3CommercialSlot .sales-lead-action{display:block;margin-top:8px;color:#6e36bd;font-weight:740;font-size:12px}
+
+/* OFFRYA PC / Android parity, 05/11/2026.
+   Same visual language and exactly the same protected professional functions;
+   only placement changes with viewport width. */
+body.offrya-pro-v3 .app-shell .header{
+ background:linear-gradient(110deg,#351045,#4b1662)!important;
+ border-bottom:1px solid #5c3170!important;color:#fff!important;
+}
+body.offrya-pro-v3 .header-heading h1,
+body.offrya-pro-v3 .header .overline,
+body.offrya-pro-v3 .mobile-brand{color:#fff!important}
+body.offrya-pro-v3 .header .account-menu summary,
+body.offrya-pro-v3 .header .header-shortcut{
+ background:#ffffff1c!important;color:#fff!important;
+ border-color:#ffffff45!important;
+}
+body.offrya-pro-v3 .header .account-menu .avatar{
+ background:#70409c;color:#fff;border-color:#e3c9fb;
+}
+body.offrya-pro-v3 #proV3SidebarExtras{display:none!important}
+body.offrya-pro-v3 .pro-v3-search{
+ display:flex!important;width:100%;max-width:100%;height:48px;min-width:0;
+ margin:0 0 18px;flex:none;border-radius:13px;background:#fff;
+ border:1px solid #e5dcef;box-shadow:0 4px 13px #30144208;
+}
+body.offrya-pro-v3 .pro-v3-search input{
+ min-width:0;flex:1;font-size:14px;
+}
+body.offrya-pro-v3 .pro-v3-search button{
+ height:40px;width:46px;margin-right:4px;
+}
+body.offrya-pro-v3 .pro-v3-search:focus-within{
+ border-color:#8848d2;box-shadow:0 0 0 3px #8848d223;
+}
+@media(min-width:621px){
+ body.offrya-pro-v3.offrya-pro-workspace .app-shell .sidebar{
+  background:#351045!important;border-right:1px solid #5c3170!important;
+  color:#f4eafb!important;
+ }
+ body.offrya-pro-v3.offrya-pro-workspace .sidebar .brand,
+ body.offrya-pro-v3.offrya-pro-workspace .sidebar .workspace-label{color:#fff!important}
+ body.offrya-pro-v3.offrya-pro-workspace .sidebar .pro-v3-sidebar-nav .pro-v3-nav-btn,
+ body.offrya-pro-v3.offrya-pro-workspace .sidebar .pro-v3-sidebar-extras .pro-v3-nav-btn{
+  color:#eddbfa!important;
+ }
+ body.offrya-pro-v3.offrya-pro-workspace .sidebar :is(.pro-v3-sidebar-nav,.pro-v3-sidebar-extras) .pro-v3-nav-btn:hover{
+  color:#fff!important;background:#ffffff1b!important;
+ }
+ body.offrya-pro-v3.offrya-pro-workspace .sidebar :is(.pro-v3-sidebar-nav,.pro-v3-sidebar-extras) .pro-v3-nav-btn.active{
+  color:#fff!important;background:#7331bc!important;
+ }
+ body.offrya-pro-v3.offrya-pro-workspace .sidebar #proV3SidebarExtras{
+  display:grid!important;gap:2px;align-content:start;
+  margin:16px 0 20px;padding-top:15px;border-top:1px solid #ffffff2b;
+ }
+ body.offrya-pro-v3 .pro-v3-extras-title{
+  display:block;padding:0 12px 9px;color:#d7b9ea;
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;
+ }
+ body.offrya-pro-v3 .pro-v3-primary-tabs{display:none!important}
+ body.offrya-pro-v3 .pro-v3-search{margin-top:2px}
+}
+@media(min-width:621px) and (max-width:930px){
+ body.offrya-pro-v3.offrya-pro-workspace .app-shell{
+  display:grid;grid-template-columns:220px minmax(0,1fr);
+ }
+ body.offrya-pro-v3.offrya-pro-workspace .app-shell .sidebar{padding:18px 10px}
+ body.offrya-pro-v3.offrya-pro-workspace .sidebar .pro-v3-sidebar-nav,
+ body.offrya-pro-v3.offrya-pro-workspace .sidebar #proV3SidebarExtras{min-width:0}
+ body.offrya-pro-v3.offrya-pro-workspace .sidebar .pro-v3-nav-btn{
+  justify-content:flex-start;text-align:left;gap:10px;padding:10px 9px;
+ }
+ body.offrya-pro-v3.offrya-pro-workspace .sidebar .pro-v3-nav-btn span:nth-child(2){
+  display:block;white-space:normal;font-size:11px;
+ }
+}
+@media(max-width:620px){
+ body.offrya-pro-v3 .app-shell .header{height:76px}
+ body.offrya-pro-v3 .pro-v3-search{height:48px;margin-bottom:14px}
+ body.offrya-pro-v3 .pro-v3-search input{font-size:16px}
+ body.offrya-pro-v3 .pro-v3-search button{height:40px;width:46px}
+ body.offrya-pro-v3 .pro-v3-primary-tabs{display:grid}
+ body.offrya-pro-v3 .pro-v3-primary-tabs .pro-v3-nav-btn{min-height:64px}
+ body.offrya-pro-v3 #proV3AccountTools{display:grid!important}
+}
