@@ -708,7 +708,7 @@ async function init(){
   if(p.has('identity'))toast('Retour de Stripe Identity : consultez le statut de votre dossier.');
 }
 const opportunityConsole=createOpportunityConsole({state,element:$,canUsePremium,tab,renderMissions,notify:toast});
-const salesWorkspace=createSalesWorkspace({state,element:$,canUsePremium,tab,notify:toast,refresh});
-const proExperience=createProExperience({state,element:$,canUsePremium,tab,renderMissions,loadMarkets:()=>loadBoamp(),notify:toast});
+const salesWorkspace=createSalesWorkspace({state,element:$,canUsePremium,tab,notify:toast,refresh,onNavigate:screen=>proExperience.show(screen)});
+const proExperience=createProExperience({state,element:$,canUsePremium,tab,renderMissions,loadMarkets:()=>loadBoamp(),notify:toast,openProposal:id=>salesWorkspace.openMission(id)});
 proExperience.init();opportunityConsole.init();salesWorkspace.init();
 init().catch(showError);
