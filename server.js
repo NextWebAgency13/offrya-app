@@ -9,8 +9,9 @@ const {lookupCompany,verifyProfessional}=require('./lib/company');
 const {beginIdentity,processIdentityEvent,configured:identityConfigured,identityConfigChecks}=require('./lib/identity');
 const {billingEnabled,startCheckout,verifyStripeSignature,syncSubscription,portal}=require('./lib/billing');
 const {verifyToken}=require('./lib/unsubscribe');
+const push=require('./lib/push');
 const staticMap=new Map([
- ['/auth-captcha.mjs','text/javascript; charset=utf-8'],['/home-session.js','text/javascript; charset=utf-8'],
+ ['/sw.js','text/javascript; charset=utf-8'],['/manifest.webmanifest','application/manifest+json; charset=utf-8'],['/push-notifications.js','text/javascript; charset=utf-8'],['/auth-captcha.mjs','text/javascript; charset=utf-8'],['/home-session.js','text/javascript; charset=utf-8'],
  ['/public.css','text/css; charset=utf-8'],['/auth.css','text/css; charset=utf-8'],['/activity.js','text/javascript; charset=utf-8'],['/deposer.js','text/javascript; charset=utf-8'],['/connexion.js','text/javascript; charset=utf-8'],['/auth-feedback.mjs','text/javascript; charset=utf-8'],['/legacy-redirect.js','text/javascript; charset=utf-8'],
  ['/index.html','text/html; charset=utf-8'],['/pro-experience.js','text/javascript; charset=utf-8'],['/pro-commercial.js','text/javascript; charset=utf-8'],['/app.js','text/javascript; charset=utf-8'],['/mission-feed.js','text/javascript; charset=utf-8'],['/radar.js','text/javascript; charset=utf-8'],['/opportunity-console.js','text/javascript; charset=utf-8'],
  ['/styles.css','text/css; charset=utf-8'],['/home.css','text/css; charset=utf-8'],['/pro.css','text/css; charset=utf-8'],['/pro-experience.css','text/css; charset=utf-8'],['/favicon.svg','image/svg+xml'],
@@ -34,7 +35,42 @@ async function unsubscribe(id){const url=process.env.SUPABASE_URL, key=process.e
  return await resp.json();}
 async function handle(req,res){
  try{const u=new URL(req.url,'http://localhost'),p=u.pathname;
-  if(p==='/api/health'&&req.method==='GET')return json(res,200,{ok:true,version:'4.0.0',paymentsEnabled:billingEnabled(),emailsConfigured:Boolean(process.env.RESEND_API_KEY),aiConfigured:Boolean(String(process.env.OPENAI_API_KEY||'').trim())});
+  if(p==='/api/push/config'&&req.method==='GET')
+    return json(res,200,push.publicConfig(),{'Cache-Control':'no-store'});
+   if((p==='/api/push/subscribe'||p==='/api/push/unsubscribe')&&req.method==='POST'){
+    if(!rateLimit(req,12))return json(res,429,{error:'Trop de demandes de notifications.'});
+    if(!push.configured())return json(res,503,{error:'Notifications Android non configurées.'});
+    let user;
+    try{user=await push.authUser(req.headers.authorization);}
+    catch(error){console.warn('OFFRYA: auth push indisponible');return json(res,503,{error:'Identification temporairement indisponible.'});}
+    if(!user)return json(res,401,{error:'Connexion requise.'});
+    let input;
+    try{input=JSON.parse(await readBody(req,6000));}
+    catch(_){return json(res,400,{error:'Données de notification invalides.'});}
+    try {
+     if(p==='/api/push/subscribe'){
+      if(!push.validSubscription(input?.subscription))return json(res,400,{error:'Abonnement push invalide.'});
+      await push.saveSubscription(user,input.subscription);
+     }else{
+      if(!push.safeEndpoint(input?.endpoint))return json(res,400,{error:'Abonnement push invalide.'});
+      await push.removeSubscription(user,input.endpoint);
+     }
+     return json(res,200,{ok:true});
+    }catch(error){console.warn('OFFRYA: stockage push indisponible',error.message);return json(res,503,{error:'Impossible d’enregistrer la préférence de notification.'});}
+   }
+   if(p==='/api/push/message'&&req.method==='POST'){
+    if(!rateLimit(req,100))return json(res,429,{error:'Trop de demandes.'});
+    let input;
+    try{input=JSON.parse(await readBody(req,1000));}
+    catch(_){return json(res,400,{error:'Requête invalide.'});}
+    if(!push.checkWebhook(input,req.headers['x-offrya-push-signature']))
+     return json(res,401,{error:'Authentification du webhook invalide.'});
+    try{
+     const result=await push.dispatchMessage(input);
+     return json(res,200,{ok:true,sent:result.sent});
+    }catch(error){console.warn('OFFRYA: diffusion push indisponible',error.message);return json(res,503,{error:'Notification temporairement indisponible.'});}
+   }
+   if(p==='/api/health'&&req.method==='GET')return json(res,200,{ok:true,version:'4.0.0',paymentsEnabled:billingEnabled(),emailsConfigured:Boolean(process.env.RESEND_API_KEY),aiConfigured:Boolean(String(process.env.OPENAI_API_KEY||'').trim())});
   if(p==='/api/company/lookup'&&req.method==='GET'){
    if(!rateLimit(req,12))return json(res,429,{error:'Trop de demandes de vérification.'});
    try{
@@ -234,7 +270,7 @@ async function handle(req,res){
   }
   const asset=path.join(__dirname,'public',pageFile||p.slice(1));
   const buf=await fs.readFile(asset);
-  res.writeHead(200,{'Content-Type':mime,...((privatePage||p==='/connexion')?{'X-Robots-Tag':'noindex, nofollow'}:{}),'X-Content-Type-Options':'nosniff','Strict-Transport-Security':'max-age=15552000','Referrer-Policy':'strict-origin-when-cross-origin','X-Frame-Options':'DENY','Permissions-Policy':'camera=(), microphone=(), geolocation=()','Content-Security-Policy':"default-src 'self'; connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.pexels.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",'Cache-Control':(privatePage||p==='/connexion')?'private, no-store':'public,max-age=60'});
+  res.writeHead(200,{'Content-Type':mime,...((privatePage||p==='/connexion')?{'X-Robots-Tag':'noindex, nofollow'}:{}),'X-Content-Type-Options':'nosniff','Strict-Transport-Security':'max-age=15552000','Referrer-Policy':'strict-origin-when-cross-origin','X-Frame-Options':'DENY','Permissions-Policy':'camera=(), microphone=(), geolocation=()','Content-Security-Policy':"default-src 'self'; connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.pexels.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",'Cache-Control':(privatePage||p==='/connexion')?'private, no-store':p==='/sw.js'?'no-cache, no-store':'public,max-age=60'});
   return res.end(req.method==='HEAD'?undefined:buf);
  }catch(e){console.error('OFFRYA',e.message);if(!res.headersSent)json(res,500,{error:'Erreur interne'});}
 }
