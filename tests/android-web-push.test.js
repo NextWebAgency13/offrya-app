@@ -109,7 +109,9 @@ test('Closed-browser worker shows a generic Android notification and opens priva
  assert.match(sql,/vault\.decrypted_secrets/);
  assert.match(sql,/extensions\.hmac/);
  for(const path of ['server.js','public/sw.js','public/push-notifications.js']){
-  const result=spawnSync(process.execPath,['--check',path],{encoding:'utf8'});
+  const result=path==='public/push-notifications.js'
+   ?spawnSync(process.execPath,['--input-type=module','--check'],{input:fs.readFileSync(path,'utf8'),encoding:'utf8'})
+   :spawnSync(process.execPath,['--check',path],{encoding:'utf8'});
   assert.equal(result.status,0,path+': '+result.stderr);
  }
 });
