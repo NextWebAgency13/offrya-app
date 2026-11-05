@@ -101,7 +101,9 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const root=document.createElement('div');root.id='proExperienceV3';root.className='pro-v3-experience';
   root.innerHTML=[
    '<div class="pro-v3-mobile-menu" aria-hidden="true" hidden></div>',
-   '<nav class="pro-v3-primary-tabs" aria-label="Parcours professionnel">'+primaryMenu.map(navButton).join('')+'</nav>',
+   // The AI radar is already reachable through the bottom “Espace Premium” tab.
+   // Keep the desktop Pro sidebar intact, but avoid duplicating its home action above the radar.
+   '<nav class="pro-v3-primary-tabs" aria-label="Parcours professionnel">'+primaryMenu.filter(item=>item[0]!=='home').map(navButton).join('')+'</nav>',
    '<section class="pro-v3-view" data-pro-panel="home">',
     '<div class="pro-ai-welcome"><div class="pro-ai-welcome-main"><span class="pro-ai-welcome-eyebrow">ESPACE PROFESSIONNEL · OFFRYA</span><h2>Bonjour, <span id="proV3Hello">professionnel</span></h2><p>Vos missions et marchés publics, sélectionnés selon votre activité.</p></div><span class="pro-ai-welcome-status" id="proV3Status">Compte professionnel</span></div>',
    '<section class="pro-ai-hero" aria-labelledby="proAiHeroTitle">',
