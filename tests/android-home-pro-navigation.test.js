@@ -9,7 +9,7 @@ test('Accueil and Espace pro are different routes and tabs for Premium users',()
  assert.match(app,/dashboard:'\/espace'/);
  assert.match(app,/professional:'\/espace\/professionnel'/);
  assert.match(app,/const initialScreen=pathsReverse\[location\.pathname\]\|\|'dashboard';/);
- assert.match(app,/tab\(initialScreen,true\)/);
+ assert.match(app,/restoreContextualRoute\(initialScreen\)/);
  assert.doesNotMatch(app,/canUsePremium\(\)&&location\.pathname===paths\.dashboard\?'professional'/);
  assert.doesNotMatch(pro,/\.sidebar \[data-tab="dashboard"\],#priorityAlertShortcut/);
 });
@@ -21,7 +21,7 @@ test('Normal Accueil button is not captured by professional interception',()=>{
 });
 test('Android back and forward restore Pro screen without duplicating browser history',()=>{
  assert.match(pro,/window\.addEventListener\('popstate'/);
- assert.match(pro,/route==='\/espace\/professionnel'\)show\(new URLSearchParams\(window\.location\.search\)\.get\('view'\)==='preferences'\?'preferences':'home',true\)/);
+ assert.match(pro,/route==='\/espace\/professionnel'\)show\(screenFromRoute\(\),true\)/);
  assert.match(pro,/function show\(next,fromHistory=false\)/);
  assert.match(pro,/tab\('professional',fromHistory\)/);
  assert.match(pro,/const professionalVisible=\$\('professional'\)\?\.classList\.contains\('active'\)===true/);
