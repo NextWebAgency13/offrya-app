@@ -42,7 +42,7 @@ begin
   convert_to(new.id::text||':'||issued::text,'UTF8'),
   convert_to(secret,'UTF8'),'sha256'),'hex');
  perform net.http_post(
-  url:='https://offrya.fr/api/push/message',
+  url:='https://offrya-app.onrender.com/api/push/message',
   body:=jsonb_build_object('message_id',new.id::text,'timestamp',issued),
   headers:=jsonb_build_object('Content-Type','application/json','x-offrya-push-signature',signature),
   timeout_milliseconds:=90000
