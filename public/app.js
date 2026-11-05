@@ -304,32 +304,97 @@ async function refreshLiveMissions(force=false){
  try{return await ongoing;}
  finally{if(missionRefreshInFlight===ongoing)missionRefreshInFlight=null;}
 }
-function row(m,actions=''){const status=m.status==='open'?'Ouverte':m.status==='awarded'?'Attribuée':'Clôturée';const place=[m.city,m.department].filter(Boolean).map(esc).join(' · ')||'Localisation à préciser';const summary=String(m.description||'').trim();return `<article class="data-item mission-listing" aria-label="Annonce : ${esc(m.title)}"><div class="item-top"><span class="tag mission-category">${esc(m.category||'Prestation')}</span><span class="mission-status ${m.status==='open'?'is-open':'is-closed'}">${status}</span></div><h3 class="item-title mission-listing-title">${esc(m.title)}</h3><p class="item-desc mission-listing-desc">${esc(summary.slice(0,260))}${summary.length>260?'…':''}</p><div class="meta-row mission-listing-meta"><span>⌖ ${place}</span><span>Budget : ${m.budget_cents?euro(m.budget_cents):'À définir'}</span><span>Publiée le ${date(m.created_at)}</span></div>${actions?`<div class="item-actions mission-listing-actions">${actions}</div>`:''}</article>`;}
+function row(m,actions='',context=''){
+ const status=m.status==='open'?'Ouverte':m.status==='awarded'?'Pourvue':'Clôturée';
+ const place=[m.city,m.department].filter(Boolean).map(esc).join(' · ')||'Lieu à préciser';
+ const summary=String(m.description||'').trim();
+ const budget=m.budget_cents!=null&&Number(m.budget_cents)>0?euro(m.budget_cents):'Non communiqué';
+ return '<article class="data-item mission-listing" aria-label="Mission : '+esc(m.title||'Mission')+'">'+
+  '<div class="item-top"><span class="tag mission-category">'+esc(m.category||'Prestation')+'</span>'+
+  '<span class="mission-status '+(m.status==='open'?'is-open':'is-closed')+'">'+status+'</span></div>'+
+  '<h3 class="item-title mission-listing-title">'+esc(m.title||'Mission')+'</h3>'+
+  (summary?'<p class="item-desc mission-listing-desc">'+esc(summary.slice(0,175))+(summary.length>175?'…':'')+'</p>':'')+
+  '<div class="meta-row mission-listing-meta"><span>⌖ '+place+'</span>'+
+  '<span>Budget : '+esc(budget)+'</span>'+
+  '<span class="mission-meta-date">Publiée le '+esc(date(m.created_at))+'</span></div>'+
+  (context?'<span class="mission-followup-badge">'+esc(context)+'</span>':'')+
+  (actions?'<div class="item-actions mission-listing-actions">'+actions+'</div>':'')+'</article>';
+}
 function renderMissionDetail(m){
  const own=m.owner_id===state.session?.user?.id;
  if(!own&&!canUsePremium())return '<div class="empty">Accès réservé aux professionnels vérifiés et abonnés.</div>';
- const status=m.status==='open'?'Ouverte':m.status==='awarded'?'Attribuée':'Clôturée';
- const controls=own?'<span class="tag">Votre annonce</span>':m.status==='open'?`<button type="button" class="button primary" data-contact="${esc(m.id)}">Contacter le demandeur</button>`:'';
- return `<div class="mission-detail"><button type="button" class="mission-detail-back" data-back-missions>← Retour aux annonces</button><div class="mission-detail-head"><span class="tag mission-category">${esc(m.category||'Prestation')}</span><span class="mission-status ${m.status==='open'?'is-open':'is-closed'}">${status}</span></div><h3>${esc(m.title)}</h3><div class="mission-detail-meta"><span>⌖ ${esc([m.city,m.department].filter(Boolean).join(' · ')||'Localisation à préciser')}</span><span>Budget : ${m.budget_cents?euro(m.budget_cents):'À définir'}</span><span>Publiée le ${date(m.created_at)}</span></div><h4>Description de la mission</h4><p class="mission-detail-description">${esc(m.description||'Aucune description renseignée.')}</p><div class="mission-detail-actions">${controls}</div></div>`;
+ const status=m.status==='open'?'Ouverte':m.status==='awarded'?'Pourvue':'Clôturée';
+ const controls=own?'<span class="tag">Votre publication</span>':m.status==='open'?'<button type="button" class="button primary" data-contact="'+esc(m.id)+'">Contacter le demandeur</button>':'';
+ return '<div class="mission-detail"><button type="button" class="mission-detail-back" data-back-missions>← Retour aux missions</button>'+
+  '<div class="mission-detail-head"><span class="tag mission-category">'+esc(m.category||'Prestation')+'</span>'+
+  '<span class="mission-status '+(m.status==='open'?'is-open':'is-closed')+'">'+status+'</span></div>'+
+  '<h3>'+esc(m.title||'Mission')+'</h3><div class="mission-detail-meta"><span>⌖ '+esc([m.city,m.department].filter(Boolean).join(' · ')||'Lieu à préciser')+'</span>'+
+  '<span>Budget : '+esc(m.budget_cents!=null&&Number(m.budget_cents)>0?euro(m.budget_cents):'Non communiqué')+'</span>'+
+  '<span>Publiée le '+esc(date(m.created_at))+'</span></div>'+
+  '<h4>Description de la mission</h4><p class="mission-detail-description">'+esc(m.description||'Aucune description renseignée.')+'</p>'+
+  '<div class="mission-detail-actions">'+controls+'</div></div>';
+}
+function followedMissionStatus(m){
+ const stage=(state.salesTracking||[]).find(t=>String(t.mission_id)===String(m.id))?.stage;
+ const labels={qualifying:'Informations demandées',reply_ready:'Réponse à préparer',contacted:'Client contacté',
+  followup:'À relancer',quote:'Devis en préparation',won:'Mission obtenue',lost:'Clôturé sans suite'};
+ if(labels[stage])return labels[stage];
+ if((state.conversations||[]).some(c=>c.mission_id===m.id&&c.professional_id===state.session?.user?.id))return 'Échange en cours';
+ return 'Enregistrée en favori';
 }
 function renderMissions(){
- const uid=state.session?.user.id,canBrowse=canUsePremium();
- const visible=state.missions.filter(m=>m.status==='open'&&(m.owner_id===uid||canBrowse));
- let q=$('missionQuery').value.trim().toLowerCase(),c=$('missionCategory').value,d=$('missionDept').value.trim().toUpperCase();
- const matches=visible.filter(m=>(!q||(m.title+' '+m.description+' '+m.city).toLowerCase().includes(q))&&(!c||m.category===c)&&(!d||m.department===d));
- $('missionsCount').textContent=matches.length+(canBrowse?' mission(s) accessible(s)':' annonce(s) personnelle(s)');
- $('missionsListHeading').textContent=canBrowse?'Missions accessibles à mon compte Pro':'Mes annonces publiées';
+ const uid=state.session?.user?.id,canBrowse=canUsePremium();
+ const groups=missionBuckets({missions:state.missions,userId:uid,premium:canBrowse,
+  favorites:state.favorites,tracking:state.salesTracking,conversations:state.conversations});
+ let scope=canBrowse?missionView:'published';
+ const selected=state.selectedMissionId?state.missions.find(m=>m.id===state.selectedMissionId):null;
+ if(selected&&selected.owner_id===uid&&scope!=='published'){scope='published';missionView='published';}
+ if(selected&&selected.owner_id!==uid&&canBrowse&&scope==='published'){scope='available';missionView='available';}
+ const descriptions={
+  available:'Demandes de clients accessibles à votre compte professionnel.',
+  published:'Vos publications personnelles, y compris les missions pourvues ou clôturées.',
+  followed:'Demandes enregistrées ou avec un échange et prestations en cours de suivi.'
+ };
+ const headings={available:'Missions disponibles',published:'Mes publications',followed:'Prestations suivies'};
+ const displayed=groups[scope]||[];
+ const q=$('missionQuery').value.trim().toLowerCase(),c=$('missionCategory').value,d=$('missionDept').value.trim().toUpperCase();
+ const matches=displayed.filter(m=>(!q||[m.title,m.description,m.city].join(' ').toLowerCase().includes(q))&&(!c||m.category===c)&&(!d||m.department===d));
+ $('missionScopes').classList.toggle('hidden',!canBrowse);
+ for(const btn of $('missionScopes').querySelectorAll('[data-mission-view]')){
+  const on=btn.dataset.missionView===scope;
+  btn.classList.toggle('is-active',on);btn.setAttribute('aria-pressed',String(on));
+ }
+ for(const [name,id] of [['available','missionScopeAvailable'],['published','missionScopePublished'],['followed','missionScopeFollowed']])
+  $(id).textContent=String(groups[name].length);
+ $('missionPageTitle').textContent=canBrowse?'Missions':'Mes missions';
+ $('missionPageDescription').textContent=descriptions[scope];
+ $('missionsListHeading').textContent=headings[scope];
+ const singular=scope==='published'?'publication':scope==='followed'?'prestation':'mission';
+ $('missionsCount').textContent=matches.length+' '+singular+(matches.length>1?'s':'');
  $('missionSearchFilters').classList.toggle('hidden',!canBrowse);
- const detail=state.selectedMissionId?visible.find(m=>m.id===state.selectedMissionId):null;
+ const detail=selected&&displayed.some(m=>m.id===selected.id)?selected:null;
  if(state.selectedMissionId&&!detail)state.selectedMissionId=null;
+ const empty={
+  available:'Aucune mission disponible pour le moment. Les nouvelles demandes de clients apparaîtront ici.',
+  published:'Vous n’avez pas encore publié de mission. <a href="/deposer-une-mission">Publier une mission gratuitement</a>.',
+  followed:'Aucune prestation suivie. Enregistrez une mission ou contactez un client pour la retrouver ici. Vos échanges restent dans Messages.'
+ };
  $('missionList').innerHTML=detail?renderMissionDetail(detail):matches.length?matches.map(m=>{
   const own=m.owner_id===uid;
-  const actions=own?`<span class="tag">Votre annonce</span> ${m.status==='open'?`<button class="button secondary micro-button" data-close-mission="${esc(m.id)}">Clôturer</button>`:''}`:
-   canBrowse?`<button class="button secondary micro-button" data-favorite="${esc(m.id)}" aria-pressed="${state.favorites.includes(m.id)}">${state.favorites.includes(m.id)?'★ Enregistrée':'☆ Favori'}</button> <button class="button primary micro-button" data-contact="${esc(m.id)}">Contacter le client</button>`:'';
-  return row(m,`<button type="button" class="button secondary micro-button" data-view-mission="${esc(m.id)}">Voir l’annonce</button> ${actions}`);
- }).join(''):'<div class="empty">Vous n’avez pas encore publié de mission, ou aucun résultat ne correspond à vos critères. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
- const preview=canBrowse?visible:visible.filter(m=>m.owner_id===uid);
- $('dashMissions').innerHTML=preview.filter(m=>m.status==='open').slice(0,3).map(m=>row(m)).join('')||'<div class="empty">Vous n’avez pas encore publié de mission. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
+  let actions='<button type="button" class="button primary micro-button mission-action-main" data-view-mission="'+esc(m.id)+'">Voir la mission</button>';
+  if(own){
+   if(m.status==='open')actions+='<button type="button" class="button secondary micro-button mission-action-secondary" data-close-mission="'+esc(m.id)+'">Clôturer</button>';
+  }else if(canBrowse){
+   const favorite=state.favorites.includes(m.id);
+   actions+='<button type="button" class="button secondary micro-button mission-action-secondary" data-contact="'+esc(m.id)+'">Contacter</button>'+
+    '<button type="button" class="mission-favorite" data-favorite="'+esc(m.id)+'" aria-pressed="'+favorite+
+    '" aria-label="'+(favorite?'Retirer des favoris':'Ajouter aux favoris')+'" title="'+(favorite?'Retirer des favoris':'Ajouter aux favoris')+'">'+(favorite?'★':'☆')+'</button>';
+  }
+  return row(m,actions,scope==='followed'?followedMissionStatus(m):'');
+ }).join(''):'<div class="empty mission-empty">'+(displayed.length?'Aucune mission ne correspond à votre recherche. Modifiez les filtres pour élargir les résultats.':empty[scope])+'</div>';
+ const ownOpen=groups.published.filter(m=>m.status==='open');
+ $('dashMissions').innerHTML=ownOpen.slice(0,3).map(m=>row(m)).join('')||
+  '<div class="empty">Vous n’avez pas encore publié de mission. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
 }
 function renderInbox(){
  const items=state.conversations;
