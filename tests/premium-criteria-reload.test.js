@@ -61,6 +61,12 @@ test('Preference save dispatches immediate scoped update; counters show a pendin
  assert.doesNotMatch(js,/buildRadar\(\{missions:available\(\),alerts:state\.opportunityAlerts/);
  assert.match(js,/serverRadar\.items\.filter/);
 });
+test('BOAMP searches started under old criteria cannot overwrite the latest selection',()=>{
+ assert.match(consoleJs,/watchRevision\+\+/);
+ assert.match(consoleJs,/if\(uid===current\(\)&&revision===watchRevision\)/);
+ assert.match(consoleJs,/if\(revision!==watchRevision\)/);
+ assert.match(consoleJs,/queueMicrotask\(\(\)=>refreshTenders\(\)\)/);
+});
 test('Out-of-order responses are ignored; live results merge safely with RLS imports',()=>{
  assert.match(js,/key!==radarKey\|\|!canUsePremium\(\)\)return/);
  assert.match(js,/else if\(state\.session\?\.user\?\.id===user&&canUsePremium\(\)\)/);
