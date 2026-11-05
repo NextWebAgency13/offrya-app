@@ -1,7 +1,7 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const html=fs.readFileSync('public/espace.html','utf8'),css=fs.readFileSync('public/styles.css','utf8'),app=fs.readFileSync('public/app.js','utf8');
-test('Barre mobile à cinq destinations permanentes et sans substitution',()=>{
+test('Les barres mobiles gardent cinq destinations adaptées au type de compte',()=>{
  const nav=html.slice(html.indexOf('<nav id="nav"'),html.indexOf('</nav>',html.indexOf('<nav id="nav"')));
  for(const [tab,label,icon] of [['dashboard','Accueil','ic-dashboard'],['missions','Mes missions','ic-missions'],['professional','Espace pro','ic-shield'],['inbox','Messages','ic-inbox'],['settings','Mon compte','ic-settings']]){
   assert.match(nav,new RegExp('data-tab="'+tab+'"[^>]*><svg[^>]*><use href="#'+icon+'".*?<span>'+label+'</span>'));
@@ -10,6 +10,8 @@ test('Barre mobile à cinq destinations permanentes et sans substitution',()=>{
  assert.match(css,/\.sidebar \.nav-link\[data-tab="boamp"\]\{display:none\}/);
  assert.match(css,/\.sidebar \.nav-link\[data-tab="professional"\],\.sidebar \.nav-link\[data-tab="settings"\]\{display:flex\}/);
  assert.doesNotMatch(css,/\.sidebar \.nav-link\.mobile-pro-replaced\{display:none\}/);
+ assert.match(html,/data-role-deposit/);
+ assert.match(app,/data-role-deposit/);
 });
 test('Espace pro conserve son bouclier même avant vérification et abonnement',()=>{
  assert.doesNotMatch(app,/mobile-pro-replaced|dataset\.action=!eligiblePro|\?\x27#ic-plus\x27:\x27#ic-shield\x27/);
