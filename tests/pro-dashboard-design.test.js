@@ -18,15 +18,16 @@ test('Professional homepage has exactly one unified opportunity Radar, no duplic
  assert.match(pro,/const seen=new Set\(\)/);
  assert.match(pro,/sort\(\(a,b\)=>Number\(b\.score\|\|0\)-Number\(a\.score\|\|0\)\)/);
 });
-test('Real OFFRYA missions and official BOAMP/TED share one scored list with explanations and deadlines',()=>{
- assert.match(pro,/MARCHÉ PUBLIC ·/);
+test('Real OFFRYA missions and official BOAMP/TED share one compact explainable list',()=>{
+ assert.match(pro,/pro-ai-card-origin/);
  assert.match(pro,/MISSION OFFRYA/);
- assert.match(pro,/Pourquoi :/);
- assert.match(pro,/Secteur :/);
- assert.match(pro,/Zone :/);
- assert.match(pro,/Budget non communiqué/);
- assert.match(pro,/Clôture :/);
+ assert.match(pro,/Pourquoi ce marché \?/);
+ assert.match(pro,/item\.reasons/);
+ assert.match(pro,/Zone non précisée/);
+ assert.match(pro,/pro-ai-mission-budget/);
+ assert.match(pro,/Date limite :/);
  assert.match(pro,/data-pro-mission/);
+ assert.match(pro,/Consulter l’appel d’offres/);
  assert.match(pro,/\$\('proV3BoampSlot'\)\.appendChild\(\$\('premiumContent'\)\)/);
 });
 test('Tracking owns the activity block rather than the professional homepage',()=>{

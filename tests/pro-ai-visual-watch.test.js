@@ -9,8 +9,8 @@ const server=fs.readFileSync('server.js','utf8');
 test('The Premium discovery mockup compiles and contains the five visual sections',()=>{
  const parsed=spawnSync(process.execPath,['--input-type=module','--check'],{input:js,encoding:'utf8'});
  assert.equal(parsed.status,0,parsed.stderr);
- for(const label of ['Ma veille intelligente OFFRYA','Mes critères actuels','Missions (',
-  'Marchés publics (','opportunités trouvées','Opportunités recommandées par l’IA']){
+ for(const label of ['Ma veille intelligente OFFRYA','Mes critères actuels','Missions <span',
+  'Marchés <span','opportunités trouvées','Opportunités recommandées par l’IA']){
   assert.ok(js.includes(label),'Missing visual section: '+label);
  }
  for(const id of ['proAiHeroTitle','proAiCriteria','proAiTabAll','proAiTabMissions','proAiTabTenders',

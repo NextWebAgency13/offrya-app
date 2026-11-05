@@ -41,7 +41,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  let initialized=false,view='home',uid=null;
  let serverRadar=null,radarKey='',radarAt=0,radarLoading=false;
  let radarFilter='all',radarSort='score',radarQuery='';
- let tenderRefreshing=false;
+ let tenderRefreshing=false,priorityOnly=false,trackingBusy=false;
  async function loadMatchedRadar(key,user){
   if(radarLoading||!canUsePremium()||!user)return;
   radarLoading=true;
@@ -54,8 +54,10 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    const data=await response.json();
    if(!Array.isArray(data.items)||!['ai','rules'].includes(data.mode))throw Error('Format incorrect');
    if(state.session?.user?.id!==user||key!==radarKey||!canUsePremium())return;
-   serverRadar=data;
-   recommendations();
+   serverRadar=data;state.radarMatches=data;
+   recommendations();metrics();alerts();
+   document.dispatchEvent(new CustomEvent('offrya:ranking-updated'));
+
   }catch(error){
    console.warn('OFFRYA: classement distant indisponible, secours local',error);
   }finally{if(key===radarKey)radarAt=Date.now();radarLoading=false;}
@@ -111,10 +113,11 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
     '<div class="pro-ai-criteria"><div class="pro-ai-criteria-head"><strong>Mes critères actuels</strong><button type="button" data-pro-screen="preferences">'+icon('ic-settings')+' Modifier</button></div><div id="proAiCriteria" class="pro-ai-criteria-chips"></div></div>',
    '</section>',
    '<section class="pro-v3-opportunities pro-ai-discovery" aria-label="Radar des opportunités">',
-    '<div class="pro-ai-filter-tabs" role="group" aria-label="Type d’opportunité"><button class="is-active" type="button" data-pro-filter="all" aria-pressed="true">'+icon('ic-sparkles')+' Tout (<span id="proAiTabAll">0</span>)</button><button type="button" data-pro-filter="mission" aria-pressed="false">'+icon('ic-missions')+' Missions (<span id="proAiTabMissions">0</span>)</button><button type="button" data-pro-filter="tender" aria-pressed="false">'+icon('ic-boamp')+' Marchés publics (<span id="proAiTabTenders">0</span>)</button></div>',
+    '<div class="pro-ai-filter-tabs" role="group" aria-label="Type d’opportunité"><button class="is-active" type="button" data-pro-filter="all" aria-pressed="true">'+icon('ic-sparkles')+' Tout <span class="pro-ai-tab-count" id="proAiTabAll">0</span></button><button type="button" data-pro-filter="mission" aria-pressed="false">'+icon('ic-missions')+' Missions <span class="pro-ai-tab-count" id="proAiTabMissions">0</span></button><button type="button" data-pro-filter="tender" aria-pressed="false">'+icon('ic-boamp')+' Marchés <span class="pro-ai-tab-count" id="proAiTabTenders">0</span></button></div>',
     '<p class="pro-ai-inline-summary" id="proAiInlineSummary" role="status">Analyse des opportunités en cours…</p>',
     '<div class="pro-ai-stats" aria-label="Opportunités correspondantes"><div class="pro-ai-stat is-green">'+icon('ic-check')+'<div><strong id="proAiStatAll">0</strong><small>opportunités trouvées</small></div></div><div class="pro-ai-stat is-violet">'+icon('ic-sparkles')+'<div><strong id="proAiStatTenders">0</strong><small>appels d’offres BOAMP / TED</small></div></div><div class="pro-ai-stat is-blue">'+icon('ic-missions')+'<div><strong id="proAiStatMissions">0</strong><small>missions OFFRYA</small></div></div></div>',
     '<div class="pro-ai-heading"><h3>'+icon('ic-sparkles')+' Opportunités recommandées par l’IA</h3><div class="pro-ai-toolbar"><label for="proAiSort">Trier par :</label><select id="proAiSort" aria-label="Trier les opportunités"><option value="score">Pertinence</option><option value="recent">Plus récentes</option><option value="deadline">Échéance proche</option></select><button type="button" data-refresh-radar="true" aria-label="Actualiser" title="Actualiser">'+icon('ic-bolt')+'</button></div></div>',
+    '<button class="pro-ai-priority-alert" id="proAiPriorityAlert" type="button" data-pro-priority="true" hidden></button>',
     '<p class="sr-only" id="proV3RadarSummary" role="status" aria-live="polite">Analyse des opportunités…</p>',
     '<div id="proV3Recommendations" class="pro-v3-reco-list pro-ai-results"><p class="pro-v3-empty">Analyse des opportunités accessibles…</p></div>',
     '<p class="pro-v3-radar-disclaimer pro-ai-disclaimer">Les scores sont indicatifs et calculés sur des annonces réelles. Aucun budget inventé ni contact automatique. <span id="proV3MatchingStatus"></span></p>',
@@ -208,7 +211,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    if(response.error)throw response.error;
    if(state.session?.user?.id!==user||!canUsePremium())return;
    state.opportunityAlerts=Array.isArray(response.data)?response.data:[];
-   serverRadar=null;radarKey='';radarAt=0;
+   serverRadar=null;state.radarMatches=null;radarKey='';radarAt=0;
    recommendations();
   }catch(error){
    console.warn('OFFRYA : lecture des alertes BOAMP/TED impossible',error);
@@ -225,15 +228,22 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const fingerprint=JSON.stringify([user,state.opportunityPrefs,
    (state.missions||[]).map(m=>[m.id,m.status,m.created_at]).slice(0,220),
    (state.opportunityAlerts||[]).map(a=>[a.tender_id,a.match_score,a.deadline]).slice(0,100)]);
-  if(fingerprint!==radarKey){radarKey=fingerprint;serverRadar=null;radarAt=0;}
+  if(fingerprint!==radarKey){radarKey=fingerprint;serverRadar=null;state.radarMatches=null;priorityOnly=false;radarAt=0;}
   if(!radarLoading&&Date.now()-radarAt>5*60*1000)queueMicrotask(()=>loadMatchedRadar(fingerprint,user));
   const p=state.opportunityPrefs||{};
-  const criteria=[p.sectors?.length?p.sectors.join(' / '):'Tous les secteurs',
-   p.department?'Département '+p.department:'Toute la France',
-   p.min_budget_cents!=null||p.max_budget_cents!=null
-    ?'Budget : '+(p.min_budget_cents!=null?euroRadar(p.min_budget_cents):'0 €')+' – '+(p.max_budget_cents!=null?euroRadar(p.max_budget_cents):'sans plafond')
-    :'Budget : tous',p.keywords?'Mots-clés : '+p.keywords:''].filter(Boolean);
-  $('proAiCriteria').innerHTML=criteria.map((value,i)=>'<span class="pro-ai-criteria-chip">'+['▦','⌖','€','⌕'][i]+' '+esc(value)+'</span>').join('');
+  const sectors=Array.isArray(p.sectors)?p.sectors.filter(Boolean):[];
+  const allSectors=sectors.length>=7;
+  const sectorLabel=allSectors?'Tous les secteurs':sectors.length?sectors[0]:'Tous les secteurs';
+  const deptNames={'13':'Bouches-du-Rhône','30':'Gard','34':'Hérault','83':'Var',
+   '84':'Vaucluse','06':'Alpes-Maritimes','75':'Paris','69':'Rhône'};
+  const dept=p.department?String(p.department).toUpperCase():'';
+  const criteria=[sectorLabel,dept?(deptNames[dept]?deptNames[dept]+' ('+dept+')':'Département '+dept):'Toute la France'];
+  if(!allSectors&&sectors.length>1)criteria.push('+'+(sectors.length-1)+' secteurs');
+  const more=[];
+  if(p.min_budget_cents!=null||p.max_budget_cents!=null)more.push('budget défini');
+  if(p.keywords)more.push('mots-clés définis');
+  if(more.length)criteria.push(more.join(' et '));
+  $('proAiCriteria').innerHTML=criteria.map((value,i)=>'<span class="pro-ai-criteria-chip" title="'+esc(value)+'">'+['▦','⌖','+','⋯'][i]+' '+esc(value)+'</span>').join('');
   const fallback=buildRadar({missions:available(),alerts:state.opportunityAlerts||[],preferences:p,userId:user});
   const missions=new Map(available().map(m=>[String(m.id),m]));
   const notices=new Map((state.opportunityAlerts||[]).filter(a=>a?.deadline&&Date.parse(a.deadline)>Date.now()).map(a=>[String(a.tender_id),a]));
@@ -245,17 +255,29 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    if(item.kind==='tender'){const a=notices.get(String(item.id));
     if(!a||a.url!==item.url||!(/^https:\/\/(www\.)?boamp\.fr\//i.test(a.url||'')||
       /^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(a.url||'')))return false;
-    const codes=String(a.departments||'').toUpperCase().split(/[^A-Z0-9]+/).filter(Boolean);
-    if(p.department&&!codes.includes(String(p.department).toUpperCase()))return false;
-    if(p.sectors?.length&&!p.sectors.some(sector=>normRadar(a.match_reason||'').includes(normRadar('secteur : '+sector))))return false;
+    const codes=String(a.departments||'').toUpperCase().split(/[^A-Z0-9]+/).filter(Boolean).map(x=>/^\d{1,2}$/.test(x)?x.padStart(2,'0'):x);
+    if(p.department&&codes.length&&!codes.includes(String(p.department).toUpperCase()))return false;
+    if(serverRadar&&p.sectors?.length&&!p.sectors.includes(item.category))return false;
    }
    seen.add(key);return true;
   }).sort((a,b)=>Number(b.score||0)-Number(a.score||0));
   const nMission=rows.filter(x=>x.kind==='mission').length,nTender=rows.filter(x=>x.kind==='tender').length;
   $('proAiInlineSummary').textContent=rows.length+' opportunité'+(rows.length!==1?'s':'')+' correspondant à vos critères, dont '+nTender+' marché'+(nTender!==1?'s':'')+' public'+(nTender!==1?'s':'')+' et '+nMission+' mission'+(nMission!==1?'s':'')+'.';
   for(const [id,n] of [['proAiTabAll',rows.length],['proAiStatAll',rows.length],['proAiTabMissions',nMission],['proAiStatMissions',nMission],['proAiTabTenders',nTender],['proAiStatTenders',nTender]])$(id).textContent=String(n);
+  const priority=serverRadar?rows.filter(item=>{
+   const a=notices.get(String(item.id));
+   return item.kind==='tender'&&Number(item.score)>=75&&a&&!a.seen_at;
+  }):[];
+  const priorityButton=$('proAiPriorityAlert');
+  if(priorityButton){
+   priorityButton.hidden=!priority.length;
+   priorityButton.textContent=priority.length+' nouveau'+(priority.length>1?'x':'')+
+    ' marché'+(priority.length>1?'s':'')+' prioritaire'+(priority.length>1?'s':'')+' · Voir les alertes';
+   priorityButton.setAttribute('aria-pressed',String(priorityOnly));
+  }
   const selected=rows.filter(item=>{
    if(radarFilter!=='all'&&radarFilter!==item.kind)return false;
+   if(priorityOnly&&(!priority.some(x=>x.id===item.id)||item.kind!=='tender'))return false;
    if(!radarQuery)return true;
    const m=missions.get(String(item.id)),a=notices.get(String(item.id));
    return normRadar([item.title,item.location,item.source,item.description,m?.description,m?.category,a?.buyer,...(item.reasons||[])].join(' ')).includes(normRadar(radarQuery));
@@ -265,38 +287,65 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
     ?(Date.parse(a.deadline||'')||Infinity)-(Date.parse(b.deadline||'')||Infinity)
     :Number(b.score||0)-Number(a.score||0));
   for(const b of $('proExperienceV3').querySelectorAll('[data-pro-filter]')){
-   const active=b.dataset.proFilter===radarFilter;b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',String(active));
+   const active=b.dataset.proFilter===radarFilter;
+   b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',String(active));
   }
-  $('proV3MatchingStatus').textContent=serverRadar?.mode==='ai'?'Classement affiné par IA.':serverRadar?'Classement automatique explicable.':'Classement automatique provisoire.';
-  $('proV3RadarSummary').textContent=selected.length+' opportunité(s) affichée(s).';
+  $('proV3MatchingStatus').textContent=serverRadar?.mode==='ai'?'Classement métier vérifié, puis affiné par IA.':
+   serverRadar?'Correspondance calculée selon le métier, la zone et l’échéance.':
+   'Correspondances provisoires, calcul métier en cours de chargement.';
+  $('proV3RadarSummary').textContent=selected.length+' opportunité'+(selected.length>1?'s':'')+
+   ' affichée'+(selected.length>1?'s':'')+'.';
+  const tracked=new Map((state.tenderTracking||[]).map(t=>[String(t.tender_id),t]));
   panel.innerHTML=selected.length?selected.slice(0,24).map(item=>{
    const tender=item.kind==='tender',m=missions.get(String(item.id)),a=notices.get(String(item.id));
+   const follow=tender?tracked.get(String(item.id)):null;
    const description=String(m?.description||item.description||'').trim();
-   const desc=description?'<p class="pro-ai-card-description">'+esc(description.slice(0,200))+(description.length>200?'…':'')+'</p>':'';
+   const desc=description?'<p class="pro-ai-card-description">'+esc(description.slice(0,175))+(description.length>175?'…':'')+'</p>':'';
    const date=tender?item.deadline:m?.desired_date;
-   const due=date&&Number.isFinite(Date.parse(date))?'<span class="pro-ai-card-due'+(Date.parse(date)<Date.now()+7*86400000?' urgent-date':'')+'">'+(tender?'Clôture : ':'Date souhaitée : ')+esc(dateRadar(date))+'</span>':'';
+   const due=date&&Number.isFinite(Date.parse(date))?
+    '<span class="pro-ai-card-due'+(Date.parse(date)<Date.now()+7*86400000?' urgent-date':'')+'">'+
+    (tender?'Date limite : ':'Date souhaitée : ')+esc(dateRadar(date))+'</span>':'';
    const reasons=(Array.isArray(item.reasons)?item.reasons.slice(0,3):[]).filter(Boolean);
-   const tags=m?.category?'<div class="pro-ai-card-tags"><span>Secteur : '+esc(m.category)+'</span></div>':'';
-   const reason=tender?String(a?.match_reason||reasons.join(' · ')).trim():reasons.join(' · ');
-   const why=reason?'<p class="pro-ai-match-reason"><b>Pourquoi :</b> '+esc(reason.slice(0,230))+'</p>':'';
+   const reason=tender&&!serverRadar?'Classement métier en cours de vérification.':reasons.join(' · ');
+   const why=reason?'<p class="pro-ai-match-reason"><b>Pourquoi ce marché ?</b> '+esc(reason.slice(0,240))+'</p>':'';
    const score=Math.min(100,Math.max(0,Math.round(Number(item.score)||0)));
+   const scoreLabel=tender&&!serverRadar?'Pertinence en cours de calcul':
+    score+' % pertinent'+(item.locationType==='unknown'?' · Zone à confirmer':'');
+   const source=tender?esc(item.source==='TED'?'TED':'BOAMP'):'MISSION OFFRYA';
    const action=tender
-    ?'<a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer" class="pro-v3-reco-btn">Voir le détail →</a>'
+    ?'<a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer" class="pro-v3-reco-btn">Consulter l’appel d’offres →</a>'
     :'<button type="button" class="pro-v3-reco-btn" data-pro-view-mission="'+esc(item.id)+'" title="Voir la mission et Préparer une proposition">Voir la mission →</button>';
+   const favorite=tender?'<div class="pro-ai-follow-actions">'+
+    (follow?'<label class="pro-ai-stage-label">Suivi <select class="pro-ai-stage-select" data-pro-stage-tender="'+esc(item.id)+'">'+
+      [['saved','Enregistré'],['reviewing','À analyser'],['preparing','Dossier en préparation'],['submitted','Candidature déposée'],['done','Terminé']]
+       .map(([value,label])=>'<option value="'+value+'"'+(follow.stage===value?' selected':'')+'>'+label+'</option>').join('')+
+      '</select></label><button type="button" class="pro-ai-track-action" data-pro-remove-tender="'+esc(item.id)+'" aria-label="Retirer du suivi">Retirer</button>':
+      '<button type="button" class="pro-ai-track-action" data-pro-save-tender="'+esc(item.id)+'" aria-label="Enregistrer ce marché">☆ Enregistrer</button>')+'</div>':'';
+   const price=!tender&&m?.budget_cents!=null?'<span class="pro-ai-mission-budget">Budget : '+esc(euroRadar(m.budget_cents))+'</span>':'';
    return '<article class="pro-v3-radar-row pro-ai-card '+(tender?'pro-ai-card-tender':'pro-ai-card-mission')+'">'+
     '<div class="pro-ai-card-icon">'+(tender?icon('ic-boamp'):icon('ic-missions'))+'</div>'+
-    '<div class="pro-v3-radar-body pro-ai-card-content"><div class="pro-ai-card-labels"><span class="pro-ai-card-source">'+(tender?'<span class="sr-only">MARCHÉ PUBLIC · </span>APPEL D’OFFRE PUBLIC':'MISSION OFFRYA')+'</span>'+
-    (tender?'<span class="pro-ai-card-origin">'+esc(item.source==='TED'?'TED (UE)':'BOAMP')+'</span>':'')+
-    (m?.urgency==='urgent'?'<span class="pro-ai-card-urgent">⚡ Urgent</span>':'')+'</div>'+
-    '<h4>'+esc(item.title)+'</h4><div class="pro-v3-radar-details pro-ai-card-place"><span><span class="sr-only">Zone : </span>⌖ '+esc(item.location||'Lieu à préciser')+'</span>'+(tender?'<span class="pro-ai-buyer">Acheteur : '+esc(a?.buyer||'Non précisé')+'</span>':'')+'</div>'+desc+tags+why+'</div>'+
-    '<div class="pro-v3-radar-side pro-ai-card-side"><strong class="pro-ai-score">★ '+score+' % de pertinence</strong>'+
-    '<div class="pro-ai-card-budget"><small>Budget'+(tender?' de l’avis':'')+'</small><strong>'+esc(tender?'Non communiqué':euroRadar(m?.budget_cents))+'</strong>'+due+'</div>'+action+'</div></article>';
-  }).join('') :'<div class="pro-v3-empty pro-ai-empty"><strong>'+ (radarFilter==='tender'?'Aucun appel d’offres officiel ne correspond à vos critères.':'Aucune opportunité correspondant à vos critères.')+'</strong><p>'+ (radarFilter==='tender'?'La veille BOAMP/TED ne présente aucun avis qualifié dans cette zone et ces secteurs. Réessayez plus tard ou ajustez vos critères.':'Élargissez votre zone ou vos secteurs. Aucune annonce fictive n’est affichée.')+'</p><button type="button" data-pro-screen="preferences">Modifier mes critères →</button><button type="button" data-pro-screen="boamp">Rechercher les avis BOAMP →</button></div>';
+    '<div class="pro-v3-radar-body pro-ai-card-content"><div class="pro-ai-card-labels">'+
+    '<span class="pro-ai-card-origin">'+source+'</span>'+
+    (m?.urgency==='urgent'?'<span class="pro-ai-card-urgent">Urgent</span>':'')+
+    '</div><h4 title="'+esc(item.title)+'">'+esc(item.title)+'</h4>'+
+    '<div class="pro-v3-radar-details pro-ai-card-place"><span>⌖ '+esc(item.location||'Zone non précisée')+'</span>'+
+    (tender?'<span class="pro-ai-buyer">Acheteur : '+esc(a?.buyer||'Non précisé')+'</span>':'')+
+    '</div>'+desc+why+'</div>'+
+    '<div class="pro-v3-radar-side pro-ai-card-side"><strong class="pro-ai-score'+(tender&&!serverRadar?' is-pending':'')+'">'+esc(scoreLabel)+'</strong>'+
+    '<div class="pro-ai-card-budget">'+due+price+'</div>'+action+favorite+'</div></article>';
+  }).join('') :'<div class="pro-v3-empty pro-ai-empty"><strong>'+
+   (priorityOnly?'Aucune nouvelle alerte prioritaire.':radarFilter==='tender'?
+    'Aucun appel d’offres officiel ne correspond à vos critères.':'Aucune opportunité correspondant à vos critères.')+
+   '</strong><p>'+ (serverRadar?'Les métiers, la localisation et les échéances ont été vérifiés. Ajustez vos critères pour élargir la recherche.':
+    'Le classement métier est en cours de vérification. Actualisez si le chargement persiste.')+
+   '</p><button type="button" data-pro-screen="preferences">Modifier mes critères →</button>'+
+   '<button type="button" data-pro-screen="boamp">Rechercher les avis BOAMP →</button></div>';
+
  }
  function metrics(){
   const missions=available(),count=unreadMatchedNotifications().length;
   $('proV3WatchState').textContent=Date.parse(state.testPremiumUntil||'')>Date.now()?'Accès test':'Automatique';
-  $('proV3AlertCount').textContent=String((state.opportunityAlerts||[]).length);
+  $('proV3AlertCount').textContent=serverRadar?String(serverRadar.items.filter(x=>x.kind==='tender'&&x.score>=75).length):'—';
   const bubble=$('proV3AlertBubble');
   if(bubble){bubble.hidden=!count;bubble.textContent=String(Math.min(count,99));}
   const trigger=$('proV3MobileAlert');
@@ -321,20 +370,25 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   $('proV3Chart').innerHTML='<svg viewBox="0 0 '+width+' '+height+'" role="img" aria-label="'+esc(counts.join(', '))+' missions quotidiennes dans les 7 derniers jours"><path d="M10 '+(height-12)+' H'+(width-10)+'" fill="none" stroke="#e5d8f1" stroke-width="1"/><polyline points="'+pts+'" stroke="#7b32dc" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" fill="none"/>'+points.map(v=>'<circle cx="'+v[0]+'" cy="'+v[1]+'" r="3.5" fill="#813dd9"/>').join('')+'</svg><small>7 derniers jours · missions publiées</small>';
  }
  function alerts(){
-  // Full official watch is retained in its protected subtab.
-  const alerts=state.opportunityAlerts||[];
-  $('proV3WatchAlertList').innerHTML=alerts.length?[...alerts]
-   .filter(a=>!a.deadline||Date.parse(a.deadline)>Date.now())
-   .sort((a,b)=>(b.match_score||0)-(a.match_score||0))
-   .slice(0,15).map(a=>{
-    const official=/^https:\/\/(www\.)?boamp\.fr\//i.test(a.url||'')||/^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(a.url||'');
-    const href=official?esc(a.url):null;
-    const name=a.source==='TED'?'TED · Union européenne':'BOAMP · DILA';
-    const score=Number.isInteger(a.match_score)?'<small>Correspondance : '+a.match_score+'/100 · '+esc(a.match_reason||'')+'</small>':'';
-    return '<div class="pro-v3-watch-item"><small>'+esc(name)+' · '+esc(a.seen_at?'Déjà consultée':'Nouvelle opportunité')+'</small><strong>'+esc(a.title||'Marché public')+'</strong>'+score+
-     '<small>Échéance : '+esc(a.deadline?new Date(a.deadline).toLocaleDateString('fr-FR'):'À vérifier')+'</small>'+
-     (href?'<a href="'+href+'" target="_blank" rel="noopener noreferrer">Consulter la publication officielle</a>':'')+'</div>';
-   }).join(''):'<div class="pro-v3-empty">Aucune nouvelle opportunité pour le moment. La veille BOAMP et TED s’exécute automatiquement pour les professionnels vérifiés et abonnés.</div>';
+  const node=$('proV3WatchAlertList');if(!node)return;
+  if(!serverRadar){node.innerHTML='<div class="pro-v3-empty">Vérification des métiers en cours. Les alertes prioritaires apparaîtront après classement.</div>';return;}
+  const notices=new Map((state.opportunityAlerts||[]).map(a=>[String(a.tender_id),a]));
+  const rows=serverRadar.items.filter(x=>x.kind==='tender'&&Number(x.score)>=75)
+   .filter(x=>notices.has(String(x.id))&&(!x.deadline||Date.parse(x.deadline)>Date.now()));
+  node.innerHTML=rows.length?rows.slice(0,15).map(item=>{
+   const a=notices.get(String(item.id));
+   const official=/^https:\/\/(www\.)?boamp\.fr\//i.test(a.url||'')||
+    /^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(a.url||'');
+   const href=official?esc(a.url):null;
+   const name=a.source==='TED'?'TED · Union européenne':'BOAMP · DILA';
+   const why=(item.reasons||[]).slice(0,2).join(' · ');
+   return '<div class="pro-v3-watch-item"><small>'+esc(name)+' · '+
+    esc(a.seen_at?'Déjà consultée':'Marché prioritaire non consulté')+'</small>'+
+    '<strong>'+esc(a.title||'Marché public')+'</strong>'+
+    '<small>Pertinence : '+Math.round(Number(item.score))+'/100 · '+esc(why)+'</small>'+
+    '<small>Échéance : '+esc(a.deadline?new Date(a.deadline).toLocaleDateString('fr-FR'):'À vérifier')+'</small>'+
+    (href?'<a href="'+href+'" target="_blank" rel="noopener noreferrer">Consulter la publication officielle</a>':'')+'</div>';
+  }).join(''):'<div class="pro-v3-empty">Aucun marché suffisamment pertinent pour une alerte prioritaire. Les avis moins pertinents restent consultables dans le radar.</div>';
  }
  function syncTab(name){
   if(!initialized||!canUsePremium())return;
@@ -402,6 +456,46 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(openProposal&&openProposal(id)){show('assistant');return;}
   notify('Impossible d’ouvrir cette mission. Actualisez vos opportunités et réessayez.');
  }
+ async function updateTenderTracking(tenderId,stage){
+  if(trackingBusy||!canUsePremium()||!state.session?.user?.id||!state.db)return;
+  const user=state.session.user.id;
+  const current=(state.tenderTracking||[]).find(row=>String(row.tender_id)===tenderId);
+  const allowed=['saved','reviewing','preparing','submitted','done'];
+  if(stage!==null&&!allowed.includes(stage))return;
+  const notice=(state.opportunityAlerts||[]).find(row=>String(row.tender_id)===tenderId);
+  if(!current&&!notice)return;
+  const url=String(current?.url||notice?.url||'');
+  if(!(/^https:\/\/(www\.)?boamp\.fr\//i.test(url)||
+   /^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(url)))return;
+  trackingBusy=true;
+  try{
+   let result;
+   if(stage===null){
+    result=await state.db.from('offrya_tender_tracking').delete().eq('user_id',user).eq('tender_id',tenderId);
+   }else if(current){
+    result=await state.db.from('offrya_tender_tracking').update({stage,updated_at:new Date().toISOString()})
+     .eq('user_id',user).eq('tender_id',tenderId);
+   }else{
+    result=await state.db.from('offrya_tender_tracking').insert({
+     user_id:user,tender_id:tenderId,title:String(notice.title).slice(0,500),
+     url,stage:'saved',updated_at:new Date().toISOString()
+    });
+   }
+   if(result.error)throw result.error;
+   if(state.session?.user?.id!==user||!canUsePremium())return;
+   state.tenderTracking=(state.tenderTracking||[]).filter(t=>String(t.tender_id)!==tenderId);
+   if(stage!==null){
+    state.tenderTracking.push(current?{...current,stage,updated_at:new Date().toISOString()}:
+     {user_id:user,tender_id:tenderId,title:String(notice.title).slice(0,500),url,stage:'saved'});
+   }
+   recommendations();
+   notify(stage===null?'Marché retiré du suivi.':current?'Suivi du marché mis à jour.':'Marché enregistré dans votre suivi.');
+  }catch(error){
+   console.warn('OFFRYA : suivi du marché inaccessible',error);
+   notify('Impossible de modifier ce suivi. Vérifiez votre accès Premium et réessayez.');
+   recommendations();
+  }finally{trackingBusy=false;}
+ }
  function init(){
   if(initialized)return;
   makeMarkup();
@@ -412,6 +506,14 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    e.preventDefault();document.getElementById('accountMenu')?.removeAttribute('open');show(b.dataset.proScreen);
   });
   $('proExperienceV3').addEventListener('click',e=>{
+   const priority=e.target.closest('[data-pro-priority]');
+   if(priority&&canUsePremium()){
+    priorityOnly=!priorityOnly;radarFilter=priorityOnly?'tender':'all';recommendations();return;
+   }
+   const save=e.target.closest('[data-pro-save-tender]');
+   if(save&&canUsePremium()){updateTenderTracking(save.dataset.proSaveTender,'saved');return;}
+   const remove=e.target.closest('[data-pro-remove-tender]');
+   if(remove&&canUsePremium()){updateTenderTracking(remove.dataset.proRemoveTender,null);return;}
    const radarButton=e.target.closest('[data-refresh-radar]');
    if(radarButton&&canUsePremium()){refreshTenderRadar();return;}
    const refreshButton=e.target.closest('[data-refresh-missions]');
@@ -428,11 +530,15 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
     $('boampSearch').click();return;
    }
    const typeFilter=e.target.closest('[data-pro-filter]');
-   if(typeFilter&&canUsePremium()){radarFilter=typeFilter.dataset.proFilter;recommendations();return;}
+   if(typeFilter&&canUsePremium()){priorityOnly=false;radarFilter=typeFilter.dataset.proFilter;recommendations();return;}
    const detail=e.target.closest('[data-pro-view-mission]');
    if(detail&&canUsePremium()){openMissionDetail(detail.dataset.proViewMission);return;}
    const b=e.target.closest('[data-pro-mission]');if(b)openMission(b.dataset.proMission);
     
+  });
+  $('proExperienceV3').addEventListener('change',event=>{
+   const select=event.target.closest('[data-pro-stage-tender]');
+   if(select&&canUsePremium())updateTenderTracking(select.dataset.proStageTender,select.value);
   });
   window.addEventListener('storage',event=>{
    const user=state.session?.user?.id;
@@ -478,7 +584,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   document.body.classList.toggle('offrya-pro-v3',premium);
   if(!premium){uid=null;serverRadar=null;radarKey='';radarAt=0;return;}
   const user=state.session?.user?.id;
-  if(user!==uid){uid=user;view='home';
+  if(user!==uid){uid=user;view='home';state.radarMatches=null;
   }
   const label=professionalGreetingLabel(state);
   $('proV3Hello').textContent=label||'OFFRYA';

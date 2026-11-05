@@ -1283,3 +1283,131 @@ body.offrya-pro-v3 .pro-ai-card-side{min-width:0}
 /* The three redundant top-level cards were removed from the Premium markup.
    Defensive fallback for old cached markup and Android's virtual desktop viewport. */
 body.offrya-pro-v3 #proExperienceV3 .pro-v3-primary-tabs{display:none!important}
+
+
+/* OFFRYA Premium — semantic radar: shorter notices, real criteria and tracked bids. */
+body.offrya-pro-v3 .pro-ai-criteria-chips{gap:7px}
+body.offrya-pro-v3 .pro-ai-criteria-chip{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+body.offrya-pro-v3 .pro-ai-tab-count{
+ display:inline-grid;place-items:center;flex:none;min-width:24px;min-height:23px;
+ padding:2px 7px;border-radius:999px;color:#6c2ba6;background:#eee5f7;
+ font:850 11px/1 'Plus Jakarta Sans',sans-serif;
+}
+body.offrya-pro-v3 .pro-ai-filter-tabs .is-active .pro-ai-tab-count{
+ background:#ffffff2e;color:#fff;
+}
+body.offrya-pro-v3 .pro-ai-card .pro-ai-card-origin{
+ background:#ece5fa;color:#6a35a6;border:1px solid #e0d2ed;
+ font-size:10px;letter-spacing:.02em;
+}
+body.offrya-pro-v3 .pro-ai-card-tender .pro-ai-card-origin{
+ background:#e7efff;color:#1857a6;border:1px solid #d0dff9;
+}
+body.offrya-pro-v3 .pro-ai-card-content h4{
+ display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;
+ font-size:16px;line-height:1.32;max-width:100%;overflow-wrap:anywhere;
+}
+body.offrya-pro-v3 .pro-ai-card .pro-ai-card-place{
+ display:flex;flex-direction:column;align-items:flex-start;gap:3px;
+ line-height:1.42;overflow-wrap:anywhere;
+}
+body.offrya-pro-v3 .pro-ai-card .pro-ai-card-place span{max-width:100%}
+body.offrya-pro-v3 .pro-ai-card .pro-ai-match-reason{
+ display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;
+ overflow:hidden;line-height:1.48!important;margin-top:7px!important;
+}
+body.offrya-pro-v3 .pro-ai-card .pro-ai-card-side{
+ justify-content:start!important;gap:8px!important;
+}
+body.offrya-pro-v3 .pro-ai-card .pro-ai-card-budget{
+ padding:0;border-left:0;display:block;min-width:0;
+}
+body.offrya-pro-v3 .pro-ai-card .pro-ai-card-due{display:block;font-weight:800;font-size:12px}
+body.offrya-pro-v3 .pro-ai-card .pro-ai-score{
+ background:#e5f7e7!important;color:#19672a!important;padding:6px 10px!important;
+ font-size:11px!important;line-height:1.3!important;
+}
+body.offrya-pro-v3 .pro-ai-card .pro-ai-score.is-pending{
+ color:#76657b!important;background:#f4f0f6!important;
+}
+body.offrya-pro-v3 .pro-ai-track-action{
+ display:inline-flex;align-items:center;justify-content:center;gap:5px;
+ min-height:37px;padding:7px 11px;border-radius:9px;
+ border:1px solid #d8c5ec;background:#f7f1fc;color:#652e9e;
+ font:750 11px/1.25 'Plus Jakarta Sans',sans-serif;
+ cursor:pointer;
+}
+body.offrya-pro-v3 .pro-ai-follow-actions{
+ display:flex;align-items:center;justify-content:space-between;
+ gap:8px;flex-wrap:wrap;min-width:0;
+}
+body.offrya-pro-v3 .pro-ai-stage-label{
+ display:flex;flex:1;align-items:center;gap:6px;min-width:0;
+ font-size:11px;color:#5b436c;font-weight:750;
+}
+body.offrya-pro-v3 .pro-ai-stage-select{
+ min-height:36px;max-width:100%;min-width:0;flex:1;
+ padding:5px 6px;border:1px solid #d8c7e8;border-radius:9px;
+ background:#fff;color:#42285b;font-size:11px;
+}
+body.offrya-pro-v3 .pro-ai-mission-budget{
+ display:block;font-size:12px;font-weight:700;color:#51356a;
+}
+body.offrya-pro-v3 .pro-ai-priority-alert{
+ display:block;width:100%;min-height:41px;text-align:left;
+ margin:3px 0 12px;padding:9px 13px;
+ background:#f4ebff;border:1px solid #dec7fa;border-radius:12px;
+ color:#64309c;font-size:12px;font-weight:800;
+}
+body.offrya-pro-v3 .pro-ai-priority-alert[hidden]{display:none!important}
+body.offrya-pro-v3 .pro-ai-priority-alert[aria-pressed="true"]{
+ background:#6c2bb0;color:#fff;border-color:#6c2bb0;
+}
+body.offrya-pro-v3 .pro-ai-track-action:focus-visible,
+body.offrya-pro-v3 .pro-ai-stage-select:focus-visible,
+body.offrya-pro-v3 .pro-ai-priority-alert:focus-visible{
+ outline:3px solid #f3a34e;outline-offset:2px;
+}
+@media(max-width:620px){
+ body.offrya-pro-v3 .pro-ai-criteria-chip{font-size:11px;padding:5px 9px;min-height:29px}
+ body.offrya-pro-v3 .pro-ai-filter-tabs button{
+  display:flex;flex-direction:row;align-items:center;justify-content:center;
+  flex-wrap:wrap;gap:4px;padding:8px 4px;min-height:51px;
+  font-size:11px;line-height:1.2;
+ }
+ body.offrya-pro-v3 .pro-ai-filter-tabs button svg{width:15px;height:15px}
+ body.offrya-pro-v3 .pro-ai-tab-count{min-width:20px;min-height:20px;padding:2px 5px;font-size:10px}
+ body.offrya-pro-v3 .pro-ai-card{padding:12px!important;gap:8px!important}
+ body.offrya-pro-v3 .pro-ai-card-content h4{-webkit-line-clamp:3;font-size:15px}
+ body.offrya-pro-v3 .pro-ai-card .pro-ai-match-reason{
+  -webkit-line-clamp:2;font-size:11px!important;line-height:1.4!important;
+ }
+ body.offrya-pro-v3 .pro-ai-card .pro-ai-card-side{
+  grid-column:1/-1;display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(126px,154px)!important;
+  gap:7px 10px!important;align-items:center!important;
+ }
+ body.offrya-pro-v3 .pro-ai-card .pro-ai-score{grid-column:1!important;grid-row:1!important;justify-self:start}
+ body.offrya-pro-v3 .pro-ai-card .pro-ai-card-budget{grid-column:1!important;grid-row:2!important}
+ body.offrya-pro-v3 .pro-ai-card .pro-v3-reco-btn{grid-column:2!important;grid-row:1/3!important;max-width:none;min-width:0}
+ body.offrya-pro-v3 .pro-ai-card .pro-ai-follow-actions{grid-column:1/-1}
+ body.offrya-pro-v3 .pro-ai-card .pro-ai-card-due{font-size:11px}
+ body.offrya-pro-v3 .pro-ai-card .pro-ai-track-action{min-height:40px;font-size:11px}
+}
+@media(max-width:380px){
+ body.offrya-pro-v3 .pro-ai-filter-tabs button{font-size:10px;gap:2px}
+ body.offrya-pro-v3 .pro-ai-card .pro-ai-card-side{
+  grid-template-columns:minmax(0,1fr) minmax(108px,128px)!important;
+ }
+}
+@media screen and (pointer:coarse) and (orientation:portrait)
+ and (min-width:621px) and (max-width:1100px) and (max-aspect-ratio:3/5){
+ body.offrya-pro-v3 .pro-ai-filter-tabs button{
+  display:flex!important;flex-direction:row!important;justify-content:center!important;
+  flex-wrap:wrap!important;gap:8px!important;
+ }
+ body.offrya-pro-v3 .pro-ai-card .pro-ai-card-side{
+  display:flex!important;grid-column:2;align-items:stretch!important;gap:8px!important;
+ }
+ body.offrya-pro-v3 .pro-ai-card .pro-ai-card-content h4{-webkit-line-clamp:3}
+}
