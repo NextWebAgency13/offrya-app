@@ -6,7 +6,7 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
  const sectors=['Nettoyage','Espaces verts','Bâtiment','Informatique','Transport','Restauration & Hôtellerie','Bien-être & Beauté','Autre'];
  const search={Nettoyage:'nettoyage', 'Espaces verts':'espaces verts',Bâtiment:'travaux',Informatique:'informatique',Transport:'transport','Restauration & Hôtellerie':'restauration','Bien-être & Beauté':'beauté',Autre:''};
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\x27':'&#39;'}[c]));
- let ready=false,loadedUser=null,lastSearch=0,searching=false,tenders=[],scanError=null,previousFingerprint='',refreshInProgress=false;
+ let ready=false,loadedUser=null,lastSearch=0,searching=false,tenders=[],scanError=null,previousFingerprint='',refreshInProgress=false,watchRevision=0;
  let activeView='missions';
  function selectView(view){
   if(view!=='missions'&&view!=='tenders')return;
@@ -40,7 +40,7 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
  function render(){
   if(!$('opWatchForm')||!canUsePremium())return;
   const uid=current();
-  if(uid!==loadedUser){loadedUser=uid;ready=false;lastSearch=0;previousFingerprint='';tenders=[];}
+  if(uid!==loadedUser){loadedUser=uid;ready=false;lastSearch=0;previousFingerprint='';tenders=[];watchRevision++;}
   const p=prefs();
   if(!ready){
    const form=$('opWatchForm');
@@ -110,7 +110,7 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
  }
  async function refreshTenders(){
   if(!canUsePremium()||searching||!current())return;
-  const uid=current(),p=prefs();searching=true;scanError=null;renderTenders();
+  const uid=current(),p=prefs(),revision=watchRevision;searching=true;scanError=null;renderTenders();
   const queries=(p.sectors?.length?p.sectors.slice(0,5).map(x=>search[x]||'').filter(Boolean):[p.keywords||'']).slice(0,5);
   if(!queries.length)queries.push('');
   try{
@@ -118,7 +118,7 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
    if(!session)throw Error('Session expirée');
    const combined=new Map();
    for(const term of queries){
-    if(current()!==uid)break;
+    if(current()!==uid||revision!==watchRevision)break;
     const q=[term,p.keywords||''].filter(Boolean).join(' ').trim().slice(0,90);
     const url='/api/annonces?'+new URLSearchParams({q,dept:p.department||'',offset:'0'});
     const r=await fetch(url,{headers:{Authorization:'Bearer '+session.access_token},cache:'no-store'});
@@ -126,9 +126,13 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
     const data=await r.json();
     for(const item of data.items||[])if(item?.id&&!combined.has(item.id))combined.set(item.id,item);
    }
-   if(uid===current()){tenders=Array.from(combined.values()).filter(x=>!x.deadline||Date.parse(x.deadline)>Date.now()).sort((a,b)=>Date.parse(a.deadline||'9999-01-01')-Date.parse(b.deadline||'9999-01-01'));lastSearch=Date.now();}
-  }catch(e){scanError=e;lastSearch=Date.now();console.warn('OFFRYA: recherche sectorielle BOAMP indisponible',e);}
-  finally{searching=false;renderTenders();if($('opTenderCount'))$('opTenderCount').textContent=scanError?'—':String(tenders.length);}
+   if(uid===current()&&revision===watchRevision){tenders=Array.from(combined.values()).filter(x=>!x.deadline||Date.parse(x.deadline)>Date.now()).sort((a,b)=>Date.parse(a.deadline||'9999-01-01')-Date.parse(b.deadline||'9999-01-01'));lastSearch=Date.now();}
+  }catch(e){if(revision===watchRevision&&uid===current()){scanError=e;lastSearch=Date.now();console.warn('OFFRYA: recherche sectorielle BOAMP indisponible',e);}}
+  finally{
+   searching=false;
+   if(revision!==watchRevision){if(current()&&canUsePremium())queueMicrotask(()=>refreshTenders());return;}
+   renderTenders();if($('opTenderCount'))$('opTenderCount').textContent=scanError?'—':String(tenders.length);
+  }
  }
  async function saveWatch(event){
   event.preventDefault();if(!canUsePremium())return;
@@ -139,7 +143,7 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
   if(p.department&&!/^(0[1-9]|[1-8][0-9]|9[0-5]|2A|2B|97[1-6])$/.test(p.department)){notify('Indiquez un département valide ou laissez vide.');return;}
   const result=await state.db.from('offrya_opportunity_preferences').upsert(p,{onConflict:'user_id'});
   if(result.error){notify('Préférences non enregistrées.');console.warn(result.error);return;}
-  state.opportunityPrefs=p;lastSearch=0;previousFingerprint='';
+  state.opportunityPrefs=p;watchRevision++;lastSearch=0;previousFingerprint='';
   $('opWatchFeedback').textContent='Critères enregistrés. Actualisation du radar et recherche BOAMP en cours…';
   // Notify the Premium radar immediately; a normal rerender of this console
   // alone never invalidated its independent 5-minute matching cache.
