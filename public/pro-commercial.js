@@ -1,10 +1,32 @@
+// Proposals are manually approved messages, not binding quotes.
+export function buildProposalMessage(text,{amount='',delay=''}={}){
+ const message=String(text||'').trim();
+ if(!message)throw Error('Rédigez un message avant l’envoi.');
+ const raw=String(amount??'').trim();
+ let price='';
+ if(raw){
+  if(!/^\d{1,7}(?:[.,]\d{1,2})?$/.test(raw))throw Error('Montant indicatif invalide.');
+  const value=Number(raw.replace(',','.'));
+  if(!Number.isFinite(value)||value<1||value>1000000)throw Error('Montant indicatif invalide.');
+  price=value.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+ }
+ const timing=String(delay||'').replace(/[\u0000-\u001f\u007f]/g,' ').trim();
+ if(timing.length>90)throw Error('Indiquez un délai de 90 caractères maximum.');
+ const info=[
+  ...(price?['Montant estimatif : '+price+' (taxes et conditions à préciser)']:[]),
+  ...(timing?['Délai estimé : '+timing]:[])
+ ];
+ const full=info.length?message+'\n\nProposition indicative, à confirmer après échange :\n'+info.join('\n')+'\nCette estimation ne constitue pas un devis ferme.':message;
+ if(full.length>2500)throw Error('Votre proposition dépasse 2 500 caractères.');
+ return full;
+}
 // OFFRYA Pro commercial workspace. Mission discovery is always RLS-protected.
 // Replies are never sent without the professional pressing "Valider et envoyer".
-export function createSalesWorkspace({state,element,canUsePremium,tab,notify,refresh}){
+export function createSalesWorkspace({state,element,canUsePremium,tab,notify,refresh,onNavigate}){
  const $=element;
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\x27':'&#39;'}[c]));
  const stageNames={new:'À qualifier',qualifying:'Informations manquantes',reply_ready:'Réponse à valider',contacted:'Client contacté',followup:'À relancer',quote:'Devis en préparation',won:'Mission obtenue',lost:'Clôturé sans suite'};
- let selected=null,view='requests',accountId=null,drafts=new Map(),busy=false;
+ let selected=null,view='requests',accountId=null,drafts=new Map(),proposalMeta=new Map(),busy=false;
  const uid=()=>state.session?.user?.id||null;
  const accessible=()=>canUsePremium()?state.missions.filter(m=>m.owner_id!==uid()&&m.status==='open'): [];
  const tracking=()=>new Map((state.salesTracking||[]).map(x=>[x.mission_id,x.stage]));
@@ -50,13 +72,16 @@ export function createSalesWorkspace({state,element,canUsePremium,tab,notify,ref
   const loc=[m.city,m.department].filter(Boolean).join(' · ');
   node.innerHTML='<div class="sales-assistant-detail"><button class="sales-back" type="button" data-sales-back>← Toutes les demandes</button><h5>'+esc(m.title)+'</h5><p class="muted">'+esc(loc||'Localisation non précisée')+'</p>'+
    '<div class="sales-received"><strong>Demande reçue</strong><p>'+esc(m.description||'Description non précisée.')+'</p><small>'+esc([m.area_sqm?m.area_sqm+' m²':null,m.desired_date?'Date souhaitée : '+m.desired_date:null].filter(Boolean).join(' · '))+'</small></div>'+
-   '<div class="sales-draft"><strong>Proposition de réponse à valider</strong><p class="tiny muted">Brouillon guidé établi depuis la mission réelle. Brouillon guidé disponible immédiatement. La génération IA nécessite sa configuration serveur et reste soumise à validation.</p><label for="salesDraftText">Réponse modifiable</label><textarea id="salesDraftText" class="field" rows="8" maxlength="2500"></textarea><div class="sales-actions"><button type="button" class="button secondary" data-sales-generate>Générer avec l’IA</button><button type="button" class="button secondary" data-sales-copy>Copier</button><button type="button" class="button primary" data-sales-send>Valider et envoyer</button></div><p class="tiny muted">L’envoi nécessite votre confirmation. Aucun devis ferme ni tarif ne sont envoyés automatiquement.</p></div>'+
+   '<div class="sales-draft"><strong>Ma proposition au client</strong><p class="tiny muted">Présentez votre intervention. Le montant et le délai sont facultatifs.</p><label for="salesDraftText">Votre message</label><textarea id="salesDraftText" class="field" rows="6" maxlength="2200"></textarea><div class="sales-proposal-fields"><label for="salesQuoteAmount">Montant estimatif (€) <small>facultatif</small><input id="salesQuoteAmount" class="field" type="number" min="1" max="1000000" step="0.01" inputmode="decimal" placeholder="Ex. 250"></label><label for="salesDeliveryText">Délai estimé <small>facultatif</small><input id="salesDeliveryText" class="field" maxlength="90" placeholder="Ex. Sous deux semaines"></label></div><div class="sales-actions"><button type="button" class="button primary" data-sales-send>Envoyer ma proposition</button><button type="button" class="button secondary" data-sales-copy>Copier mon message</button></div><details class="sales-optional-tools"><summary>Aide à la rédaction (facultative)</summary><button type="button" class="button secondary" data-sales-generate>Générer avec l’IA</button></details><p class="tiny muted">L’envoi exige votre validation. Les estimations ne constituent pas un devis ferme.</p></div>'+
    '<label class="sales-stage">Statut du dossier<select id="salesStageSelect" class="field">'+Object.entries(stageNames).map(([k,v])=>'<option value="'+k+'"'+(k===status?' selected':'')+'>'+esc(v)+'</option>').join('')+'</select></label></div>';
   $('salesDraftText').value=drafts.has(m.id)?drafts.get(m.id):buildDraft(m);
+  const extra=proposalMeta.get(m.id)||{};
+  $('salesQuoteAmount').value=extra.amount||'';
+  $('salesDeliveryText').value=extra.delay||'';
  }
  function render(){
   const current=uid();
-  if(accountId!==current){accountId=current;selected=null;view='requests';drafts.clear();}
+  if(accountId!==current){accountId=current;selected=null;view='requests';drafts.clear();proposalMeta.clear();}
   if(!current||!canUsePremium()){
    $('salesRequestsCount').textContent='0';$('salesPendingCount').textContent='0';$('salesQuotesCount').textContent='0';
    $('salesRequestsList').innerHTML='<div class="sales-empty">Espace réservé aux professionnels autorisés.</div>';
