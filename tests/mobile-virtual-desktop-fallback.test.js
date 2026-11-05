@@ -30,7 +30,7 @@ test('Greeting skips technical IDs, handles empty profile and avoids generic pro
  assert.equal(greeting({profile:{display_name:'user_abcdefghijkl'},
   session:{user:{email:'contact-test@example.com',user_metadata:{}}}}),'contact-test');
  assert.equal(greeting({session:{user:{user_metadata:{}}}}),'');
- assert.equal(greeting({profile:{display_name:'A'.repeat(40)},session:{user:{}}}),'');
+ assert.match(greeting({profile:{display_name:'A'.repeat(40)},session:{user:{}}}),/^A{29}…$/);
  assert.equal(greeting({profile:{display_name:'Professionnel'},session:{user:{email:'moncompte@example.org'}}}),'moncompte');
  assert.match(pro,/greeting\.firstChild\.textContent=label\?'Bonjour, ':'Bienvenue sur '/);
  assert.doesNotMatch(pro,/label=rawLabel&&!technical\?rawLabel:'professionnel'/);
