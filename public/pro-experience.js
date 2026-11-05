@@ -58,7 +58,11 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   $('nav').after(nav);
   const badge=document.createElement('div');badge.id='proV3SidePlan';badge.className='pro-v3-side-plan';
   badge.innerHTML='<strong>♛ Offre professionnelle</strong><span id="proV3PlanState">Accès en cours</span><small>34,99 € TTC / mois</small><button type="button" data-pro-screen="settings">Gérer mon abonnement →</button>';
-  nav.after(badge);
+  const extras=document.createElement('nav');
+  extras.id='proV3SidebarExtras';extras.className='pro-v3-sidebar-extras';
+  extras.setAttribute('aria-label','Outils professionnels complémentaires');
+  extras.innerHTML='<strong class="pro-v3-extras-title">Outils professionnels</strong>'+secondaryMenu.map(navButton).join('');
+  nav.after(extras);extras.after(badge);
   // Secondary Pro screens appear in the existing mobile account menu.
   const accountPanel=document.querySelector('#accountMenu .account-menu-panel');
   if(accountPanel&&!accountPanel.querySelector('#proV3AccountTools')){
@@ -370,7 +374,8 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const header=document.querySelector('.app-shell .header');
   const search=document.createElement('form');search.id='proV3Search';search.className='pro-v3-search';
   search.setAttribute('role','search');search.innerHTML='<label class="sr-only" for="proV3SearchInput">Rechercher des missions</label><input id="proV3SearchInput" placeholder="Rechercher une mission, une ville, un mot-clé…" autocomplete="off" maxlength="100"><button type="submit" aria-label="Rechercher">'+icon('ic-search')+'</button>';
-  header.querySelector('.header-left').after(search);
+  // Same professional search on desktop and Android.
+  $('proExperienceV3').querySelector('.pro-v3-primary-tabs').after(search);
   search.addEventListener('submit',e=>{e.preventDefault();if(!canUsePremium())return;$('missionQuery').value=$('proV3SearchInput').value;renderMissions();tab('missions');syncTab('missions');});
  }
  function render(){
