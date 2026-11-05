@@ -842,6 +842,6 @@ async function init(){
 const opportunityConsole=createOpportunityConsole({state,element:$,canUsePremium,tab,renderMissions,notify:toast});
 const salesWorkspace=createSalesWorkspace({state,element:$,canUsePremium,tab,notify:toast,refresh,onNavigate:screen=>proExperience.show(screen)});
 const proExperience=createProExperience({state,element:$,canUsePremium,tab,renderMissions,loadMarkets:()=>loadBoamp(),notify:toast,openProposal:id=>salesWorkspace.openMission(id)});
-const pushNotifications=createPushNotifications({state,button:$('pushNotificationToggle'),status:$('pushNotificationStatus'),notify:toast});
+const pushNotifications=createPushNotifications({state,button:$('pushNotificationToggle'),testButton:$('pushTestNotification'),status:$('pushNotificationStatus'),notify:toast});
 proExperience.init();opportunityConsole.init();salesWorkspace.init();
 init().catch(showError);
