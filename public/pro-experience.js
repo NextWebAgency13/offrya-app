@@ -102,14 +102,15 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    '<div class="pro-v3-mobile-menu" aria-hidden="true" hidden></div>',
    '<nav class="pro-v3-primary-tabs" aria-label="Parcours professionnel">'+primaryMenu.map(navButton).join('')+'</nav>',
    '<section class="pro-v3-view" data-pro-panel="home">',
-    '<p class="sr-only">Bonjour, <span id="proV3Hello">professionnel</span></p><span id="proV3Status" class="sr-only">Compte professionnel</span>',
+    '<div class="pro-ai-welcome"><div class="pro-ai-welcome-main"><span class="pro-ai-welcome-eyebrow">ESPACE PROFESSIONNEL · OFFRYA</span><h2>Bonjour, <span id="proV3Hello">professionnel</span></h2><p>Vos missions et marchés publics, sélectionnés selon votre activité.</p></div><span class="pro-ai-welcome-status" id="proV3Status">Compte professionnel</span></div>',
    '<section class="pro-ai-hero" aria-labelledby="proAiHeroTitle">',
     '<div class="pro-ai-hero-main"><span class="pro-ai-intelligence">'+icon('ic-sparkles')+' IA</span><h2 id="proAiHeroTitle">Ma veille intelligente OFFRYA</h2><p>L’IA analyse les nouveaux appels d’offres et missions et vous propose les opportunités les plus pertinentes selon vos critères.</p></div>',
     '<div class="pro-ai-robot" aria-hidden="true"><i class="pro-ai-robot-glow"></i><i class="pro-ai-robot-antenna"></i><i class="pro-ai-robot-head"><b></b><b></b></i><i class="pro-ai-robot-body">✦</i></div>',
     '<div class="pro-ai-criteria"><div class="pro-ai-criteria-head"><strong>Mes critères actuels</strong><button type="button" data-pro-screen="preferences">'+icon('ic-settings')+' Modifier</button></div><div id="proAiCriteria" class="pro-ai-criteria-chips"></div></div>',
    '</section>',
    '<section class="pro-v3-opportunities pro-ai-discovery" aria-label="Radar des opportunités">',
-    '<div class="pro-ai-filter-tabs" role="group" aria-label="Type d’opportunité"><button class="is-active" type="button" data-pro-filter="all" aria-pressed="true">'+icon('ic-sparkles')+' Tout (<span id="proAiTabAll">0</span>)</button><button type="button" data-pro-filter="mission" aria-pressed="false">'+icon('ic-missions')+' Missions OFFRYA (<span id="proAiTabMissions">0</span>)</button><button type="button" data-pro-filter="tender" aria-pressed="false">'+icon('ic-boamp')+' Appels d’offres (<span id="proAiTabTenders">0</span>)</button></div>',
+    '<div class="pro-ai-filter-tabs" role="group" aria-label="Type d’opportunité"><button class="is-active" type="button" data-pro-filter="all" aria-pressed="true">'+icon('ic-sparkles')+' Tout (<span id="proAiTabAll">0</span>)</button><button type="button" data-pro-filter="mission" aria-pressed="false">'+icon('ic-missions')+' Missions (<span id="proAiTabMissions">0</span>)</button><button type="button" data-pro-filter="tender" aria-pressed="false">'+icon('ic-boamp')+' Marchés publics (<span id="proAiTabTenders">0</span>)</button></div>',
+    '<p class="pro-ai-inline-summary" id="proAiInlineSummary" role="status">Analyse des opportunités en cours…</p>',
     '<div class="pro-ai-stats" aria-label="Opportunités correspondantes"><div class="pro-ai-stat is-green">'+icon('ic-check')+'<div><strong id="proAiStatAll">0</strong><small>opportunités trouvées</small></div></div><div class="pro-ai-stat is-violet">'+icon('ic-sparkles')+'<div><strong id="proAiStatTenders">0</strong><small>appels d’offres BOAMP / TED</small></div></div><div class="pro-ai-stat is-blue">'+icon('ic-missions')+'<div><strong id="proAiStatMissions">0</strong><small>missions OFFRYA</small></div></div></div>',
     '<div class="pro-ai-heading"><h3>'+icon('ic-sparkles')+' Opportunités recommandées par l’IA</h3><div class="pro-ai-toolbar"><label for="proAiSort">Trier par :</label><select id="proAiSort" aria-label="Trier les opportunités"><option value="score">Pertinence</option><option value="recent">Plus récentes</option><option value="deadline">Échéance proche</option></select><button type="button" data-refresh-radar="true" aria-label="Actualiser" title="Actualiser">'+icon('ic-bolt')+'</button></div></div>',
     '<p class="sr-only" id="proV3RadarSummary" role="status" aria-live="polite">Analyse des opportunités…</p>',
@@ -215,10 +216,15 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    if(item.kind==='mission'&&!missions.has(String(item.id)))return false;
    if(item.kind==='tender'){const a=notices.get(String(item.id));
     if(!a||a.url!==item.url||!(/^https:\/\/(www\.)?boamp\.fr\//i.test(a.url||'')||
-      /^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(a.url||'')))return false;}
+      /^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(a.url||'')))return false;
+    const codes=String(a.departments||'').toUpperCase().split(/[^A-Z0-9]+/).filter(Boolean);
+    if(p.department&&!codes.includes(String(p.department).toUpperCase()))return false;
+    if(p.sectors?.length&&!p.sectors.some(sector=>normRadar(a.match_reason||'').includes(normRadar('secteur : '+sector))))return false;
+   }
    seen.add(key);return true;
   }).sort((a,b)=>Number(b.score||0)-Number(a.score||0));
   const nMission=rows.filter(x=>x.kind==='mission').length,nTender=rows.filter(x=>x.kind==='tender').length;
+  $('proAiInlineSummary').textContent=rows.length+' opportunité'+(rows.length!==1?'s':'')+' correspondant à vos critères, dont '+nTender+' marché'+(nTender!==1?'s':'')+' public'+(nTender!==1?'s':'')+' et '+nMission+' mission'+(nMission!==1?'s':'')+'.';
   for(const [id,n] of [['proAiTabAll',rows.length],['proAiStatAll',rows.length],['proAiTabMissions',nMission],['proAiStatMissions',nMission],['proAiTabTenders',nTender],['proAiStatTenders',nTender]])$(id).textContent=String(n);
   const selected=rows.filter(item=>{
    if(radarFilter!=='all'&&radarFilter!==item.kind)return false;
@@ -241,8 +247,10 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    const desc=description?'<p class="pro-ai-card-description">'+esc(description.slice(0,200))+(description.length>200?'…':'')+'</p>':'';
    const date=tender?item.deadline:m?.desired_date;
    const due=date&&Number.isFinite(Date.parse(date))?'<span class="pro-ai-card-due'+(Date.parse(date)<Date.now()+7*86400000?' urgent-date':'')+'">'+(tender?'Clôture : ':'Date souhaitée : ')+esc(dateRadar(date))+'</span>':'';
-   const reasons=[...(m?.category?[m.category]:[]),...(Array.isArray(item.reasons)?item.reasons.slice(0,3):[])].filter(Boolean).slice(0,4);
-   const tags=reasons.length?'<div class="pro-ai-card-tags"><span class="sr-only">Pourquoi : </span>'+reasons.map((x,i)=>'<span>'+(i===0&&m?.category?'<span class="sr-only">Secteur : </span>':'')+esc(x)+'</span>').join('')+'</div>':'';
+   const reasons=(Array.isArray(item.reasons)?item.reasons.slice(0,3):[]).filter(Boolean);
+   const tags=m?.category?'<div class="pro-ai-card-tags"><span>Secteur : '+esc(m.category)+'</span></div>':'';
+   const reason=tender?String(a?.match_reason||reasons.join(' · ')).trim():reasons.join(' · ');
+   const why=reason?'<p class="pro-ai-match-reason"><b>Pourquoi :</b> '+esc(reason.slice(0,230))+'</p>':'';
    const score=Math.min(100,Math.max(0,Math.round(Number(item.score)||0)));
    const action=tender
     ?'<a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer" class="pro-v3-reco-btn">Voir le détail →</a>'
@@ -252,10 +260,10 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
     '<div class="pro-v3-radar-body pro-ai-card-content"><div class="pro-ai-card-labels"><span class="pro-ai-card-source">'+(tender?'<span class="sr-only">MARCHÉ PUBLIC · </span>APPEL D’OFFRE PUBLIC':'MISSION OFFRYA')+'</span>'+
     (tender?'<span class="pro-ai-card-origin">'+esc(item.source==='TED'?'TED (UE)':'BOAMP')+'</span>':'')+
     (m?.urgency==='urgent'?'<span class="pro-ai-card-urgent">⚡ Urgent</span>':'')+'</div>'+
-    '<h4>'+esc(item.title)+'</h4><div class="pro-v3-radar-details pro-ai-card-place"><span><span class="sr-only">Zone : </span>⌖ '+esc(item.location||'Lieu à préciser')+'</span>'+(a?.buyer?'<span>'+esc(a.buyer)+'</span>':'')+'</div>'+desc+tags+'</div>'+
+    '<h4>'+esc(item.title)+'</h4><div class="pro-v3-radar-details pro-ai-card-place"><span><span class="sr-only">Zone : </span>⌖ '+esc(item.location||'Lieu à préciser')+'</span>'+(tender?'<span class="pro-ai-buyer">Acheteur : '+esc(a?.buyer||'Non précisé')+'</span>':'')+'</div>'+desc+tags+why+'</div>'+
     '<div class="pro-v3-radar-side pro-ai-card-side"><strong class="pro-ai-score">★ '+score+' % de pertinence</strong>'+
     '<div class="pro-ai-card-budget"><small>Budget'+(tender?' de l’avis':'')+'</small><strong>'+esc(tender?'Non communiqué':euroRadar(m?.budget_cents))+'</strong>'+due+'</div>'+action+'</div></article>';
-  }).join(''):'<div class="pro-v3-empty"><strong>Aucune opportunité correspondant à vos filtres.</strong><p>Élargissez votre zone ou vos secteurs. Aucune annonce fictive n’est affichée.</p><button type="button" data-pro-screen="preferences">Modifier mes critères →</button></div>';
+  }).join('') :'<div class="pro-v3-empty pro-ai-empty"><strong>'+ (radarFilter==='tender'?'Aucun appel d’offres officiel ne correspond à vos critères.':'Aucune opportunité correspondant à vos critères.')+'</strong><p>'+ (radarFilter==='tender'?'La veille BOAMP/TED ne présente aucun avis qualifié dans cette zone et ces secteurs. Réessayez plus tard ou ajustez vos critères.':'Élargissez votre zone ou vos secteurs. Aucune annonce fictive n’est affichée.')+'</p><button type="button" data-pro-screen="preferences">Modifier mes critères →</button><button type="button" data-pro-screen="boamp">Rechercher les avis BOAMP →</button></div>';
  }
  function metrics(){
   const missions=available(),count=unreadMatchedNotifications().length;
@@ -449,7 +457,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(greeting?.firstChild?.nodeType===Node.TEXT_NODE)
    greeting.firstChild.textContent=label?'Bonjour, ':'Bienvenue sur ';
   const temporary=Date.parse(state.testPremiumUntil||'')>Date.now();
-  const status=temporary?'Accès temporaire':state.premium?.status==='verified'?'Compte vérifié · abonnement actif':'Compte professionnel actif';
+  const status=temporary?'Accès Premium de test':state.premium?.status==='verified'?'Professionnel vérifié · abonné':'Compte professionnel actif';
   $('proV3Status').textContent=status;
   $('proV3PlanState').textContent=temporary?'Accès de test en cours':'Abonnement actif';
   placeMarketSearch();
