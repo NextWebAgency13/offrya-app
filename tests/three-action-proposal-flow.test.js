@@ -13,7 +13,7 @@ async function factory(){
 test('Une mission du Radar ouvre directement une proposition sans repasser par la liste des missions',()=>{
  assert.match(pro,/if\(openProposal&&openProposal\(id\)\)\{show\('assistant'\);return;\}/);
  assert.match(app,/openProposal:id=>salesWorkspace\.openMission\(id\)/);
- assert.match(app,/onNavigate:screen=>proExperience\.show\(screen\)/);
+ assert.match(app,/onNavigate:screen=>screen==='back'\?proExperience\.back\(\):proExperience\.show\(screen\)/);
  assert.match(sales,/return \{init,render,openMission\}/);
  assert.match(sales,/if\(!uid\(\)\|\|!canUsePremium\(\)\)return false/);
  assert.match(sales,/if\(!accessible\(\)\.some\(m=>m\.id===missionId\)\)return false/);
