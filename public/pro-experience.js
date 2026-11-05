@@ -41,6 +41,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  let initialized=false,view='home',uid=null;
  let serverRadar=null,radarKey='',radarAt=0,radarLoading=false;
  let radarFilter='all',radarSort='score',radarQuery='';
+ let tenderRefreshing=false;
  async function loadMatchedRadar(key,user){
   if(radarLoading||!canUsePremium()||!user)return;
   radarLoading=true;
@@ -191,6 +192,32 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  function euroRadar(c){return c==null?'Budget non communiqué':(Number(c)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0});}
  function normRadar(x){return String(x??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
  function dateRadar(x){return Number.isFinite(Date.parse(x||''))?new Date(x).toLocaleDateString('fr-FR'):'À vérifier';}
+
+ // Refresh the RLS-authorized alert rows, not just the cached ranking.
+ async function refreshTenderRadar(){
+  if(tenderRefreshing||!canUsePremium()||!state.db||!state.session?.user?.id)return;
+  const user=state.session.user.id;
+  const button=$('proExperienceV3')?.querySelector('[data-refresh-radar]');
+  tenderRefreshing=true;
+  if(button){button.disabled=true;button.setAttribute('aria-busy','true');}
+  try{
+   const response=await state.db.from('offrya_tender_alerts')
+    .select('user_id,tender_id,title,buyer,departments,url,deadline,source,match_score,match_reason,detected_at,seen_at')
+    .eq('user_id',user).order('detected_at',{ascending:false}).limit(100);
+   if(response.error)throw response.error;
+   if(state.session?.user?.id!==user||!canUsePremium())return;
+   state.opportunityAlerts=Array.isArray(response.data)?response.data:[];
+   serverRadar=null;radarKey='';radarAt=0;
+   recommendations();
+  }catch(error){
+   console.warn('OFFRYA : lecture des alertes BOAMP/TED impossible',error);
+   if(state.session?.user?.id===user&&canUsePremium())
+    notify('Impossible d’actualiser les marchés publics. Vérifiez votre connexion et réessayez.');
+  }finally{
+   tenderRefreshing=false;
+   if(button){button.disabled=false;button.removeAttribute('aria-busy');}
+  }
+ }
  function recommendations(){
   const panel=$('proV3Recommendations');if(!panel||!canUsePremium())return;
   const user=state.session?.user?.id;
@@ -383,7 +410,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   });
   $('proExperienceV3').addEventListener('click',e=>{
    const radarButton=e.target.closest('[data-refresh-radar]');
-   if(radarButton&&canUsePremium()){radarAt=0;serverRadar=null;recommendations();return;}
+   if(radarButton&&canUsePremium()){refreshTenderRadar();return;}
    const refreshButton=e.target.closest('[data-refresh-missions]');
    if(refreshButton&&canUsePremium()){
     $('missionRefresh').click();
