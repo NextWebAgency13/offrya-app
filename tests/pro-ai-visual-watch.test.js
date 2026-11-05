@@ -43,7 +43,8 @@ test('Recommendations and controls use live authorized data instead of mock valu
 });
 test('Mission links use private detail and official tender links stay allowlisted',()=>{
  assert.match(js,/function openMissionDetail\(id\)/);
- assert.match(js,/button\.click\(\)/);
+ assert.match(js,/state\.selectedMissionId=mission\.id/);
+ assert.match(js,/tab\('missions',false,true\)/);
  assert.match(js,/target="_blank" rel="noopener noreferrer"/);
  assert.match(js,/boamp\\\.fr/);
  assert.match(server,/\/api\/pro\/matches/);
