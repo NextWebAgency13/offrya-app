@@ -24,7 +24,8 @@ test('The Premium discovery mockup compiles and contains the five visual section
 });
 test('Recommendations and controls use live authorized data instead of mock values',()=>{
  assert.match(js,/canUsePremium\(\)/);
- assert.match(js,/buildRadar\(\{missions:available\(\),alerts:state\.opportunityAlerts/);
+ assert.match(js,/serverRadar\.items\.filter/);
+ assert.match(js,/Actualisation des opportunités selon vos critères/);
  assert.match(js,/const notices=new Map\(\(state\.opportunityAlerts\|\|\[\]\)/);
  assert.match(js,/const missions=new Map\(available\(\)/);
  assert.match(js,/data-pro-filter="mission"/);
