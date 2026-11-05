@@ -37,14 +37,16 @@ async function run(){
    &&!header.includes('header-signup')
    &&!header.includes('home-nav-links')
    &&!header.includes('mock-brand-tagline')
-   &&landing.text.includes('id="choisir-compte"')
+   &&landing.text.includes('class="offrya-entry-paths"')
+    &&['client','professional','manage'].every(x=>landing.text.includes('data-journey="'+x+'"'))
+    &&!landing.text.includes('id="choisir-compte"')
    &&authPage.text.includes('id="accountTypeChoice"')
    &&authScript.text.includes('offrya_signup_intent');
   if(releaseVisible)break;
   if(attempt<13)await new Promise(resolve=>setTimeout(resolve,15000));
  }
- assert.ok(releaseVisible,'La version Render ne présente pas encore Connexion / Inscription et les deux parcours du compte');
- console.log('PASS: nouvelle version OFFRYA (connexion, inscription, 2 parcours) visible en production');
+ assert.ok(releaseVisible,'Le nouvel accueil à trois parcours ou le choix de compte sécurisé manque sur Render');
+ console.log('PASS: accueil OFFRYA à trois parcours et inscription sécurisée visibles');
 
  // Déploiement de la nouvelle connexion : attendre le vrai HTML/CSS/JS
  // avant d'annoncer le succès, sans créer de compte ni envoyer de courriel.
@@ -77,12 +79,12 @@ async function run(){
  for(let attempt=0;attempt<16;attempt++){
   const [landing,styles]=await Promise.all([request('/',{headers:{'Cache-Control':'no-cache'}}),request('/public.css',{headers:{'Cache-Control':'no-cache'}})]);
   designVisible=landing.status===200&&styles.status===200
-   &&landing.text.includes('class="mock-hero"')
+   &&landing.text.includes('class="mock-hero offrya-entry-hero"')
    &&landing.text.includes('Votre projet mérite<br>le bon <span>professionnel.</span>')
    &&!landing.text.includes('class="mock-activity-title"')
    &&!landing.text.includes('id="publicActivity"')
    &&!landing.text.includes('src="/activity.js"')
-   &&landing.text.includes('class="mock-choice-grid"')
+   &&landing.text.includes('class="offrya-entry-paths"')
    &&landing.text.includes('class="mock-sector-grid"')
    &&landing.text.includes('class="footer mock-legal"')
    &&styles.text.includes('.mock-home .mock-hero')
@@ -90,8 +92,8 @@ async function run(){
   if(designVisible)break;
   if(attempt<15)await new Promise(resolve=>setTimeout(resolve,12000));
  }
- assert.ok(designVisible,'Render ne présente pas encore le design photographique approuvé');
- console.log('PASS: maquette OFFRYA desktop/mobile fidèle servie sur Render');
+ assert.ok(designVisible,'Render ne présente pas encore le nouvel accueil clair à trois actions');
+ console.log('PASS: nouvel accueil clair OFFRYA desktop/mobile servi sur Render');
 
  // Preuve de déploiement de cette PR : les sept pictogrammes professionnels
  // doivent être présents dans le HTML réellement servi par Render.
@@ -116,28 +118,27 @@ async function run(){
  console.log('PASS: huit pictogrammes SVG professionnels réellement servis par Render');
 
 
- // Bouton professionnel explicitement demandé : confirmer le HTML réellement
- // livré par Render, sa destination d'inscription et l'affichage responsive.
+ // Vérifier que l'entrée Pro sur l'accueil mène à l'inscription sécurisée.
  let proSignupVisible=false;
- for(let attempt=0;attempt<16;attempt++){
-  const [landing,styles,auth]=await Promise.all([
+ for(let attempt=0;attempt<4;attempt++){
+  const [landing,styles,professional,auth]=await Promise.all([
    request('/',{headers:{'Cache-Control':'no-cache'}}),
    request('/public.css',{headers:{'Cache-Control':'no-cache'}}),
+   request('/professionnels',{headers:{'Cache-Control':'no-cache'}}),
    request('/connexion?mode=signup&next=%2Fespace%2Fprofessionnel',{headers:{'Cache-Control':'no-cache'}})
   ]);
-  const proCard=landing.text.match(/<article class="mock-choice-card mock-pro">([\s\S]*?)<\/article>/)?.[1]||'';
-  proSignupVisible=landing.status===200&&styles.status===200&&auth.status===200
-   &&proCard.includes('href="/connexion?mode=signup&amp;next=%2Fespace%2Fprofessionnel">Créer un compte professionnel')
-   &&proCard.includes('href="/professionnels">Découvrir l’offre OFFRYA Professionnel')
-   &&styles.text.includes('.mock-home .mock-pro .mock-card-cta{margin-top:16px;')
-   &&styles.text.includes('.mock-home .mock-pro .mock-card-cta{min-height:54px;')
+  proSignupVisible=landing.status===200&&styles.status===200&&professional.status===200&&auth.status===200
+   &&landing.text.includes('href="/professionnels" data-journey="professional"')
+   &&professional.text.includes('href="/connexion?mode=signup&amp;next=%2Fespace%2Fprofessionnel"')
+   &&professional.text.includes('Créer mon compte professionnel')
+   &&styles.text.includes('.mock-home .offrya-entry-paths')
+   &&styles.text.includes('grid-template-columns:repeat(3,minmax(0,1fr))')
    &&auth.text.includes('data-signup-type="pro"');
   if(proSignupVisible)break;
-  if(attempt<15)await new Promise(resolve=>setTimeout(resolve,12000));
+  if(attempt<3)await new Promise(resolve=>setTimeout(resolve,4000));
  }
- assert.ok(proSignupVisible,'Bouton création compte pro absent du site Render, ou styles mobiles non déployés');
- console.log('PASS: bouton Créer un compte professionnel présent sur Render, avec styles mobiles et route Pro');
-
+ assert.ok(proSignupVisible,'Le parcours professionnel ou son inscription n’est pas encore déployé');
+ console.log('PASS: parcours professionnel direct, inscription et grille responsive vérifiés');
 
  // Vérifie les six photos précisément dans la feuille de style servie par Render.
  // Les liens de catégories et le contrôle de paiement sont testés séparément.
@@ -192,6 +193,23 @@ async function run(){
  for(const marker of ['mission-detail-description','mission-listing-actions','offrya-conversation','has-active-thread'])
   assert.ok(styleLatest.text.includes(marker),'Style récent absent de la production : '+marker);
  console.log('PASS: tableaux de bord, fiches de mission et messagerie mobile servis en production');
+ // Contrôle du vrai code Pro déployé, sans envoyer de message ou de paiement.
+ const [commercialJs,proExperienceJs,proStyles]=await Promise.all([
+  request('/pro-commercial.js',{headers:{'Cache-Control':'no-cache'}}),
+  request('/pro-experience.js',{headers:{'Cache-Control':'no-cache'}}),
+  request('/pro-experience.css',{headers:{'Cache-Control':'no-cache'}})
+ ]);
+ for(const [asset,name] of [[commercialJs,'Proposition'],[proExperienceJs,'Radar'],[proStyles,'Style Pro']])
+  assert.equal(asset.status,200,name+' indisponible');
+ assert.ok(commercialJs.text.includes('export function buildProposalMessage'),'Proposition chiffrée facultative absente');
+ assert.ok(commercialJs.text.includes('if(!uid()||!canUsePremium())return false'),'Autorisation Pro absente');
+ assert.ok(commercialJs.text.includes("from('offrya_messages').insert"),'Messagerie privée non câblée');
+ assert.ok(proExperienceJs.text.includes('const primaryMenu=['),'Navigation Pro en trois actions absente');
+ assert.ok(proExperienceJs.text.includes('openProposal&&openProposal(id)'),'Lien mission → proposition absent');
+ assert.ok(proStyles.text.includes('.pro-v3-primary-tabs'),'Navigation mobile Pro absente');
+ assert.ok(privateLatest.text.includes('id="homePrivateTitle">Je gère mon activité'),'Accueil personnel inchangé');
+ console.log('PASS: parcours Radar → proposition, messagerie et suivi réellement servis');
+
 
  // Les routes doivent être vraies, pas un fallback global HTTP 200.
  const publicPaths=['/professionnels','/deposer-une-mission','/connexion','/secteurs/batiment','/secteurs/nettoyage','/secteurs/espaces-verts','/secteurs/transport','/secteurs/informatique','/secteurs/restauration-hotellerie','/secteurs/bien-etre-beaute','/secteurs/autres-prestations'];
@@ -275,8 +293,10 @@ async function run(){
  const landingWithoutBanner=await request('/');
  assert.ok(!landingWithoutBanner.text.includes('id="publicActivity"'));
  assert.ok(!landingWithoutBanner.text.includes('mock-activity'));
- assert.ok(landingWithoutBanner.text.includes('class="mock-container mock-choice"'));
- console.log('PASS: bandeau statistique retiré et choix des espaces accessible');
+ assert.ok(landingWithoutBanner.text.includes('class="offrya-entry-paths"'));
+ assert.ok(!landingWithoutBanner.text.includes('class="mock-choice-grid"'));
+ assert.ok(['client','professional','manage'].every(x=>landingWithoutBanner.text.includes('data-journey="'+x+'"')));
+ console.log('PASS: absence de fausses statistiques et trois parcours accessibles');
  const publicConfig=cfg.json||{};
  assert.ok(typeof publicConfig.supabaseKey==='string'&&publicConfig.supabaseKey.length>10);
  const rpc=await fetch(publicConfig.supabaseUrl.replace(/\/$/,'')+'/rest/v1/rpc/offrya_public_mission_counts',{
