@@ -887,3 +887,19 @@ body.offrya-reference-ui #dashboard .role-reference-premium .role-premium-stats 
  }
 }
 
+
+
+/* Premium 'Accès rapide' — texte uniquement, maquette validée 2026-11-06.
+   Ne modifie ni cartes, ni navigation, ni données. */
+body.offrya-reference-ui #dashboard .role-reference-premium .role-section-heading p{
+ color:#28113e!important;
+ font:800 clamp(18px,1.55vw,24px)/1.28 'Plus Jakarta Sans',sans-serif!important;
+ letter-spacing:-.025em;
+ text-wrap:balance;
+}
+@media(max-width:780px){
+ body.offrya-reference-ui #dashboard .role-reference-premium .role-section-heading p{
+  font-size:clamp(16px,4.35vw,19px)!important;
+  line-height:1.34!important;
+ }
+}
