@@ -1,7 +1,7 @@
 // OFFRYA Premium DCE: deliberately transient UI with no storage, tracking or auto-submission.
 const byId=id=>document.getElementById(id);
 const elm=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=String(text);return e;};
-const shortSource=s=>s&&s.document?String(s.document)+' · '+(s.sheet?'Feuille ':'page ')+s.page:'Référence non disponible';
+const shortSource=s=>s&&s.document?String(s.document)+' · '+(s.kind==='sheet'?'feuille '+(s.sheet||s.page):s.kind==='section'?'section '+s.page:'page '+s.page):'Référence non disponible';
 const money=value=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(value);
 const accountFields=[
  ['company_name','dceCompany'],['siret','dceSiret'],['representative','dceRepresentative'],
