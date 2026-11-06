@@ -6,6 +6,7 @@ const {allowedSearchUrls,detectChallenge}=require('./collect-leboncoin');
 const {extractNextData}=require('../lib/leboncoin-next-data');
 const {validateFeed}=require('../lib/leboncoin-feed-validation');
 const {validationCsv}=require('./import-leboncoin-feed');
+const {reserveBudget}=require('../lib/leboncoin-collection-budget');
 
 const API_ENDPOINT='https://api.scrapfly.io/scrape';
 function parisHour(now){
@@ -36,8 +37,10 @@ function scrapflyRequestUrl(config){
  return req.toString();
 }
 async function previewScrapfly({env=process.env,now=new Date(),fetcher=fetch,
- writeFile=fs.writeFile,logger=console}={}){
+ writeFile=fs.writeFile,logger=console,reserve=reserveBudget}={}){
  const config=verifySettings(env,now);
+ await reserve(env,'run');
+ await reserve(env,'request');
  let response;
  try{
   response=await fetcher(scrapflyRequestUrl(config),{
