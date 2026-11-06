@@ -27,5 +27,7 @@ shutdown(){
   wait "$app_pid" "$scanner_supervisor" "$signature_updater" 2>/dev/null || true
 }
 trap shutdown TERM INT
-wait "$app_pid" || exit $?
+status=0
+wait "$app_pid" || status=$?
 shutdown
+exit "$status"
