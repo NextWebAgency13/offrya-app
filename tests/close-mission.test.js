@@ -59,15 +59,15 @@ test('Closing removes the mission everywhere in the app state and clears its exc
  assert.ok(!s.hiddenConversations.has(c1));
  assert.ok(h.calls.some(c=>c[0]==='replaceState'&&c[1]==='/espace/missions'),'Le lien ?mission= est nettoyé');
  assert.ok(h.calls.some(c=>c[0]==='render')&&h.calls.some(c=>c[0]==='refresh'),'Affichage immédiat puis rechargement');
- assert.match(h.toasts[0],/échanges? liés? ont été supprimés|supprimés/);
+ assert.match(h.toasts[0],/supprimés de votre messagerie/);
 });
 
 test('The confirmation is explicit about visibility, deletion and irreversibility',()=>{
  const {api}=harness();
  const one=api.closeMissionConfirmText({title:'Tonte de pelouse'},1);
  assert.match(one,/Tonte de pelouse/);
- assert.match(one,/disparaîtra pour tous les comptes/);
- assert.match(one,/1 échange lié à cette mission, avec tous leurs messages, sera supprimé définitivement/);
+ assert.match(one,/disparaîtra pour tous les comptes\./);
+ assert.match(one,/1 échange lié à cette mission, avec tous leurs messages, sera supprimé définitivement de votre messagerie\. Le professionnel conserve sa copie/);
  assert.match(one,/irréversible/);
  assert.match(api.closeMissionConfirmText({title:'X mission'},3),/3 échanges liés .* seront supprimés définitivement/);
  assert.match(api.closeMissionConfirmText({title:'X mission'},0),/Aucun échange n’est lié/);
@@ -83,16 +83,17 @@ test('A database refusal keeps everything in place and surfaces the error',async
  assert.equal(h.state.thread,c1);
 });
 
-test('Only the author can close, and only open or expired missions',async()=>{
+test('Only the author can close; open, expired and awarded missions qualify',async()=>{
  const stranger=harness({user:pro});
  assert.equal(await stranger.api.closeMission(m1),false);
  assert.ok(!stranger.calls.some(c=>c[0]==='rpc'||c[0]==='confirm'));
- for(const status of ['awarded','closed']){
+ for(const status of ['open','expired','awarded']){
   const h=harness({mission:{status}});
-  assert.equal(h.api.canCloseMission(h.state.missions[0]),false,status);
-  assert.equal(await h.api.closeMission(m1),false);
+  assert.equal(h.api.canCloseMission(h.state.missions[0]),true,status);
  }
- assert.equal(harness({mission:{status:'expired'}}).api.canCloseMission({id:m1,owner_id:me,status:'expired'}),true);
+ const closed=harness({mission:{status:'closed'}});
+ assert.equal(closed.api.canCloseMission(closed.state.missions[0]),false);
+ assert.equal(await closed.api.closeMission(m1),false);
  assert.equal(harness().api.canCloseMission({id:m1,owner_id:me,status:'open',withdrawn_at:'2026-11-06T10:00:00Z'}),false);
 });
 
@@ -104,7 +105,9 @@ test('The Clôturer button exists in the list and in the mission detail, for the
  const own=ctx.detail({id:m1,owner_id:me,title:'Tonte de pelouse',status:'open',description:'x',category:'Espaces verts',created_at:'2026-11-06'});
  assert.match(own,/data-close-mission="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"[^>]*>Clôturer la mission</);
  const pourvue=ctx.detail({id:m1,owner_id:me,title:'Tonte de pelouse',status:'awarded',description:'x',category:'Espaces verts',created_at:'2026-11-06'});
- assert.ok(!/data-close-mission/.test(pourvue),'Pas de bouton sur une mission pourvue');
+ assert.match(pourvue,/data-close-mission/,'Une mission pourvue est aussi clôturable');
+ const cloturee=ctx.detail({id:m1,owner_id:me,title:'Tonte de pelouse',status:'closed',description:'x',category:'Espaces verts',created_at:'2026-11-06'});
+ assert.ok(!/data-close-mission/.test(cloturee));
  state.session.user.id=pro;
  ctx.canUsePremium=()=>true;
  const other=ctx.detail({id:m1,owner_id:me,title:'Tonte de pelouse',status:'open',description:'x',category:'Espaces verts',created_at:'2026-11-06'});
@@ -121,25 +124,41 @@ test('Other open sessions pick the removal up on every main tab',()=>{
  assert.match(app,/\$\('dashboard'\)\.classList\.contains\('active'\)\|\|\$\('missions'\)\.classList\.contains\('active'\)\|\|\$\('professional'\)\.classList\.contains\('active'\)/);
 });
 
-test('Database migration: author-only atomic purge, visible to nobody afterwards',()=>{
+test('Database migration: author-only atomic closure, exchange removed on the author side only',()=>{
  assert.match(sql,/add column if not exists withdrawn_at timestamptz/);
+ assert.match(sql,/add column if not exists mission_title text/,'Titre conservé pour le professionnel');
  assert.match(sql,/using \(\s*withdrawn_at is null\s+and/,'Mission retirée illisible pour tous');
  assert.match(sql,/create or replace function offrya_private\.close_mission/);
  assert.match(sql,/security definer/);
  assert.match(sql,/v_uid is null then raise exception 'Authentification requise'/);
- assert.match(sql,/owner_id = v_uid and status in \('open', 'expired'\) and withdrawn_at is null\s+for update/);
- assert.match(sql,/offrya_contracts where mission_id = p_id\) then\s+raise exception/,'Jamais si un contrat existe');
- for(const table of ['offrya_conversations','offrya_favorites','offrya_pro_lead_tracking','offrya_priority_alerts'])
-  assert.match(sql,new RegExp('delete from public\\.'+table+' where mission_id = p_id'));
- assert.match(sql,/set status = 'closed', closed_at = now\(\), withdrawn_at = now\(\)/,'La ligne reste (anti-doublon des imports, avis, contrats)');
- assert.doesNotMatch(sql,/delete from public\.offrya_missions/,'La mission n’est jamais supprimée');
- assert.doesNotMatch(sql,/delete from public\.offrya_reviews|delete from public\.offrya_contracts/);
+ assert.match(sql,/owner_id = v_uid and status in \('open', 'expired', 'awarded'\) and withdrawn_at is null\s+for update/);
+ assert.match(sql,/status in \('active', 'delivered', 'disputed'\)\) then\s+raise exception/,'Jamais avec un contrat en cours');
+ assert.match(sql,/insert into public\.offrya_conversation_purges\(conversation_id, user_id\)\s+select id, p_owner from public\.offrya_conversations where mission_id = p_mission/);
+ assert.doesNotMatch(sql,/delete from public\.offrya_conversations|delete from public\.offrya_messages/,'Les messages restent en base : le professionnel les conserve');
+ assert.doesNotMatch(sql,/delete from public\.offrya_pro_lead_tracking/,'Le suivi du professionnel est conservé');
+ for(const table of ['offrya_favorites','offrya_priority_alerts'])
+  assert.match(sql,new RegExp('delete from public\\.'+table+' where mission_id = p_mission'));
+ assert.match(sql,/set status = 'closed', closed_at = coalesce\(closed_at, now\(\)\), withdrawn_at = now\(\)/,'La ligne reste (anti-doublon des imports, avis, contrats)');
+ assert.doesNotMatch(sql,/delete from public\.offrya_missions|delete from public\.offrya_reviews|delete from public\.offrya_contracts/);
+});
+
+test('Policies hide purged exchanges from their purger only and make closed exchanges read-only',()=>{
+ const policy=name=>sql.slice(sql.indexOf('create policy '+name),sql.indexOf(';',sql.indexOf('create policy '+name)));
+ assert.match(policy('conversation_read'),/not offrya_private\.conversation_purged_for\(id, \(select auth\.uid\(\)\)\)/);
+ assert.match(policy('messages_read'),/not offrya_private\.conversation_purged_for\(c\.id, \(select auth\.uid\(\)\)\)/);
+ assert.match(policy('messages_write'),/not offrya_private\.mission_withdrawn\(c\.mission_id\)/);
+ assert.match(policy('messages_write'),/not offrya_private\.conversation_purged_for/);
+ assert.match(sql,/revoke all on table public\.offrya_conversation_purges from anon, authenticated/,'Table des suppressions fermée à l’API');
+ assert.match(sql,/grant execute on function offrya_private\.conversation_purged_for\(uuid, uuid\) to authenticated/);
+});
+
+test('Past closed missions are purged by the same procedure in the migration',()=>{
+ assert.match(sql,/for r in select id, owner_id from public\.offrya_missions where status = 'closed' and withdrawn_at is null loop\s+perform offrya_private\.withdraw_mission\(r\.id, r\.owner_id\)/);
 });
 
 test('The closure journal stores counts only and is closed to every API role',()=>{
  assert.match(sql,/create table if not exists public\.offrya_mission_closures/);
- assert.match(sql,/enable row level security/);
  assert.match(sql,/revoke all on table public\.offrya_mission_closures from anon, authenticated/);
- const table=sql.slice(sql.indexOf('create table'),sql.indexOf(');',sql.indexOf('create table')));
+ const table=sql.slice(sql.indexOf('create table if not exists public.offrya_mission_closures'),sql.indexOf(');',sql.indexOf('create table if not exists public.offrya_mission_closures')));
  assert.doesNotMatch(table,/body|title|description/,'Aucun contenu conservé');
 });

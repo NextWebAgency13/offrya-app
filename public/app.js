@@ -303,7 +303,9 @@ for(const n of document.querySelectorAll('[data-role-pro-screen]'))n.addEventLis
 function isGuest(){return Boolean(state.session?.user?.is_anonymous);}
 function requireAuth(){if(!state.db){toast('Le service de connexion est momentanément indisponible.');return false;}if(!state.session){location.assign('/connexion?next='+encodeURIComponent(location.pathname));return false;}return true;}
 function requireRole(role){if(!requireAuth())return false;if(!state.profile){tab('settings');toast('Complétez votre profil avant de commencer.');return false;}if(role==='pro'&&(state.profile.role!=='pro'||!canUsePremium())){toast('Activez votre compte professionnel pour répondre aux missions.');tab('professional');return false;}return true;}
-function titleForMission(id){return state.missions.find(m=>m.id===id)?.title||'Mission';}
+// Une mission clôturée n'est plus lisible : le titre est conservé sur l'échange (mission_title).
+function titleForMission(id){return state.missions.find(m=>m.id===id)?.title||(state.conversations||[]).find(c=>c.mission_id===id)?.mission_title||'Mission';}
+function conversationClosed(c){return Boolean(c&&c.mission_title);}
 function profileName(id){return state.profiles.find(p=>p.id===id)?.display_name||'Utilisateur OFFRYA';}
 async function refresh(){
  if(!state.db){state.loaded=true;render();return;}
@@ -426,18 +428,19 @@ async function refreshLiveMissions(force=false){
  finally{if(missionRefreshInFlight===ongoing)missionRefreshInFlight=null;}
 }
 // ---- Clôture d'une mission -------------------------------------------------------------
-// Clôturer = retirer la mission de tous les comptes et supprimer définitivement ses échanges
-// (RPC offrya_close_mission : atomique, réservée à l'auteur). Irréversible, donc confirmée.
+// Clôturer = retirer la mission de tous les comptes et supprimer ses échanges de la messagerie
+// de l'auteur (RPC offrya_close_mission : atomique, réservée à l'auteur). Le professionnel garde
+// sa copie de l'échange, en lecture seule. Irréversible pour l'auteur, donc confirmée.
 function canCloseMission(m){
  return Boolean(m&&state.session&&m.owner_id===state.session.user.id&&!m.withdrawn_at
-  &&(m.status==='open'||m.status==='expired'));
+  &&(m.status==='open'||m.status==='expired'||m.status==='awarded'));
 }
 function closeMissionConfirmText(mission,exchanges){
  const title=String(mission?.title||'cette mission').trim().slice(0,80);
  const n=Number(exchanges)||0;
  return ['Clôturer « '+title+' » ?','',
-  'La mission disparaîtra pour tous les comptes, y compris pour les professionnels.',
-  n?n+' échange'+(n>1?'s':'')+' lié'+(n>1?'s':'')+' à cette mission, avec tous leurs messages, '+(n>1?'seront supprimés':'sera supprimé')+' définitivement.'
+  'La mission disparaîtra pour tous les comptes.',
+  n?n+' échange'+(n>1?'s':'')+' lié'+(n>1?'s':'')+' à cette mission, avec tous leurs messages, '+(n>1?'seront supprimés':'sera supprimé')+' définitivement de votre messagerie. Le professionnel conserve sa copie.'
    :'Aucun échange n’est lié à cette mission.',
   '','Cette action est irréversible.'].join('\n');
 }
@@ -468,7 +471,7 @@ async function closeMission(id){
  if(location.pathname===paths.missions&&new URLSearchParams(location.search).has('mission'))
   history.replaceState({tab:'missions'},'',paths.missions);
  render();
- toast(exchanges?'Mission clôturée. Les échanges liés ont été supprimés.':'Mission clôturée.');
+ toast(exchanges?'Mission clôturée. Les échanges liés ont été supprimés de votre messagerie.':'Mission clôturée.');
  try{await refresh();}catch(error){console.warn('OFFRYA: actualisation après clôture indisponible',error);}
  return true;
 }
@@ -570,7 +573,7 @@ function conversationRow(c,unreadByThread){
  const mine=c.client_id===state.session?.user.id;
  const contact=profileName(mine?c.professional_id:c.client_id);
  const title=titleForMission(c.mission_id);
- const body=`<span class="offrya-conversation-icon" aria-hidden="true">${mine?'P':'D'}</span><span class="offrya-conversation-body"><strong>${esc(title)}</strong><small>${mine?'Professionnel':'Demandeur'} : ${esc(contact)}</small><time datetime="${esc(c.created_at)}">Discussion ouverte le ${date(c.created_at)}</time></span>`;
+ const body=`<span class="offrya-conversation-icon" aria-hidden="true">${mine?'P':'D'}</span><span class="offrya-conversation-body"><strong>${esc(title)}</strong><small>${mine?'Professionnel':'Demandeur'} : ${esc(contact)}${conversationClosed(c)?' · Mission clôturée':''}</small><time datetime="${esc(c.created_at)}">Discussion ouverte le ${date(c.created_at)}</time></span>`;
  const selected=state.thread===c.id,unread=unreadByThread.get(c.id)||0;
  return `<div class="conv-row"><button type="button" class="conv-item offrya-conversation ${selected?'selected':''} ${unread?'has-unread':''}" data-thread="${esc(c.id)}" aria-pressed="${selected}">${body}${unread?'<span class="message-thread-badge" aria-label="'+unread+' message(s) non lu(s)">'+(unread>99?'99+':unread)+'</span>':''}<span class="offrya-conversation-chevron" aria-hidden="true">›</span></button><button type="button" class="conv-action conv-remove" data-hide-thread="${esc(c.id)}" aria-label="Retirer l’échange ${esc(title)} de ma messagerie" title="Retirer de ma messagerie">${TRASH_ICON}</button></div>`;
 }
@@ -580,10 +583,17 @@ function renderInbox(){
  const unreadByThread=messageUnread().byThread;
  const html=visible.length?visible.map(c=>conversationRow(c,unreadByThread)).join(''):'<div class="empty">Aucune conversation pour le moment. Retrouvez vos échanges ici après une prise de contact au sujet d’une mission.</div>';
  $('conversationList').innerHTML=html;
- $('messageForm').querySelector('button').disabled=!state.thread;
  const activeConversation=items.find(c=>c.id===state.thread);
+ const readOnly=conversationClosed(activeConversation);
+ $('messageForm').querySelector('button').disabled=!state.thread||readOnly;
+ const field=$('messageForm').elements?.body;
+ if(field){
+  if(!field.dataset.openPlaceholder)field.dataset.openPlaceholder=field.placeholder||'';
+  field.disabled=readOnly;
+  field.placeholder=readOnly?'Mission clôturée : échange en lecture seule':field.dataset.openPlaceholder;
+ }
  $('threadTitle').textContent=activeConversation?titleForMission(activeConversation.mission_id):'Sélectionnez une discussion';
- if($('threadContext'))$('threadContext').textContent=activeConversation?'Mission associée · '+(activeConversation.client_id===state.session?.user.id?'Échange avec un professionnel':'Échange avec un demandeur'):'Choisissez une conversation pour retrouver les messages associés à sa mission.';
+ if($('threadContext'))$('threadContext').textContent=activeConversation?(readOnly?'Mission clôturée · échange conservé en lecture seule · ':'Mission associée · ')+(activeConversation.client_id===state.session?.user.id?'Échange avec un professionnel':'Échange avec un demandeur'):'Choisissez une conversation pour retrouver les messages associés à sa mission.';
  $('inbox').classList.toggle('has-active-thread',Boolean(activeConversation));
  if($('threadHide'))$('threadHide').hidden=!activeConversation;
  if(state.thread)renderMessages();else $('messageList').innerHTML='<div class="empty">Choisissez une discussion.</div>';
@@ -1157,7 +1167,7 @@ $('conversationList').onclick=async e=>{
  if(hideBtn){await hideConversation(hideBtn.dataset.hideThread);return;}
  const btn=e.target.closest('[data-thread]');if(!btn)return;state.thread=btn.dataset.thread;renderInbox();try{await loadMessages(state.thread);}catch(err){showError(err);}};
 $('threadHide')?.addEventListener('click',()=>hideConversation(state.thread));
-$('messageForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth()||!state.thread)return;const f=e.currentTarget,body=f.elements.body.value.trim();if(!body)return;try{const r=await state.db.from('offrya_messages').insert({conversation_id:state.thread,sender_id:state.session.user.id,body});if(r.error)throw r.error;f.reset();await loadMessages(state.thread);}catch(err){showError(err);}};
+$('messageForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth()||!state.thread)return;if(conversationClosed(state.conversations.find(c=>c.id===state.thread)))return toast('Mission clôturée : cet échange est en lecture seule.');const f=e.currentTarget,body=f.elements.body.value.trim();if(!body)return;try{const r=await state.db.from('offrya_messages').insert({conversation_id:state.thread,sender_id:state.session.user.id,body});if(r.error)throw r.error;f.reset();await loadMessages(state.thread);}catch(err){showError(err);}};
 $('preferencesForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget;// Preserve previously stored alert targeting rather than silently broadening it
  // when these optional selectors are removed from the account interface.
  const payload={user_id:state.session.user.id,missions_enabled:f.elements.missions_enabled.checked,messages_enabled:f.elements.messages_enabled.checked,department:state.prefs?.department||'',category:state.prefs?.category||''};try{let r;if(state.prefs){delete payload.user_id;r=await state.db.from('offrya_alert_preferences').update(payload).eq('user_id',state.session.user.id);}else r=await state.db.from('offrya_alert_preferences').insert(payload);if(r.error)throw r.error;toast('Préférences enregistrées.');await refresh();}catch(err){showError(err);}};
