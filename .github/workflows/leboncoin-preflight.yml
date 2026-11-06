@@ -1,0 +1,32 @@
+name: OFFRYA — diagnostic collecteur Leboncoin (sans réseau tiers)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: offrya-leboncoin-offline-diagnostic
+  cancel-in-progress: false
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Tests de non-régression et isolation Premium
+        run: npm test
+      - name: Rapport du premier diagnostic
+        shell: bash
+        run: |
+          {
+            echo '## OFFRYA — préflight Leboncoin'
+            echo ''
+            echo '- Tests du collecteur, des quotas, des retraits et de l’accès Premium : terminés.'
+            echo '- Collecte en direct : NON (aucun accès Leboncoin depuis ce workflow).'
+            echo '- Écriture Supabase : NON.'
+            echo '- Publication Premium : NON.'
+            echo ''
+            echo 'L’exécution réseau exige une autorisation source vérifiée et un déclenchement distinct.'
+          } >> "$GITHUB_STEP_SUMMARY"
