@@ -1,57 +1,46 @@
-# OFFRYA — assistant DCE Premium : architecture et limites
+# OFFRYA Premium — DCE, préparation et validation humaine
 
-## État actuel vérifié le 6 novembre 2026
+## Périmètre de la PR 163 (6 novembre 2026)
 
-Le moteur dispose déjà de lib/boamp.js (API officielle DILA), lib/ted.js (TED Search API v3), scripts/watch-sector-tenders.js (veille) et lib/ai-matching.js (classement). Ces composants ne lisent pas les documents de consultation, n'établissent pas un dossier de candidature et n'envoient pas de réponse.
+Ajout isolé à l'onglet **Marchés publics** de l'espace Premium, sans changer l'algorithme BOAMP/TED, les missions, les droits de lecture RLS ni les cartes approuvées.
 
-Le menu « Assistant IA » actuel aide à répondre aux **missions OFFRYA** et ne doit pas être remplacé sans refonte validée.
+### Fonctionnalités développées sur la branche (non déployées)
 
-## Phase 1 — base technique de l'analyse (cette PR)
+1. **Import manuel ZIP** : le professionnel télécharge lui-même le DCE depuis le profil acheteur accessible dans l'avis officiel. Il importe une archive ZIP (20 Mo max) dans OFFRYA.
+2. **Contrôles du ZIP** : signature ZIP, chemins sécurisés, pas d'archives imbriquées, macros, exécutables, liens symboliques ou ZIP chiffrés, plafonds par fichier/volume/ratio de compression/entrées ; traitement isolé dans un worker limité en durée et en mémoire.
+3. **Extraction** : PDF texte (25 premières pages maximum par PDF, limite globale de 80 pages), DOCX texte (sans pagination fixe), XLSX tableaux limités (sans recalcul des formules), TXT. Jusqu'à 12 documents pris en charge. Les pages PDF scannées sans texte sont signalées comme nécessitant un OCR ; **pas d'OCR livré**.
+4. **Provenance** : les indices de date limite, critères et pondérations, capacité, visites obligatoires, lots, durée, limite de pages, reprise de personnel, rectificatifs et pièces citées gardent document, page/feuille/section et extrait ; interprétation conservatrice « à vérifier ».
+5. **Checklist** : documents relevés et cases de confirmation explicites. Leur présence dans un texte ne prouve pas qu'ils soient exigés : le professionnel doit relire le RC et contrôler les rectificatifs/Q-R.
+6. **Brouillons** : fiches de données pour DC1 et DC2, ou DUME, et trame de mémoire technique par critère détecté. Le professionnel renseigne ses propres données puis les confirme avant insertion ; aucune déclaration automatique ni signature. **Ce ne sont pas les formulaires administratifs remplis officiellement**.
+7. **Aide au chiffrage** : recherche facultative de montants d'attribution par code CPV via la source officielle DECP DAJ ; montants globaux, dates, durée et lien vers la source. Aucun prix unitaire ni prix conseillé inventé. En cas d'indisponibilité de la source, une erreur est affichée plutôt que des chiffres fictifs.
+8. **Validation et remise** : contrôles spécifiques des pièces, engagements, prix, échéance et version du DCE, export JSON de préparation, retour vers l'avis officiel ; **aucun dépôt, envoi, signature ou engagement automatique**.
 
-Endpoint : POST /api/pro/dce/analyze. Il est soumis au JWT et à la vérification Premium **côté serveur**. Il accepte uniquement les textes déjà extraits et paginés, fournis volontairement par le professionnel.
+### Sécurité et confidentialité
 
-Format :
-    {"documents":[{"name":"RC.pdf","pages":[{"page":2,"text":"Date limite de remise des offres : 27 novembre 2026\nPrix : 40 %, valeur technique : 60 %"}]}],"company":{"turnover_eur":350000,"turnover_confirmed":false}}
+- Routes POST /api/pro/dce/import et /api/pro/dce/prepare ; GET /api/pro/dce/awards, toutes protégées par la vérification Premium serveur existante.
+- Traitement éphémère : originaux et texte non enregistrés en Supabase ni dans un stockage externe ; le dossier brouillon n'est conservé qu'en mémoire dans l'onglet ouvert et exportable à la demande. Ne pas inclure les données des documents dans les logs.
+- Les données d'entreprise sont déclarées et confirmées par l'utilisateur, sans enrichissement externe. Une confirmation ne vaut pas vérification juridique.
+- Le lien vers l'avis officiel doit appartenir aux domaines officiels BOAMP/TED ; aucune connexion automatique à un profil d'acheteur.
+- Le traitement des fichiers importés est isolé, mais **il n'intègre pas encore d'antivirus** : une analyse complémentaire, un durcissement des scanners, un audit de sécurité et des tests de charge avec vraies archives sont nécessaires avant autorisation de production.
+- L'extraction PDF/DOCX et XLSX reste partielle ; les limites, incertitudes et avertissements sont affichés à l'utilisateur.
 
-Limites : 12 documents, 40 pages chacun, 160 000 caractères au total, quota de requêtes. Aucun document envoyé à OpenAI ou stocké ; traitement en mémoire, sans contenu dans les logs.
+### Tests sur la branche
 
-Extraction conservatrice : échéances, critères et pondérations, capacité, visites, lots, durée, reprise de personnel, limite de pages, rectificatifs et pièces citées (DC1, DC2, DUME, mémoire technique, BPU, DPGF, DQE, attestations). Chaque fait renvoie document, page et extrait original, plus une incertitude explicite.
+Tests : accès serveur, extraction ZIP échantillon, rejet d'archive à traversée de chemin, citations, checklist, champs confirmés, données d'attribution simulées, absence de prix conseillé, absence de dépôt automatique et non-régression de l'interface Premium. GitHub Actions installe les dépendances du module avant de lancer la suite.
 
-La checklist distingue non confirmé et déclaré disponible, non vérifié. Le go/no-go n'a pas de score inventé : verdict A_VERIFIER par défaut ; NO_GO_POTENTIEL pour un minimum de chiffre d'affaires identifié incompatible avec un chiffre **confirmé** par le professionnel. Aucun GO automatique. La trame de mémoire comprend uniquement des consignes à compléter, sans affirmation inventée.
+### Prochaines étapes avant déploiement
 
-**N'est pas livré dans cette PR** : lecture de ZIP/PDF binaires, OCR, interface utilisateur, extraction tableaux DOCX/XLSX, stockage de dossiers, rédaction complète, DC1/DC2/DUME, extraction de prix attribués et dépôt. Le module n'est pas un assistant DCE complet.
+- Antivirus/CDR, durcissement des dépendances, politiques de rétention et limites plus fines de ressources.
+- Tests de vrais DCE (PDF de différentes structures, DOCX/XLSX complexes), OCR isolé si nécessaire, extraction plus fiable des critères par sous-critère et pièces obligatoires.
+- Intégration facultative d'un coffre privé avec RLS si une sauvegarde persistante est demandée, avec suppression maîtrisée.
+- Prévisualisation/exports PDF ou DOCX et génération contrôlée de formulaires DC ou DUME conformes à la version officielle ; vérifier le cadre légal en vigueur.
+- Liaison des Q/R et rectificatifs via flux autorisés selon chaque profil acheteur ; ne pas promettre une surveillance exhaustive.
+- Tests Android et PC réels sur compte Premium, non-Premium, et deux comptes différents ; relecture juridique/confidentialité.
 
-## Phase 2 — import réel et suivi des versions
+Sources officielles :
+- https://www.economie.gouv.fr/daj/les-formulaires-de-declaration-du-candidat
+- https://entreprendre.service-public.gouv.fr/vosdroits/F32144
+- https://entreprendre.service-public.gouv.fr/vosdroits/R44043
+- https://data.economie.gouv.fr/explore/dataset/decp-2022-marches-valides/
 
-Ajouter dans l'onglet Marchés publics un bouton « Analyser mon DCE », puis un import volontaire des ZIP et fichiers PDF, DOCX, XLSX. Stocker les originaux en bucket privé Supabase avec RLS par utilisateur, clé d'objet imprévisible, accès vérifié à chaque lecture, quotas et politique de conservation/suppression.
-
-Traiter les archives dans un worker isolé avec antivirus, contrôles de taille, ratio de décompression, nombre de fichiers, chemins ../ ou absolus, liens symboliques, macros, archives chiffrées et imbriquées. Les PDF reçoivent une extraction texte paginée ; uniquement les pages scannées passent par OCR et restent marquées « OCR à vérifier ». Préserver la structure des tableaux et les formules des bordereaux.
-
-Versionner chaque document (nom, type RC/CCTP/CCAP/BPU, date, empreinte SHA-256) et les Q/R/rectificatifs. Chaque nouvelle version rend les anciennes conclusions « à revoir ». Le système ne peut garantir le suivi des Q/R d'une plateforme sans son connecteur autorisé.
-
-## Phase 3 — dossier de candidature humainement validé
-
-Créer un profil professionnel de capacités **confirmées** avec références, certifications, assurances, qualification, données financières et zones. Matrice exigence / justificatif / écart par lot, avec source page. Générer brouillons DC1, DC2 ou DUME, checklist et plan de mémoire technique suivant les sous-critères réellement détectés ; ne jamais signer, déposer ou déclarer sans confirmation humaine.
-
-Ajouter l'aide au chiffrage via les données essentielles de la commande publique, en distinguant montants attribués (contextuels, parfois hétérogènes) et prix unitaires réellement comparables, avec année, CPV, zone, lot et source. Ne jamais fabriquer un prix.
-
-## Phase 4 — enrichissement officiel et conformité
-
-Améliorer la normalisation BOAMP (XML/eForms, versions, rectificatifs, attribution DILA) et TED (corrélation des avis, lots, modifications). Ajouter les profils d'acheteurs directs uniquement quand une API/flux est autorisé après revue des CGU. Le téléchargement manuel du DCE est le parcours par défaut. Apify ne dispense pas du respect des conditions d'utilisation ; aucune automatisation de connexion, aucun contournement de CAPTCHA.
-
-Protéger les données de contacts (RGPD), limiter la conservation et empêcher tout accès inter-comptes. Les documents et profils d'entreprises ne partent pas chez un fournisseur IA externe sans information contractuelle, évaluation de confidentialité et activation explicite. Documents acheteurs considérés comme entrées non fiables (injections de prompt).
-
-## Tests requis avant mise en production
-
-- Demandeur, Pro non vérifié, non abonné, Premium vérifié, session expirée : refus/autorisation conforme.
-- Contrôles de fichiers malveillants et volumineux, OCR douteux, correction d'index et de citations.
-- Rectificatifs et Q/R invalident les analyses anciennes, absence de GO ou de déclaration inventés.
-- Aucune fuite entre deux comptes Premium, rendu Android/ordinateur inchangé hors écran DCE approuvé.
-
-Références officielles :
-- https://www.data.gouv.fr/dataservices/api-bulletin-officiel-des-annonces-des-marches-publics-boamp
-- https://docs.ted.europa.eu/api/latest/search.html
-- https://data.economie.gouv.fr/pages/donnees-essentielles-de-la-commande-publique/
-- https://www.marches-publics.gouv.fr/entreprise/footer/conditions-utilisation
-
-**Statut : PR préparatoire, sans fusion, déploiement, migration de base ni modification des écrans Premium existants.**
+**Statut : branche de préparation et PR brouillon, aucune fusion ni mise en production.**
