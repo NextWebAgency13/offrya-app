@@ -2,9 +2,9 @@
 .pro-hero{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(270px,.65fr);gap:22px;align-items:stretch;margin-bottom:25px}
 .pro-hero-main{padding:43px 42px;border-radius:25px;background:linear-gradient(130deg,#eee8ff 0%,#faf8ff 58%,#fff7f2 100%);border:1px solid #e8dff7;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .pro-hero-main:after{content:'';position:absolute;width:210px;height:210px;border:1px solid #d0c0f8;border-radius:50%;right:-85px;top:-85px;box-shadow:0 0 0 29px #f6f1ff,0 0 0 60px #eee6ff80;pointer-events:none}
-.pro-kicker{font-size:10px;letter-spacing:1.7px;font-weight:850;color:#6A0295;text-transform:uppercase}
+.pro-kicker{font-size:10px;letter-spacing:1.7px;font-weight:850;color:#7A3CFF;text-transform:uppercase}
 .pro-hero h2{font:800 clamp(28px,3.1vw,42px)/1.13 'Plus Jakarta Sans',sans-serif;letter-spacing:-1.5px;margin:16px 0}
-.pro-hero h2 span{color:#6A0295}
+.pro-hero h2 span{color:#7A3CFF}
 .pro-hero p{color:#586277;font-size:13px;line-height:1.8;max-width:560px}
 .pro-benefits{display:flex;gap:9px;flex-wrap:wrap;margin:21px 0}
 .pro-benefits span{font-size:11px;color:#473968;background:#ffffffb8;border:1px solid #e5ddf6;border-radius:20px;padding:6px 11px;font-weight:750}
@@ -25,10 +25,10 @@
 .pro-rail li{display:flex;gap:12px;align-items:center;padding:13px 12px;border-radius:13px;color:#9aa2b1}
 .pro-rail li>span{width:33px;height:33px;flex:none;border:1px solid #e5e1ed;border-radius:10px;display:grid;place-items:center;font-size:11px;font-weight:850}
 .pro-rail li strong{display:block;font-size:12px;color:#7b8395}.pro-rail li small{display:block;font-size:10px;line-height:1.4;margin-top:3px}
-.pro-rail li.active{background:#f4efff;color:#6A0295}.pro-rail li.active>span{color:white;background:#6A0295;border-color:#6A0295}.pro-rail li.active strong{color:#4d2d9c}
+.pro-rail li.active{background:#f4efff;color:#7A3CFF}.pro-rail li.active>span{color:white;background:#7A3CFF;border-color:#7A3CFF}.pro-rail li.active strong{color:#4d2d9c}
 .pro-rail li.complete>span{color:#127353;border-color:#9bdbc4;background:#e9f8f0}.pro-rail li.complete strong{color:#314c4c}
 .pro-rail-foot{padding:18px 15px 3px;color:#6a7185;font-size:10px;border-top:1px solid #f0eaf7;margin-top:14px;display:flex;gap:10px;align-items:flex-start}
-.pro-rail-foot svg{color:#6A0295}
+.pro-rail-foot svg{color:#7A3CFF}
 .pro-rail-foot p{margin:0;line-height:1.6}
 .pro-stage-card{padding:32px;min-height:390px}
 .pro-stage-card h3{font:800 clamp(21px,2vw,27px)/1.25 'Plus Jakarta Sans',sans-serif;letter-spacing:-.6px;margin:8px 0 12px}

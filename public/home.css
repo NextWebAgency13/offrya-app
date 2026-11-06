@@ -1,5 +1,5 @@
 /* OFFRYA — page d'accueil publique et espace personnel, 31/10/2026. */
-#dashboard{--home-ink:#211b34;--home-muted:#786f86;--home-purple:#6A0295;--home-plum:#3b244e;--home-coral:#fb9e85}
+#dashboard{--home-ink:#211b34;--home-muted:#786f86;--home-purple:#7A3CFF;--home-plum:#3b244e;--home-coral:#fb9e85}
 #dashboard .home-hero{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(285px,.8fr);gap:26px;align-items:center;min-height:465px;padding:clamp(27px,4vw,58px);border-radius:29px;background:linear-gradient(117deg,#f9f6ff 0%,#fff 55%,#fff8f6 100%);border:1px solid #eae3f5;box-shadow:0 20px 55px #45246b0a}
 #dashboard .home-hero:before{content:'';position:absolute;right:-140px;top:-220px;width:510px;height:510px;background:radial-gradient(circle,#e5d8ff 0%,#e5d8ff55 45%,transparent 70%);z-index:-1}
 #dashboard .home-eyebrow{display:inline-flex;align-items:center;gap:9px;padding:8px 13px;border-radius:40px;font:800 10px/1.5 'Plus Jakarta Sans',sans-serif;letter-spacing:1.05px;color:#7049a5;background:#f1eafe;border:1px solid #e5d8fc}

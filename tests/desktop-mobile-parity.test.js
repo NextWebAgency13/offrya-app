@@ -64,8 +64,8 @@ test('BOAMP listings and pagination are no longer silently hidden on either devi
 
 test('Both viewports share OFFRYA plum header while cards remain light and responsive',()=>{
  assert.match(css,/@media\(min-width:621px\)\{\s*body:has\(\.app-shell\) \.app-shell \.header\{/);
- assert.match(css,/background:linear-gradient\(110deg,#2A0140,#3F0258\)!important/);
- assert.match(parity,/body\.offrya-pro-v3 \.app-shell \.header\{\s*background:linear-gradient\(110deg,#2A0140,#3F0258\)!important/);
+ assert.match(css,/background:linear-gradient\(110deg,#2E043D,#4B0058\)!important/);
+ assert.match(parity,/body\.offrya-pro-v3 \.app-shell \.header\{\s*background:linear-gradient\(110deg,#2E043D,#4B0058\)!important/);
  assert.match(parity,/body\.offrya-pro-v3\.offrya-pro-workspace \.app-shell \.sidebar\{/);
  assert.match(parity,/grid-template-columns:220px minmax\(0,1fr\)/);
  assert.match(proCss,/body\.offrya-pro-v3 \.pro-v3-panel\{background:#fff/);

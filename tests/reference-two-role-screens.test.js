@@ -63,7 +63,7 @@ test('Mobile bottom navigation has distinct five real destinations per account',
 });
 test('Faithful visual reference is scoped without hiding protected account settings on desktop',()=>{
  assert.match(html,/href="\/role-reference\.css"/);
- assert.match(css,/background:linear-gradient\(110deg,#3F0258/);
+ assert.match(css,/background:linear-gradient\(110deg,#4B0058/);
  assert.match(css,/\.role-client-hero/);
  assert.match(css,/\.role-ref-client-cards/);
  assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important/);

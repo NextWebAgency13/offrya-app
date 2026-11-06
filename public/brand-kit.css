@@ -1,43 +1,32 @@
-/* OFFRYA — univers de marque construit autour du logo officiel (jamais modifié).
-   Palette prélevée dans le logo : prune #3F0258, violet #6A0295, magenta #B603D6,
-   fuchsia #CA0975, braise #CE1512, orange #FB690B, ambre #FDAC49, lavande du logo #ECE0FC. */
+/* OFFRYA — identité du Pack Marketing 2026 (refonte) : marque sombre premium.
+   Palette officielle : violet #7A3CFF, prune #4B0058, corail #FF6B6B, magenta #C02FC6,
+   lavande #F7F2FC, nuit #190F2C, orange d'accent #FF901B.
+   Logos : lockups transparents du pack (texte prune sur fond clair, texte blanc sur fond sombre), jamais retouchés. */
 :root{
- --offrya-prune:#3F0258;--offrya-violet:#6A0295;--offrya-magenta:#B603D6;--offrya-fuchsia:#CA0975;
- --offrya-braise:#CE1512;--offrya-orange:#FB690B;--offrya-ambre:#FDAC49;--offrya-lavande-logo:#ECE0FC;
- --offrya-surface:#F7F2FD;--offrya-ink:#24062F;--offrya-ink-muted:#6B5778;--offrya-orange-texte:#A8410A;
- --offrya-aile:linear-gradient(90deg,#6A0295 0%,#B603D6 35%,#CA0975 60%,#FB690B 85%,#FDAC49 100%);
- --offrya-anneau:linear-gradient(160deg,#B603D6 0%,#6A0295 55%,#3F0258 100%);
- /* Variables existantes réalignées sur l'univers */
- --blue:#6A0295;--blue-dark:#3F0258;--blue-soft:#F1E6FB;--purple:#6A0295;
- --violet:#6A0295;--accent:#6A0295;--offrya-interactive:#6A0295;
- --text:#24062F;--ink:#24062F;--bg:#F7F2FD;
+ --offrya-violet:#7A3CFF;--offrya-prune:#4B0058;--offrya-corail:#FF6B6B;--offrya-magenta:#C02FC6;
+ --offrya-lavande:#F7F2FC;--offrya-nuit:#190F2C;--offrya-orange:#FF901B;
+ --offrya-gradient-prune:linear-gradient(110deg,#2E043D 0%,#4B0058 100%);
+ /* Variables existantes réalignées sur le pack */
+ --blue:#7A3CFF;--blue-dark:#4B0058;--blue-soft:#F3ECFF;--purple:#7A3CFF;
+ --violet:#7A3CFF;--accent:#7A3CFF;--offrya-interactive:#7A3CFF;
+ --text:#211728;--ink:#211728;--bg:#F7F2FC;
 }
 
-/* Logo : l'image officielle, intacte, dans son médaillon lavande d'origine + le nom en texte */
-.brand-medal{display:inline-flex;align-items:center;justify-content:center;flex:none;background:var(--offrya-lavande-logo);border-radius:12px;padding:3px 5px;line-height:0}
-.brand-medal img{display:block;width:96px;height:auto}
-.brand-name{font:800 24px/1 'Plus Jakarta Sans','DM Sans',system-ui,sans-serif;letter-spacing:.03em;color:var(--offrya-ink)}
-a.brand:has(.brand-medal),.mini-brand:has(.brand-medal){display:inline-flex;align-items:center;gap:10px;line-height:1;text-decoration:none}
+/* Logo */
+.brand-logo{display:block;height:44px;width:auto;max-width:100%}
+a.brand:has(.brand-logo),.mini-brand:has(.brand-logo){display:inline-flex;align-items:center;line-height:0;text-decoration:none}
 .sidebar .brand-area .brand{display:flex;justify-content:flex-start}
-.mobile-brand:has(.brand-medal){display:flex;align-items:center;gap:9px}
-.mobile-brand .brand-medal{border-radius:10px;padding:2px 4px}
-.mobile-brand .brand-medal img{width:96px}
-body.offrya-reference-ui .app-shell .header .mobile-brand .brand-name{color:#fff;font-size:20px}
-@media (max-width:930px) and (min-width:781px){
- .sidebar .brand-area .brand-name{display:none}
- .sidebar .brand-area .brand{justify-content:center}
- .sidebar .brand-area .brand-medal img{width:72px}
-}
-@media (max-width:600px){.top nav .brand .brand-name{font-size:20px}}
+.sidebar .brand-area .brand-logo{height:46px}
+.mobile-brand:has(.brand-logo){display:flex;align-items:center}
+.mobile-brand .brand-logo{height:40px}
+/* Sur ordinateur, le logo est dans la barre latérale : pas de doublon dans l'en-tête */
+@media (min-width:781px){body.offrya-reference-ui .app-shell .header .mobile-brand{display:none!important}}
+@media (max-width:930px) and (min-width:781px){.sidebar .brand-area .brand-logo{height:auto;width:56px;object-fit:cover;object-position:left center;aspect-ratio:56/44}}
+@media (max-width:600px){.top nav .brand .brand-logo{height:40px}}
 
 /* Surfaces de marque */
-body.offrya-reference-ui .app-shell .header{background:linear-gradient(110deg,#2A0140 0%,#3F0258 100%)!important;border-bottom-color:#55127a!important}
+body.offrya-reference-ui .app-shell .header{background:var(--offrya-gradient-prune)!important;border-bottom-color:#5c1a6e!important}
 .btn.primary,.button.primary{background:var(--offrya-violet);border-color:var(--offrya-violet)}
 .btn.primary:hover,.button.primary:hover:not(:disabled){background:var(--offrya-prune);border-color:var(--offrya-prune)}
-.footer{background:var(--offrya-prune)}
-.offer{background:var(--offrya-anneau)}
-/* Filet « aile » sous les titres de section publics : un rappel des ailes du logo */
-.section>h2::after,.section-head h2::after{content:"";display:block;width:64px;height:4px;margin-top:12px;border-radius:999px;background:var(--offrya-aile)}
-
-.sidebar .brand-area .brand-name{font-size:21px}
-@media (min-width:781px){body.offrya-reference-ui .app-shell .header .mobile-brand .brand-medal{display:none}}
+.footer{background:var(--offrya-nuit)}
+.offer{background:var(--offrya-gradient-prune)}
