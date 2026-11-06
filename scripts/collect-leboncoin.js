@@ -76,10 +76,10 @@ async function collect({browserFactory,store=storeRow,logger=console,now=new Dat
  reserve=reserveBudget,pause=sleep}={}){
  if(env.LEBONCOIN_COLLECTOR_ENABLED!=='true')
   throw Error('Collecteur désactivé : LEBONCOIN_COLLECTOR_ENABLED doit valoir true.');
- if(env.LEBONCOIN_COLLECTION_AUTHORIZED!=='true'||env.LEBONCOIN_ROBOTS_REVIEWED!=='true')
-  throw Error('Accès direct non autorisé ou robots.txt non contrôlé.');
  const seeds=allowedSearchUrls(env.LEBONCOIN_SEARCH_URLS||'[]');
  if(!seeds.length)throw Error('Aucune URL de recherche autorisée fournie.');
+ if(env.LEBONCOIN_COLLECTION_AUTHORIZED!=='true'||env.LEBONCOIN_ROBOTS_REVIEWED!=='true')
+  throw Error('Accès direct non autorisé ou robots.txt non contrôlé.');
  const publish=env.LEBONCOIN_REPUBLICATION_AUTHORIZED==='true'&&env.LEBONCOIN_PUBLISH_ENABLED==='true';
  const dryRun=env.LEBONCOIN_DRY_RUN!=='false';
  await reserve(env,'run'); // Interdit une nouvelle collecte avant quatre heures.
