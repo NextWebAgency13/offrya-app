@@ -65,7 +65,10 @@ jobs:
       - name: Test real ClamAV clean ZIP and EICAR-in-ZIP detection
         run: |
           NODE_BIN="$(command -v node)"
+          sudo install -d -m 0755 /tmp/offrya-dce-ci /tmp/offrya-dce-ci/lib /tmp/offrya-dce-ci/scripts
+          sudo install -m 0644 "$GITHUB_WORKSPACE/lib/dce-antivirus.js" /tmp/offrya-dce-ci/lib/dce-antivirus.js
+          sudo install -m 0644 "$GITHUB_WORKSPACE/scripts/validate-clamd-real.js" /tmp/offrya-dce-ci/scripts/validate-clamd-real.js
           sudo -u clamav env \
             DCE_CLAMD_SOCKET=/run/clamav/clamd.ctl \
             DCE_CLAMDB_DIR=/var/lib/clamav \
-            "$NODE_BIN" scripts/validate-clamd-real.js
+            "$NODE_BIN" /tmp/offrya-dce-ci/scripts/validate-clamd-real.js
