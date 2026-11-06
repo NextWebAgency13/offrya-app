@@ -6,6 +6,7 @@ const {queryBoamp}=require('./lib/boamp');
 const {liveTenders}=require('./lib/live-tender-discovery');
 const {verifyPremiumAccess}=require('./lib/premium');
 const {rankCandidates,aiRerank}=require('./lib/ai-matching');
+const {analyzeDce}=require('./lib/dce-evidence');
 const {lookupCompany,verifyProfessional}=require('./lib/company');
 const {beginIdentity,processIdentityEvent,configured:identityConfigured,identityConfigChecks}=require('./lib/identity');
 const {billingEnabled,startCheckout,verifyStripeSignature,syncSubscription,portal}=require('./lib/billing');
@@ -227,6 +228,26 @@ async function handle(req,res){
    await unsubscribe(userId);
    res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
    return res.end('<!doctype html><html lang="fr"><meta charset="utf-8"><title>OFFRYA</title><body><h1>Désabonnement effectué</h1><p>Les alertes e-mail sont désactivées.</p><a href="/">Retour au site</a></body></html>');
+  }
+  if(p==='/api/pro/dce/analyze'){
+   if(req.method!=='POST')return json(res,405,{error:'Méthode non autorisée'});
+   if(!rateLimit(req,5))return json(res,429,{error:'Trop d’analyses DCE. Réessayez plus tard.'});
+   if(!/^application\/json(?:\s*;|$)/i.test(String(req.headers['content-type']||'')))
+    return json(res,415,{error:'Envoyez uniquement des pages DCE extraites en JSON.'});
+   let premium;
+   try{premium=await verifyPremiumAccess(req.headers.authorization,{
+    url:process.env.SUPABASE_URL,key:process.env.SUPABASE_PUBLISHABLE_KEY});}
+   catch(_){return json(res,503,{error:'Vérification Premium indisponible.'});}
+   if(!premium.allowed)return json(res,premium.status,{error:premium.error});
+   let input;
+   try{input=JSON.parse(await readBody(req,200000));}
+   catch(_){return json(res,400,{error:'Analyse impossible : document ou format invalide.'});}
+   try{return json(res,200,analyzeDce(input),{'Cache-Control':'private,no-store'});}
+   catch(error){
+    if(error instanceof TypeError)return json(res,422,{error:error.message});
+    console.error('OFFRYA DCE: local analysis failed');
+    return json(res,503,{error:'Analyse DCE indisponible.'});
+   }
   }
   if(!['GET','HEAD'].includes(req.method))return json(res,405,{error:'Méthode non autorisée'});
   if(p==='/api/pro/matches'){
