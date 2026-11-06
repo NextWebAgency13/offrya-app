@@ -13,7 +13,7 @@ const c2='44444444-4444-4444-8444-444444444444';
 const slice=(from,to)=>{const a=app.indexOf(from),b=app.indexOf(to,a);assert.ok(a>0&&b>a,from);return app.slice(a,b);};
 function harness({hidden=[],confirmAnswer=true,insertError=null}={}){
  const calls=[],toasts=[],nodes=new Map();
- const node=id=>{if(!nodes.has(id))nodes.set(id,{hidden:false,innerHTML:'',textContent:'',classList:{toggle(){},contains:()=>false},querySelector:()=>({disabled:false})});return nodes.get(id);};
+ const node=id=>{if(!nodes.has(id))nodes.set(id,{hidden:false,innerHTML:'',textContent:'',classList:{toggle(){},contains:()=>false},button:{disabled:false},elements:{body:{dataset:{},placeholder:'Votre message',disabled:false}},querySelector(){return this.button;}});return nodes.get(id);};
  const state={session:{user:{id:me}},currentUserId:me,db:null,thread:c1,messages:[{id:'m'}],messageHeaders:[],
   conversations:[{id:c1,mission_id:'a',client_id:me,professional_id:other,created_at:'2026-11-01T10:00:00Z'},
    {id:c2,mission_id:'b',client_id:me,professional_id:other,created_at:'2026-11-02T10:00:00Z'}],
@@ -28,7 +28,7 @@ function harness({hidden=[],confirmAnswer=true,insertError=null}={}){
   confirm:()=>confirmAnswer,requireAuth:()=>true,showError:e=>{throw new Error(e.message);},renderMessages(){},toast:t=>toasts.push(t),
   render:()=>calls.push(['render']),$:node,esc:s=>String(s??''),date:s=>s,profileName:()=>'Contact',titleForMission:id=>'Mission '+id,
   messageUnread:()=>({total:0,byThread:new Map()}),paintMessageBadges(){}};
- const source=slice('function isConversationHidden','function messageUnread(){')
+ const source=slice('function conversationClosed','\n')+'\n'+slice('function isConversationHidden','function messageUnread(){')
   +slice('async function setConversationHidden','$(\'missionSearch\').onclick')
   +slice('const TRASH_ICON','function renderMessages(){');
  vm.runInNewContext(source+'\nthis.api={isConversationHidden,setConversationHidden,hideConversation,renderInbox};',ctx);
@@ -98,4 +98,22 @@ test('Page markup and database migration are consistent',()=>{
  assert.match(sql,/user_id = \(select auth\.uid\(\)\)/);
  assert.match(sql,/after insert on public\.offrya_messages/);
  assert.doesNotMatch(sql,/delete from public\.offrya_(conversations|messages)/);
+});
+
+test('A closed mission’s exchange stays readable but becomes read-only',()=>{
+ const h=harness();
+ h.state.conversations[0].mission_title='Tonte de pelouse';
+ h.api.renderInbox();
+ const form=h.node('messageForm');
+ assert.equal(form.button.disabled,true,'Envoi désactivé');
+ assert.equal(form.elements.body.disabled,true);
+ assert.match(form.elements.body.placeholder,/lecture seule/);
+ assert.match(h.node('threadContext').textContent,/Mission clôturée/);
+ assert.match(h.node('conversationList').innerHTML,/Mission clôturée/);
+ assert.ok(h.node('conversationList').innerHTML.includes('data-thread="'+c1+'"'),'L’échange reste ouvrable');
+ h.state.thread=c2;
+ h.api.renderInbox();
+ assert.equal(form.button.disabled,false,'Un échange ouvert garde son envoi');
+ assert.equal(form.elements.body.disabled,false);
+ assert.equal(form.elements.body.placeholder,'Votre message');
 });

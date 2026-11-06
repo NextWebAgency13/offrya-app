@@ -250,6 +250,8 @@
 .app-shell .mission-detail h4{font-weight:800;font-size:16px;margin:25px 0 8px}
 .app-shell .mission-detail-description{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.8;color:#564b61}
 .app-shell .mission-detail-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:25px}
+.app-shell .mission-detail-actions .mission-close{color:#b42343;border-color:#f1c2cf;background:#fff}
+.app-shell .mission-detail-actions .mission-close:hover,.app-shell .mission-detail-actions .mission-close:focus-visible{background:#fff1f4}
 @media(max-width:620px){.app-shell .mission-detail-meta{flex-direction:column;gap:9px}.app-shell .mission-detail-actions>.button{width:100%;min-height:48px}}
 
 /* Messagerie OFFRYA : conversations rattachées à une mission, mobile first. */
