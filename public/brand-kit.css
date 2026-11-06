@@ -30,3 +30,71 @@ body.offrya-reference-ui .app-shell .header{background:var(--offrya-gradient-pru
 .btn.primary:hover,.button.primary:hover:not(:disabled){background:var(--offrya-prune);border-color:var(--offrya-prune)}
 .footer{background:var(--offrya-nuit)}
 .offer{background:var(--offrya-gradient-prune)}
+
+/* ===== Compositions du Pack Marketing 2026, recréées en HTML (texte réel, symbole du pack intact) ===== */
+:root{--offrya-symbole:url("/assets/offrya/symbole.png")}
+
+/* 1. Bandeau d'accueil de l'espace : bannière principale du pack (prune, disque, courbes, symbole à droite) */
+body.offrya-reference-ui #dashboard .client-dashboard-publish.role-client-hero,
+body:has(#dashboard.active) #dashboard .role-client-hero{
+ position:relative!important;isolation:isolate;overflow:hidden!important;
+ background:
+  radial-gradient(circle at 100% 0,#5a1d82 0 230px,transparent 231px),
+  radial-gradient(circle at 8% 165%,transparent 0 250px,rgba(255,255,255,.16) 251px 252px,transparent 253px),
+  radial-gradient(circle at 70% 210%,transparent 0 330px,rgba(255,255,255,.12) 331px 332px,transparent 333px),
+  linear-gradient(120deg,#2E043D 0%,#3a0850 55%,#4B0058 100%)!important;
+ background-size:auto!important;background-position:0 0!important;
+}
+body.offrya-reference-ui #dashboard .client-dashboard-publish.role-client-hero::after{
+ content:"";position:absolute;z-index:0;pointer-events:none;
+ right:4%;top:50%;transform:translateY(-50%);
+ width:min(40%,400px);aspect-ratio:720/424;
+ background:var(--offrya-symbole) center/contain no-repeat;
+}
+body.offrya-reference-ui #dashboard .role-client-hero .role-ref-hero-copy{position:relative;z-index:1}
+body.offrya-reference-ui #dashboard .role-client-hero h2::after{
+ content:"";display:block;width:120px;height:4px;margin-top:12px;border-radius:4px;background:var(--offrya-corail);
+}
+@media (max-width:780px){
+ body.offrya-reference-ui #dashboard .client-dashboard-publish.role-client-hero{
+  flex-direction:column!important;align-items:flex-start!important;padding-top:118px!important;
+ }
+ body.offrya-reference-ui #dashboard .client-dashboard-publish.role-client-hero::after{
+  right:auto;left:20px;top:22px;transform:none;width:150px;
+ }
+}
+
+/* 2. Accueil public : visuel « demandeur » clair du pack (lavande, titre prune, symbole, action prune) */
+.mock-home .offrya-entry-hero{background:radial-gradient(ellipse 900px 420px at 50% -10%,#efe4ff 0%,transparent 70%),linear-gradient(165deg,#fbf8ff 0%,#F7F2FC 100%)}
+.mock-home .offrya-entry-hero .mock-hero-text::before{
+ content:"";display:block;width:clamp(150px,18vw,210px);aspect-ratio:720/424;margin:0 auto 18px;
+ background:var(--offrya-symbole) center/contain no-repeat;
+}
+.mock-home .offrya-entry-hero .mock-eyebrow{color:var(--offrya-violet)}
+.mock-home .offrya-entry-hero h1{color:var(--offrya-prune)}
+.mock-home .offrya-entry-hero h1 span{color:var(--offrya-violet)}
+.mock-home .offrya-entry-path-primary{background:var(--offrya-prune);border-color:var(--offrya-prune);box-shadow:0 10px 25px #4b005830}
+.mock-home .offrya-entry-icon{color:var(--offrya-violet)}
+.mock-home .offrya-entry-path-primary .offrya-entry-icon{color:#fff}
+
+/* 3. Page Professionnels : visuel « pro » du pack (prune, symbole, action corail) */
+.premium-hero{
+ background:
+  radial-gradient(circle at 100% 0,#5a1d82 0 260px,transparent 261px),
+  radial-gradient(circle at 10% 150%,transparent 0 300px,rgba(255,255,255,.14) 301px 302px,transparent 303px),
+  linear-gradient(120deg,#2E043D 0%,#3a0850 55%,#4B0058 100%);
+ color:#fff;
+}
+.premium-hero .premium-intro::before{
+ content:"";display:block;width:clamp(140px,16vw,190px);aspect-ratio:720/424;margin:0 0 14px;
+ background:var(--offrya-symbole) left center/contain no-repeat;
+}
+.premium-hero .premium-intro .eyebrow{color:#e3d2ff}
+.premium-hero .premium-intro h1{color:#fff}
+.premium-hero .premium-intro p{color:#f1e8fa}
+.premium-hero .premium-intro a:not(.btn){color:#fff}
+.premium-hero .premium-intro .btn.primary{background:var(--offrya-corail);border-color:var(--offrya-corail);color:var(--offrya-prune)}
+.premium-hero .premium-intro .btn.primary:hover{background:#ff8585;border-color:#ff8585}
+.premium-hero .premium-intro .btn.outline{background:transparent;border-color:#ffffff99;color:#fff}
+.premium-hero .premium-price-card{color:var(--offrya-ink,#211728)}
+.premium-hero .premium-price-card li,.premium-hero .premium-price-card span{color:#3a2a48}
