@@ -316,11 +316,12 @@ async function handle(req,res){
    catch(_){return json(res,503,{error:'Vérification Premium indisponible.'});}
    if(!premium.allowed)return json(res,premium.status,{error:premium.error});
    if(dceImportsActive>=2)return json(res,503,{error:'Analyse DCE momentanément occupée, réessayez plus tard.'});
-   let archive;
-   try{archive=await readDceBody(req);}
-   catch(error){return json(res,error.status||400,{error:error.message});}
+   // Reserve upload capacity BEFORE reading up to 20 Mo into memory.
    dceImportsActive++;
    try{
+    let archive;
+    try{archive=await readDceBody(req);}
+    catch(error){return json(res,error.status||400,{error:error.message});}
     // Fail closed: no ZIP inspection, PDF parser or OCR before antivirus clearance.
     try{await scanDceArchive(archive);}
     catch(error){return json(res,error.status||503,{error:error.message||'Analyse antivirus indisponible.'});}
