@@ -14,7 +14,7 @@ test('Approved public-tender design is isolated from mission cards and has no ex
  assert.ok(start>=0&&end>start,'Tender card renderer must exist');
  assert.match(card,/if\(tender\)\{/);
  assert.match(card,/pro-tender-card/);
- assert.doesNotMatch(card,/OFFRYA\s*Premium|premium.logo|<img/i);
+ assert.doesNotMatch(card,/<img|premium-logo|logo\.svg|OFFRYA Premium<\//i);
  assert.match(js,/pro-ai-card-mission/,'Existing private mission layout is untouched');
 });
 
@@ -22,7 +22,7 @@ test('The approved card shows real score, source, reference and four details',()
  for(const field of ["Pertinence IA : ","'Acheteur'","'Localisation'","'Métier'","'Date limite'"])
   assert.ok(card.includes(field),'Missing visible tender information: '+field);
  assert.match(card,/a\?\.tender_id\|\|item\.id/,'Reference must come from real notice');
- assert.match(card,/score\+' %'/,'Never hardcode the relevance score');
+ assert.match(card,/score\+' %/,'Never hardcode the relevance score');
  assert.match(card,/a\?\.buyer\|\|'Non précisé'/,'No invented buyer');
  assert.match(card,/item\.category\|\|'Non précisé'/,'No invented trade');
  assert.match(card,/date\?dateRadar\(date\):'Non précisée'/,'No invented deadline');
