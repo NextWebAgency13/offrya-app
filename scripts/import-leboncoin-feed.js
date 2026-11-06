@@ -21,12 +21,34 @@ function validationCsv(rows){
   CSV_HEADERS.map(key=>csvCell(key==='status_import'?'ready':row[key])).join(',')
  ).join('\n')+'\n';
 }
-async function importFeed({env=process.env,readFile=fs.readFile,writeFile=fs.writeFile,store=storeRow,
- logger=console,now=new Date()}={}){
- if(env.LEBONCOIN_FEED_ENABLED!=='true')throw Error('Import de flux non activé.');
+const MAX_FEED_BYTES=5_000_000;
+// Télécharge l'export remis par Leboncoin ou un partenaire autorisé (URL HTTPS + jeton facultatif).
+async function downloadFeed(rawUrl,token,{fetcher=fetch}={}){
+ let url;
+ try{url=new URL(String(rawUrl).trim());}catch{throw Error('LEBONCOIN_FEED_URL invalide.');}
+ if(url.protocol!=='https:')throw Error('LEBONCOIN_FEED_URL doit être en HTTPS.');
+ if(url.username||url.password)throw Error('LEBONCOIN_FEED_URL ne doit pas contenir d’identifiants.');
+ const headers={Accept:'application/json'};
+ if(token)headers.Authorization='Bearer '+token;
+ const response=await fetcher(url.toString(),{headers,redirect:'error',signal:AbortSignal.timeout(30000)});
+ if(!response.ok)throw Error('Téléchargement du flux HTTP '+response.status);
+ const declared=Number(response.headers?.get?.('content-length')||0);
+ if(declared>MAX_FEED_BYTES)throw Error('Export trop volumineux');
+ const text=await response.text();
+ if(text.length>MAX_FEED_BYTES)throw Error('Export trop volumineux');
+ return text;
+}
+async function loadFeed(env,{readFile,fetcher}){
+ const url=typeof env.LEBONCOIN_FEED_URL==='string'?env.LEBONCOIN_FEED_URL.trim():'';
+ if(url)return downloadFeed(url,env.LEBONCOIN_FEED_TOKEN,{fetcher});
  if(typeof env.LEBONCOIN_FEED_FILE!=='string'||!env.LEBONCOIN_FEED_FILE.trim())
-  throw Error('LEBONCOIN_FEED_FILE est requis.');
- const text=await readFile(env.LEBONCOIN_FEED_FILE,'utf8');
+  throw Error('LEBONCOIN_FEED_URL ou LEBONCOIN_FEED_FILE est requis.');
+ return readFile(env.LEBONCOIN_FEED_FILE,'utf8');
+}
+async function importFeed({env=process.env,readFile=fs.readFile,writeFile=fs.writeFile,store=storeRow,
+ logger=console,now=new Date(),fetcher=fetch}={}){
+ if(env.LEBONCOIN_FEED_ENABLED!=='true')throw Error('Import de flux non activé.');
+ const text=await loadFeed(env,{readFile,fetcher});
  const {rows,summary}=validateFeed(text,now);
  const dryRun=env.LEBONCOIN_DRY_RUN!=='false';
  const publish=env.LEBONCOIN_REPUBLICATION_AUTHORIZED==='true'&&env.LEBONCOIN_PUBLISH_ENABLED==='true';
@@ -45,4 +67,4 @@ async function importFeed({env=process.env,readFile=fs.readFile,writeFile=fs.wri
 if(require.main===module)importFeed().catch(error=>{
  console.error('Import OFFRYA arrêté : '+error.message);process.exitCode=1;
 });
-module.exports={inputAds,prepare,importFeed,validationCsv,MAX_ITEMS};
+module.exports={inputAds,prepare,importFeed,downloadFeed,validationCsv,MAX_ITEMS};
