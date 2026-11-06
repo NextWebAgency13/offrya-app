@@ -1,5 +1,6 @@
 'use strict';
 const http=require('node:http');
+const {Worker}=require('node:worker_threads');
 const fs=require('node:fs/promises');
 const path=require('node:path');
 const {queryBoamp}=require('./lib/boamp');
@@ -27,6 +28,45 @@ function rateLimit(req,max=50){const ip=req.socket.remoteAddress||'unknown',key=
 function csvValue(v){let s=String(v??'');if(/^[\s]*[=+@\t\r-]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"';}
 function htmlEsc(s){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');}
 function unsubscribePage(token,valid){return `<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OFFRYA • Désabonnement</title><style>body{font:16px system-ui;background:#09141c;color:#eff9ed;display:grid;place-items:center;min-height:90vh}main{max-width:460px;padding:35px;border:1px solid #466057;border-radius:20px}button{background:#c8f87c;color:#14271e;border:0;border-radius:9px;padding:14px 20px;font-weight:bold;cursor:pointer}a{color:#c8f87c}</style><main><h1>Gérer vos alertes OFFRYA</h1>${valid?`<p>Vous pouvez arrêter les alertes par e-mail sans vous connecter. Vos notifications seront désactivées.</p><form method="post" action="/api/unsubscribe"><input type="hidden" name="token" value="${htmlEsc(token)}"><button type="submit">Me désabonner</button></form>`:'<p>Ce lien est invalide. Connectez-vous à OFFRYA pour modifier vos préférences.</p>'}<p><a href="/">Retour à OFFRYA</a></p></main></html>`;}
+// Uploads are authenticated before reading the body. Binary data is never logged.
+async function readDceBody(req,limit=20*1024*1024){
+ const length=Number(req.headers['content-length']);
+ if(Number.isFinite(length)&&length>limit)throw Object.assign(new Error('Archive trop volumineuse (20 Mo maximum).'),{status:413});
+ return new Promise((resolve,reject)=>{
+  const parts=[];let size=0,done=false;
+  function finish(error,value){
+   if(done)return;done=true;
+   req.removeListener('data',data);req.removeListener('end',end);
+   req.removeListener('error',onError);req.removeListener('aborted',onError);
+   if(error){req.pause();reject(error);}else resolve(value);
+  }
+  function data(piece){
+   size+=piece.length;
+   if(size>limit)return finish(Object.assign(new Error('Archive trop volumineuse (20 Mo maximum).'),{status:413}));
+   parts.push(piece);
+  }
+  function end(){finish(null,Buffer.concat(parts,size));}
+  function onError(){finish(Object.assign(new Error('Transfert du DCE interrompu.'),{status:400}));}
+  req.on('data',data);req.once('end',end);req.once('error',onError);req.once('aborted',onError);
+ });
+}
+let dceImportsActive=0;
+function analyzeDceInWorker(buffer){
+ return new Promise((resolve,reject)=>{
+  const worker=new Worker(path.join(__dirname,'lib','dce-worker.js'),{
+   workerData:buffer,env:{},resourceLimits:{maxOldGenerationSizeMb:192,stackSizeMb:4}});
+  let settled=false;
+  const timeout=setTimeout(()=>finish({ok:false,status:503,error:'Analyse interrompue : délai de traitement dépassé.'}),30000);
+  function finish(value){
+   if(settled)return;settled=true;clearTimeout(timeout);
+   worker.terminate().catch(()=>{});
+   resolve(value);
+  }
+  worker.once('message',finish);
+  worker.once('error',()=>finish({ok:false,status:422,error:'Archive invalide ou extraction impossible.'}));
+  worker.once('exit',code=>{if(!settled)finish({ok:false,status:503,error:'Traitement DCE interrompu.'});});
+ });
+}
 async function readBody(req,cap=500){return new Promise((resolve,reject)=>{let data='';req.on('data',chunk=>{data+=chunk;if(data.length>cap){reject(new Error('Body too large'));req.destroy();}});req.on('end',()=>resolve(data));req.on('error',reject);});}
 async function unsubscribe(id){const url=process.env.SUPABASE_URL, key=process.env.SUPABASE_SECRET_KEY;
  if(!url||!key)throw Error('Unsubscribe storage not configured');
@@ -228,6 +268,27 @@ async function handle(req,res){
    await unsubscribe(userId);
    res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
    return res.end('<!doctype html><html lang="fr"><meta charset="utf-8"><title>OFFRYA</title><body><h1>Désabonnement effectué</h1><p>Les alertes e-mail sont désactivées.</p><a href="/">Retour au site</a></body></html>');
+  }
+  if(p==='/api/pro/dce/import'){
+   if(req.method!=='POST')return json(res,405,{error:'Méthode non autorisée'});
+   if(!rateLimit(req,3))return json(res,429,{error:'Trop d’imports DCE, réessayez plus tard.'});
+   if(String(req.headers['content-type']||'').split(';')[0].trim()!=='application/zip')
+    return json(res,415,{error:'Sélectionnez une archive ZIP au format .zip.'});
+   let premium;
+   try{premium=await verifyPremiumAccess(req.headers.authorization,{
+    url:process.env.SUPABASE_URL,key:process.env.SUPABASE_PUBLISHABLE_KEY});}
+   catch(_){return json(res,503,{error:'Vérification Premium indisponible.'});}
+   if(!premium.allowed)return json(res,premium.status,{error:premium.error});
+   if(dceImportsActive>=2)return json(res,503,{error:'Analyse DCE momentanément occupée, réessayez plus tard.'});
+   let archive;
+   try{archive=await readDceBody(req);}
+   catch(error){return json(res,error.status||400,{error:error.message});}
+   dceImportsActive++;
+   try{
+    const result=await analyzeDceInWorker(archive);
+    return json(res,result.ok?200:result.status,result.ok?result.result:{error:result.error},
+     {'Cache-Control':'private,no-store'});
+   }finally{dceImportsActive--;}
   }
   if(p==='/api/pro/dce/analyze'){
    if(req.method!=='POST')return json(res,405,{error:'Méthode non autorisée'});
