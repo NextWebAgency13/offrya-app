@@ -57,7 +57,7 @@ function messageUnread(){
 function paintMessageBadges(){
  const {total}=messageUnread();
  state.messageUnreadCount=total;
- const label=total>99?'99+':String(total);
+ const label=total>99?'99+':total?String(total):'';
  for(const id of ['messageNavBadge','messageShortcutBubble']){
   const node=$(id);if(node){node.hidden=!total;node.textContent=label;}
  }
