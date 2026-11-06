@@ -457,3 +457,23 @@ body.offrya-reference-ui .app-shell :is(button,a,input,textarea,select,summary):
   transition:none!important;animation:none!important;
  }
 }
+
+/* Appels d'offres : lien pour répondre + autres plateformes */
+/* Lien « Dossier de consultation » : action secondaire, distincte de « Consulter l’appel d’offres » */
+body.offrya-pro-v3 .pro-tender-card .pro-tender-actions a.pro-v3-reco-btn.pro-tender-respond{background:#F3EAFB!important;color:var(--offrya-prune,#4B0058)!important;border:1px solid #DCC8F2!important;box-shadow:none!important}
+body.offrya-pro-v3 .pro-tender-card .pro-tender-actions a.pro-v3-reco-btn.pro-tender-respond:hover{background:#EADCF8!important;border-color:#C9AEEC!important}
+.pro-v3-watch-item .pro-v3-watch-links{display:flex;flex-wrap:wrap;align-items:center;gap:0 20px;margin-top:2px}
+body.offrya-pro-v3 .pro-v3-watch-item a.pro-v3-watch-respond{display:inline-flex;align-items:center;gap:5px;color:var(--offrya-prune,#4B0058)}
+#boampList .boamp-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+#boampList .boamp-actions .tender-respond-link{background:#F3EAFB;color:var(--offrya-prune,#4B0058);border:1px solid #DCC8F2;box-shadow:none}
+#boampList .boamp-actions .tender-respond-link:hover{background:#EADCF8;border-color:#C9AEEC}
+.tender-platforms .panel-heading{align-items:flex-start}
+.tender-platforms-intro{margin:6px 0 0;font-size:13px;line-height:1.5;color:#6b5e78;max-width:70ch}
+.tender-platform-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:14px}
+.tender-platform{position:relative;display:flex;flex-direction:column;gap:4px;padding:14px 40px 14px 16px;border:1px solid #e9e0f3;border-radius:14px;background:#fff;color:#211728;text-decoration:none;transition:border-color .15s,box-shadow .15s}
+.tender-platform:hover{border-color:#c9b0ef;box-shadow:0 6px 18px rgba(75,0,88,.08)}
+.tender-platform:focus-visible{outline:3px solid #7A3CFF;outline-offset:2px}
+.tender-platform strong{font-size:14px;color:#4B0058}
+.tender-platform small{font-size:12.5px;line-height:1.45;color:#6b5e78}
+.tender-platform span{position:absolute;top:14px;right:14px;color:#7A3CFF;font-weight:800}
+@media (max-width:620px){.tender-platform-list{grid-template-columns:1fr}}

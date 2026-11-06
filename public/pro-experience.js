@@ -150,6 +150,14 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   }
  }
 
+ // Lien « pour répondre » issu de l'avis officiel (DCE, dépôt en ligne ou plateforme de l'acheteur).
+ const respondLabels={documents:'Dossier de consultation',submission:'Répondre en ligne',profile:'Plateforme de l’acheteur',platform:'Plateforme de l’acheteur'};
+ function respondLink(a,cls){
+  const url=String(a?.respond_url||'');
+  if(!/^https?:\/\/[^\s"'<>]+$/i.test(url)||url.length>600)return '';
+  const label=respondLabels[a?.respond_kind]||'Plateforme de l’acheteur';
+  return '<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer nofollow" class="'+cls+'" title="Site de l’acheteur : '+esc(url)+'"><span aria-hidden="true">↗</span> '+esc(label)+'</a>';
+ }
  function icon(name){return '<svg class="nav-icon" aria-hidden="true"><use href="#'+name+'"/></svg>';}
  function alertIcon(screen){
   const shapes={
@@ -321,7 +329,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(button){button.disabled=true;button.setAttribute('aria-busy','true');}
   try{
    const response=await state.db.from('offrya_tender_alerts')
-    .select('user_id,tender_id,title,buyer,departments,url,deadline,source,match_score,match_reason,detected_at,seen_at')
+    .select('user_id,tender_id,title,buyer,departments,url,deadline,source,match_score,match_reason,detected_at,seen_at,respond_url,respond_kind')
     .eq('user_id',user).order('detected_at',{ascending:false}).limit(100);
    if(response.error)throw response.error;
    if(state.session?.user?.id!==user||!canUsePremium())return;
@@ -480,7 +488,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
        detail(tradeIcon,'Métier',item.category||'Non précisé')+
        detail(icon('ic-calendar'),'Date limite',date?dateRadar(date):'Non précisée')+
       '</div></div>'+
-      '<div class="pro-tender-actions">'+action+favorite+'</div>'+
+      '<div class="pro-tender-actions">'+action+respondLink(a,'pro-v3-reco-btn pro-tender-respond')+favorite+'</div>'+
      '</div></div></article>';
    }
    return '<article class="pro-v3-radar-row pro-ai-card '+(tender?'pro-ai-card-tender':'pro-ai-card-mission')+'">'+
@@ -554,7 +562,9 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
     '<strong>'+esc(a.title||'Marché public')+'</strong>'+
     '<small>Pertinence : '+Math.round(Number(item.score))+'/100 · '+esc(why)+'</small>'+
     '<small>Échéance : '+esc(a.deadline?new Date(a.deadline).toLocaleDateString('fr-FR'):'À vérifier')+'</small>'+
-    (href?'<a href="'+href+'" target="_blank" rel="noopener noreferrer">Consulter la publication officielle</a>':'')+'</div>';
+    '<div class="pro-v3-watch-links">'+
+    (href?'<a href="'+href+'" target="_blank" rel="noopener noreferrer">Consulter la publication officielle</a>':'')+
+    respondLink(a,'pro-v3-watch-respond')+'</div></div>';
   }).join(''):'<div class="pro-v3-empty">Aucun marché suffisamment pertinent pour une alerte prioritaire. Les avis moins pertinents restent consultables dans le radar.</div>';
  }
  function syncTab(name){
