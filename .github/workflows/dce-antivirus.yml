@@ -1,0 +1,66 @@
+name: OFFRYA DCE — antivirus réel (EICAR)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'lib/dce-*.js'
+      - 'deploy/dce/**'
+      - 'Dockerfile.dce'
+      - 'scripts/validate-clamd-real.js'
+      - '.github/workflows/dce-antivirus.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  clamav:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install ClamAV and signature updater in isolated CI runner
+        run: |
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq clamav clamav-daemon clamav-freshclam
+          sudo systemctl stop clamav-freshclam.service || true
+          sudo systemctl stop clamav-daemon.service || true
+      - name: Download official signatures (fail on network or signature failure)
+        run: |
+          sudo freshclam --stdout
+          test -s /var/lib/clamav/daily.cvd || test -s /var/lib/clamav/daily.cld
+      - name: Start real local ClamAV daemon
+        run: |
+          sudo install -d -o clamav -g clamav -m 0770 /run/clamav
+          sudo -u clamav /usr/sbin/clamd --config-file="$GITHUB_WORKSPACE/deploy/dce/clamd.conf" &
+          sudo python3 - <<'PY'
+          import socket,time,sys
+          sock_path="/run/clamav/clamd.ctl"
+          for _ in range(90):
+              try:
+                  sock=socket.socket(socket.AF_UNIX,socket.SOCK_STREAM)
+                  sock.settimeout(2)
+                  sock.connect(sock_path)
+                  sock.sendall(b"zPING\0")
+                  result=sock.recv(100)
+                  sock.close()
+                  if result==b"PONG\0":
+                      print("ClamAV PING ready")
+                      sys.exit(0)
+              except (OSError,TimeoutError):
+                  pass
+              time.sleep(2)
+          print("ClamAV PING unavailable",file=sys.stderr)
+          sys.exit(1)
+          PY
+      - name: Test real ClamAV clean ZIP and EICAR-in-ZIP detection
+        run: |
+          NODE_BIN="$(command -v node)"
+          sudo -u clamav env \
+            DCE_CLAMD_SOCKET=/run/clamav/clamd.ctl \
+            DCE_CLAMDB_DIR=/var/lib/clamav \
+            "$NODE_BIN" scripts/validate-clamd-real.js
