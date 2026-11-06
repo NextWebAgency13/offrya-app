@@ -370,6 +370,72 @@
   <div class="section-top"><div><h3>Rechercher un appel d'offres</h3><p>Données de la source officielle DILA. Vérifiez toujours les échéances sur l'avis d'origine.</p></div><button class="button secondary" id="exportBoamp">↓ Export CSV</button></div>
   <div class="panel filters"><input class="field" id="boampKeyword" placeholder="Rechercher un appel d'offres…" aria-label="Mot clé"><input class="field" id="boampDept" maxlength="3" placeholder="Département" aria-label="Département"><button class="button primary" id="boampSearch">Lancer la recherche</button></div>
   <div class="panel"><div class="panel-heading"><h3>Avis officiels</h3><span class="tag" id="boampCount">—</span></div><div class="data-list" id="boampList"><div class="empty">Lancez une recherche pour consulter les avis officiels.</div></div><div class="centered"><button class="button secondary hidden" id="boampMore">Afficher davantage</button></div></div>
+
+  <section id="dceAssistant" class="dce-workspace panel" aria-labelledby="dceTitle">
+   <div class="dce-workspace-head">
+    <span class="pro-kicker">ASSISTANT DCE · OFFRYA PREMIUM</span>
+    <h3 id="dceTitle">Préparer mon dossier d’appel d’offres</h3>
+    <p>1. Consultez l’avis officiel et téléchargez le DCE sur le profil acheteur. 2. Importez le ZIP dans OFFRYA. 3. Vérifiez les exigences, préparez vos brouillons et relisez avant de déposer vous-même votre offre.</p>
+   </div>
+   <form id="dceImportForm" class="dce-import-form">
+    <label for="dceZipFile">Archive DCE téléchargée depuis le profil acheteur</label>
+    <input class="field" id="dceZipFile" name="dce_zip" type="file" accept=".zip,application/zip" required>
+    <small>ZIP de 20 Mo maximum, 12 fichiers compatibles : PDF, DOCX, XLSX, TXT. Les PDF scannés nécessitent une vérification manuelle. Fichiers non conservés sur OFFRYA.</small>
+    <button class="button primary" id="dceRunImport" type="submit">Importer et analyser mon DCE</button>
+   </form>
+   <p id="dceStatus" class="dce-status" role="status" aria-live="polite">Aucun dossier importé.</p>
+   <div id="dceResults" class="dce-results" hidden>
+    <div class="dce-results-grid">
+     <section class="dce-mini-panel"><h4>Exigences détectées</h4><div id="dceFacts"></div></section>
+     <section class="dce-mini-panel"><h4>Checklist des pièces</h4><div id="dceChecklist"></div></section>
+    </div>
+    <section class="dce-mini-panel">
+     <h4>Informations confirmées de l’entreprise</h4>
+     <p>Ne renseignez que les informations exactes. Cochez chaque champ pour l’autoriser dans le brouillon ; OFFRYA n’atteste pas leur véracité.</p>
+     <div class="dce-company-fields">
+      <label>Entreprise <input id="dceCompany" class="field" maxlength="240" autocomplete="organization" placeholder="Dénomination officielle"></label>
+      <label>SIRET <input id="dceSiret" class="field" maxlength="14" inputmode="numeric" placeholder="14 chiffres"></label>
+      <label>Représentant <input id="dceRepresentative" class="field" maxlength="160" placeholder="Nom et qualité"></label>
+      <label>Chiffre d’affaires déclaré (€) <input id="dceTurnover" class="field" type="number" min="0" step="0.01" placeholder="Montant confirmé"></label>
+      <label>Qualifications / certifications <input id="dceCertifications" class="field" maxlength="300" placeholder="Uniquement vos qualifications valides"></label>
+      <label>Références comparables <input id="dceReferences" class="field" maxlength="500" placeholder="Références dont vous disposez des preuves"></label>
+      <label>Référence du marché <input id="dceTenderRef" class="field" maxlength="120" placeholder="Copier depuis l’avis officiel"></label>
+      <label>Acheteur <input id="dceBuyer" class="field" maxlength="200" placeholder="Copier depuis l’avis officiel"></label>
+      <label>Lot(s) <input id="dceLots" class="field" maxlength="120" placeholder="Lot 1, Lot 2…"></label>
+     </div>
+     <label class="dce-confirm-inline"><input type="checkbox" id="dceIdentityConfirm"> Je confirme que les informations renseignées ci-dessus ont été contrôlées et peuvent figurer dans un brouillon.</label>
+     <label class="dce-confirm-inline"><input type="checkbox" id="dceDossierDocsConfirm"> J’ai contrôlé les documents et justificatifs exigés dans le règlement de consultation.</label>
+    </section>
+    <section class="dce-mini-panel">
+     <h4>Aide au chiffrage — marchés attribués</h4>
+     <p>Recherche facultative dans les données essentielles de la commande publique (DECP). Les montants sont ceux de marchés attribués ; ce ne sont ni des prix unitaires ni un devis recommandé.</p>
+     <form id="dceAwardForm" class="dce-award-form">
+      <label for="dceCpv">Code CPV (8 chiffres)</label>
+      <input class="field" id="dceCpv" maxlength="8" inputmode="numeric" pattern="[0-9]{8}" placeholder="Ex. 90910000" required>
+      <button class="button secondary" type="submit">Rechercher des attributions officielles</button>
+     </form>
+     <p id="dceAwardStatus" role="status"></p><div id="dceAwards"></div>
+     <a href="https://data.economie.gouv.fr/explore/dataset/decp-2022-marches-valides/" target="_blank" rel="noopener noreferrer">Consulter les données publiques à la source</a>
+    </section>
+    <section class="dce-mini-panel">
+     <h4>Vérification humaine avant remise</h4>
+     <div id="dceFinalChecks">
+      <label class="dce-confirm-inline"><input type="checkbox" data-dce-review="commitments"> Déclarations et engagements vérifiés</label>
+      <label class="dce-confirm-inline"><input type="checkbox" data-dce-review="pricing"> Prix, unités, taxes et totaux vérifiés</label>
+      <label class="dce-confirm-inline"><input type="checkbox" data-dce-review="deadline"> Date et heure limites vérifiées sur le profil acheteur</label>
+      <label class="dce-confirm-inline"><input type="checkbox" data-dce-review="dce_version"> Rectificatifs et questions-réponses contrôlés</label>
+      <label class="dce-confirm-inline"><input type="checkbox" data-dce-review="final_reading"> Relecture complète effectuée et dépôt manuel assumé</label>
+     </div>
+     <button class="button primary" id="dcePrepare" type="button">Préparer mes brouillons et vérifier le dossier</button>
+     <p id="dcePrepareStatus" role="status"></p>
+     <div id="dceDrafts" class="dce-drafts" hidden></div>
+     <button class="button secondary" id="dceExportDraft" type="button" hidden>Télécharger le brouillon de préparation (JSON)</button>
+     <a id="dceOfficialLink" href="#" rel="noopener noreferrer" target="_blank" hidden>Revenir à l’avis officiel pour déposer manuellement</a>
+     <small>Le dossier exporté n’est pas un formulaire officiel et n’est jamais transmis automatiquement. N’y incluez aucune déclaration non confirmée.</small>
+    </section>
+   </div>
+  </section>
+
  </div>
 </section>
 <section class="tab" id="inbox"><div class="section-top"><div><p class="eyebrow">ÉCHANGES PRIVÉS</p><h2>Vos conversations</h2><p>Seuls le client et le professionnel peuvent lire leurs messages. Conditions, tarifs et paiement sont convenus directement entre eux, hors OFFRYA.</p></div></div><div class="inbox-grid"><div class="panel inbox-conversations"><h3>Discussions liées à vos missions</h3><p class="inbox-hint">Sélectionnez une mission pour ouvrir son échange privé.</p><div id="conversationList" class="data-list"></div></div><div class="panel message-panel"><button type="button" class="inbox-mobile-back" id="inboxBackToList">← Toutes les conversations</button><div class="panel-heading"><div><h3 id="threadTitle">Sélectionnez une discussion</h3><p class="inbox-thread-context" id="threadContext">Choisissez une conversation pour retrouver les messages associés à sa mission.</p></div><span class="tag">Échange direct</span></div><div id="messageList" class="messages"><div class="empty">Aucune conversation sélectionnée.</div></div><form id="messageForm" class="send-form"><input class="field" name="body" maxlength="2500" minlength="1" required placeholder="Écrivez votre message…" aria-label="Votre message"><button class="button primary" type="submit">Envoyer</button></form></div></div></section>
