@@ -7,7 +7,6 @@ const {MAX_REQUESTS_PER_RUN,MIN_REQUEST_GAP_MS,reserveBudget}=require('../lib/le
 const {installBrowserGuard}=require('../lib/leboncoin-browser-guard');
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const BOT_USER_AGENT='OFFRYA-Bot/1.0 (+mailto:contact@offrya.fr)';
-const raw=process.env.LEBONCOIN_SEARCH_URLS||'[]';
 const maxPages=1,maxAds=MAX_REQUESTS_PER_RUN-1;
 function allowedSearchUrls(value){
  const urls=typeof value==='string'?JSON.parse(value):value;
@@ -99,12 +98,13 @@ async function collect({browserFactory,store=storeRow,logger=console,now=new Dat
  await reserve(env,'run'); // Interdit une nouvelle collecte avant quatre heures.
  const factory=browserFactory||(()=>require('playwright').chromium.launch({headless:true}));
  const browser=await factory();
- const page=await browser.newPage({locale:'fr-FR',viewport:{width:1280,height:900},
-  javaScriptEnabled:false,serviceWorkers:'block',userAgent:BOT_USER_AGENT});
- await installBrowserGuard(page,{allowMock:Boolean(browserFactory)});
+ let page;
  const found=new Set();const rows=[];
  let rejected=0;
  try{
+  page=await browser.newPage({locale:'fr-FR',viewport:{width:1280,height:900},
+   javaScriptEnabled:false,serviceWorkers:'block',userAgent:BOT_USER_AGENT});
+  await installBrowserGuard(page,{allowMock:Boolean(browserFactory)});
   for(const seed of seeds){
    await reserve(env,'request');
    await readPage(page,seed);
@@ -130,7 +130,9 @@ async function collect({browserFactory,store=storeRow,logger=console,now=new Dat
    await pause(MIN_REQUEST_GAP_MS);
   }
   if(!dryRun)for(const row of rows)await store(row);
- }finally{await page.close();await browser.close();}
+ }finally{
+  try{if(page)await page.close();}finally{await browser.close();}
+ }
  logger.info('Leboncoin → OFFRYA : '+JSON.stringify({visited:found.size,qualified:rows.length,rejected,
   dryRun,publish:!dryRun&&publish,status:dryRun?'simulation':publish?'published':'staged'}));
  return {visited:found.size,qualified:rows.length,rejected,dryRun,published:!dryRun&&publish?rows.length:0,rows};
