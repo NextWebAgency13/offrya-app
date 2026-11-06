@@ -219,6 +219,8 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   $('proV3FollowupSlot').appendChild($('opFollowupDetails'));
   $('opFollowupDetails').open=true;
   initialized=true;
+  // Ouvrir une mission depuis « Proposer mes services » la retire du compteur.
+  document.addEventListener('click',e=>{const b=e.target.closest?.('[data-sales-open]');if(b&&canUsePremium())markRequestSeen(b.dataset.salesOpen);},true);
  }
  function available(){
   const current=state.session?.user?.id;
@@ -285,6 +287,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   const seen=seenRequests(user);
   return (missions||[]).filter(m=>m&&m.id&&!seen.has(String(m.id)));
  }
+ function markRequestSeen(id){if(id!=null){markRequestsSeen([{id}]);metrics();}}
  function markRequestsSeen(missions){
   const user=state.session?.user?.id;
   if(!user||!canUsePremium())return;
@@ -507,7 +510,6 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(bubble){bubble.hidden=!count;bubble.textContent=String(Math.min(count,99));}
   const trigger=$('proV3MobileAlert');
   if(trigger)trigger.setAttribute('aria-label',count?'Ouvrir '+count+' mission(s) correspondant à mes filtres':'Consulter les missions disponibles');
-  if(view==='requests'&&$('professional')?.classList.contains('active'))markRequestsSeen(missions);
   const unseen=unseenRequests(missions).length;
   for(const el of document.querySelectorAll('[data-pro-count="requests"]')){
    el.textContent=unseen>99?'99+':String(unseen);el.hidden=!unseen;
@@ -631,12 +633,12 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   }
   $('proV3PreferenceSlot').querySelector('details').open=true;
   activeButtons();
-  if(next==='requests')metrics();
   window.scrollTo({top:0,behavior:'auto'});
  }
  function openMissionDetail(id){
   const mission=available().find(m=>String(m.id)===String(id));if(!mission)return;
   acknowledgeMatchedNotifications(id);
+  markRequestSeen(id);
   $('missionQuery').value='';$('missionCategory').value='';$('missionDept').value='';
   state.selectedMissionId=mission.id;
   // Preserve the detail selection. renderMissions switches to the available
@@ -647,6 +649,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  function openMission(id){
   const m=available().find(x=>x.id===id);if(!m)return;
   acknowledgeMatchedNotifications(id);
+  markRequestSeen(id);
   if(openProposal&&openProposal(id)){show('assistant');return;}
   notify('Impossible d’ouvrir cette mission. Actualisez vos opportunités et réessayez.');
  }

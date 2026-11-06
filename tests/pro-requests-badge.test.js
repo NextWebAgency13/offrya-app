@@ -16,12 +16,15 @@ function harness({user='pro-1',authorized=true,store=new Map()}={}){
  return ctx.api;
 }
 const ms=ids=>ids.map(id=>({id}));
-test('La pastille « Proposer mes services » tombe à zéro une fois l’écran ouvert',()=>{
+test('Chaque mission ouverte décompte la pastille d’une unité',()=>{
  const store=new Map(),api=harness({store});
  assert.equal(api.unseenRequests(ms(['a','b','c'])).length,3);
- api.markRequestsSeen(ms(['a','b','c']));
- assert.equal(api.unseenRequests(ms(['a','b','c'])).length,0);
- assert.deepEqual(Array.from(api.unseenRequests(ms(['a','b','c','d'])),m=>m.id),['d']);
+ api.markRequestsSeen(ms(['a']));
+ assert.equal(api.unseenRequests(ms(['a','b','c'])).length,2);
+ api.markRequestsSeen(ms(['a']));
+ assert.equal(api.unseenRequests(ms(['a','b','c'])).length,2);
+ api.markRequestsSeen(ms(['b']));
+ assert.deepEqual(Array.from(api.unseenRequests(ms(['a','b','c','d'])),m=>m.id),['c','d']);
 });
 test('Les missions vues restent vues après rechargement, compte par compte',()=>{
  const store=new Map();
@@ -39,9 +42,10 @@ test('Sans accès Premium ou sans stockage, aucune erreur',()=>{
  b.markRequestsSeen(ms(['a']));
  assert.equal(b.unseenRequests(ms(['a'])).length,0);
 });
-test('La pastille est branchée sur le compteur des missions non vues et rafraîchie à l’ouverture',()=>{
- assert.match(pro,/if\(view==='requests'&&\$\('professional'\)\?\.classList\.contains\('active'\)\)markRequestsSeen\(missions\);/);
+test('Ouvrir l’écran ne remet pas tout à zéro ; ouvrir une mission la décompte',()=>{
+ assert.doesNotMatch(pro,/\)markRequestsSeen\(missions\);/);
  assert.match(pro,/const unseen=unseenRequests\(missions\)\.length;/);
- assert.match(pro,/if\(next==='requests'\)metrics\(\);/);
+ assert.match(pro,/closest\?\.\('\[data-sales-open\]'\);if\(b&&canUsePremium\(\)\)markRequestSeen\(b\.dataset\.salesOpen\);/);
+ assert.equal((pro.match(/  markRequestSeen\(id\);/g)||[]).length,2);
  assert.doesNotMatch(pro,/el\.textContent=String\(missions\.length\);el\.hidden=!missions\.length;/);
 });
