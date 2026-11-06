@@ -57,13 +57,14 @@ async function details(page,url){
  });
  return {...payload,url};
 }
+// Insertion immuable/idempotente : une annonce expired/rejected n'est jamais réactivée.
 async function storeRow(row,{fetcher=fetch}={}){
  const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
  const key=process.env.SUPABASE_SECRET_KEY;
  if(!/^https:\/\/[a-z0-9.-]+\.supabase\.co$/.test(base)||!key)
   throw Error('Connexion Supabase OFFRYA non configurée (service_role serveur requis).');
  const response=await fetcher(base+'/rest/v1/offrya_external_opportunities?on_conflict=source,source_id',{
-  method:'POST',headers:{apikey:key,Authorization:'Bearer '+key,Prefer:'resolution=merge-duplicates,return=minimal','Content-Type':'application/json'},
+  method:'POST',headers:{apikey:key,Authorization:'Bearer '+key,Prefer:'resolution=ignore-duplicates,return=minimal','Content-Type':'application/json'},
   body:JSON.stringify(row),signal:AbortSignal.timeout(15000)
  });
  if(!response.ok)throw Error('Import OFFRYA HTTP '+response.status);
