@@ -115,3 +115,26 @@ body.offrya-reference-ui #dashboard .role-client-hero h2::after{
  body .app-shell .sidebar .legal-links,body .app-shell .sidebar .legal-links a{color:#d9c6ec!important}
 }
 @media (min-width:781px){body .app-shell .sidebar .founder-card{background:#F7F2FC!important;border-color:transparent!important;color:#211728!important}body .app-shell .sidebar .founder-card strong{color:#4B0058!important}}
+
+/* Centre de notifications (cloche) */
+.notif-panel{position:fixed;z-index:120;top:calc(env(safe-area-inset-top,0px) + 82px);right:max(16px,env(safe-area-inset-right,0px));
+ width:min(390px,calc(100vw - 32px));max-height:min(70vh,560px);overflow:auto;background:#fff;color:#211728;
+ border:1px solid #e9e0f3;border-radius:18px;box-shadow:0 18px 50px rgba(46,4,61,.28);font-family:'DM Sans',system-ui,sans-serif}
+.notif-panel[hidden]{display:none!important}
+.notif-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px 12px;background:#fff;border-bottom:1px solid #f0e9f7}
+.notif-head strong{font:800 17px/1.2 'Plus Jakarta Sans','DM Sans',sans-serif;color:#4B0058}
+.notif-read-all{border:0;background:transparent;color:#7A3CFF;font-family:inherit;font-weight:700;font-size:13px;line-height:1.2;cursor:pointer;padding:6px 4px}
+.notif-list{list-style:none;margin:0;padding:6px}
+.notif-item{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;border:0;background:transparent;border-radius:12px;padding:12px;cursor:pointer;color:inherit;font:inherit}
+.notif-item:hover{background:#F7F2FC}
+.notif-item:focus-visible,.notif-read-all:focus-visible,.notif-foot button:focus-visible{outline:3px solid #7A3CFF;outline-offset:2px}
+.notif-icon{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:#F3ECFF;color:#7A3CFF}
+.notif-icon.mission{background:#FFE9E9;color:#4B0058}
+.notif-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+.notif-copy small{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#7A3CFF}
+.notif-copy strong{font-size:14.5px;line-height:1.3;color:#211728}
+.notif-copy span{font-size:12.5px;color:#6b5e78}
+.notif-empty{margin:0;padding:28px 18px;text-align:center;color:#6b5e78}
+.notif-foot{border-top:1px solid #f0e9f7;padding:10px 14px}
+.notif-foot button{width:100%;border:1px solid #e9e0f3;background:#fff;color:#4B0058;border-radius:12px;padding:11px;font-family:inherit;font-weight:700;font-size:14px;line-height:1.2;cursor:pointer}
+@media (max-width:780px){.notif-panel{top:calc(env(safe-area-inset-top,0px) + 70px)}}
