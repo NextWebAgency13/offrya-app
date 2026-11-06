@@ -33,3 +33,12 @@ Le collecteur rejette les offres de services, les emplois et les ventes ; masque
 - Le retrait automatique ne repose que sur deux **preuves positives d'indisponibilité**, pas sur l'absence d'une annonce dans une recherche. Les annonces dont la disponibilité devient ambiguë nécessitent une revue manuelle.
 - Aucune migration Supabase n'a été exécutée, aucun environnement de production ni variable de planification n'a été modifié. Les tests GitHub utilisent des pages simulées.
 
+
+## Validation locale d'un fichier JSON autorisé
+L'importeur `node scripts/import-leboncoin-feed.js` examine un export JSON fourni dans le cadre d'un accès autorisé. Il n'emploie ni Scrapfly, ni proxy, ni navigateur. L'export doit contenir un tableau `ads`, un tableau racine ou `props.pageProps.searchData.ads`.
+
+Le filtre n'accepte que `ad_type=want`, un statut `active` ou `online` (ou non fourni), une URL d'annonce Leboncoin valide, un titre d'au moins huit caractères, une description d'au moins quinze caractères et une localisation. Il élimine les offres, les annonces inactives, les fausses demandes, les URL invalides et les doublons. Le nombre d'enregistrements qualifiés est limité à 40 par exécution.
+
+Configurer `LEBONCOIN_FEED_ENABLED=true`, `LEBONCOIN_FEED_FILE` avec le chemin du fichier JSON et conserver `LEBONCOIN_DRY_RUN=true` pour simuler. Facultativement, `LEBONCOIN_VALIDATION_CSV` spécifie le CSV des seules annonces qualifiées et `LEBONCOIN_VALIDATION_REPORT` le rapport JSON de comptage par motif de rejet. Le rapport ne contient ni titres refusés ni coordonnées de contact. Le CSV ne contient que les champs assainis et `status_import=ready` : il ne s'agit pas du statut de publication Supabase.
+
+L'écriture Supabase n'intervient que si `LEBONCOIN_DRY_RUN=false`. L'annonce reste `staged` tant que les deux interrupteurs de publication ne sont pas activés. Les données personnelles, images et prix bruts ne sont pas recopiés. La contrainte `(source, source_id)` empêche les réimports, et les annonces supprimées ne sont pas réactivées.
