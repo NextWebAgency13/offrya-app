@@ -85,6 +85,12 @@ test('Opening a thread clears only its unread messages; a new response reactivat
  assert.equal(app.api.messageUnread().total,0);
  app.api.paintMessageBadges();
  assert.equal(app.node('messageNavBadge').hidden,true);
+ assert.equal(app.node('messageNavBadge').textContent,'');
+ assert.equal(app.node('messageShortcutBubble').hidden,true);
+ assert.equal(app.node('messageShortcutBubble').textContent,'');
+ assert.equal(app.node('proUnreadBadge').hidden,true);
+ assert.equal(app.node('proUnreadBadge').textContent,'');
+ assert.equal(app.node('messageNavigation').attrs['aria-label'],'Messages');
 });
 test('Read state is separate for each account and does not contain message bodies',()=>{
  const storage=new Map();
@@ -129,4 +135,21 @@ test('Visible message UI is separate from professional opportunity alerts',()=>{
  assert.doesNotMatch(helpers,/canUsePremium\(\)/,'Clients also receive notifications');
  const syntax=spawnSync(process.execPath,['--input-type=module','--check'],{input:app,encoding:'utf8'});
  assert.equal(syntax.status,0,syntax.stderr);
+});
+
+test('A zero unread count never renders a visible desktop or mobile navigation pill',()=>{
+ const styles=fs.readFileSync('public/role-reference.css','utf8');
+ const professional=fs.readFileSync('public/pro-experience.js','utf8');
+ assert.match(styles,/\.sidebar #nav \.message-nav-link \.message-unread-badge\[hidden\]/);
+ assert.match(styles,/\.header \.message-header-shortcut \.message-unread-badge\[hidden\]/);
+ assert.match(styles,/\.pro-v3-nav-count\[hidden\]/);
+ assert.match(styles,/display:none!important/);
+ assert.match(app,/total>99\?'99\+':total\?String\(total\):''/);
+ assert.match(professional,/count>99\?'99\+':count\?String\(count\):''/);
+ const zero=harness({rows:[]});
+ zero.api.paintMessageBadges();
+ for(const id of ['messageNavBadge','messageShortcutBubble','proUnreadBadge']){
+  assert.equal(zero.node(id).hidden,true,id);
+  assert.equal(zero.node(id).textContent,'',id);
+ }
 });
