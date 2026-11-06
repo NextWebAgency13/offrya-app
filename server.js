@@ -9,6 +9,7 @@ const {verifyPremiumAccess}=require('./lib/premium');
 const {rankCandidates,aiRerank}=require('./lib/ai-matching');
 const {analyzeDce}=require('./lib/dce-evidence');
 const {prepareDce}=require('./lib/dce-preparation');
+const {scanDceArchive}=require('./lib/dce-antivirus');
 const {queryAwards}=require('./lib/decp');
 const {lookupCompany,verifyProfessional}=require('./lib/company');
 const {beginIdentity,processIdentityEvent,configured:identityConfigured,identityConfigChecks}=require('./lib/identity');
@@ -320,6 +321,9 @@ async function handle(req,res){
    catch(error){return json(res,error.status||400,{error:error.message});}
    dceImportsActive++;
    try{
+    // Fail closed: no ZIP inspection, PDF parser or OCR before antivirus clearance.
+    try{await scanDceArchive(archive);}
+    catch(error){return json(res,error.status||503,{error:error.message||'Analyse antivirus indisponible.'});}
     const result=await analyzeDceInWorker(archive);
     return json(res,result.ok?200:result.status,result.ok?result.result:{error:result.error},
      {'Cache-Control':'private,no-store'});
