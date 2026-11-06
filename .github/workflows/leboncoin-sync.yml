@@ -1,0 +1,37 @@
+name: OFFRYA — vérification des annonces externes (inactive by default)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '7,37 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: offrya-leboncoin-removal-sync
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    if: vars.LEBONCOIN_SYNC_ENABLED == 'true' && vars.LEBONCOIN_COLLECTOR_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Installer le collecteur isolé
+        run: |
+          npm install --omit=dev
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Synchroniser les retraits (écriture désactivée par défaut)
+        env:
+          LEBONCOIN_SYNC_ENABLED: ${{ vars.LEBONCOIN_SYNC_ENABLED }}
+          LEBONCOIN_COLLECTOR_ENABLED: ${{ vars.LEBONCOIN_COLLECTOR_ENABLED }}
+          LEBONCOIN_DRY_RUN: ${{ vars.LEBONCOIN_DRY_RUN }}
+          SUPABASE_URL: ${{ secrets.OFFRYA_SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.OFFRYA_SUPABASE_SECRET_KEY }}
+        run: node scripts/sync-leboncoin-removals.js
