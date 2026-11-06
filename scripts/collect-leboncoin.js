@@ -6,6 +6,7 @@ const {leboncoinUrl,cleanListing,aiReview}=require('../lib/leboncoin-demand');
 const {MAX_REQUESTS_PER_RUN,MIN_REQUEST_GAP_MS,reserveBudget}=require('../lib/leboncoin-collection-budget');
 const {installBrowserGuard}=require('../lib/leboncoin-browser-guard');
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const BOT_USER_AGENT='OFFRYA-Bot/1.0 (+mailto:contact@offrya.fr)';
 const raw=process.env.LEBONCOIN_SEARCH_URLS||'[]';
 const maxPages=1,maxAds=MAX_REQUESTS_PER_RUN-1;
 function allowedSearchUrls(value){
@@ -31,11 +32,13 @@ async function readPage(page,url){
  const code=response?.status()||0;
  if(code===403||code===429||code===401)throw Error('Accès Leboncoin refusé (HTTP '+code+') ; collecte arrêtée.');
  if(code>=500||!response)throw Error('Source Leboncoin indisponible (HTTP '+code+').');
+ if(url.includes('/recherche')&&(code===404||code===410))throw Error('Recherche Leboncoin absente (HTTP '+code+').');
  const isSearch=url.includes('/recherche');
  if(typeof page.url==='function'){
   const landed=leboncoinUrl(page.url(),{advert:!isSearch});
   if(landed!==leboncoinUrl(url,{advert:!isSearch}))throw Error('Redirection inattendue : collecte arrêtée.');
  }
+ if(code===404||code===410)return code;
  const head=(await page.title())+' '+(await page.locator('body').innerText({timeout:10000})).slice(0,4000);
  if(detectChallenge(head))throw Error('Protection anti-bot ou CAPTCHA détecté : arrêt sans contournement.');
  return code;
@@ -97,7 +100,7 @@ async function collect({browserFactory,store=storeRow,logger=console,now=new Dat
  const factory=browserFactory||(()=>require('playwright').chromium.launch({headless:true}));
  const browser=await factory();
  const page=await browser.newPage({locale:'fr-FR',viewport:{width:1280,height:900},
-  javaScriptEnabled:false,serviceWorkers:'block'});
+  javaScriptEnabled:false,serviceWorkers:'block',userAgent:BOT_USER_AGENT});
  await installBrowserGuard(page,{allowMock:Boolean(browserFactory)});
  const found=new Set();const rows=[];
  let rejected=0;
@@ -135,4 +138,4 @@ async function collect({browserFactory,store=storeRow,logger=console,now=new Dat
 if(require.main===module){
  collect().catch(e=>{console.error('OFFRYA collecteur arrêté : '+e.message);process.exitCode=1;});
 }
-module.exports={allowedSearchUrls,detectChallenge,listingLinks,details,collect,storeRow};
+module.exports={BOT_USER_AGENT,allowedSearchUrls,detectChallenge,readPage,listingLinks,details,collect,storeRow};
