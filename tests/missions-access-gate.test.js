@@ -78,6 +78,7 @@ test('Non Premium sees only personal publications, including closed ones, with p
  const state={session:{user:{id:uid,email_confirmed_at:'2026-11-01T10:00:00Z'}},
   missions:rows,favorites:[],salesTracking:[],conversations:[]};
  const ctx={state,$,missionBuckets,canUsePremium:()=>false,
+  canCloseMission:m=>m.owner_id===uid&&m.status==='open',
   row:m=>'<article>'+m.id+'</article>',esc:String};
  vm.runInNewContext(renderSource,ctx);
  ctx.renderMissions();

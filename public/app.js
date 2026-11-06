@@ -425,6 +425,54 @@ async function refreshLiveMissions(force=false){
  try{return await ongoing;}
  finally{if(missionRefreshInFlight===ongoing)missionRefreshInFlight=null;}
 }
+// ---- Clôture d'une mission -------------------------------------------------------------
+// Clôturer = retirer la mission de tous les comptes et supprimer définitivement ses échanges
+// (RPC offrya_close_mission : atomique, réservée à l'auteur). Irréversible, donc confirmée.
+function canCloseMission(m){
+ return Boolean(m&&state.session&&m.owner_id===state.session.user.id&&!m.withdrawn_at
+  &&(m.status==='open'||m.status==='expired'));
+}
+function closeMissionConfirmText(mission,exchanges){
+ const title=String(mission?.title||'cette mission').trim().slice(0,80);
+ const n=Number(exchanges)||0;
+ return ['Clôturer « '+title+' » ?','',
+  'La mission disparaîtra pour tous les comptes, y compris pour les professionnels.',
+  n?n+' échange'+(n>1?'s':'')+' lié'+(n>1?'s':'')+' à cette mission, avec tous leurs messages, '+(n>1?'seront supprimés':'sera supprimé')+' définitivement.'
+   :'Aucun échange n’est lié à cette mission.',
+  '','Cette action est irréversible.'].join('\n');
+}
+// Nettoie tout l'état local (listes, favoris, suivi, alertes, échanges) sans attendre le rechargement.
+function forgetMissionLocally(id){
+ const gone=new Set((state.conversations||[]).filter(c=>c.mission_id===id).map(c=>c.id));
+ state.missions=(state.missions||[]).filter(m=>m.id!==id);
+ state.favorites=(state.favorites||[]).filter(x=>x!==id);
+ state.salesTracking=(state.salesTracking||[]).filter(t=>t.mission_id!==id);
+ state.priorityAlerts=(state.priorityAlerts||[]).filter(a=>a.mission_id!==id);
+ if(Array.isArray(state.radarMatches?.items))
+  state.radarMatches={...state.radarMatches,items:state.radarMatches.items.filter(x=>!(x.kind==='mission'&&String(x.id)===String(id)))};
+ state.conversations=(state.conversations||[]).filter(c=>!gone.has(c.id));
+ state.messageHeaders=(state.messageHeaders||[]).filter(m=>!gone.has(m.conversation_id));
+ if(state.thread&&gone.has(state.thread)){state.thread=null;state.messages=[];}
+ else if(gone.size)state.messages=(state.messages||[]).filter(m=>!gone.has(m.conversation_id));
+ for(const conversation of gone)state.hiddenConversations?.delete(conversation);
+ if(state.selectedMissionId===id)state.selectedMissionId=null;
+}
+async function closeMission(id){
+ const mission=(state.missions||[]).find(m=>m.id===id);
+ if(!state.db||!canCloseMission(mission))return false;
+ const exchanges=(state.conversations||[]).filter(c=>c.mission_id===id).length;
+ if(!confirm(closeMissionConfirmText(mission,exchanges)))return false;
+ const result=await state.db.rpc('offrya_close_mission',{p_id:id});
+ if(result.error)throw result.error;
+ forgetMissionLocally(id);
+ if(location.pathname===paths.missions&&new URLSearchParams(location.search).has('mission'))
+  history.replaceState({tab:'missions'},'',paths.missions);
+ render();
+ toast(exchanges?'Mission clôturée. Les échanges liés ont été supprimés.':'Mission clôturée.');
+ try{await refresh();}catch(error){console.warn('OFFRYA: actualisation après clôture indisponible',error);}
+ return true;
+}
+// ---- fin clôture ------------------------------------------------------------------------
 function row(m,actions='',context=''){
  const status=m.status==='open'?'Ouverte':m.status==='awarded'?'Pourvue':'Clôturée';
  const place=[m.city,m.department].filter(Boolean).map(esc).join(' · ')||'Lieu à préciser';
@@ -445,7 +493,7 @@ function renderMissionDetail(m){
  const own=m.owner_id===state.session?.user?.id;
  if(!own&&!canUsePremium())return '<div class="empty">Accès réservé aux professionnels vérifiés et abonnés.</div>';
  const status=m.status==='open'?'Ouverte':m.status==='awarded'?'Pourvue':'Clôturée';
- const controls=own?'<span class="tag">Votre publication</span>':m.status==='open'?'<button type="button" class="button primary" data-contact="'+esc(m.id)+'">Contacter le demandeur</button>':'';
+ const controls=own?'<span class="tag">Votre publication</span>'+(canCloseMission(m)?'<button type="button" class="button secondary mission-close" data-close-mission="'+esc(m.id)+'">Clôturer la mission</button>':''):m.status==='open'?'<button type="button" class="button primary" data-contact="'+esc(m.id)+'">Contacter le demandeur</button>':'';
  return '<div class="mission-detail"><button type="button" class="mission-detail-back" data-back-missions>← Retour aux missions</button>'+
   '<div class="mission-detail-head"><span class="tag mission-category">'+esc(m.category||'Prestation')+'</span>'+
   '<span class="mission-status '+(m.status==='open'?'is-open':'is-closed')+'">'+status+'</span></div>'+
@@ -504,7 +552,7 @@ function renderMissions(){
   const own=m.owner_id===uid;
   let actions='<button type="button" class="button primary micro-button mission-action-main" data-view-mission="'+esc(m.id)+'">Voir la mission</button>';
   if(own){
-   if(m.status==='open')actions+='<button type="button" class="button secondary micro-button mission-action-secondary" data-close-mission="'+esc(m.id)+'">Clôturer</button>';
+   if(canCloseMission(m))actions+='<button type="button" class="button secondary micro-button mission-action-secondary" data-close-mission="'+esc(m.id)+'">Clôturer</button>';
   }else if(canBrowse){
    const favorite=state.favorites.includes(m.id);
    actions+='<button type="button" class="button secondary micro-button mission-action-secondary" data-contact="'+esc(m.id)+'">Contacter</button>'+
@@ -1092,7 +1140,7 @@ $('missionList').onclick=async e=>{
  }
  if(btn.hasAttribute('data-view-mission')){const id=btn.dataset.viewMission;const mission=state.missions.find(m=>m.id===id);if(!mission||!(mission.owner_id===state.session?.user?.id||(canUsePremium()&&mission.status==='open')))return;state.selectedMissionId=id;renderMissions();rememberMissionRoute(id);$('missionList').scrollIntoView({block:'start',behavior:'smooth'});return;}
  if(btn.dataset.favorite){if(!requireAuth())return;const id=btn.dataset.favorite;try{const result=state.favorites.includes(id)?await state.db.from('offrya_favorites').delete().eq('user_id',state.session.user.id).eq('mission_id',id):await state.db.from('offrya_favorites').insert({user_id:state.session.user.id,mission_id:id});if(result.error)throw result.error;await refresh();toast(state.favorites.includes(id)?'Mission ajoutée aux favoris.':'Favori retiré.');}catch(err){showError(err);}return;}
- if(btn.dataset.closeMission){if(!confirm('Clôturer cette mission ? Elle ne sera plus visible dans les recherches, mais vos conversations resteront accessibles.'))return;try{const r=await state.db.rpc('offrya_close_mission',{p_id:btn.dataset.closeMission});if(r.error)throw r.error;await refresh();toast('Mission clôturée');}catch(err){showError(err);}return;}
+ if(btn.dataset.closeMission){try{await closeMission(btn.dataset.closeMission);}catch(err){showError(err);}return;}
  if(!requireRole('pro'))return;const mission=state.missions.find(m=>m.id===btn.dataset.contact);if(!mission)return;
  try{let c=state.conversations.find(c=>c.mission_id===mission.id&&c.professional_id===state.session.user.id);if(!c){const r=await state.db.from('offrya_conversations').insert({mission_id:mission.id,client_id:mission.owner_id,professional_id:state.session.user.id}).select().single();if(r.error){if(r.error.code==='23505'){await refresh();c=state.conversations.find(x=>x.mission_id===mission.id&&x.professional_id===state.session.user.id);}else throw r.error;}else c=r.data;}if(!c)throw Error('Discussion introuvable');if(isConversationHidden(c.id))await setConversationHidden(c.id,false);state.thread=c.id;await loadMessages(c.id);await refresh();tab('inbox');}catch(err){showError(err);}
 };
@@ -1168,7 +1216,7 @@ async function init(){
  },20000);
  setInterval(()=>{
   if(state.session&&state.loaded&&!document.hidden&&
-    ($('missions').classList.contains('active')||$('professional').classList.contains('active')))
+    ($('dashboard').classList.contains('active')||$('missions').classList.contains('active')||$('professional').classList.contains('active')))
    refreshLiveMissions().catch(error=>console.warn('OFFRYA: mission poll unavailable',error));
  },30000);
  // Periodic in-app notification refresh; RLS remains the sole source of access.
