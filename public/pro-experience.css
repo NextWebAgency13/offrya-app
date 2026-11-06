@@ -1662,3 +1662,148 @@ body.offrya-pro-v3 .pro-ai-results .pro-tender-card .pro-tender-detail-icon svg{
   min-height:46px!important;
  }
 }
+
+
+/* OFFRYA tender desktop-Android alignment, 06/11/2026
+   Layout-only: shared visual rhythm regardless of title length and actual
+   content width. Does not change filters, IA data or tender actions. */
+body.offrya-pro-v3 #proV3Recommendations .pro-tender-card{
+ container-type:inline-size;
+ width:100%;
+ box-sizing:border-box;
+}
+body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-inner{
+ display:flex;
+ flex-direction:column;
+ min-width:0;
+ box-sizing:border-box;
+}
+body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-top{
+ display:grid;
+ grid-template-columns:218px 112px minmax(0,1fr);
+ align-items:center;
+ gap:10px 12px;
+ min-width:0;
+ margin-bottom:13px;
+}
+body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-top :is(.pro-tender-score,.pro-tender-source){
+ justify-self:start;
+ width:100%;
+ max-width:100%;
+ white-space:nowrap;
+}
+body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-top .pro-tender-reference{
+ justify-self:end;
+ margin-left:0;
+ max-width:100%;
+}
+body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-grid{
+ grid-template-columns:minmax(0,1fr) 255px;
+ align-items:stretch;
+ column-gap:22px;
+ min-width:0;
+}
+body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-information{
+ display:flex;
+ flex-direction:column;
+ min-width:0;
+}
+body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-information h4{
+ min-height:3.81em;
+ margin-bottom:15px;
+}
+body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-details{
+ grid-template-columns:repeat(4,minmax(0,1fr));
+ margin-top:auto;
+ min-width:0;
+}
+body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-detail-copy{
+ min-width:0;
+ overflow-wrap:anywhere;
+}
+body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-actions{
+ align-self:end;
+ justify-content:flex-end;
+ width:100%;
+ min-width:0;
+}
+body.offrya-pro-v3 #proExperienceV3 .pro-ai-discovery .pro-ai-filter-tabs{
+ display:grid;
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ align-items:stretch;
+}
+body.offrya-pro-v3 #proExperienceV3 .pro-ai-discovery .pro-ai-filter-tabs button{
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ flex-direction:row;
+ flex-wrap:nowrap;
+ min-height:52px;
+ box-sizing:border-box;
+ text-align:center;
+ gap:7px;
+}
+/* Queries follow the actual card width, which can be narrower than the
+   desktop viewport after the Premium sidebar and its internal padding. */
+@container (max-width:1050px){
+ body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-grid{
+  grid-template-columns:minmax(0,1fr) 220px;
+  column-gap:15px;
+ }
+ body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-details{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  row-gap:13px;
+ }
+ body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-detail:nth-child(2){
+  border-right:0;
+ }
+ body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-detail:nth-child(3){
+  padding-left:0;
+ }
+}
+@container (max-width:760px){
+ body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-top{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-bottom:11px;
+ }
+ body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-top :is(.pro-tender-score,.pro-tender-source){
+  width:auto;
+ }
+ body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-top .pro-tender-reference{
+  margin-left:0;
+  justify-self:auto;
+ }
+ body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-grid{
+  grid-template-columns:minmax(0,1fr);
+  row-gap:16px;
+ }
+ body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-information h4{
+  min-height:0;
+  margin-bottom:15px;
+ }
+ body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-actions{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  justify-content:flex-start;
+  gap:9px!important;
+ }
+ body.offrya-pro-v3 #proV3Recommendations .pro-tender-card .pro-tender-actions :is(.pro-v3-reco-btn,.pro-ai-follow-actions,.pro-ai-track-action){
+  width:100%!important;
+  max-width:none!important;
+ }
+}
+@media(max-width:620px){
+ body.offrya-pro-v3 #proExperienceV3 .pro-ai-discovery .pro-ai-filter-tabs button{
+  min-width:0;
+  min-height:54px;
+  gap:4px;
+  padding:7px 3px;
+  font-size:10px;
+ }
+ body.offrya-pro-v3 #proExperienceV3 .pro-ai-discovery .pro-ai-filter-tabs button .pro-ai-tab-count{
+  flex:none;
+ }
+}
