@@ -180,7 +180,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   alertButton.setAttribute('aria-label','Consulter les nouvelles missions');
   alertButton.innerHTML='<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"/><path d="M10 21h4"/></svg><span id="proV3AlertBubble" hidden></span>';
   if(accountMenu)accountMenu.before(alertButton);
-  alertButton.addEventListener('click',()=>{if(!canUsePremium())return;acknowledgeMatchedNotifications();show('requests');});
+  alertButton.addEventListener('click',()=>{if(!canUsePremium())return;acknowledgeMatchedNotifications();openMatchedMissions();});
   const root=document.createElement('div');root.id='proExperienceV3';root.className='pro-v3-experience';
   root.innerHTML=[
    '<div class="pro-v3-mobile-menu" aria-hidden="true" hidden></div>',
@@ -635,6 +635,14 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   $('proV3PreferenceSlot').querySelector('details').open=true;
   activeButtons();
   window.scrollTo({top:0,behavior:'auto'});
+ }
+ // La cloche mène aux missions pertinentes (critères de veille), pas à toutes les missions.
+ function openMatchedMissions(){
+  priorityOnly=false;radarFilter='mission';
+  show('home');
+  recommendations();
+  const tabs=$('proExperienceV3')?.querySelector('.pro-ai-filter-tabs');
+  if(tabs)requestAnimationFrame(()=>tabs.scrollIntoView({block:'start',behavior:'auto'}));
  }
  function openMissionDetail(id){
   const mission=available().find(m=>String(m.id)===String(id));if(!mission)return;
