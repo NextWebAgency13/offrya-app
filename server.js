@@ -57,7 +57,7 @@ let dceImportsActive=0;
 function analyzeDceInWorker(buffer){
  return new Promise((resolve,reject)=>{
   const worker=new Worker(path.join(__dirname,'lib','dce-worker.js'),{
-   workerData:buffer,env:{},resourceLimits:{maxOldGenerationSizeMb:192,stackSizeMb:4}});
+   workerData:{archive:buffer,ocrEnabled:process.env.DCE_OCR_ENABLED==='true'},env:{},resourceLimits:{maxOldGenerationSizeMb:192,stackSizeMb:4}});
   let settled=false;
   const timeout=setTimeout(()=>finish({ok:false,status:503,error:'Analyse interrompue : délai de traitement dépassé.'}),30000);
   function finish(value){
