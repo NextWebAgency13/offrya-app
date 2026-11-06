@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: '22'
       - name: Tests de sécurité (sans accès Leboncoin réel)
-        run: node --test tests/leboncoin-import.test.js tests/leboncoin-removal-sync.test.js tests/leboncoin-conservative-guardrails.test.js tests/leboncoin-browser-guard.test.js
+        run: node --test tests/leboncoin-import.test.js tests/leboncoin-removal-sync.test.js tests/leboncoin-conservative-guardrails.test.js tests/leboncoin-browser-guard.test.js tests/leboncoin-live-safety.test.js
       - name: Installer Playwright dans le seul runner isolé
         run: |
           npm install --omit=dev
