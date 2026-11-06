@@ -93,3 +93,32 @@ test('Premium-only access is required in SQL and API before external results',()
  assert.match(server,/verifyPremiumAccess/);
  assert.match(server,/source_last_seen_at=gte/);
 });
+
+test('Collector releases Chromium when page creation or request interception fails',async()=>{
+ for(const failAt of ['newPage','route']){
+  let browserClosed=0,pageClosed=0;
+  const browserFactory=async()=>({
+   newPage:async()=>{
+    if(failAt==='newPage')throw Error('Page creation failed');
+    return {route:async()=>{throw Error('Routing failed');},close:async()=>{pageClosed++;}};
+   },
+   close:async()=>{browserClosed++;}
+  });
+  await assert.rejects(()=>collect({env:baseEnv,browserFactory,
+   reserve:async()=>true,pause:async()=>{},logger:{info(){}}}),/failed/i);
+  assert.equal(browserClosed,1,'browser must close on '+failAt);
+  assert.equal(pageClosed,failAt==='route'?1:0);
+ }
+});
+test('Removal sync releases Chromium when initialization fails',async()=>{
+ let browserClosed=0;
+ const browserFactory=async()=>({
+  newPage:async()=>{throw Error('Page setup failed');},
+  close:async()=>{browserClosed++;}
+ });
+ await assert.rejects(()=>synchronize({
+  env:{...baseEnv,LEBONCOIN_SYNC_ENABLED:'true'},
+  browserFactory,load:async()=>[],reserve:async()=>true,
+  logger:{info(){}}}),/Page setup failed/);
+ assert.equal(browserClosed,1);
+});
