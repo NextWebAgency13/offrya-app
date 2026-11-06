@@ -266,6 +266,36 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   try{window.localStorage.setItem(alertReadKey(user),JSON.stringify(recent));}catch(_){}
   metrics();
  }
+// « Proposer mes services » : la pastille compte les missions accessibles
+ // pas encore vues ; ouvrir l'écran les marque comme vues (par compte).
+ const seenRequestIds=new Map();
+ function requestsSeenKey(user){return 'offrya:pro:requests-seen:v1:'+user;}
+ function seenRequests(user){
+  if(!user)return new Set();
+  if(seenRequestIds.has(user))return seenRequestIds.get(user);
+  let stored=[];
+  try{stored=JSON.parse(window.localStorage.getItem(requestsSeenKey(user))||'[]');}catch(_){}
+  const seen=new Set(Array.isArray(stored)?stored.filter(id=>typeof id==='string'&&id.length<=128):[]);
+  seenRequestIds.set(user,seen);
+  return seen;
+ }
+ function unseenRequests(missions){
+  const user=state.session?.user?.id;
+  if(!user||!canUsePremium())return [];
+  const seen=seenRequests(user);
+  return (missions||[]).filter(m=>m&&m.id&&!seen.has(String(m.id)));
+ }
+ function markRequestsSeen(missions){
+  const user=state.session?.user?.id;
+  if(!user||!canUsePremium())return;
+  const seen=seenRequests(user);
+  let changed=false;
+  for(const m of missions||[])if(m&&m.id&&!seen.has(String(m.id))){seen.add(String(m.id));changed=true;}
+  if(!changed)return;
+  const recent=[...seen].slice(-2000);
+  seenRequestIds.set(user,new Set(recent));
+  try{window.localStorage.setItem(requestsSeenKey(user),JSON.stringify(recent));}catch(_){}
+ }
  function categoryIcon(category){
   if(/vert|jardin|élag|agric/i.test(category))return '♧';
   if(/bât|rénov|construction|plomb/i.test(category))return '▦';
@@ -477,7 +507,12 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(bubble){bubble.hidden=!count;bubble.textContent=String(Math.min(count,99));}
   const trigger=$('proV3MobileAlert');
   if(trigger)trigger.setAttribute('aria-label',count?'Ouvrir '+count+' mission(s) correspondant à mes filtres':'Consulter les missions disponibles');
-  for(const el of document.querySelectorAll('[data-pro-count="requests"]')){el.textContent=String(missions.length);el.hidden=!missions.length;}
+  if(view==='requests'&&$('professional')?.classList.contains('active'))markRequestsSeen(missions);
+  const unseen=unseenRequests(missions).length;
+  for(const el of document.querySelectorAll('[data-pro-count="requests"]')){
+   el.textContent=unseen>99?'99+':String(unseen);el.hidden=!unseen;
+   el.setAttribute('aria-label',unseen+' nouvelle(s) mission(s)');
+  }
   for(const el of document.querySelectorAll('[data-pro-count="inbox"]')){const count=Number(state.messageUnreadCount||0);el.textContent=count>99?'99+':count?String(count):'';el.hidden=!count;}
  }
 
@@ -596,6 +631,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   }
   $('proV3PreferenceSlot').querySelector('details').open=true;
   activeButtons();
+  if(next==='requests')metrics();
   window.scrollTo({top:0,behavior:'auto'});
  }
  function openMissionDetail(id){
