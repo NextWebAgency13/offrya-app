@@ -1,0 +1,100 @@
+/* OFFRYA — identité du Pack Marketing 2026 (refonte) : marque sombre premium.
+   Palette officielle : violet #7A3CFF, prune #4B0058, corail #FF6B6B, magenta #C02FC6,
+   lavande #F7F2FC, nuit #190F2C, orange d'accent #FF901B.
+   Logos : lockups transparents du pack (texte prune sur fond clair, texte blanc sur fond sombre), jamais retouchés. */
+:root{
+ --offrya-violet:#7A3CFF;--offrya-prune:#4B0058;--offrya-corail:#FF6B6B;--offrya-magenta:#C02FC6;
+ --offrya-lavande:#F7F2FC;--offrya-nuit:#190F2C;--offrya-orange:#FF901B;
+ --offrya-gradient-prune:linear-gradient(110deg,#2E043D 0%,#4B0058 100%);
+ /* Variables existantes réalignées sur le pack */
+ --blue:#7A3CFF;--blue-dark:#4B0058;--blue-soft:#F3ECFF;--purple:#7A3CFF;
+ --violet:#7A3CFF;--accent:#7A3CFF;--offrya-interactive:#7A3CFF;
+ --text:#211728;--ink:#211728;--bg:#F7F2FC;
+}
+
+/* Logo */
+.brand-logo{display:block;height:44px;width:auto;max-width:100%}
+a.brand:has(.brand-logo),.mini-brand:has(.brand-logo){display:inline-flex;align-items:center;line-height:0;text-decoration:none}
+.sidebar .brand-area .brand{display:flex;justify-content:flex-start}
+.sidebar .brand-area .brand-logo{height:46px}
+.mobile-brand:has(.brand-logo){display:flex;align-items:center}
+.mobile-brand .brand-logo{height:40px}
+/* Sur ordinateur, le logo est dans la barre latérale : pas de doublon dans l'en-tête */
+@media (min-width:781px){body.offrya-reference-ui .app-shell .header .mobile-brand{display:none!important}}
+@media (max-width:930px) and (min-width:781px){.sidebar .brand-area .brand-logo{height:auto;width:56px;object-fit:cover;object-position:left center;aspect-ratio:56/44}}
+@media (max-width:600px){.top nav .brand .brand-logo{height:40px}}
+
+/* Surfaces de marque */
+body.offrya-reference-ui .app-shell .header{background:var(--offrya-gradient-prune)!important;border-bottom-color:#5c1a6e!important}
+.btn.primary,.button.primary{background:var(--offrya-violet);border-color:var(--offrya-violet)}
+.btn.primary:hover,.button.primary:hover:not(:disabled){background:var(--offrya-prune);border-color:var(--offrya-prune)}
+.footer{background:var(--offrya-nuit)}
+.offer{background:var(--offrya-gradient-prune)}
+
+/* ===== Compositions du Pack Marketing 2026, recréées en HTML (texte réel, symbole du pack intact) ===== */
+:root{--offrya-symbole:url("/assets/offrya/symbole.png")}
+
+/* 1. Bandeau d'accueil de l'espace : bannière principale du pack (prune, disque, courbes, symbole à droite) */
+body.offrya-reference-ui #dashboard .client-dashboard-publish.role-client-hero,
+body:has(#dashboard.active) #dashboard .role-client-hero{
+ position:relative!important;isolation:isolate;overflow:hidden!important;
+ background:
+  radial-gradient(circle at 100% 0,#5a1d82 0 230px,transparent 231px),
+  radial-gradient(circle at 8% 165%,transparent 0 250px,rgba(255,255,255,.16) 251px 252px,transparent 253px),
+  radial-gradient(circle at 70% 210%,transparent 0 330px,rgba(255,255,255,.12) 331px 332px,transparent 333px),
+  linear-gradient(120deg,#2E043D 0%,#3a0850 55%,#4B0058 100%)!important;
+ background-size:auto!important;background-position:0 0!important;
+}
+body.offrya-reference-ui #dashboard .client-dashboard-publish.role-client-hero::after{
+ content:"";position:absolute;z-index:0;pointer-events:none;
+ right:4%;top:50%;transform:translateY(-50%);
+ width:min(40%,400px);aspect-ratio:720/424;
+ background:var(--offrya-symbole) center/contain no-repeat;
+}
+body.offrya-reference-ui #dashboard .role-client-hero .role-ref-hero-copy{position:relative;z-index:1}
+body.offrya-reference-ui #dashboard .role-client-hero h2::after{
+ content:"";display:block;width:120px;height:4px;margin-top:12px;border-radius:4px;background:var(--offrya-corail);
+}
+@media (max-width:780px){
+ body.offrya-reference-ui #dashboard .client-dashboard-publish.role-client-hero{
+  flex-direction:column!important;align-items:flex-start!important;padding-top:118px!important;
+ }
+ body.offrya-reference-ui #dashboard .client-dashboard-publish.role-client-hero::after{
+  right:auto;left:20px;top:22px;transform:none;width:150px;
+ }
+}
+
+/* 2. Accueil public : visuel « demandeur » clair du pack (lavande, titre prune, symbole, action prune) */
+.mock-home .offrya-entry-hero{background:radial-gradient(ellipse 900px 420px at 50% -10%,#efe4ff 0%,transparent 70%),linear-gradient(165deg,#fbf8ff 0%,#F7F2FC 100%)}
+.mock-home .offrya-entry-hero .mock-hero-text::before{
+ content:"";display:block;width:clamp(150px,18vw,210px);aspect-ratio:720/424;margin:0 auto 18px;
+ background:var(--offrya-symbole) center/contain no-repeat;
+}
+.mock-home .offrya-entry-hero .mock-eyebrow{color:var(--offrya-violet)}
+.mock-home .offrya-entry-hero h1{color:var(--offrya-prune)}
+.mock-home .offrya-entry-hero h1 span{color:var(--offrya-violet)}
+.mock-home .offrya-entry-path-primary{background:var(--offrya-prune);border-color:var(--offrya-prune);box-shadow:0 10px 25px #4b005830}
+.mock-home .offrya-entry-icon{color:var(--offrya-violet)}
+.mock-home .offrya-entry-path-primary .offrya-entry-icon{color:#fff}
+
+/* 3. Page Professionnels : visuel « pro » du pack (prune, symbole, action corail) */
+.premium-hero{
+ background:
+  radial-gradient(circle at 100% 0,#5a1d82 0 260px,transparent 261px),
+  radial-gradient(circle at 10% 150%,transparent 0 300px,rgba(255,255,255,.14) 301px 302px,transparent 303px),
+  linear-gradient(120deg,#2E043D 0%,#3a0850 55%,#4B0058 100%);
+ color:#fff;
+}
+.premium-hero .premium-intro::before{
+ content:"";display:block;width:clamp(140px,16vw,190px);aspect-ratio:720/424;margin:0 0 14px;
+ background:var(--offrya-symbole) left center/contain no-repeat;
+}
+.premium-hero .premium-intro .eyebrow{color:#e3d2ff}
+.premium-hero .premium-intro h1{color:#fff}
+.premium-hero .premium-intro p{color:#f1e8fa}
+.premium-hero .premium-intro a:not(.btn){color:#fff}
+.premium-hero .premium-intro .btn.primary{background:var(--offrya-corail);border-color:var(--offrya-corail);color:var(--offrya-prune)}
+.premium-hero .premium-intro .btn.primary:hover{background:#ff8585;border-color:#ff8585}
+.premium-hero .premium-intro .btn.outline{background:transparent;border-color:#ffffff99;color:#fff}
+.premium-hero .premium-price-card{color:var(--offrya-ink,#211728)}
+.premium-hero .premium-price-card li,.premium-hero .premium-price-card span{color:#3a2a48}

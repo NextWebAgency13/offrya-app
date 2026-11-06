@@ -37,6 +37,6 @@ test('Page OFFRYA Professionnel compacte et responsive, sans image distante',()=
  assert.match(css,/\.premium-hero\{display:grid/);
  assert.match(css,/@media\(max-width:600px\)\{\.premium-hero/);
  assert.match(css,/\.premium-price-assurance\{[^}]*font-size:14px/);
- assert.doesNotMatch(premium,/<img\b|<script type="module"/);
+ assert.doesNotMatch(premium,/<img\b(?![^>]*src="\/assets\/offrya\/)|<script type="module"/);
  assert.match(premium,/<main id="contenu">/);
 });
