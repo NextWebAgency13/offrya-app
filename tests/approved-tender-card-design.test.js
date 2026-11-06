@@ -83,3 +83,27 @@ test('Location labels expand genuine French department codes without guessing mi
  assert.equal(displayTenderLocation('France',''),'France');
  assert.equal(displayTenderLocation('Marseille (13)',''),'Marseille · Bouches-du-Rhône (13)');
 });
+
+
+test('Desktop tender card headings, details, badges and actions follow common alignment tracks',()=>{
+ const rules=css.slice(css.indexOf('/* OFFRYA tender desktop-Android alignment, 06/11/2026 */'));
+ assert.ok(rules.length>1200);
+ assert.match(rules,/\.pro-tender-card\{\s*container-type:inline-size/);
+ assert.match(rules,/\.pro-tender-top\{\s*display:grid;\s*grid-template-columns:218px 112px minmax\(0,1fr\)/);
+ assert.match(rules,/\.pro-tender-information h4\{\s*min-height:3\.81em/);
+ assert.match(rules,/\.pro-tender-details\{\s*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
+ assert.match(rules,/\.pro-tender-actions\{\s*align-self:end/);
+ assert.match(rules,/\.pro-ai-filter-tabs button\{\s*display:flex;\s*align-items:center;\s*justify-content:center;\s*flex-direction:row;\s*flex-wrap:nowrap/);
+ assert.doesNotMatch(rules,/display:none!important|order:\s*\d+|visibility:hidden/);
+});
+test('Narrow desktop cards adapt by card width, and Android retains approved stacked buttons',()=>{
+ const rules=css.slice(css.indexOf('/* OFFRYA tender desktop-Android alignment, 06/11/2026 */'));
+ assert.match(rules,/@container \(max-width:1050px\)/);
+ assert.match(rules,/@container \(max-width:760px\)/);
+ assert.match(rules,/\.pro-tender-details\{\s*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(rules,/\.pro-tender-grid\{\s*grid-template-columns:minmax\(0,1fr\);\s*row-gap:16px/);
+ assert.match(rules,/\.pro-tender-actions\{\s*display:flex!important;\s*flex-direction:column!important/);
+ assert.match(js,/serverRadar\.items\.filter/);
+ assert.match(js,/data-pro-save-tender/);
+ assert.match(js,/data-pro-remove-tender/);
+});
