@@ -33,7 +33,7 @@ async function fakeClamd(result,callback){
 }
 test('No local ClamAV socket blocks every raw DCE import',async()=>{
  await assert.rejects(scanDceArchive(sample,{socketPath:''}),/antivirus obligatoire/i);
- await assert.rejects(scanDceArchive(sample,{socketPath:'/tmp/offrya-clamd-not-existing.sock'}),/Antivirus injoignable/i);
+ await assert.rejects(scanDceArchive(sample,{socketPath:'/tmp/offrya-clamd-not-existing.sock',signatureCheck:async()=>true}),/Antivirus injoignable/i);
 });
 test('Official ClamAV stream framing sends binary content and checks explicit OK',async()=>{
  let scanned=null;
