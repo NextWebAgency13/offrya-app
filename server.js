@@ -14,7 +14,7 @@ const push=require('./lib/push');
 const staticMap=new Map([
  ['/sw.js','text/javascript; charset=utf-8'],['/manifest.webmanifest','application/manifest+json; charset=utf-8'],['/push-notifications.js','text/javascript; charset=utf-8'],['/auth-captcha.mjs','text/javascript; charset=utf-8'],['/home-session.js','text/javascript; charset=utf-8'],
  ['/public.css','text/css; charset=utf-8'],['/auth.css','text/css; charset=utf-8'],['/activity.js','text/javascript; charset=utf-8'],['/deposer.js','text/javascript; charset=utf-8'],['/connexion.js','text/javascript; charset=utf-8'],['/auth-feedback.mjs','text/javascript; charset=utf-8'],['/legacy-redirect.js','text/javascript; charset=utf-8'],
- ['/index.html','text/html; charset=utf-8'],['/pro-experience.js','text/javascript; charset=utf-8'],['/pro-commercial.js','text/javascript; charset=utf-8'],['/app.js','text/javascript; charset=utf-8'],['/mission-feed.js','text/javascript; charset=utf-8'],['/radar.js','text/javascript; charset=utf-8'],['/opportunity-console.js','text/javascript; charset=utf-8'],
+ ['/index.html','text/html; charset=utf-8'],['/pro-experience.js','text/javascript; charset=utf-8'],['/pro-commercial.js','text/javascript; charset=utf-8'],['/app.js','text/javascript; charset=utf-8'],['/mission-feed.js','text/javascript; charset=utf-8'],['/tender-platforms.js','text/javascript; charset=utf-8'],['/radar.js','text/javascript; charset=utf-8'],['/opportunity-console.js','text/javascript; charset=utf-8'],
  ['/styles.css','text/css; charset=utf-8'],['/home.css','text/css; charset=utf-8'],['/pro.css','text/css; charset=utf-8'],['/pro-experience.css','text/css; charset=utf-8'],['/role-reference.css','text/css; charset=utf-8'],['/brand-kit.css','text/css; charset=utf-8'],['/premium-dashboard-visual.css','text/css; charset=utf-8'],['/assets/offrya/android-chrome-192x192.png','image/png'],['/assets/offrya/android-chrome-512x512.png','image/png'],['/assets/offrya/android-chrome-maskable-512x512.png','image/png'],['/assets/offrya/apple-touch-icon.png','image/png'],['/assets/offrya/favicon-32.png','image/png'],['/assets/offrya/favicon-48.png','image/png'],['/assets/offrya/favicon.ico','image/x-icon'],['/assets/offrya/logo-offrya-blanc.png','image/png'],['/assets/offrya/logo-offrya-prune.png','image/png'],['/assets/offrya/og-image.png','image/png'],['/assets/offrya/symbole.png','image/png'],['/favicon.svg','image/svg+xml'],
  ['/confidentialite.html','text/html; charset=utf-8'],['/mentions-legales.html','text/html; charset=utf-8'],
  ['/cgv.html','text/html; charset=utf-8'],['/remboursements.html','text/html; charset=utf-8'],['/contact.html','text/html; charset=utf-8']]);
@@ -292,8 +292,8 @@ async function handle(req,res){
      urgent:enhanced.urgent,items:displayed,
      truncated:enhanced.total>displayed.length,
      liveSource:live.source,
-     liveNotices:live.notices.map(({tender_id,title,buyer,departments,url,deadline,source,detected_at})=>
-      ({tender_id,title,buyer,departments,url,deadline,source,detected_at}))},
+     liveNotices:live.notices.map(({tender_id,title,buyer,departments,url,deadline,source,detected_at,respond_url,respond_kind})=>
+      ({tender_id,title,buyer,departments,url,deadline,source,detected_at,respond_url,respond_kind}))},
      {'Cache-Control':'private,no-store'});
    }catch(e){console.error('Opportunity matching:',e.message);
     return json(res,503,{error:'Moteur de correspondance momentanément indisponible.'});}
@@ -306,7 +306,7 @@ async function handle(req,res){
    if(!premium.allowed)return json(res,premium.status,{error:premium.error});
    try{const data=await queryBoamp({q:u.searchParams.get('q'),dept:u.searchParams.get('dept'),offset:p==='/api/export'?0:u.searchParams.get('offset'),limit:p==='/api/export'?50:20});
     if(p==='/api/annonces')return json(res,200,data,{'Cache-Control':'private,no-store'});
-    const rows=[['ID','Objet','Acheteur','Département','Publié','Date limite','BOAMP'],...data.items.map(x=>[x.id,x.title,x.buyer,x.departments,x.published,x.deadline,x.url])];
+    const rows=[['ID','Objet','Acheteur','Département','Publié','Date limite','BOAMP','Dossier / réponse'],...data.items.map(x=>[x.id,x.title,x.buyer,x.departments,x.published,x.deadline,x.url,x.respondUrl||''])];
     const csv='\ufeff'+rows.map(row=>row.map(csvValue).join(';')).join('\r\n');
     res.writeHead(200,{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':'attachment; filename="offrya-boamp.csv"','Cache-Control':'private,no-store','X-Content-Type-Options':'nosniff'});
     return res.end(req.method==='HEAD'?undefined:csv);
