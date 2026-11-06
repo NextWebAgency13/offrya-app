@@ -1608,3 +1608,57 @@ body.offrya-pro-v3 .pro-tender-card :is(a,button,select):focus-visible{
  body.offrya-pro-v3 .pro-tender-grid{grid-template-columns:minmax(0,1fr)}
  body.offrya-pro-v3 .pro-tender-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 }
+
+
+/* Visual parity corrections for validated public-tender cards only.
+   No global Premium header, AI matching, search, filters or private mission changes. */
+body.offrya-pro-v3 .pro-ai-results .pro-tender-card .pro-tender-top{
+ display:flex;flex-wrap:wrap;align-items:center;column-gap:11px;row-gap:8px;
+}
+body.offrya-pro-v3 .pro-ai-results .pro-tender-card :is(.pro-tender-score,.pro-tender-source,.pro-tender-reference){
+ box-sizing:border-box;align-items:center;justify-content:center;
+ min-height:34px;line-height:1.25;vertical-align:middle;
+}
+body.offrya-pro-v3 .pro-ai-results .pro-tender-card .pro-tender-reference{
+ min-width:0;max-width:100%;text-align:center;
+}
+body.offrya-pro-v3 .pro-ai-results .pro-tender-card .pro-tender-information h4{
+ display:-webkit-box!important;-webkit-box-orient:vertical;
+ -webkit-line-clamp:3;line-clamp:3;overflow:hidden!important;
+ max-width:100%;overflow-wrap:anywhere;word-break:normal;
+}
+body.offrya-pro-v3 .pro-ai-results .pro-tender-card .pro-tender-detail-icon svg{
+ display:block;flex:none;width:21px;height:21px;stroke:currentColor;
+}
+@media(max-width:620px){
+ body.offrya-pro-v3 .pro-ai-results .pro-tender-card .pro-tender-top{column-gap:7px;row-gap:7px}
+ body.offrya-pro-v3 .pro-ai-results .pro-tender-card :is(.pro-tender-score,.pro-tender-source,.pro-tender-reference){
+  min-height:31px;padding:6px 9px;
+ }
+ body.offrya-pro-v3 .pro-ai-results .pro-tender-card .pro-tender-reference{
+  margin-left:0;justify-content:flex-start;
+ }
+ body.offrya-pro-v3 .pro-ai-results .pro-tender-card .pro-tender-information h4{
+  -webkit-line-clamp:3;line-clamp:3;
+ }
+ body.offrya-pro-v3 .pro-ai-results .pro-tender-card .pro-tender-detail-icon svg{
+  width:18px;height:18px;
+ }
+}
+/* Some Android browsers report a wide CSS viewport in portrait; keep the
+   two actions in the approved vertical order on both phone viewports. */
+@media(max-width:760px), screen and (pointer:coarse) and (orientation:portrait) and (max-width:1100px){
+ body.offrya-pro-v3 .pro-ai-results .pro-tender-card .pro-tender-actions{
+  display:flex!important;flex-direction:column!important;align-items:stretch!important;
+  grid-template-columns:none!important;gap:9px!important;width:100%;
+ }
+ body.offrya-pro-v3 .pro-ai-results .pro-tender-card .pro-tender-actions :is(.pro-v3-reco-btn,.pro-ai-track-action,.pro-ai-follow-actions){
+  width:100%!important;max-width:none!important;box-sizing:border-box;
+ }
+ body.offrya-pro-v3 .pro-ai-results .pro-tender-card .pro-tender-actions .pro-ai-follow-actions{
+  display:flex;flex-direction:column;align-items:stretch;
+ }
+ body.offrya-pro-v3 .pro-ai-results .pro-tender-card .pro-tender-actions .pro-v3-reco-btn{
+  min-height:46px!important;
+ }
+}
