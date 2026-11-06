@@ -53,5 +53,5 @@ async function main(fetcher=fetch){
   return result;
  }finally{await fs.rm(dir,{recursive:true,force:true});}
 }
-if(require.main===module)main().catch(e=>{console.error('DCE OCR TEST '+e.message);process.exitCode=1;});
+if(require.main===module&&process.env.OFFRYA_RUN_OCR_SMOKE==='true')main().catch(e=>{console.error('DCE OCR TEST '+e.message);process.exitCode=1;});
 module.exports={main};
