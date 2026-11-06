@@ -72,3 +72,21 @@ jobs:
             DCE_CLAMD_SOCKET=/run/clamav/clamd.ctl \
             DCE_CLAMDB_DIR=/var/lib/clamav \
             "$NODE_BIN" /tmp/offrya-dce-ci/scripts/validate-clamd-real.js
+
+  docker-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Docker startup script
+        run: bash -n deploy/dce/entrypoint.sh
+      - name: Build Docker image with ClamAV and offline French OCR
+        run: docker build --file Dockerfile.dce --tag offrya-dce:ci .
+      - name: Check installed OCR languages from the built container
+        run: |
+          docker run --rm --entrypoint /usr/bin/tesseract offrya-dce:ci --list-langs | tee /tmp/offrya-tess-langs.txt
+          grep -x 'fra' /tmp/offrya-tess-langs.txt
+      - name: Confirm ClamAV tools are included
+        run: |
+          docker run --rm --entrypoint /bin/bash offrya-dce:ci -c \
+            'command -v clamd && command -v freshclam && test -x /usr/bin/tesseract && test -f /etc/clamav/clamd-offrya.conf'
