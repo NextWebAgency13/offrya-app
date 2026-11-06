@@ -357,15 +357,39 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
     score+' % pertinent'+(item.locationType==='unknown'?' · Zone à confirmer':'');
    const source=tender?esc(item.source==='TED'?'TED':'BOAMP'):'MISSION OFFRYA';
    const action=tender
-    ?'<a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer" class="pro-v3-reco-btn">Consulter l’appel d’offres →</a>'
+    ?'<a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer" class="pro-v3-reco-btn"><span aria-hidden="true">↗</span> Consulter l’appel d’offres</a>'
     :'<button type="button" class="pro-v3-reco-btn" data-pro-view-mission="'+esc(item.id)+'" title="Voir la mission et Préparer une proposition">Voir la mission →</button>';
    const favorite=tender?'<div class="pro-ai-follow-actions">'+
     (follow?'<label class="pro-ai-stage-label">Suivi <select class="pro-ai-stage-select" data-pro-stage-tender="'+esc(item.id)+'">'+
       [['saved','Enregistré'],['reviewing','À analyser'],['preparing','Dossier en préparation'],['submitted','Candidature déposée'],['done','Terminé']]
        .map(([value,label])=>'<option value="'+value+'"'+(follow.stage===value?' selected':'')+'>'+label+'</option>').join('')+
       '</select></label><button type="button" class="pro-ai-track-action" data-pro-remove-tender="'+esc(item.id)+'" aria-label="Retirer du suivi">Retirer</button>':
-      '<button type="button" class="pro-ai-track-action" data-pro-save-tender="'+esc(item.id)+'" aria-label="Enregistrer ce marché">☆ Enregistrer</button>')+'</div>':'';
+      '<button type="button" class="pro-ai-track-action" data-pro-save-tender="'+esc(item.id)+'" aria-label="Enregistrer ce marché">♡ Enregistrer</button>')+'</div>':'';
    const price=!tender&&m?.budget_cents!=null?'<span class="pro-ai-mission-budget">Budget : '+esc(euroRadar(m.budget_cents))+'</span>':'';
+   // The approved tender-only layout uses live notice fields and existing
+   // tracking handlers. Do not add a secondary OFFRYA/Premium logo.
+   if(tender){
+    const reference=String(a?.tender_id||item.id);
+    const detail=(symbol,label,value)=>
+     '<div class="pro-tender-detail"><span class="pro-tender-detail-icon" aria-hidden="true">'+symbol+'</span>'+
+     '<span class="pro-tender-detail-copy"><b>'+esc(label)+'</b><span>'+esc(value)+'</span></span></div>';
+    return '<article class="pro-v3-radar-row pro-ai-card pro-ai-card-tender pro-tender-card">'+
+     '<div class="pro-tender-inner"><div class="pro-tender-top">'+
+      '<span class="pro-tender-score" title="'+esc(reason||'Correspondance calculée selon vos critères')+'">'+icon('ic-sparkles')+
+       ' Pertinence IA : '+score+' %</span>'+
+      '<span class="pro-tender-source">'+icon('ic-boamp')+' '+source+'</span>'+
+      '<span class="pro-tender-reference" title="'+esc(reference)+'">Réf. : '+esc(reference)+'</span>'+
+     '</div><div class="pro-tender-grid"><div class="pro-tender-information">'+
+      '<h4 title="'+esc(item.title)+'">'+esc(item.title)+'</h4>'+
+      '<div class="pro-tender-details">'+
+       detail(icon('ic-boamp'),'Acheteur',a?.buyer||'Non précisé')+
+       detail('<span class="pro-tender-pin">⌖</span>','Localisation',item.location||a?.departments||'Zone non précisée')+
+       detail(icon('ic-settings'),'Métier',item.category||'Non précisé')+
+       detail(icon('ic-calendar'),'Date limite',date?dateRadar(date):'Non précisée')+
+      '</div></div>'+
+      '<div class="pro-tender-actions">'+action+favorite+'</div>'+
+     '</div></div></article>';
+   }
    return '<article class="pro-v3-radar-row pro-ai-card '+(tender?'pro-ai-card-tender':'pro-ai-card-mission')+'">'+
     '<div class="pro-ai-card-icon">'+(tender?icon('ic-boamp'):icon('ic-missions'))+'</div>'+
     '<div class="pro-v3-radar-body pro-ai-card-content"><div class="pro-ai-card-labels">'+
