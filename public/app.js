@@ -301,7 +301,7 @@ function tab(name,fromHistory=false,preserveMissionDetail=false){
  document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.id===name));
  document.querySelectorAll('.nav-link').forEach(el=>el.classList.toggle('active',el.dataset.tab===name||(name==='professional'&&canUsePremium()&&el.dataset.tab==='boamp')));
  document.getElementById('accountMenu')?.removeAttribute('open');
- const titles={dashboard:'Tableau de bord',missions:'Mes missions',boamp:'Espace Premium',professional:'Espace professionnel',inbox:'Messagerie',settings:'Mon compte'};
+ const titles={dashboard:'Accueil',missions:canUsePremium()?'Missions':'Mes missions',boamp:'Espace Premium',professional:'Espace professionnel',inbox:'Messages',settings:'Mon compte'};
  $('pageTitle').textContent=titles[name];$('breadcrumb').textContent='OFFRYA / '+titles[name].toUpperCase();
  if(!fromHistory&&location.pathname!==paths[name])history.pushState({tab:name},'',paths[name]);
  if(name==='boamp'&&canUsePremium()&&!state.boamp.length)loadBoamp();
