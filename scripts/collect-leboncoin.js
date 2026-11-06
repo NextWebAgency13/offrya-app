@@ -12,6 +12,11 @@ function allowedSearchUrls(value){
  if(!Array.isArray(urls)||urls.length>8)throw Error('LEBONCOIN_SEARCH_URLS : tableau limité à 8 entrées.');
  const checked=urls.map(u=>leboncoinUrl(u,{advert:false}));
  if(checked.some(u=>!u))throw Error('URL de recherche Leboncoin non autorisée.');
+ for(const safe of checked){
+  const q=new URL(safe).searchParams;
+  if(q.get('category')!=='34'||!/\b(?:cherche|recherche|besoin|demande|devis|artisan|plombier|jardinier|paysagiste)\b/i.test(q.get('text')||''))
+   throw Error('Recherche non ciblée : catégorie services et intention de demande exigées.');
+ }
  const unique=[...new Set(checked)];
  if(unique.length>maxPages)throw Error('Une seule recherche ciblée autorisée par exécution.');
  return unique;
