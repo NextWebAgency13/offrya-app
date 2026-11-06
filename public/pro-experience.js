@@ -15,30 +15,6 @@ export function professionalGreetingLabel(state){
  return '';
 }
 
-// Compact, readable criteria: show up to 3 trades individually, then
-// 2 trades + a grammatically correct counter. Geographic area is always separate.
-export function summarizeWatchCriteria(p={}){
- const sectors=[...new Set((Array.isArray(p.sectors)?p.sectors:[])
-  .filter(x=>typeof x==='string').map(x=>x.trim()).filter(Boolean))];
- const items=[];
- const visible=sectors.length>3?sectors.slice(0,2):sectors;
- for(const label of visible)items.push({kind:'sector',label});
- if(!sectors.length)items.push({kind:'sector',label:'Tous les secteurs'});
- if(sectors.length>3){
-  const remaining=sectors.slice(2);
-  items.push({kind:'overflow',label:'+'+remaining.length+' autres secteurs',
-   tooltip:'Autres secteurs : '+remaining.join(', ')});
- }
- const deptNames={'13':'Bouches-du-Rhône','30':'Gard','34':'Hérault','83':'Var',
-  '84':'Vaucluse','06':'Alpes-Maritimes','75':'Paris','69':'Rhône'};
- const dept=p.department?String(p.department).trim().toUpperCase():'';
- items.push({kind:'area',label:dept?(deptNames[dept]?deptNames[dept]+' ('+dept+')':'Département '+dept):'Toute la France'});
- const budget=p.min_budget_cents!=null||p.max_budget_cents!=null;
- if(budget)items.push({kind:'detail',label:'Budget défini'});
- if(p.keywords)items.push({kind:'detail',label:'Mots-clés définis'});
- return items;
-}
-
 // Present the official location without changing any IA filtering or stored notice.
 const TENDER_DEPARTMENT_NAMES=Object.freeze({
  '01':'Ain','02':'Aisne','03':'Allier','04':'Alpes-de-Haute-Provence','05':'Hautes-Alpes',
@@ -82,13 +58,37 @@ export function displayTenderLocation(location,departments){
  const inCity=raw.match(/\(\s*(97[1-6]|2[AB]|\d{1,2})\s*\)/i);
  if(inCity){
   const code=normalize(inCity[1]);
-  if(TENDER_DEPARTMENT_NAMES[code])return raw.replace(inCity[0],' · '+label(code));
+  if(TENDER_DEPARTMENT_NAMES[code])return raw.replace(inCity[0],' · '+label(code)).replace(/\s+·/g,' ·');
  }
  if(!raw||/^(?:zone|lieu)\s+non\s+pr[eé]cis[eé]?$/i.test(raw))
   return codes.length?codes.map(label).join(' · '):'Zone non précisée';
  if(codes.length&&!codes.some(code=>raw.toLocaleLowerCase('fr').includes(TENDER_DEPARTMENT_NAMES[code].toLocaleLowerCase('fr'))))
   return raw+' · '+codes.map(label).join(' · ');
  return raw;
+}
+
+// Compact, readable criteria: show up to 3 trades individually, then
+// 2 trades + a grammatically correct counter. Geographic area is always separate.
+export function summarizeWatchCriteria(p={}){
+ const sectors=[...new Set((Array.isArray(p.sectors)?p.sectors:[])
+  .filter(x=>typeof x==='string').map(x=>x.trim()).filter(Boolean))];
+ const items=[];
+ const visible=sectors.length>3?sectors.slice(0,2):sectors;
+ for(const label of visible)items.push({kind:'sector',label});
+ if(!sectors.length)items.push({kind:'sector',label:'Tous les secteurs'});
+ if(sectors.length>3){
+  const remaining=sectors.slice(2);
+  items.push({kind:'overflow',label:'+'+remaining.length+' autres secteurs',
+   tooltip:'Autres secteurs : '+remaining.join(', ')});
+ }
+ const deptNames={'13':'Bouches-du-Rhône','30':'Gard','34':'Hérault','83':'Var',
+  '84':'Vaucluse','06':'Alpes-Maritimes','75':'Paris','69':'Rhône'};
+ const dept=p.department?String(p.department).trim().toUpperCase():'';
+ items.push({kind:'area',label:dept?(deptNames[dept]?deptNames[dept]+' ('+dept+')':'Département '+dept):'Toute la France'});
+ const budget=p.min_budget_cents!=null||p.max_budget_cents!=null;
+ if(budget)items.push({kind:'detail',label:'Budget défini'});
+ if(p.keywords)items.push({kind:'detail',label:'Mots-clés définis'});
+ return items;
 }
 
 // OFFRYA Pro UI v3 — visual redesign on top of existing secured modules.
