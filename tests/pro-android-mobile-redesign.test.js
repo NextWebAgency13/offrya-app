@@ -19,12 +19,10 @@ test('Mobile redesign uses valid JavaScript and preserves existing private modul
  assert.match(app,/renderPremium/);
  assert.match(app,/canUsePremium\(\)/);
 });
-test('Android has one five-item bottom navigation and secondary menu in header',()=>{
+test('Android has one five-item bottom navigation and a minimal account menu in header',()=>{
  assert.match(html,/id="nav"/);
  for(const tab of ['dashboard','missions','professional','inbox','settings'])assert.match(html,new RegExp('data-tab="'+tab+'"'));
- assert.match(pro,/proV3AccountTools/);
- assert.match(pro,/tools\.setAttribute\('aria-label','Outils professionnels'\)/);
- assert.match(pro,/accountPanel\.prepend\(tools\)/);
+ assert.doesNotMatch(pro,/accountPanel|accountToolsMenu|createElement\('nav'\);tools\.id='proV3AccountTools'/,'Le menu du compte ne contient plus d’outils professionnels');
  assert.match(css,/\.pro-v3-mobile-menu\{display:none!important\}/);
  assert.match(css,/\.sidebar #nav\{display:grid!important;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
  assert.match(css,/\/\* OFFRYA unified light theme:/);

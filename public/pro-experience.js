@@ -113,9 +113,6 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   ['tracking','Gérer mon activité','ic-check']
  ];
  const secondaryMenu=menu.filter(item=>!['home','requests','tracking','assistant'].includes(item[0]));
- // Top-right account menu: « Proposer mes services » and « Gérer mon activité » already
- // live in the Missions tab, and « Paramètres » in Mon compte, so they are not repeated here.
- const accountToolsMenu=secondaryMenu.filter(item=>item[0]!=='settings');
  let initialized=false,view='home',uid=null;
  let serverRadar=null,radarKey='',radarAt=0,radarLoading=false;
  let radarFilter='all',radarQuery='';
@@ -174,14 +171,8 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   extras.setAttribute('aria-label','Outils professionnels complémentaires');
   extras.innerHTML='<strong class="pro-v3-extras-title">Outils professionnels</strong>'+secondaryMenu.map(navButton).join('');
   nav.after(extras);extras.after(badge);
-  // Secondary Pro screens appear in the existing mobile account menu.
-  const accountPanel=document.querySelector('#accountMenu .account-menu-panel');
-  if(accountPanel&&!accountPanel.querySelector('#proV3AccountTools')){
-   const tools=document.createElement('nav');tools.id='proV3AccountTools';tools.className='pro-v3-account-tools';
-   tools.setAttribute('aria-label','Outils professionnels');
-   tools.innerHTML='<strong class="pro-v3-account-title">Outils professionnels</strong>'+accountToolsMenu.map(navButton).join('');
-   accountPanel.prepend(tools);
-  }
+  // The top-right account menu stays minimal (Mon compte, Espace professionnel,
+  // identifiant, Déconnexion): professional tools are not repeated there.
   const accountMenu=document.getElementById('accountMenu');
   const alertButton=document.createElement('button');
   alertButton.type='button';alertButton.id='proV3MobileAlert';
@@ -674,7 +665,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
     e.preventDefault();backFromProScreen();return;
    }
    const b=e.target.closest('[data-pro-screen]');
-   if(!b||!canUsePremium()||!b.closest('#proExperienceV3,#proV3Sidebar,#proV3SidePlan,#proV3AccountTools'))return;
+   if(!b||!canUsePremium()||!b.closest('#proExperienceV3,#proV3Sidebar,#proV3SidePlan'))return;
    e.preventDefault();document.getElementById('accountMenu')?.removeAttribute('open');show(b.dataset.proScreen);
   });
   $('proExperienceV3').addEventListener('click',e=>{

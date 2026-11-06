@@ -32,11 +32,8 @@ test('Desktop sidebar offers three primary actions plus all secondary profession
  assert.match(parity,/@media\(min-width:621px\)/);
 });
 
-test('Android preserves secondary actions in the account menu and primary commercial routes',()=>{
- assert.match(pro,/id='proV3AccountTools'/);
- assert.match(pro,/accountPanel\.prepend\(tools\)/);
- assert.match(pro,/const accountToolsMenu=secondaryMenu\.filter\(item=>item\[0\]!=='settings'\)/);
- assert.match(pro,/tools\.innerHTML=[^\n]*accountToolsMenu\.map\(navButton\)/);
+test('Android keeps the account menu minimal and the primary commercial routes',()=>{
+ assert.doesNotMatch(pro,/accountPanel|accountToolsMenu|tools\.id='proV3AccountTools'/);
  assert.match(pro,/data-pro-screen/);
  assert.match(pro,/alertButton\.addEventListener\('click'/);
  assert.match(parity,/@media\(max-width:620px\)/);
