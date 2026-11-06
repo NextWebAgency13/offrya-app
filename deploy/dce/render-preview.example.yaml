@@ -1,0 +1,24 @@
+# Example only: do NOT sync this to an active Render Blueprint.
+# Current offrya-app is a FREE native Node service. This example requires
+# explicit cost approval and an isolated paid test environment (>=4 GiB).
+services:
+  - type: web
+    name: offrya-dce-preproduction
+    runtime: docker
+    plan: 1c-4g
+    dockerfilePath: ./Dockerfile.dce
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DCE_CLAMD_SOCKET
+        value: /run/clamav/clamd.ctl
+      - key: DCE_CLAMDB_DIR
+        value: /var/lib/clamav
+      - key: DCE_OCR_ENABLED
+        value: "true"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
