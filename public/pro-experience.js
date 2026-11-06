@@ -510,10 +510,11 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(bubble){bubble.hidden=!count;bubble.textContent=String(Math.min(count,99));}
   const trigger=$('proV3MobileAlert');
   if(trigger)trigger.setAttribute('aria-label',count?'Ouvrir '+count+' mission(s) correspondant à mes filtres':'Consulter les missions disponibles');
-  const unseen=unseenRequests(missions).length;
+  // Seules les missions pertinentes (secteurs, département, mots-clés, budget de la veille) comptent.
+  const unseen=unseenRequests(matched()).length;
   for(const el of document.querySelectorAll('[data-pro-count="requests"]')){
    el.textContent=unseen>99?'99+':String(unseen);el.hidden=!unseen;
-   el.setAttribute('aria-label',unseen+' nouvelle(s) mission(s)');
+   el.setAttribute('aria-label',unseen+' mission(s) pertinente(s) non consultée(s)');
   }
   for(const el of document.querySelectorAll('[data-pro-count="inbox"]')){const count=Number(state.messageUnreadCount||0);el.textContent=count>99?'99+':count?String(count):'';el.hidden=!count;}
  }

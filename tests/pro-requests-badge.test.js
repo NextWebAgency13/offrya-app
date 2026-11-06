@@ -44,8 +44,20 @@ test('Sans accès Premium ou sans stockage, aucune erreur',()=>{
 });
 test('Ouvrir l’écran ne remet pas tout à zéro ; ouvrir une mission la décompte',()=>{
  assert.doesNotMatch(pro,/\)markRequestsSeen\(missions\);/);
- assert.match(pro,/const unseen=unseenRequests\(missions\)\.length;/);
+ assert.match(pro,/const unseen=unseenRequests\(matched\(\)\)\.length;/);
  assert.match(pro,/closest\?\.\('\[data-sales-open\]'\);if\(b&&canUsePremium\(\)\)markRequestSeen\(b\.dataset\.salesOpen\);/);
  assert.equal((pro.match(/  markRequestSeen\(id\);/g)||[]).length,2);
  assert.doesNotMatch(pro,/el\.textContent=String\(missions\.length\);el\.hidden=!missions\.length;/);
+});
+test('Seules les missions correspondant aux critères de veille sont comptées',()=>{
+ const s=pro.indexOf(' function available(){'),e=pro.indexOf(' // A match is not an unread alert.',s);
+ const ctx={state:{session:{user:{id:'pro-1'}},opportunityPrefs:{sectors:['Espaces verts'],department:'31'},missions:[
+  {id:'a',owner_id:'x',status:'open',category:'Espaces verts',department:'31',created_at:'2026-11-06'},
+  {id:'b',owner_id:'x',status:'open',category:'Bâtiment',department:'31',created_at:'2026-11-06'},
+  {id:'c',owner_id:'x',status:'open',category:'Espaces verts',department:'59',created_at:'2026-11-06'}]},
+  canUsePremium:()=>true,Date,String};
+ vm.runInNewContext(pro.slice(s,e)+'\nthis.m=matched;',ctx);
+ assert.deepEqual(Array.from(ctx.m(),x=>x.id),['a']);
+ const api=harness();
+ assert.equal(api.unseenRequests(ctx.m()).length,1);
 });
