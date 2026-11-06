@@ -5,6 +5,7 @@
 const {leboncoinUrl}=require('../lib/leboncoin-demand');
 const {detectChallenge}=require('./collect-leboncoin');
 const {MAX_REQUESTS_PER_RUN,MIN_REQUEST_GAP_MS,reserveBudget}=require('../lib/leboncoin-collection-budget');
+const {installBrowserGuard}=require('../lib/leboncoin-browser-guard');
 const MIN_RECHECK_MS=15*60*1000;
 const MAX_CHECKS=MAX_REQUESTS_PER_RUN-1;
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -108,7 +109,8 @@ async function synchronize({env=process.env,browserFactory,load=fetchRows,save=u
  if(!Array.isArray(records))throw Error('Liste de synchronisation invalide.');
  const factory=browserFactory||(()=>require('playwright').chromium.launch({headless:true}));
  const browser=await factory();
- const page=await browser.newPage({locale:'fr-FR'});
+ const page=await browser.newPage({locale:'fr-FR',javaScriptEnabled:false,serviceWorkers:'block'});
+ await installBrowserGuard(page,{allowMock:Boolean(browserFactory)});
  let checked=0,expired=0,uncertain=0;
  try{
   for(const row of records.slice(0,MAX_CHECKS)){
