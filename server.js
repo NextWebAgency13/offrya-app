@@ -330,6 +330,7 @@ async function handle(req,res){
 if(require.main===module){http.createServer(handle).listen(Number(process.env.PORT||3000),'0.0.0.0',()=>{
  console.log('OFFRYA 4 prêt');
  console.log('Assistant IA : '+(String(process.env.OPENAI_API_KEY||'').trim()?'clé présente':'clé absente')+' (validité API non testée).');
+ console.log('Scrapfly API : '+(String(process.env.SCRAPFLY_API_KEY||'').trim()&&String(process.env.SCRAPFLY_API_KEY).trim()!=='VOTRE_CLE_SCRAPFLY'?'clé détectée':'clé absente')+' (validité non testée ; collecte désactivée).');
  const missing=Object.entries(identityConfigChecks()).filter(([,pass])=>!pass).map(([key])=>key);
  if(missing.length)console.warn('Stripe Identity : configuration à vérifier (noms seulement) : '+missing.join(', '));
  else console.log('Stripe Identity : variables reconnues. Autorisations Stripe et vérification réelle non testées.');
