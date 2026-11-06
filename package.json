@@ -5,7 +5,7 @@
   "description": "OFFRYA : marketplace gratuite B2B avec missions, devis, messages, contrats et alertes",
   "type": "commonjs",
   "engines": {
-    "node": ">=20.6"
+    "node": ">=20.16.0"
   },
   "scripts": {
     "start": "node server.js",
@@ -15,6 +15,10 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
-    "web-push": "3.6.7"
+    "exceljs": "4.4.0",
+    "mammoth": "1.13.0",
+    "pdf-parse": "2.4.5",
+    "web-push": "3.6.7",
+    "yauzl": "3.4.0"
   }
 }
