@@ -46,14 +46,6 @@ async function main(fetcher=fetch){
    throw Error('OCR text recognized but no attributable RC requirements extracted');
   if(!result.warnings.some(w=>/OCR local/.test(w)))
    throw Error('OCR uncertainty disclosure missing');
-  if(result.facts.length===0){
-   const {recognizePage}=require('../lib/dce-ocr');
-   const parsed=new PDFParse({data:new Uint8Array(onlyRaster)});
-   try{const screenshot=await parsed.getScreenshot({partial:[1],desiredWidth:1100,imageBuffer:true,imageDataUrl:false});
-    const ocr=await recognizePage(Buffer.from(screenshot.pages[0].data));
-    console.log('OFFRYA OCR DEBUG '+JSON.stringify({confidence:ocr.confidence,words:ocr.wordCount,preview:ocr.text.slice(0,160)}));
-   }finally{await parsed.destroy();}
-  }
   console.log('OFFRYA REAL-PAGE OCR '+JSON.stringify({
    original_source:RC,original_page:10,pages_ocr:pages,
    extracted_signals:result.facts.length,
