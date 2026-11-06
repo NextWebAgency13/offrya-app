@@ -42,7 +42,7 @@ test('Mocked Scrapfly JSON produces only sanitized validation data, never DB wri
  let requested;
  const payload={props:{pageProps:{searchData:{ads:[fixture,{...fixture,ad_type:'offer'}]}}}};
  const html='<html><script id="__NEXT_DATA__" type="application/json">'+JSON.stringify(payload)+'</script></html>';
- const out=await previewScrapfly({env,now,fetcher:async url=>{
+ const out=await previewScrapfly({env,now,reserve:async()=>true,fetcher:async url=>{
   requested=url;return {ok:true,json:async()=>({result:{status_code:200,content:html}})};
  },writeFile:async(path,content)=>written.set(path,content),logger:{info(){}}});
  assert.equal(out.ready,1);
@@ -54,10 +54,10 @@ test('Mocked Scrapfly JSON produces only sanitized validation data, never DB wri
  assert.equal(JSON.parse(written.get('preview.json')).ready,1);
 });
 test('A blocked or challenged source fails closed',async()=>{
- await assert.rejects(()=>previewScrapfly({env,now,fetcher:async()=>({
+ await assert.rejects(()=>previewScrapfly({env,now,reserve:async()=>true,fetcher:async()=>({
   ok:true,json:async()=>({result:{status_code:403,content:''}})
  })}),/refusé/);
- await assert.rejects(()=>previewScrapfly({env,now,fetcher:async()=>({
+ await assert.rejects(()=>previewScrapfly({env,now,reserve:async()=>true,fetcher:async()=>({
   ok:true,json:async()=>({result:{status_code:200,content:'<html>Captcha verification</html>'}})
  })}),/anti-bot/);
 });
