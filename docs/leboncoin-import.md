@@ -1,14 +1,14 @@
 # OFFRYA — Import des demandes externes
 
-Préparation sur branche uniquement. Aucune activation en production.
+Code intégré progressivement à OFFRYA, mais collecte, publication et synchronisation désactivées tant que les droits d'accès ne sont pas confirmés.
 
 ## Étapes d'activation
 1. Vérifier que l'autorisation écrite couvre la collecte et la rediffusion des annonces, avec des limites de volume et de fréquence.
 2. Tester les sélecteurs des pages Leboncoin dans le périmètre permis, sans contournement des contrôles.
 3. Lancer les tests Node.js avec `npm test`.
-4. Appliquer manuellement `sql/leboncoin_external_opportunities.sql`, puis `sql/leboncoin_removal_sync.sql` sur le projet Supabase OFFRYA, après les migrations Premium.
+4. Les migrations initiales d'opportunités externes et de retraits ont été appliquées au projet OFFRYA. Appliquer aussi `sql/leboncoin_conservative_access_budget.sql` avant toute consultation réelle (quota centralisé obligatoire).
 5. Installer Playwright uniquement dans l'environnement isolé d'exécution du collecteur, pas dans le serveur web.
-6. Fournir `LEBONCOIN_SEARCH_URLS` (tableau JSON d'URL /recherche autorisées) et `LEBONCOIN_COLLECTOR_ENABLED=true`.
+6. Après validation indépendante de l'accès, vérifier robots.txt puis renseigner `LEBONCOIN_COLLECTION_AUTHORIZED=true`, `LEBONCOIN_ROBOTS_REVIEWED=true`, `LEBONCOIN_SEARCH_URLS` (une URL de recherche catégorie 34 et intention de demande) et `LEBONCOIN_COLLECTOR_ENABLED=true`.
 7. Conserver `LEBONCOIN_DRY_RUN=true` pour la première vérification.
 8. Pour stocker en privé, utiliser `LEBONCOIN_DRY_RUN=false`; les annonces restent en attente par défaut.
 9. Après validation du droit de rediffusion, positionner `LEBONCOIN_REPUBLICATION_AUTHORIZED=true` et `LEBONCOIN_PUBLISH_ENABLED=true`.
@@ -18,7 +18,7 @@ Préparation sur branche uniquement. Aucune activation en production.
 Le collecteur rejette les offres de services, les emplois et les ventes ; masque les coordonnées ; ne crée jamais de compte client fictif ; n'accède pas à la messagerie des utilisateurs Leboncoin ; arrête la collecte en cas de CAPTCHA ou d'interdiction.
 
 ## Contrôle des annonces retirées
-- Le script `scripts/sync-leboncoin-removals.js` relit au maximum 30 annonces déjà publiées, à intervalles espacés de 15 minutes minimum.
+- Le script `scripts/sync-leboncoin-removals.js` relit au maximum 5 annonces déjà publiées par exécution, sous un quota centralisé, avec une fenêtre d'au moins quatre heures entre exécutions. Les deux confirmations d'indisponibilité doivent être espacées d'au moins 15 minutes.
 - Le premier HTTP 404/410 ou un titre explicite d'annonce indisponible ouvre un état « absence suspectée ».
 - Une seconde confirmation au moins 15 minutes après marque le statut `expired`, retire aussitôt l'annonce du flux Premium et conserve un horodatage et la raison de la décision.
 - Si l'annonce est de nouveau disponible, le compteur d'absence est remis à zéro.
@@ -31,7 +31,7 @@ Le collecteur rejette les offres de services, les emplois et les ventes ; masque
 - La consultation automatisée réelle n'a **pas** été réalisée : l'outil de navigation de cette session ne peut pas ouvrir les pages d'annonces du site (restriction robots.txt). Le HTML courant, les sélecteurs, les URL et la classification réelle ne sont donc pas validés.
 - Aucune licence ou autorisation écrite détaillant la republication OFFRYA n'a été fournie. Vérifier séparément l'extraction, le volume de navigation et les droits de rediffusion des titres/descriptions.
 - Le retrait automatique ne repose que sur deux **preuves positives d'indisponibilité**, pas sur l'absence d'une annonce dans une recherche. Les annonces dont la disponibilité devient ambiguë nécessitent une revue manuelle.
-- Aucune migration Supabase n'a été exécutée, aucun environnement de production ni variable de planification n'a été modifié. Les tests GitHub utilisent des pages simulées.
+- Les migrations initiales ont été appliquées à Supabase, mais la collecte et la republication restent inactives. La nouvelle migration de quota centralisé doit être appliquée avant toute consultation réelle. Les tests GitHub utilisent uniquement des pages simulées.
 
 
 ## Validation locale d'un fichier JSON autorisé
@@ -62,3 +62,13 @@ LEBONCOIN_VALIDATION_CSV=demandes_validation.csv
 Le connecteur désactive `asp`, n'active pas les proxys ni le ciblage géographique par paramètre et ne fournit aucun système d'évitement des CAPTCHA. **Attention : les infrastructures Scrapfly peuvent toutefois utiliser des mandataires par défaut ; l'absence de paramètre explicite ne suffit pas à les autoriser.** Les réponses bloquées ou les CAPTCHA provoquent l'arrêt immédiat sans contournement. Aucun cron n'est créé ; respecter le plafond contractuel d'une collecte toutes les quatre heures, les volumes et les obligations de retrait et de purge avant d'autoriser une exploitation réelle.
 
 Placer `SCRAPFLY_API_KEY` uniquement dans un gestionnaire de secrets serveur (Render Environment ou GitHub Actions Secrets, selon le futur environnement isolé). Ne jamais transmettre la clé dans un dépôt public, une capture, une page HTML ni un lien partagé.
+
+## Politique de parcimonie et minimisation — contrôle bloquant
+
+- **Source et pertinence :** un seul URL de recherche Leboncoin par exécution, exclusivement catégorie `34` (services) et mots-clés de recherche de prestations. Les offres de services, annonces d'emploi et ventes ne sont pas conservées. Maximum cinq consultations de fiches par recherche.
+- **Quotas atomiques :** six requêtes au maximum par exécution, y compris la page de recherche ; 20 requêtes par jour et 300 par mois (calendrier Europe/Paris), au moins cinq secondes entre deux accès et quatre heures entre deux tâches réseau. La procédure SQL `public.offrya_claim_leboncoin_budget` réserve les consultations dans une transaction avec verrou PostgreSQL, commune à Playwright, Scrapfly et au suivi des retraits. Toute erreur ou plafond atteint **arrête** la collecte, y compris en mode simulation. Ne jamais se fier au seul cron pour appliquer un quota.
+- **Accès légitime :** `LEBONCOIN_COLLECTION_AUTHORIZED=true` ET `LEBONCOIN_ROBOTS_REVIEWED=true` sont requis pour le collecteur direct et la synchronisation, en plus des interrupteurs existants. Pour Scrapfly, la vérification écrite du recours au prestataire et de ses éventuels proxys reste obligatoire. Pas de résolution de CAPTCHA, mode anti-bot ou reprise automatique sur erreur de source.
+- **Données :** ni images, coordonnées personnelles, prix bruts ou corps complets d'annonce ne sont stockés. OFFRYA enregistre un titre expurgé et une description **générique rédigée par OFFRYA**, la catégorie, le département/commune et un lien explicite vers l'annonce d'origine.
+- **Retrait :** deux signaux vérifiables d'indisponibilité font expirer une annonce ; toute annonce non vérifiée depuis plus de sept jours est exclue du flux Premium même si son état en base demeure `published`. Une purge durable des anciennes lignes et une surveillance de la conformité légale de la durée de conservation doivent être configurées séparément.
+
+**Limite juridique :** de faibles volumes ne confèrent pas par eux-mêmes un droit d'extraction ou de republication. L'accord Leboncoin/Scrapfly doit être vérifié indépendamment avant de mettre les interrupteurs à `true`.
