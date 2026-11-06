@@ -86,7 +86,7 @@ test('Location labels expand genuine French department codes without guessing mi
 
 
 test('Desktop tender card headings, details, badges and actions follow common alignment tracks',()=>{
- const rules=css.slice(css.indexOf('/* OFFRYA tender desktop-Android alignment, 06/11/2026 */'));
+ const rules=css.slice(css.indexOf('/* OFFRYA tender desktop-Android alignment, 06/11/2026'));
  assert.ok(rules.length>1200);
  assert.match(rules,/\.pro-tender-card\{\s*container-type:inline-size/);
  assert.match(rules,/\.pro-tender-top\{\s*display:grid;\s*grid-template-columns:218px 112px minmax\(0,1fr\)/);
@@ -97,7 +97,7 @@ test('Desktop tender card headings, details, badges and actions follow common al
  assert.doesNotMatch(rules,/display:none!important|order:\s*\d+|visibility:hidden/);
 });
 test('Narrow desktop cards adapt by card width, and Android retains approved stacked buttons',()=>{
- const rules=css.slice(css.indexOf('/* OFFRYA tender desktop-Android alignment, 06/11/2026 */'));
+ const rules=css.slice(css.indexOf('/* OFFRYA tender desktop-Android alignment, 06/11/2026'));
  assert.match(rules,/@container \(max-width:1050px\)/);
  assert.match(rules,/@container \(max-width:760px\)/);
  assert.match(rules,/\.pro-tender-details\{\s*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
