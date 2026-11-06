@@ -65,7 +65,7 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
   const ms=missions();
   $('opMissionCount').textContent=String(ms.length);
   $('opTenderCount').textContent=scanError?'—':lastSearch?String(tenders.length):'—';
-  $('opMessagesCount').textContent=String(state.conversations?.length||0);
+  $('opMessagesCount').textContent=String((state.conversations||[]).filter(c=>!state.hiddenConversations?.has(c.id)).length);
   $('opSavedCount').textContent=String(state.tenderTracking?.length||0);
   $('opAccessStatus').textContent=Date.parse(state.testPremiumUntil||'')>Date.now()?'Mode test · accès temporaire':'Professionnel actif';
   $('opMissionList').innerHTML=ms.length?ms.slice(0,8).map(m=>

@@ -12,7 +12,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
 let missionView='available';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,testPremiumUntil:null,boampStatus:'idle',opportunityPrefs:null,tenderTracking:[],opportunityAlerts:[],salesTracking:[],draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login',messageHeaders:[],messageUnreadCount:0};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,testPremiumUntil:null,boampStatus:'idle',opportunityPrefs:null,tenderTracking:[],opportunityAlerts:[],salesTracking:[],draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login',messageHeaders:[],messageUnreadCount:0,hiddenConversations:new Set(),showHiddenConversations:false};
 $('dashboardLoadingRetry')?.addEventListener('click',()=>location.reload());
 setTimeout(()=>{
  if(state.loaded)return;
@@ -39,11 +39,24 @@ function readMessageCursors(user){
  }
  return messageReadCursors;
 }
+// A conversation can be hidden by one participant only (offrya_conversation_hides,
+// own rows only). It is never deleted: the other person keeps it, and the database
+// makes it reappear for the hider when a new message arrives.
+function isConversationHidden(id){return Boolean(state.hiddenConversations&&state.hiddenConversations.has(id));}
+async function loadHiddenConversations(uid){
+ if(!state.db||typeof state.db.from!=='function')return;
+ try{
+  const r=await state.db.from('offrya_conversation_hides').select('conversation_id');
+  // On any error keep the previous list: never show or hide anything by guess.
+  if(r&&!r.error&&Array.isArray(r.data)&&(!uid||uid===state.session?.user?.id))
+   state.hiddenConversations=new Set(r.data.map(x=>x.conversation_id));
+ }catch(error){console.warn('OFFRYA: échanges retirés indisponibles',error);}
+}
 function messageUnread(){
  const uid=state.session?.user?.id,byThread=new Map();
  if(!uid)return {total:0,byThread};
  const read=readMessageCursors(uid);
- const permitted=new Set((state.conversations||[]).map(c=>c.id));
+ const permitted=new Set((state.conversations||[]).filter(c=>!isConversationHidden(c.id)).map(c=>c.id));
  let total=0;
  for(const message of state.messageHeaders||[]){
   if(!permitted.has(message.conversation_id)||message.sender_id===uid)continue;
@@ -114,6 +127,9 @@ async function loadMessageNotifications(){
    .select('id,conversation_id,sender_id,created_at')
    .in('conversation_id',ids).order('created_at',{ascending:false}).limit(500);
   if(result.error)throw result.error;
+  if(uid!==state.session?.user?.id||uid!==state.currentUserId)return;
+  // Refresh the list of hidden exchanges: a new message re-shows a hidden one.
+  await loadHiddenConversations(uid);
   if(uid!==state.session?.user?.id||uid!==state.currentUserId)return;
   const rows=result.data||[];
   if(messageKnownAccount!==uid){messageKnownAccount=uid;messageKnownIds=null;}
@@ -286,7 +302,7 @@ async function refresh(){
  if(!state.session){
   missionView='available';
   state.draft=null;state.proStep=1;state.proStepUserId=null;
-  state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.messageHeaders=[];state.messageUnreadCount=0;
+  state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.messageHeaders=[];state.messageUnreadCount=0;state.hiddenConversations=new Set();state.showHiddenConversations=false;
   state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;
   state.subscription=null;state.testPremiumUntil=null;state.opportunityPrefs=null;state.tenderTracking=[];state.opportunityAlerts=[];state.salesTracking=[];state.manualIdentity=null;state.boamp=[];
   state.priorityAlerts=[];state.lastPriorityIds=null;state.loaded=true;render();return;
@@ -296,7 +312,7 @@ async function refresh(){
  if(state.currentUserId!==uid){
   missionView='available';
   state.currentUserId=uid;state.missions=[];state.profile=null;state.premium=null;state.subscription=null;state.testPremiumUntil=null;
-  state.conversations=[];state.messages=[];state.messageHeaders=[];state.messageUnreadCount=0;messageKnownAccount=null;messageKnownIds=null;state.prefs=null;state.opportunityPrefs=null;state.tenderTracking=[];state.opportunityAlerts=[];state.salesTracking=[];state.profiles=[];state.favorites=[];
+  state.conversations=[];state.messages=[];state.messageHeaders=[];state.messageUnreadCount=0;state.hiddenConversations=new Set();state.showHiddenConversations=false;messageKnownAccount=null;messageKnownIds=null;state.prefs=null;state.opportunityPrefs=null;state.tenderTracking=[];state.opportunityAlerts=[];state.salesTracking=[];state.profiles=[];state.favorites=[];
   state.draft=null;state.manualIdentity=null;state.priorityAlerts=[];state.loaded=false;
  }
  // Load the owner's missions first. RLS also independently enforces ownership.
@@ -310,6 +326,7 @@ async function refresh(){
  const requests=[
   ['profile',state.db.from('offrya_profiles').select('*').eq('id',uid).maybeSingle()],
   ['conversations',state.db.from('offrya_conversations').select('*').order('created_at',{ascending:false}).limit(100)],
+  ['hides',state.db.from('offrya_conversation_hides').select('conversation_id')],
   ['prefs',state.db.from('offrya_alert_preferences').select('*').eq('user_id',uid).maybeSingle()],
   ['profiles',state.db.from('offrya_profiles').select('id,display_name,role,city,specialty').limit(300)],
   ['favorites',state.db.from('offrya_favorites').select('mission_id')],
@@ -342,6 +359,7 @@ async function refresh(){
    else if(key==='salesTracking')state.salesTracking=res?.data||[];
    else if(key==='opportunityAlerts')state.opportunityAlerts=res?.data||[];
    else if(key==='conversations'||key==='profiles')state[key]=res?.data||[];
+   else if(key==='hides')state.hiddenConversations=new Set((res?.data||[]).map(x=>x.conversation_id));
    else if(key==='opportunityPrefs'){
     const incoming=res?.data||null,current=state.opportunityPrefs;
     // An older in-flight refresh must not undo a successful preference save.
@@ -491,14 +509,32 @@ function renderMissions(){
  $('dashMissions').innerHTML=ownOpen.slice(0,3).map(m=>row(m)).join('')||
   '<div class="empty">Vous n’avez pas encore publié de mission. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
 }
+const TRASH_ICON='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
+function conversationRow(c,archived,unreadByThread){
+ const mine=c.client_id===state.session?.user.id;
+ const contact=profileName(mine?c.professional_id:c.client_id);
+ const title=titleForMission(c.mission_id);
+ const body=`<span class="offrya-conversation-icon" aria-hidden="true">${mine?'P':'D'}</span><span class="offrya-conversation-body"><strong>${esc(title)}</strong><small>${mine?'Professionnel':'Demandeur'} : ${esc(contact)}</small><time datetime="${esc(c.created_at)}">Discussion ouverte le ${date(c.created_at)}</time></span>`;
+ if(archived)return `<div class="conv-row is-archived"><div class="offrya-conversation conv-archived">${body}</div><button type="button" class="conv-action conv-restore" data-restore-thread="${esc(c.id)}" aria-label="Rétablir l’échange ${esc(title)}">Rétablir</button></div>`;
+ const selected=state.thread===c.id,unread=unreadByThread.get(c.id)||0;
+ return `<div class="conv-row"><button type="button" class="conv-item offrya-conversation ${selected?'selected':''} ${unread?'has-unread':''}" data-thread="${esc(c.id)}" aria-pressed="${selected}">${body}${unread?'<span class="message-thread-badge" aria-label="'+unread+' message(s) non lu(s)">'+(unread>99?'99+':unread)+'</span>':''}<span class="offrya-conversation-chevron" aria-hidden="true">›</span></button><button type="button" class="conv-action conv-remove" data-hide-thread="${esc(c.id)}" aria-label="Retirer l’échange ${esc(title)} de ma messagerie" title="Retirer de ma messagerie">${TRASH_ICON}</button></div>`;
+}
 function renderInbox(){
  const items=state.conversations;
- $('conversationList').innerHTML=items.length?items.map(c=>{const mine=c.client_id===state.session?.user.id;const contact=profileName(mine?c.professional_id:c.client_id);const selected=state.thread===c.id,unread=messageUnread().byThread.get(c.id)||0;return `<button type="button" class="conv-item offrya-conversation ${selected?'selected':''} ${unread?'has-unread':''}" data-thread="${esc(c.id)}" aria-pressed="${selected}"><span class="offrya-conversation-icon" aria-hidden="true">${mine?'P':'D'}</span><span class="offrya-conversation-body"><strong>${esc(titleForMission(c.mission_id))}</strong><small>${mine?'Professionnel':'Demandeur'} : ${esc(contact)}</small><time datetime="${esc(c.created_at)}">Discussion ouverte le ${date(c.created_at)}</time></span>${unread?'<span class="message-thread-badge" aria-label="'+unread+' message(s) non lu(s)">'+(unread>99?'99+':unread)+'</span>':''}<span class="offrya-conversation-chevron" aria-hidden="true">›</span></button>`;}).join(''):'<div class="empty">Aucune conversation pour le moment. Retrouvez vos échanges ici après une prise de contact au sujet d’une mission.</div>';
+ const visible=items.filter(c=>!isConversationHidden(c.id)),archived=items.filter(c=>isConversationHidden(c.id));
+ const unreadByThread=messageUnread().byThread;
+ let html=visible.length?visible.map(c=>conversationRow(c,false,unreadByThread)).join(''):'<div class="empty">Aucune conversation pour le moment. Retrouvez vos échanges ici après une prise de contact au sujet d’une mission.</div>';
+ if(archived.length){
+  html+=`<button type="button" class="conv-hidden-toggle" data-toggle-hidden aria-expanded="${state.showHiddenConversations?'true':'false'}">${state.showHiddenConversations?'Cacher':'Voir'} les échanges retirés (${archived.length})</button>`;
+  if(state.showHiddenConversations)html+=archived.map(c=>conversationRow(c,true,unreadByThread)).join('');
+ }
+ $('conversationList').innerHTML=html;
  $('messageForm').querySelector('button').disabled=!state.thread;
  const activeConversation=items.find(c=>c.id===state.thread);
  $('threadTitle').textContent=activeConversation?titleForMission(activeConversation.mission_id):'Sélectionnez une discussion';
  if($('threadContext'))$('threadContext').textContent=activeConversation?'Mission associée · '+(activeConversation.client_id===state.session?.user.id?'Échange avec un professionnel':'Échange avec un demandeur'):'Choisissez une conversation pour retrouver les messages associés à sa mission.';
  $('inbox').classList.toggle('has-active-thread',Boolean(activeConversation));
+ if($('threadHide'))$('threadHide').hidden=!activeConversation;
  if(state.thread)renderMessages();else $('messageList').innerHTML='<div class="empty">Choisissez une discussion.</div>';
 }
 function renderMessages(){
@@ -889,7 +925,7 @@ function render(){
  const activeOwn=own.filter(m=>m.status==='open');
  $('clientStatPublished').textContent=String(own.length);
  $('clientStatOpen').textContent=String(own.filter(m=>m.status==='open').length);
- $('clientStatConversations').textContent=String(state.conversations.filter(c=>own.some(m=>m.id===c.mission_id)).length);
+ $('clientStatConversations').textContent=String(state.conversations.filter(c=>!isConversationHidden(c.id)&&own.some(m=>m.id===c.mission_id)).length);
  $('clientStatClosed').textContent=String(own.filter(m=>m.status==='closed'||m.status==='awarded').length);
  $('roleRecentMissions').innerHTML=own.length?own.slice(0,3).map(m=>{
   const picture=m.category==='Bâtiment'
@@ -947,6 +983,7 @@ async function openPushConversation(target){
   }
   state.conversations.unshift(r.data);
  }
+ if(isConversationHidden(conversationId))await setConversationHidden(conversationId,false);
  tab('inbox');
  state.thread=conversationId;
  renderInbox();
@@ -974,6 +1011,39 @@ async function loadMessages(id,doRender=true){
  state.messages=r.data||[];
  acknowledgeConversation(id,state.messages);
  if(doRender){renderInbox();tab('inbox');rememberConversationRoute(id);}
+}
+// Hide / restore one exchange for the signed-in user only. Nothing is deleted:
+// the other participant keeps the conversation and its messages.
+async function setConversationHidden(id,hide){
+ if(!requireAuth()||!id)return false;
+ try{
+  const table=state.db.from('offrya_conversation_hides');
+  const r=hide?await table.insert({conversation_id:id}):await table.delete().eq('conversation_id',id).eq('user_id',state.session.user.id);
+  if(r.error&&!(hide&&r.error.code==='23505'))throw r.error;
+ }catch(error){showError(error);return false;}
+ const next=new Set(state.hiddenConversations||[]);
+ if(hide)next.add(id);else next.delete(id);
+ state.hiddenConversations=next;
+ return true;
+}
+async function hideConversation(id){
+ if(!id||!state.conversations.some(c=>c.id===id))return;
+ if(!confirm('Retirer cet échange de votre messagerie ?\n\nIl restera visible pour votre correspondant. Il réapparaîtra ici si cette personne vous écrit à nouveau.'))return;
+ if(!await setConversationHidden(id,true))return;
+ if(state.thread===id){
+  state.thread=null;state.messages=[];
+  if(location.pathname===paths.inbox){
+   const params=new URLSearchParams(location.search);params.delete('conversation');params.delete('message');
+   history.replaceState({tab:'inbox'},'',paths.inbox+(params.toString()?'?'+params.toString():''));
+  }
+ }
+ render();
+ toast('Échange retiré de votre messagerie.');
+}
+async function restoreConversation(id){
+ if(!id||!await setConversationHidden(id,false))return;
+ render();
+ toast('Échange rétabli dans votre messagerie.');
 }
 $('missionSearch').onclick=renderMissions;
 $('missionRefresh').onclick=async()=>{
@@ -1025,7 +1095,7 @@ $('missionList').onclick=async e=>{
  if(btn.dataset.favorite){if(!requireAuth())return;const id=btn.dataset.favorite;try{const result=state.favorites.includes(id)?await state.db.from('offrya_favorites').delete().eq('user_id',state.session.user.id).eq('mission_id',id):await state.db.from('offrya_favorites').insert({user_id:state.session.user.id,mission_id:id});if(result.error)throw result.error;await refresh();toast(state.favorites.includes(id)?'Mission ajoutée aux favoris.':'Favori retiré.');}catch(err){showError(err);}return;}
  if(btn.dataset.closeMission){if(!confirm('Clôturer cette mission ? Elle ne sera plus visible dans les recherches, mais vos conversations resteront accessibles.'))return;try{const r=await state.db.rpc('offrya_close_mission',{p_id:btn.dataset.closeMission});if(r.error)throw r.error;await refresh();toast('Mission clôturée');}catch(err){showError(err);}return;}
  if(!requireRole('pro'))return;const mission=state.missions.find(m=>m.id===btn.dataset.contact);if(!mission)return;
- try{let c=state.conversations.find(c=>c.mission_id===mission.id&&c.professional_id===state.session.user.id);if(!c){const r=await state.db.from('offrya_conversations').insert({mission_id:mission.id,client_id:mission.owner_id,professional_id:state.session.user.id}).select().single();if(r.error){if(r.error.code==='23505'){await refresh();c=state.conversations.find(x=>x.mission_id===mission.id&&x.professional_id===state.session.user.id);}else throw r.error;}else c=r.data;}if(!c)throw Error('Discussion introuvable');state.thread=c.id;await loadMessages(c.id);await refresh();tab('inbox');}catch(err){showError(err);}
+ try{let c=state.conversations.find(c=>c.mission_id===mission.id&&c.professional_id===state.session.user.id);if(!c){const r=await state.db.from('offrya_conversations').insert({mission_id:mission.id,client_id:mission.owner_id,professional_id:state.session.user.id}).select().single();if(r.error){if(r.error.code==='23505'){await refresh();c=state.conversations.find(x=>x.mission_id===mission.id&&x.professional_id===state.session.user.id);}else throw r.error;}else c=r.data;}if(!c)throw Error('Discussion introuvable');if(isConversationHidden(c.id))await setConversationHidden(c.id,false);state.thread=c.id;await loadMessages(c.id);await refresh();tab('inbox');}catch(err){showError(err);}
 };
 $('inboxBackToList').onclick=()=>{
  state.thread=null;state.messages=[];
@@ -1035,7 +1105,14 @@ $('inboxBackToList').onclick=()=>{
  }
  renderInbox();
 };
-$('conversationList').onclick=async e=>{const btn=e.target.closest('[data-thread]');if(!btn)return;state.thread=btn.dataset.thread;renderInbox();try{await loadMessages(state.thread);}catch(err){showError(err);}};
+$('conversationList').onclick=async e=>{
+ const hideBtn=e.target.closest('[data-hide-thread]');
+ if(hideBtn){await hideConversation(hideBtn.dataset.hideThread);return;}
+ const restoreBtn=e.target.closest('[data-restore-thread]');
+ if(restoreBtn){await restoreConversation(restoreBtn.dataset.restoreThread);return;}
+ if(e.target.closest('[data-toggle-hidden]')){state.showHiddenConversations=!state.showHiddenConversations;renderInbox();return;}
+ const btn=e.target.closest('[data-thread]');if(!btn)return;state.thread=btn.dataset.thread;renderInbox();try{await loadMessages(state.thread);}catch(err){showError(err);}};
+$('threadHide')?.addEventListener('click',()=>hideConversation(state.thread));
 $('messageForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth()||!state.thread)return;const f=e.currentTarget,body=f.elements.body.value.trim();if(!body)return;try{const r=await state.db.from('offrya_messages').insert({conversation_id:state.thread,sender_id:state.session.user.id,body});if(r.error)throw r.error;f.reset();await loadMessages(state.thread);}catch(err){showError(err);}};
 $('preferencesForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget;// Preserve previously stored alert targeting rather than silently broadening it
  // when these optional selectors are removed from the account interface.
