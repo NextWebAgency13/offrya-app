@@ -733,6 +733,15 @@ body.offrya-reference-ui #settings #preferencesForm label.check-row > span{
 }
 
 
+/* OFFRYA message navigation: a zero unread count must never be visible.
+   Specificity overrides the desktop/Android sidebar's forced span display. */
+body .app-shell .sidebar #nav .message-nav-link .message-unread-badge[hidden],
+body .app-shell .header .message-header-shortcut .message-unread-badge[hidden],
+body.offrya-pro-v3 #proV3SidebarExtras .pro-v3-nav-count[hidden],
+body.offrya-pro-v3 #proV3AccountTools .pro-v3-nav-count[hidden]{
+ display:none!important;
+}
+
 /* OFFRYA — Premium dashboard metrics: consistent cards from approved mockup.
    Desktop: four equal-width cards; Android: legible, balanced two-column layout.
    Strictly visual: metric values and existing click destinations are unchanged. */
@@ -878,12 +887,3 @@ body.offrya-reference-ui #dashboard .role-reference-premium .role-premium-stats 
  }
 }
 
-
-/* OFFRYA message navigation: a zero unread count must never be visible.
-   Specificity overrides the desktop/Android sidebar's forced span display. */
-body .app-shell .sidebar #nav .message-nav-link .message-unread-badge[hidden],
-body .app-shell .header .message-header-shortcut .message-unread-badge[hidden],
-body.offrya-pro-v3 #proV3SidebarExtras .pro-v3-nav-count[hidden],
-body.offrya-pro-v3 #proV3AccountTools .pro-v3-nav-count[hidden]{
- display:none!important;
-}
