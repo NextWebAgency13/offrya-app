@@ -218,7 +218,7 @@ body .pro-v3-account-tools{display:none!important}
 @media(max-width:620px){
  body.offrya-pro-v3{background:#faf8fc;overflow-x:clip}
  body.offrya-pro-v3 .app-shell{padding-bottom:calc(94px + env(safe-area-inset-bottom,0px))}
- body.offrya-pro-v3 .app-shell .header{height:66px;padding-inline:16px;background:#2E043D;z-index:20}
+ body.offrya-pro-v3 .app-shell .header{height:66px;padding-inline:16px;background:#2A0140;z-index:20}
  body.offrya-pro-v3 .header .header-actions{gap:9px}
  body.offrya-pro-v3 .header .header-shortcut{width:43px;height:43px;border-radius:50%;background:#ffffff20;color:#fff}
  body.offrya-pro-v3 .header .header-shortcut:not(.priority-shortcut){display:none}
@@ -233,7 +233,7 @@ body .pro-v3-account-tools{display:none!important}
  body.offrya-pro-v3 #proV3AccountTools .pro-v3-nav-btn.active{background:#f0e4fc;color:#62319d;box-shadow:none}
  body.offrya-pro-v3 #proV3AccountTools .pro-v3-nav-btn .nav-icon{width:19px;height:19px;color:#783bb8}
  body.offrya-pro-v3 #proV3AccountTools .pro-v3-nav-count{display:none}
- body.offrya-pro-v3 .app-shell .sidebar{background:#2E043D;border:0;border-radius:17px 17px 0 0;box-shadow:0 -5px 20px #250d3b35;padding:5px 6px calc(5px + env(safe-area-inset-bottom,0px));height:calc(72px + env(safe-area-inset-bottom,0px))}
+ body.offrya-pro-v3 .app-shell .sidebar{background:#2A0140;border:0;border-radius:17px 17px 0 0;box-shadow:0 -5px 20px #250d3b35;padding:5px 6px calc(5px + env(safe-area-inset-bottom,0px));height:calc(72px + env(safe-area-inset-bottom,0px))}
  body.offrya-pro-v3 .sidebar #nav{gap:2px}
  body.offrya-pro-v3 .sidebar #nav .nav-link{min-height:53px;color:#e6d9ed;gap:5px;min-width:0;border-radius:12px}
  body.offrya-pro-v3 .sidebar #nav .nav-link.active{background:#562572;color:#fff}
@@ -295,7 +295,7 @@ body:not(.offrya-pro-v3) #proV3MobileAlert{display:none!important}
 body.offrya-pro-v3 #proV3MobileAlert{display:none}
 @media(max-width:620px){
  body.offrya-pro-v3 .header #proV3MobileAlert{display:grid!important;position:relative;place-items:center;min-height:43px;min-width:43px;flex:none;padding:0}
- body.offrya-pro-v3 #proV3AlertBubble:not([hidden]){position:absolute;top:-3px;right:-4px;display:grid;place-items:center;min-width:17px;height:17px;padding:0 3px;border:2px solid #2E043D;border-radius:13px;background:#f0b77e;color:#2E043D;font-size:9px;font-weight:900}
+ body.offrya-pro-v3 #proV3AlertBubble:not([hidden]){position:absolute;top:-3px;right:-4px;display:grid;place-items:center;min-width:17px;height:17px;padding:0 3px;border:2px solid #2A0140;border-radius:13px;background:#f0b77e;color:#2A0140;font-size:9px;font-weight:900}
 }
 
 /* Commercial radar: only verified, authorized sources; no fabricated counters. */
@@ -465,7 +465,7 @@ body.offrya-pro-v3 .pro-v3-nav-btn:focus-visible{outline:3px solid #a45fe4;outli
 }
 @media(max-width:620px){
  body.offrya-pro-v3 .app-shell{display:block;padding-bottom:calc(93px + env(safe-area-inset-bottom,0px))}
- body.offrya-pro-v3 .app-shell .sidebar{background:#2E043D}
+ body.offrya-pro-v3 .app-shell .sidebar{background:#2A0140}
  body.offrya-pro-v3 .app-shell .header{height:66px;padding:0 15px}
  body.offrya-pro-v3 .app-shell .main-content{padding:14px 13px 25px}
  body.offrya-pro-v3 .pro-v3-intro{padding:19px 14px 17px;margin:0 0 13px;min-height:0;display:flex;flex-direction:column;align-items:flex-start;gap:12px;border-radius:17px}
@@ -688,7 +688,7 @@ body.offrya-pro-v3 #proV3CommercialSlot .sales-lead-action{display:block;margin-
    Same visual language and exactly the same protected professional functions;
    only placement changes with viewport width. */
 body.offrya-pro-v3 .app-shell .header{
- background:linear-gradient(110deg,#2E043D,#4B0058)!important;
+ background:linear-gradient(110deg,#2A0140,#3F0258)!important;
  border-bottom:1px solid #5c3170!important;color:#fff!important;
 }
 body.offrya-pro-v3 .header-heading h1,
@@ -705,7 +705,7 @@ body.offrya-pro-v3 .header .account-menu .avatar{
 body.offrya-pro-v3 #proV3SidebarExtras{display:none!important}
 @media(min-width:621px){
  body.offrya-pro-v3.offrya-pro-workspace .app-shell .sidebar{
-  background:#2E043D!important;border-right:1px solid #5c3170!important;
+  background:#2A0140!important;border-right:1px solid #5c3170!important;
   color:#f4eafb!important;
  }
  body.offrya-pro-v3.offrya-pro-workspace .sidebar .brand,
@@ -769,7 +769,7 @@ body.offrya-pro-v3 #proV3SidebarExtras{display:none!important}
   left:0!important;right:0!important;bottom:0!important;
   width:100%!important;max-width:100%!important;height:calc(82px + env(safe-area-inset-bottom,0px))!important;
   min-height:0!important;padding:5px 10px calc(6px + env(safe-area-inset-bottom,0px))!important;
-  display:block!important;background:#2E043D!important;color:#fff!important;
+  display:block!important;background:#2A0140!important;color:#fff!important;
   border:0!important;border-top:1px solid #69487c!important;
   border-radius:15px 15px 0 0!important;box-shadow:0 -5px 20px #220b3d27!important;
   z-index:60!important;overflow:visible!important;
@@ -805,7 +805,7 @@ body.offrya-pro-v3 #proV3SidebarExtras{display:none!important}
  body .app-shell .header,body.offrya-pro-v3 .app-shell .header{
   position:sticky!important;top:0!important;z-index:20!important;
   width:100%!important;height:81px!important;padding:0 20px!important;
-  background:linear-gradient(110deg,#2E043D,#4B0058)!important;color:#fff!important;
+  background:linear-gradient(110deg,#2A0140,#3F0258)!important;color:#fff!important;
  }
  body .header-heading{display:none!important}
  body .mobile-brand,body.offrya-pro-v3 .mobile-brand{
