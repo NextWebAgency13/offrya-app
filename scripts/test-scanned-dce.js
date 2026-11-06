@@ -42,6 +42,8 @@ async function main(fetcher=fetch){
   const pages=result.documents[0]?.ocr_pages||0;
   if(pages!==1||result.ocr_available!==true||result.ocr_pages_attempted!==1)
    throw Error('Scanned PDF page not recognized offline or confidence not recorded');
+  if(!result.facts.some(f=>f.source?.ocr===true))
+   throw Error('OCR text recognized but no attributable RC requirements extracted');
   if(!result.warnings.some(w=>/OCR local/.test(w)))
    throw Error('OCR uncertainty disclosure missing');
   if(result.facts.length===0){
