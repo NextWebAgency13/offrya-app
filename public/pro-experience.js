@@ -15,6 +15,58 @@ export function professionalGreetingLabel(state){
  return '';
 }
 
+// Present the official location without changing any IA filtering or stored notice.
+const TENDER_DEPARTMENT_NAMES=Object.freeze({
+ '01':'Ain','02':'Aisne','03':'Allier','04':'Alpes-de-Haute-Provence','05':'Hautes-Alpes',
+ '06':'Alpes-Maritimes','07':'Ardèche','08':'Ardennes','09':'Ariège','10':'Aube',
+ '11':'Aude','12':'Aveyron','13':'Bouches-du-Rhône','14':'Calvados','15':'Cantal',
+ '16':'Charente','17':'Charente-Maritime','18':'Cher','19':'Corrèze',
+ '2A':'Corse-du-Sud','2B':'Haute-Corse','21':'Côte-d’Or','22':'Côtes-d’Armor',
+ '23':'Creuse','24':'Dordogne','25':'Doubs','26':'Drôme','27':'Eure',
+ '28':'Eure-et-Loir','29':'Finistère','30':'Gard','31':'Haute-Garonne','32':'Gers',
+ '33':'Gironde','34':'Hérault','35':'Ille-et-Vilaine','36':'Indre','37':'Indre-et-Loire',
+ '38':'Isère','39':'Jura','40':'Landes','41':'Loir-et-Cher','42':'Loire',
+ '43':'Haute-Loire','44':'Loire-Atlantique','45':'Loiret','46':'Lot','47':'Lot-et-Garonne',
+ '48':'Lozère','49':'Maine-et-Loire','50':'Manche','51':'Marne','52':'Haute-Marne',
+ '53':'Mayenne','54':'Meurthe-et-Moselle','55':'Meuse','56':'Morbihan',
+ '57':'Moselle','58':'Nièvre','59':'Nord','60':'Oise','61':'Orne',
+ '62':'Pas-de-Calais','63':'Puy-de-Dôme','64':'Pyrénées-Atlantiques',
+ '65':'Hautes-Pyrénées','66':'Pyrénées-Orientales','67':'Bas-Rhin','68':'Haut-Rhin',
+ '69':'Rhône','70':'Haute-Saône','71':'Saône-et-Loire','72':'Sarthe','73':'Savoie',
+ '74':'Haute-Savoie','75':'Paris','76':'Seine-Maritime','77':'Seine-et-Marne',
+ '78':'Yvelines','79':'Deux-Sèvres','80':'Somme','81':'Tarn','82':'Tarn-et-Garonne',
+ '83':'Var','84':'Vaucluse','85':'Vendée','86':'Vienne','87':'Haute-Vienne',
+ '88':'Vosges','89':'Yonne','90':'Territoire de Belfort','91':'Essonne',
+ '92':'Hauts-de-Seine','93':'Seine-Saint-Denis','94':'Val-de-Marne','95':'Val-d’Oise',
+ '971':'Guadeloupe','972':'Martinique','973':'Guyane','974':'La Réunion',
+ '975':'Saint-Pierre-et-Miquelon','976':'Mayotte'
+});
+export function displayTenderLocation(location,departments){
+ const raw=String(location??'').trim();
+ const normalize=code=>{
+  const token=String(code).trim().toUpperCase();
+  return /^\d$/.test(token)?'0'+token:token;
+ };
+ const label=code=>TENDER_DEPARTMENT_NAMES[code]+' ('+code+')';
+ const tokens=String(departments??'').toUpperCase().match(/\b(?:97[1-6]|2[AB]|\d{1,2})\b/g)||[];
+ const codes=[...new Set(tokens.map(normalize).filter(code=>TENDER_DEPARTMENT_NAMES[code]))];
+ const simple=raw.match(/^(?:d[eé]partements?\s*[:\-]?\s*)?((?:97[1-6]|2[AB]|\d{1,2})(?:\s*[,;/]\s*(?:97[1-6]|2[AB]|\d{1,2}))*)$/i);
+ if(simple){
+  const plain=[...new Set(simple[1].split(/[,;/]/).map(normalize))];
+  if(plain.every(code=>TENDER_DEPARTMENT_NAMES[code]))return plain.map(label).join(' · ');
+ }
+ const inCity=raw.match(/\(\s*(97[1-6]|2[AB]|\d{1,2})\s*\)/i);
+ if(inCity){
+  const code=normalize(inCity[1]);
+  if(TENDER_DEPARTMENT_NAMES[code])return raw.replace(inCity[0],' · '+label(code)).replace(/\s+·/g,' ·');
+ }
+ if(!raw||/^(?:zone|lieu)\s+non\s+pr[eé]cis[eé]?$/i.test(raw))
+  return codes.length?codes.map(label).join(' · '):'Zone non précisée';
+ if(codes.length&&!codes.some(code=>raw.toLocaleLowerCase('fr').includes(TENDER_DEPARTMENT_NAMES[code].toLocaleLowerCase('fr'))))
+  return raw+' · '+codes.map(label).join(' · ');
+ return raw;
+}
+
 // Compact, readable criteria: show up to 3 trades individually, then
 // 2 trades + a grammatically correct counter. Geographic area is always separate.
 export function summarizeWatchCriteria(p={}){
@@ -370,6 +422,11 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    // tracking handlers. Do not add a secondary OFFRYA/Premium logo.
    if(tender){
     const reference=String(a?.tender_id||item.id);
+    // Consistent line icons follow the validated visual, not the app settings icon.
+    const tenderIcon=paths=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+paths+'</svg>';
+    const buyerIcon=tenderIcon('<path d="M3 10h18M5 10V20M9 10V20M15 10V20M19 10V20M2 21h20M12 3 2 9h20L12 3Z"/>');
+    const placeIcon=tenderIcon('<path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.6"/>');
+    const tradeIcon=tenderIcon('<path d="m12 3 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 16l9 5 9-5"/>');
     const detail=(symbol,label,value)=>
      '<div class="pro-tender-detail"><span class="pro-tender-detail-icon" aria-hidden="true">'+symbol+'</span>'+
      '<span class="pro-tender-detail-copy"><b>'+esc(label)+'</b><span>'+esc(value)+'</span></span></div>';
@@ -377,14 +434,14 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
      '<div class="pro-tender-inner"><div class="pro-tender-top">'+
       '<span class="pro-tender-score" title="'+esc(reason||'Correspondance calculée selon vos critères')+'">'+icon('ic-sparkles')+
        ' Pertinence IA : '+score+' %</span>'+
-      '<span class="pro-tender-source">'+icon('ic-boamp')+' '+source+'</span>'+
+      '<span class="pro-tender-source">'+buyerIcon+' '+source+'</span>'+
       '<span class="pro-tender-reference" title="'+esc(reference)+'">Réf. : '+esc(reference)+'</span>'+
      '</div><div class="pro-tender-grid"><div class="pro-tender-information">'+
       '<h4 title="'+esc(item.title)+'">'+esc(item.title)+'</h4>'+
       '<div class="pro-tender-details">'+
-       detail(icon('ic-boamp'),'Acheteur',a?.buyer||'Non précisé')+
-       detail('<span class="pro-tender-pin">⌖</span>','Localisation',item.location||a?.departments||'Zone non précisée')+
-       detail(icon('ic-settings'),'Métier',item.category||'Non précisé')+
+       detail(buyerIcon,'Acheteur',a?.buyer||'Non précisé')+
+       detail(placeIcon,'Localisation',displayTenderLocation(item.location,a?.departments))+
+       detail(tradeIcon,'Métier',item.category||'Non précisé')+
        detail(icon('ic-calendar'),'Date limite',date?dateRadar(date):'Non précisée')+
       '</div></div>'+
       '<div class="pro-tender-actions">'+action+favorite+'</div>'+

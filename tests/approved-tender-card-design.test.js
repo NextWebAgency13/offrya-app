@@ -49,3 +49,61 @@ test('Desktop, Android and narrow screens receive approved styles',()=>{
  const result=spawnSync(process.execPath,['--input-type=module','--check'],{input:js,encoding:'utf8'});
  assert.equal(result.status,0,result.stderr);
 });
+
+
+test('Tender detail pictograms are appropriate and title height is bounded',()=>{
+ assert.match(card,/const buyerIcon=tenderIcon/);
+ assert.match(card,/const placeIcon=tenderIcon/);
+ assert.match(card,/const tradeIcon=tenderIcon/);
+ assert.match(card,/detail\(buyerIcon,'Acheteur'/);
+ assert.match(card,/detail\(placeIcon,'Localisation',displayTenderLocation/);
+ assert.match(card,/detail\(tradeIcon,'Métier'/);
+ assert.match(css,/\.pro-tender-information h4\{\s*display:-webkit-box!important/);
+ assert.match(css,/-webkit-line-clamp:3/);
+});
+test('Tender actions remain vertically stacked on narrow and portrait Android viewports',()=>{
+ const marker=css.indexOf('/* Some Android browsers report a wide CSS viewport in portrait');
+ assert.ok(marker>=0);
+ const mobile=css.slice(marker);
+ assert.match(mobile,/@media\(max-width:760px\), screen and \(pointer:coarse\) and \(orientation:portrait\) and \(max-width:1100px\)/);
+ assert.match(mobile,/\.pro-tender-actions\{\s*display:flex!important;flex-direction:column!important/);
+ assert.match(mobile,/\.pro-tender-actions \.pro-v3-reco-btn/);
+ assert.match(js,/data-pro-save-tender/);
+ assert.match(js,/data-pro-stage-tender/);
+});
+test('Location labels expand genuine French department codes without guessing missing fields',async()=>{
+ const {displayTenderLocation}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
+ assert.equal(displayTenderLocation('13','13'),'Bouches-du-Rhône (13)');
+ assert.equal(displayTenderLocation('Marseille (13)','13'),'Marseille · Bouches-du-Rhône (13)');
+ assert.equal(displayTenderLocation('Bordeaux','33'),'Bordeaux · Gironde (33)');
+ assert.equal(displayTenderLocation('','2A, 2B'),'Corse-du-Sud (2A) · Haute-Corse (2B)');
+ assert.equal(displayTenderLocation('','971'),'Guadeloupe (971)');
+ assert.equal(displayTenderLocation('Département 6','06'),'Alpes-Maritimes (06)');
+ assert.equal(displayTenderLocation('',''),'Zone non précisée');
+ assert.equal(displayTenderLocation('France',''),'France');
+ assert.equal(displayTenderLocation('Marseille (13)',''),'Marseille · Bouches-du-Rhône (13)');
+});
+
+
+test('Desktop tender card headings, details, badges and actions follow common alignment tracks',()=>{
+ const rules=css.slice(css.indexOf('/* OFFRYA tender desktop-Android alignment, 06/11/2026'));
+ assert.ok(rules.length>1200);
+ assert.match(rules,/\.pro-tender-card\{\s*container-type:inline-size/);
+ assert.match(rules,/\.pro-tender-top\{\s*display:grid;\s*grid-template-columns:218px 112px minmax\(0,1fr\)/);
+ assert.match(rules,/\.pro-tender-information h4\{\s*min-height:3\.81em/);
+ assert.match(rules,/\.pro-tender-details\{\s*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
+ assert.match(rules,/\.pro-tender-actions\{\s*align-self:end/);
+ assert.match(rules,/\.pro-ai-filter-tabs button\{\s*display:flex;\s*align-items:center;\s*justify-content:center;\s*flex-direction:row;\s*flex-wrap:nowrap/);
+ assert.doesNotMatch(rules,/display:none!important|order:\s*\d+|visibility:hidden/);
+});
+test('Narrow desktop cards adapt by card width, and Android retains approved stacked buttons',()=>{
+ const rules=css.slice(css.indexOf('/* OFFRYA tender desktop-Android alignment, 06/11/2026'));
+ assert.match(rules,/@container \(max-width:1050px\)/);
+ assert.match(rules,/@container \(max-width:760px\)/);
+ assert.match(rules,/\.pro-tender-details\{\s*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(rules,/\.pro-tender-grid\{\s*grid-template-columns:minmax\(0,1fr\);\s*row-gap:16px/);
+ assert.match(rules,/\.pro-tender-actions\{\s*display:flex!important;\s*flex-direction:column!important/);
+ assert.match(js,/serverRadar\.items\.filter/);
+ assert.match(js,/data-pro-save-tender/);
+ assert.match(js,/data-pro-remove-tender/);
+});
