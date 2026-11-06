@@ -1,0 +1,44 @@
+name: OFFRYA — collecte ciblée Leboncoin (désactivée par défaut)
+on:
+  workflow_dispatch:
+  schedule:
+    # UTC: 08:17/12:17/16:17/20:17 à Paris en hiver, 09:17/13:17/17:17/22:17 en été.
+    # Quatre heures entre passages, heures de Paris dans la fenêtre 07:00–23:00.
+    - cron: '17 7,11,15,19 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: offrya-leboncoin-collection
+  cancel-in-progress: false
+jobs:
+  collect:
+    # Ne pas activer tant que la licence, robots.txt, et la source effective ne sont pas vérifiés.
+    if: vars.LEBONCOIN_COLLECTOR_ENABLED == 'true' && vars.LEBONCOIN_COLLECTION_AUTHORIZED == 'true' && vars.LEBONCOIN_ROBOTS_REVIEWED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_URL: ${{ secrets.OFFRYA_SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.OFFRYA_SUPABASE_SECRET_KEY }}
+      LEBONCOIN_COLLECTOR_ENABLED: ${{ vars.LEBONCOIN_COLLECTOR_ENABLED }}
+      LEBONCOIN_COLLECTION_AUTHORIZED: ${{ vars.LEBONCOIN_COLLECTION_AUTHORIZED }}
+      LEBONCOIN_ROBOTS_REVIEWED: ${{ vars.LEBONCOIN_ROBOTS_REVIEWED }}
+      LEBONCOIN_SEARCH_URLS: ${{ vars.LEBONCOIN_SEARCH_URLS }}
+      LEBONCOIN_DRY_RUN: ${{ vars.LEBONCOIN_DRY_RUN }}
+      LEBONCOIN_AI_REVIEW: ${{ vars.LEBONCOIN_AI_REVIEW }}
+      LEBONCOIN_PUBLISH_ENABLED: ${{ vars.LEBONCOIN_PUBLISH_ENABLED }}
+      LEBONCOIN_REPUBLICATION_AUTHORIZED: ${{ vars.LEBONCOIN_REPUBLICATION_AUTHORIZED }}
+      OPENAI_API_KEY: ${{ secrets.OFFRYA_OPENAI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Tests de sécurité (sans accès Leboncoin réel)
+        run: node --test tests/leboncoin-import.test.js tests/leboncoin-removal-sync.test.js tests/leboncoin-conservative-guardrails.test.js tests/leboncoin-browser-guard.test.js
+      - name: Installer Playwright dans le seul runner isolé
+        run: |
+          npm install --omit=dev
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Collecter les seules demandes autorisées
+        run: node scripts/collect-leboncoin.js
