@@ -43,6 +43,14 @@ function readMessageCursors(user){
 // own rows only). It is never deleted: the other person keeps it, and the database
 // makes it reappear for the hider when a new message arrives.
 function isConversationHidden(id){return Boolean(state.hiddenConversations&&state.hiddenConversations.has(id));}
+// « Mes échanges » (accueil) compte les discussions en cours, pas seulement les messages non lus :
+// une discussion déjà lue reste une discussion en cours.
+function visibleConversationCount(){return (state.conversations||[]).filter(c=>!isConversationHidden(c.id)).length;}
+function exchangesLabel(count,unread){
+ const n=Number(count)||0,u=Number(unread)||0;
+ if(!n)return 'Aucun échange';
+ return n+' échange'+(n>1?'s':'')+(u?' · '+u+' non lu'+(u>1?'s':''):'');
+}
 async function loadHiddenConversations(uid){
  if(!state.db||typeof state.db.from!=='function')return;
  try{
@@ -87,7 +95,7 @@ function paintMessageBadges(){
  }
  if($('roleConversationCount'))$('roleConversationCount').textContent=String(total);
  if($('clientHomeUnread'))$('clientHomeUnread').textContent=String(total);
- if($('clientHomeUnreadLabel'))$('clientHomeUnreadLabel').textContent=total+' message'+(total>1?'s':'');
+ if($('clientHomeUnreadLabel'))$('clientHomeUnreadLabel').textContent=exchangesLabel(visibleConversationCount(),total);
  if($('clientHomeNotificationText'))$('clientHomeNotificationText').textContent=
   total?total+' nouveau'+(total>1?'x':'')+' message'+(total>1?'s':''):'Aucune nouvelle';
 }
@@ -954,7 +962,7 @@ function render(){
  if(pro){const p=state.premium;banner.textContent='Entreprise : '+(p?.legal_name||'à vérifier')+' · Identité : '+(p?.identity_status==='verified'?'vérifiée':'en cours')+' · Dirigeant : '+(p?.authority_status==='verified'?'confirmé':'en attente')+' · Abonnement : '+(canUsePremium()?'actif':'inactif');}
 $('homePrivateDashboard').classList.toggle('hidden',!yes);$('statOpenLabel').textContent=canUsePremium()?'Missions accessibles':'Mes annonces actives';$('homeMissionHeading').textContent=canUsePremium()?'Missions accessibles':'Mes annonces publiées';$('authOpen').textContent=!yes?'Se connecter':isGuest()?'Suivi invité':(state.session.user.email?.split('@')[0]||'Mon compte');// Un compte connecté a déjà « Mon compte et préférences » : l'identifiant ferait doublon.
 $('authOpen').classList.toggle('hidden',yes&&!isGuest());$('logout').classList.toggle('hidden',!yes||isGuest());$('avatar').textContent=state.profile?.display_name?.[0]?.toUpperCase()||'V';
- $('statOpen').textContent=state.missions.filter(x=>x.status==='open'&&(canUsePremium()||x.owner_id===state.session?.user.id)).length;$('statMissions').textContent=state.missions.filter(x=>x.owner_id===state.session?.user.id).length;$('statConvos').textContent=state.conversations.length;$('statFavorites').textContent=state.favorites.length;
+ $('statOpen').textContent=state.missions.filter(x=>x.status==='open'&&(canUsePremium()||x.owner_id===state.session?.user.id)).length;$('statMissions').textContent=state.missions.filter(x=>x.owner_id===state.session?.user.id).length;$('statConvos').textContent=visibleConversationCount();$('statFavorites').textContent=state.favorites.length;
  $('dashActivity').innerHTML=yes?`<div class="data-item"><div class="item-title">${esc(state.profile?.display_name||'Profil à compléter')}</div><div class="item-desc">${state.profile?.role==='client'?'Compte client':'Compte professionnel'} · ${state.conversations.length} discussion(s)</div></div><div class="data-item"><div class="item-title">Échanges directs entre utilisateurs</div><div class="item-desc">Échangez dans la messagerie, puis organisez librement votre accord, les tarifs et le règlement avec l'autre partie. OFFRYA n'intervient pas dans la transaction.</div></div>`:'<div class="empty">Connectez-vous pour voir vos contacts et vos missions.</div>';
  // An optional module must not interrupt the other views.
  for(const [name,draw] of [
