@@ -21,6 +21,8 @@ jobs:
       - name: Install pinned project dependencies
         run: npm install --ignore-scripts --no-audit --no-fund
       - run: npm test
+      - name: Live official DECP schema probe (read-only)
+        run: node scripts/probe-decp-live.js
       - name: Verify BOAMP source and local Premium access control
         run: node scripts/diagnose-boamp.js
       - name: Check official company API response schema
