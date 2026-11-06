@@ -75,7 +75,7 @@ async function collect({browserFactory,store=storeRow,logger=console,now=new Dat
  const seeds=allowedSearchUrls(env.LEBONCOIN_SEARCH_URLS||'[]');
  if(!seeds.length)throw Error('Aucune URL de recherche autorisée fournie.');
  const publish=env.LEBONCOIN_REPUBLICATION_AUTHORIZED==='true'&&env.LEBONCOIN_PUBLISH_ENABLED==='true';
- const dryRun=env.LEBONCOIN_DRY_RUN!=='false';
+ const dryRun=env.LEBONCOIN_DRY_RUN!=='true';
  const factory=browserFactory||(()=>require('playwright').chromium.launch({headless:true}));
  const browser=await factory();
  const page=await browser.newPage({locale:'fr-FR',viewport:{width:1280,height:900}});
