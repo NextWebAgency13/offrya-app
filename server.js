@@ -264,13 +264,28 @@ async function handle(req,res){
     const live=await liveTenders(userId,preferences,{force:u.searchParams.get('refresh')==='1'});
     const storedIds=new Set(rows[1].map(n=>String(n.tender_id)));
     const newNotices=live.notices.filter(n=>!storedIds.has(String(n.tender_id)));
-    const result=rankCandidates({missions:rows[0],alerts:[...newNotices,...rows[1]],preferences,
+    // Source facultative : accès sous JWT Premium, jamais par la service_role.
+    let external=[];
+    if(process.env.OFFRYA_LEBONCOIN_ENABLED==='true'){
+     try{
+      const response=await fetch(base+'/rest/v1/offrya_external_opportunities?'+
+       'select=id,source,source_id,source_url,title,summary,category,department,city,status,published_at,source_last_seen_at'+
+       '&status=eq.published&order=source_last_seen_at.desc&limit=100',
+       {headers,signal:AbortSignal.timeout(9000)});
+      if(response.ok){
+       const candidates=await response.json();
+       if(Array.isArray(candidates))external=candidates;
+      }else console.warn('External opportunity source HTTP '+response.status);
+     }catch(err){console.warn('External opportunity source unavailable: '+String(err.message).slice(0,100));}
+    }
+    const result=rankCandidates({missions:rows[0],external,alerts:[...newNotices,...rows[1]],preferences,
      profile:rows[3][0],userId});
     const enhanced=process.env.OFFRYA_AI_MATCHING_ENABLED==='true'?
      await aiRerank(result,{apiKey:process.env.OPENAI_API_KEY,
       model:process.env.OFFRYA_AI_MODEL||'gpt-4.1-mini',profile:rows[3][0],preferences}):
      {...result,mode:'rules'};
-    const displayed=enhanced.items.slice(0,300).map(({description, ...x})=>x);
+    const displayed=enhanced.items.slice(0,300).map(({description, ...x})=>
+     x.kind==='external'?{...x,description:String(description||'').slice(0,180)}:x);
     return json(res,200,{mode:enhanced.mode,total:enhanced.total,relevant:enhanced.relevant,
      urgent:enhanced.urgent,items:displayed,
      truncated:enhanced.total>displayed.length,

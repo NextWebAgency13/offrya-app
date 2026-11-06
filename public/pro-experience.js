@@ -347,9 +347,15 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    .filter(a=>a?.deadline&&Date.parse(a.deadline)>Date.now()).map(a=>[String(a.tender_id),a]));
   const seen=new Set();
   const rows=serverRadar.items.filter(item=>{
-   if(!item||!['mission','tender'].includes(item.kind))return false;
+   if(!item||!['mission','tender','external'].includes(item.kind))return false;
    const key=item.kind+':'+item.id;if(seen.has(key))return false;
    if(item.kind==='mission'&&!missions.has(String(item.id)))return false;
+   if(item.kind==='external'){
+    if(!/^https:\/\/(www\.)?leboncoin\.fr\/ad\/[a-z0-9_-]+\/\d{7,12}\/?$/i.test(item.url||''))return false;
+    if(p.sectors?.length&&!p.sectors.includes(item.category))return false;
+    const dept=String(item.location||'').split('·').pop().trim();
+    if(p.department&&dept!==String(p.department))return false;
+   }
    if(item.kind==='tender'){const a=notices.get(String(item.id));
     if(!a||a.url!==item.url||!(/^https:\/\/(www\.)?boamp\.fr\//i.test(a.url||'')||
       /^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(a.url||'')))return false;
@@ -359,8 +365,9 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    }
    seen.add(key);return true;
   }).sort((a,b)=>Number(b.score||0)-Number(a.score||0));
-  const nMission=rows.filter(x=>x.kind==='mission').length,nTender=rows.filter(x=>x.kind==='tender').length;
-  $('proAiInlineSummary').textContent=rows.length+' opportunité'+(rows.length!==1?'s':'')+' correspondant à vos critères, dont '+nTender+' marché'+(nTender!==1?'s':'')+' public'+(nTender!==1?'s':'')+' et '+nMission+' mission'+(nMission!==1?'s':'')+'.'+
+  const nExternal=rows.filter(x=>x.kind==='external').length;
+  const nMission=rows.filter(x=>x.kind==='mission'||x.kind==='external').length,nTender=rows.filter(x=>x.kind==='tender').length;
+  $('proAiInlineSummary').textContent=rows.length+' opportunité'+(rows.length!==1?'s':'')+' correspondant à vos critères, dont '+nTender+' marché'+(nTender!==1?'s':'')+' public'+(nTender!==1?'s':'')+' et '+(nMission-nExternal)+' mission'+(nMission-nExternal!==1?'s':'')+(nExternal?' et '+nExternal+' annonce'+(nExternal!==1?'s':'')+' Leboncoin':'')+'.'+
    (serverRadar.truncated?' Seuls les premiers résultats sont chargés.':'');
   for(const [id,n] of [['proAiTabAll',rows.length],['proAiStatAll',rows.length],['proAiTabMissions',nMission],['proAiStatMissions',nMission],['proAiTabTenders',nTender],['proAiStatTenders',nTender]])$(id).textContent=String(n);
   const priority=serverRadar?rows.filter(item=>{
@@ -375,7 +382,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    priorityButton.setAttribute('aria-pressed',String(priorityOnly));
   }
   const selected=rows.filter(item=>{
-   if(radarFilter!=='all'&&radarFilter!==item.kind)return false;
+   if(radarFilter!=='all'&&radarFilter!==item.kind&&!(radarFilter==='mission'&&item.kind==='external'))return false;
    if(priorityOnly&&(!priority.some(x=>x.id===item.id)||item.kind!=='tender'))return false;
    if(!radarQuery)return true;
    const m=missions.get(String(item.id)),a=notices.get(String(item.id));
@@ -393,7 +400,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    ' affichée'+(selected.length>1?'s':'')+'.';
   const tracked=new Map((state.tenderTracking||[]).map(t=>[String(t.tender_id),t]));
   panel.innerHTML=selected.length?selected.slice(0,24).map(item=>{
-   const tender=item.kind==='tender',m=missions.get(String(item.id)),a=notices.get(String(item.id));
+   const tender=item.kind==='tender',external=item.kind==='external',m=missions.get(String(item.id)),a=notices.get(String(item.id));
    const follow=tender?tracked.get(String(item.id)):null;
    const description=String(m?.description||item.description||'').trim();
    const desc=description?'<p class="pro-ai-card-description">'+esc(description.slice(0,175))+(description.length>175?'…':'')+'</p>':'';
@@ -407,9 +414,10 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    const score=Math.min(100,Math.max(0,Math.round(Number(item.score)||0)));
    const scoreLabel=tender&&!serverRadar?'Pertinence en cours de calcul':
     score+' % pertinent'+(item.locationType==='unknown'?' · Zone à confirmer':'');
-   const source=tender?esc(item.source==='TED'?'TED':'BOAMP'):'MISSION OFFRYA';
+   const source=tender?esc(item.source==='TED'?'TED':'BOAMP'):external?'LEBONCOIN':'MISSION OFFRYA';
    const action=tender
     ?'<a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer" class="pro-v3-reco-btn"><span aria-hidden="true">↗</span> Consulter l’appel d’offres</a>'
+    :external?'<a href="'+esc(item.url)+'" target="_blank" rel="noopener noreferrer" class="pro-v3-reco-btn">Voir l’annonce sur Leboncoin ↗</a>'
     :'<button type="button" class="pro-v3-reco-btn" data-pro-view-mission="'+esc(item.id)+'" title="Voir la mission et Préparer une proposition">Voir la mission →</button>';
    const favorite=tender?'<div class="pro-ai-follow-actions">'+
     (follow?'<label class="pro-ai-stage-label">Suivi <select class="pro-ai-stage-select" data-pro-stage-tender="'+esc(item.id)+'">'+
