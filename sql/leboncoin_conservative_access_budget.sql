@@ -7,6 +7,7 @@ create table if not exists offrya_private.leboncoin_access_ledger (
  event_kind text not null check(event_kind in ('run','request')),
  created_at timestamptz not null default now()
 );
+alter table offrya_private.leboncoin_access_ledger enable row level security;
 create index if not exists leboncoin_access_ledger_recent
  on offrya_private.leboncoin_access_ledger(event_kind,created_at desc);
 revoke all on offrya_private.leboncoin_access_ledger from public,anon,authenticated;
