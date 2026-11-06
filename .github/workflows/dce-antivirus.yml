@@ -40,7 +40,8 @@ jobs:
       - name: Start real local ClamAV daemon
         run: |
           sudo install -d -o clamav -g clamav -m 0770 /run/clamav
-          sudo -u clamav /usr/sbin/clamd --config-file="$GITHUB_WORKSPACE/deploy/dce/clamd.conf" &
+          sudo install -o root -g root -m 0644 "$GITHUB_WORKSPACE/deploy/dce/clamd.conf" /tmp/offrya-clamd.conf
+          sudo -u clamav /usr/sbin/clamd --config-file=/tmp/offrya-clamd.conf &
           sudo python3 - <<'PY'
           import socket,time,sys
           sock_path="/run/clamav/clamd.ctl"
