@@ -26,7 +26,7 @@ test('Four live metric cards preserve their labels, values and navigation',()=>{
  assert.match(row,/data-tab="missions"/);
  assert.match(row,/data-role-pro-screen="tracking"/);
  assert.match(row,/data-tab="inbox"/);
- assert.match(row,/data-role-pro-screen="watch"/);
+ assert.match(row,/data-tab="boamp" aria-label="Alertes secteur : ouvrir l'Espace Premium"/);
 });
 test('Every KPI keeps the same card grid slots and aligned typography',()=>{
  assert.ok(rules.includes(gridSelector+'{'));
