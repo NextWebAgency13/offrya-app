@@ -270,7 +270,9 @@ async function handle(req,res){
      try{
       const response=await fetch(base+'/rest/v1/offrya_external_opportunities?'+
        'select=id,source,source_id,source_url,title,summary,category,department,city,status,published_at,source_last_seen_at'+
-       '&status=eq.published&order=source_last_seen_at.desc&limit=100',
+       '&status=eq.published&source_last_seen_at=gte.'+
+       encodeURIComponent(new Date(Date.now()-7*24*60*60*1000).toISOString())+
+       '&order=source_last_seen_at.desc&limit=100',
        {headers,signal:AbortSignal.timeout(9000)});
       if(response.ok){
        const candidates=await response.json();
