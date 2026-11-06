@@ -22,9 +22,9 @@ test('Only HTTPS Leboncoin ad URLs are accepted, without tracking query strings'
   assert.equal(leboncoinUrl(invalid),null,invalid);
  }
  assert.deepEqual(allowedSearchUrls(JSON.stringify([
-  'https://www.leboncoin.fr/recherche?text=cherche%20artisan',
-  'https://www.leboncoin.fr/recherche?text=cherche%20artisan'
- ])),['https://www.leboncoin.fr/recherche?text=cherche%20artisan']);
+  'https://www.leboncoin.fr/recherche?category=34&text=cherche%20artisan',
+  'https://www.leboncoin.fr/recherche?category=34&text=cherche%20artisan'
+ ])),['https://www.leboncoin.fr/recherche?category=34&text=cherche%20artisan']);
  assert.throws(()=>allowedSearchUrls(['https://evil.test/recherche']),/non autorisée/);
 });
 test('Classifier detects client-side demand and rejects service offers, jobs and sales',()=>{
