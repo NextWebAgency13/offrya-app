@@ -23,6 +23,8 @@ jobs:
       - run: npm test
       - name: Live official DECP schema probe (read-only)
         run: node scripts/probe-decp-live.js
+      - name: Parse two original public consultation PDFs (RC + CCTP)
+        run: node scripts/test-real-dce.js
       - name: Verify BOAMP source and local Premium access control
         run: node scripts/diagnose-boamp.js
       - name: Check official company API response schema
