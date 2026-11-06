@@ -68,3 +68,14 @@ test('Scanner precedes any ZIP parser or OCR worker; server checks Premium first
  assert.match(server,/DCE_OCR_ENABLED==='true'/);
  assert.doesNotMatch(route,/service_role/);
 });
+
+test('Scanned OCR text cannot alone establish a definitive financial exclusion',()=>{
+ const {analyzeDce}=require('../lib/dce-evidence');
+ const scanned=analyzeDce({documents:[{name:'RC-scan.pdf',pages:[{page:2,kind:'page',
+  ocr:true,ocr_confidence:77,text:'Chiffre d’affaires annuel minimum de 500 000 €.'}]}],
+  company:{turnover_eur:90000,turnover_confirmed:true}});
+ assert.equal(scanned.go_no_go.verdict,'A_VERIFIER');
+ assert.equal(scanned.go_no_go.turnover_requirement,null);
+ assert.equal(scanned.facts[0].source.ocr,true);
+ assert.match(scanned.facts[0].confidence,/OCR incertain/);
+});
