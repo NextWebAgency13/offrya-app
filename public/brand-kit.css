@@ -98,3 +98,20 @@ body.offrya-reference-ui #dashboard .role-client-hero h2::after{
 .premium-hero .premium-intro .btn.outline{background:transparent;border-color:#ffffff99;color:#fff}
 .premium-hero .premium-price-card{color:var(--offrya-ink,#211728)}
 .premium-hero .premium-price-card li,.premium-hero .premium-price-card span{color:#3a2a48}
+
+/* Colonne de gauche (ordinateur) : même prune que la bannière du haut */
+@media (min-width:781px){
+ body .app-shell .sidebar,
+ body.offrya-reference-ui .app-shell .sidebar,
+ body.offrya-pro-v3 .app-shell .sidebar{
+  background:linear-gradient(180deg,#2E043D 0%,#3a0850 55%,#4B0058 100%)!important;
+  border-right:0!important;color:#fff;
+ }
+ body .app-shell .sidebar .workspace-label{color:#cdb6e6!important}
+ body .app-shell .sidebar .nav-link{color:#e6d9f2!important;background:transparent}
+ body .app-shell .sidebar .nav-link:hover{background:rgba(255,255,255,.09)!important;color:#fff!important}
+ body .app-shell .sidebar .nav-link.active{background:rgba(255,255,255,.15)!important;color:#fff!important}
+ body .app-shell .sidebar .nav-link:focus-visible{outline:3px solid #fff;outline-offset:2px}
+ body .app-shell .sidebar .legal-links,body .app-shell .sidebar .legal-links a{color:#d9c6ec!important}
+}
+@media (min-width:781px){body .app-shell .sidebar .founder-card{background:#F7F2FC!important;border-color:transparent!important;color:#211728!important}body .app-shell .sidebar .founder-card strong{color:#4B0058!important}}
