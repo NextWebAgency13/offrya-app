@@ -37,3 +37,11 @@ test('Top-right account menu has no Outils professionnels block at all',()=>{
  assert.match(html,/Mon compte et préférences/);
  for(const kept of ['Mon compte et préférences','Espace professionnel','Déconnexion'])assert.ok(html.includes(kept),kept);
 });
+
+test('Menu compte : l’identifiant fait doublon avec « Mon compte et préférences » et est masqué pour un compte connecté',()=>{
+ const app=fs.readFileSync('public/app.js','utf8');
+ assert.match(app,/\$\('authOpen'\)\.classList\.toggle\('hidden',yes&&!isGuest\(\)\)/);
+ // « Se connecter » (visiteur) et « Suivi invité » restent affichés.
+ assert.match(app,/\$\('authOpen'\)\.textContent=!yes\?'Se connecter':isGuest\(\)\?'Suivi invité'/);
+ assert.match(html,/data-tab="settings">Mon compte et préférences<\/button>/);
+});
