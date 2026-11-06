@@ -17,7 +17,7 @@ test('Reference client home matches its own verified-email journey, without Prem
  for(const name of ['Mon espace demandeur','Mes missions','Mes échanges','Espace pro','Mon profil','Mes missions récentes'])
   assert.ok(first.includes(name),name);
  assert.ok(!first.includes('<strong>Notifications</strong>'),'La carte Notifications est remplacée par Espace pro');
- assert.match(first,/data-tab="professional"[^>]*class="role-ref-action-card">\s*<span class="role-ref-card-icon pink"><svg class="nav-icon" aria-hidden="true"><use href="#ic-shield"\/><\/svg><\/span>\s*<strong>Espace pro<\/strong>/);
+ assert.match(first,/data-pro-entry class="role-ref-action-card">\s*<span class="role-ref-card-icon pink"><svg class="nav-icon" aria-hidden="true"><use href="#ic-shield"\/><\/svg><\/span>\s*<strong>Espace pro<\/strong>/);
  for(const id of ['clientStatOpen','clientStatPublished','clientStatConversations','clientStatClosed','clientHomeUnread','clientHomeProLabel','roleRecentMissions'])
   assert.match(first,new RegExp('id="'+id+'"'));
  assert.doesNotMatch(first,/data-tab="boamp"|role-premium-pill|roleBusinessName/);

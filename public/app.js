@@ -46,8 +46,17 @@ function isConversationHidden(id){return Boolean(state.hiddenConversations&&stat
 // « Mes échanges » (accueil) compte les discussions en cours, pas seulement les messages non lus :
 // une discussion déjà lue reste une discussion en cours.
 function visibleConversationCount(){return (state.conversations||[]).filter(c=>!isConversationHidden(c.id)).length;}
-// Carte « Espace pro » de l'accueil demandeur : entrée vers l'espace professionnel.
-function proEntryLabel(hasProProfile){return hasProProfile?'Mon dossier pro':'Devenir pro';}
+// Carte « Espace pro » de l'accueil demandeur : une seule logique pour le libellé et la destination.
+// Les étapes suivent celles de renderPremium (inscription → vérification → abonnement).
+function proEntry({session=false,guest=false,eligible=false,hasProProfile=false,request=null,draft=null}={}){
+ if(!session||guest)return {key:'login',label:'Se connecter'};
+ if(eligible)return {key:'workspace',label:'Mon espace pro'};
+ if(request?.status==='rejected')return {key:'fix',label:'Dossier à corriger'};
+ if(request?.status==='verified')return {key:'billing',label:'Activer l’accès'};
+ if(request)return {key:'review',label:'En vérification'};
+ if(hasProProfile||draft)return {key:'resume',label:'Finir mon dossier'};
+ return {key:'start',label:'Devenir pro'};
+}
 function exchangesLabel(count,unread){
  const n=Number(count)||0,u=Number(unread)||0;
  if(!n)return 'Aucun échange';
@@ -297,6 +306,20 @@ for(const n of document.querySelectorAll('[data-role-deposit]'))n.addEventListen
  if(!state.session?.user?.email_confirmed_at){toast('Confirmez votre adresse e-mail avant de publier une mission.');return;}
  location.assign('/deposer-une-mission');
 });
+function currentProEntry(){
+ return proEntry({session:Boolean(state.session),guest:isGuest(),eligible:canUsePremium(),
+  hasProProfile:state.profile?.role==='pro',request:state.premium,draft:state.draft});
+}
+// Un demandeur arrive sur la page de démarrage (aucun changement de rôle avant son clic sur
+// « Commencer les vérifications ») ; un dossier en cours reprend à son étape ; un compte actif
+// ouvre directement son espace pro.
+function openProEntry(){
+  const entry=currentProEntry();
+  if(entry.key==='login'){location.assign('/connexion?next=%2Fespace%2Fprofessionnel');return;}
+  if(entry.key==='workspace'){proExperience.show('home');return;}
+  tab('professional');
+}
+for(const n of document.querySelectorAll('[data-pro-entry]'))n.addEventListener('click',openProEntry);
 for(const n of document.querySelectorAll('[data-role-pro-screen]'))n.addEventListener('click',()=>{
  if(canUsePremium())proExperience.show(n.dataset.roleProScreen);
 });
@@ -909,7 +932,7 @@ function render(){
  if(personalDescription)personalDescription.textContent=hasProProfile?
   'Vos missions publiées et vos échanges. Retrouvez les opportunités dans Espace pro.':
   'Publiez vos projets et suivez les échanges avec les professionnels.';
- if($('clientHomeProLabel'))$('clientHomeProLabel').textContent=proEntryLabel(hasProProfile);
+ if($('clientHomeProLabel'))$('clientHomeProLabel').textContent=currentProEntry().label;
  document.body.classList.add('offrya-reference-ui');
  // Role presentation follows exactly the authenticated premium authorization.
  $('roleClientView').classList.toggle('hidden',eligiblePro);
