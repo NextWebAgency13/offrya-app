@@ -180,7 +180,8 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   alertButton.setAttribute('aria-label','Consulter les nouvelles missions');
   alertButton.innerHTML='<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"/><path d="M10 21h4"/></svg><span id="proV3AlertBubble" hidden></span>';
   if(accountMenu)accountMenu.before(alertButton);
-  alertButton.addEventListener('click',()=>{if(!canUsePremium())return;acknowledgeMatchedNotifications();show('requests');});
+  // La cloche ouvre le centre de notifications commun (app.js).
+  alertButton.addEventListener('click',()=>{if(!canUsePremium())return;document.dispatchEvent(new CustomEvent('offrya:open-notifications'));});
   const root=document.createElement('div');root.id='proExperienceV3';root.className='pro-v3-experience';
   root.innerHTML=[
    '<div class="pro-v3-mobile-menu" aria-hidden="true" hidden></div>',
@@ -508,6 +509,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   $('proV3AlertCount').textContent=serverRadar?String(serverRadar.items.filter(x=>x.kind==='tender'&&x.score>=75).length):'—';
   const bubble=$('proV3AlertBubble');
   if(bubble){bubble.hidden=!count;bubble.textContent=String(Math.min(count,99));}
+  document.dispatchEvent(new CustomEvent('offrya:notifications-changed'));
   const trigger=$('proV3MobileAlert');
   if(trigger)trigger.setAttribute('aria-label',count?'Ouvrir '+count+' mission(s) correspondant à mes filtres':'Consulter les missions disponibles');
   // Seules les missions pertinentes (secteurs, département, mots-clés, budget de la veille) comptent.
@@ -815,5 +817,9 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   }
   activeButtons();
  }
- return {init,render,show,syncTab,back:backFromProScreen};
+ return {init,render,show,syncTab,back:backFromProScreen,
+  // Centre de notifications : nouvelles missions pertinentes non lues.
+  notifications:()=>unreadMatchedNotifications().map(m=>({id:m.id,title:m.title,category:m.category,city:m.city,department:m.department,created_at:m.created_at})),
+  openNotification:id=>openMissionDetail(id),
+  acknowledgeAll:()=>acknowledgeMatchedNotifications()};
 }

@@ -86,17 +86,26 @@ function messageUnread(){
  }
  return {total,byThread};
 }
+function notificationMissions(){
+ // Nouvelles missions pertinentes (veille du professionnel), si l'espace pro est actif.
+ try{return (typeof proExperience!=='undefined'&&proExperience?.notifications?.())||[];}catch(_){return [];}
+}
 function paintMessageBadges(){
  const {total}=messageUnread();
  state.messageUnreadCount=total;
  const label=total>99?'99+':total?String(total):'';
- for(const id of ['messageNavBadge','messageShortcutBubble']){
-  const node=$(id);if(node){node.hidden=!total;node.textContent=label;}
+ const node=$('messageNavBadge');if(node){node.hidden=!total;node.textContent=label;}
+ // La cloche signale toutes les notifications : messages non lus + missions pertinentes.
+ const missionCount=notificationMissions().length,all=total+missionCount,allLabel=all>99?'99+':all?String(all):'';
+ for(const id of ['messageShortcutBubble','proV3AlertBubble']){
+  const bell=$(id);if(bell){bell.hidden=!all;bell.textContent=allLabel;}
  }
  const shortcut=$('messageShortcut');
- if(shortcut)shortcut.setAttribute('aria-label',total
-  ?'Ouvrir la messagerie : '+total+' message'+(total>1?'s':'')+' non lu'+(total>1?'s':'')
-  :'Ouvrir la messagerie');
+ const parts=[];
+ if(total)parts.push(total+' message'+(total>1?'s':'')+' non lu'+(total>1?'s':''));
+ if(missionCount)parts.push(missionCount+' nouvelle'+(missionCount>1?'s':'')+' mission'+(missionCount>1?'s':''));
+ if(shortcut)shortcut.setAttribute('aria-label',parts.length?'Ouvrir les notifications : '+parts.join(', '):'Ouvrir les notifications');
+ if(typeof renderNotificationPanel==='function'&&!$('notificationPanel')?.hidden)renderNotificationPanel();
  const navigation=document.querySelector('.sidebar .nav-link[data-tab="inbox"]');
  if(navigation)navigation.setAttribute('aria-label',total
   ?'Messages : '+total+' non lu'+(total>1?'s':'')
@@ -1294,6 +1303,80 @@ async function init(){
 const opportunityConsole=createOpportunityConsole({state,element:$,canUsePremium,tab,renderMissions,notify:toast});
 const salesWorkspace=createSalesWorkspace({state,element:$,canUsePremium,tab,notify:toast,refresh,onNavigate:screen=>screen==='back'?proExperience.back():proExperience.show(screen)});
 const proExperience=createProExperience({state,element:$,canUsePremium,tab,renderMissions,loadMarkets:()=>loadBoamp(),notify:toast,openProposal:id=>salesWorkspace.openMission(id)});
+
+// ===== Centre de notifications (cloche) =====
+function notificationIcon(kind){
+ return kind==='message'
+  ?'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
+  :'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+}
+function notificationItems(){
+ const uid=state.session?.user?.id;if(!uid)return [];
+ const {byThread}=messageUnread(),items=[];
+ for(const c of state.conversations||[]){
+  const n=byThread.get(c.id)||0;if(!n)continue;
+  const last=(state.messageHeaders||[]).filter(m=>m.conversation_id===c.id).map(m=>Date.parse(m.created_at||'')).filter(Number.isFinite);
+  items.push({kind:'message',id:c.id,title:titleForMission(c.mission_id),
+   meta:n+' nouveau'+(n>1?'x':'')+' message'+(n>1?'s':''),at:last.length?Math.max(...last):0});
+ }
+ for(const m of notificationMissions())items.push({kind:'mission',id:m.id,title:m.title||'Mission',
+  meta:[m.category,[m.city,m.department?'('+m.department+')':''].filter(Boolean).join(' ')].filter(Boolean).join(' · '),
+  at:Date.parse(m.created_at||'')||0});
+ return items.sort((a,b)=>b.at-a.at);
+}
+function renderNotificationPanel(){
+ const panel=$('notificationPanel');if(!panel)return;
+ const items=notificationItems();
+ panel.innerHTML='<div class="notif-head"><strong id="notificationTitle">Notifications</strong>'+
+  (items.length?'<button type="button" class="notif-read-all" data-notif-read-all>Tout marquer comme lu</button>':'')+'</div>'+
+  (items.length?'<ul class="notif-list">'+items.map(it=>'<li><button type="button" class="notif-item" data-notif-kind="'+it.kind+'" data-notif-id="'+esc(it.id)+'">'+
+   '<span class="notif-icon '+it.kind+'">'+notificationIcon(it.kind)+'</span><span class="notif-copy"><small>'+(it.kind==='message'?'Nouveau message':'Nouvelle mission pour vous')+'</small>'+
+   '<strong>'+esc(it.title)+'</strong><span>'+esc(it.meta)+'</span></span></button></li>').join('')+'</ul>'
+  :'<p class="notif-empty">Aucune nouvelle notification.</p>')+
+  '<div class="notif-foot"><button type="button" data-notif-goto="inbox">Voir la messagerie</button></div>';
+}
+function closeNotificationPanel(){
+ const panel=$('notificationPanel');if(!panel||panel.hidden)return;
+ panel.hidden=true;
+ for(const id of ['messageShortcut','proV3MobileAlert'])$(id)?.setAttribute('aria-expanded','false');
+}
+function openNotificationPanel(){
+ let panel=$('notificationPanel');
+ if(!panel){
+  panel=document.createElement('div');panel.id='notificationPanel';panel.className='notif-panel';
+  panel.setAttribute('role','dialog');panel.setAttribute('aria-labelledby','notificationTitle');panel.hidden=true;
+  document.body.appendChild(panel);
+  panel.addEventListener('click',async e=>{
+   const all=e.target.closest('[data-notif-read-all]');
+   if(all){
+    for(const c of state.conversations||[])acknowledgeConversation(c.id,state.messageHeaders);
+    try{proExperience?.acknowledgeAll?.();}catch(_){}
+    paintMessageBadges();renderNotificationPanel();return;
+   }
+   const go=e.target.closest('[data-notif-goto]');
+   if(go){closeNotificationPanel();tab(go.dataset.notifGoto);return;}
+   const item=e.target.closest('[data-notif-id]');if(!item)return;
+   closeNotificationPanel();
+   const id=item.dataset.notifId;
+   if(item.dataset.notifKind==='mission'){try{proExperience.openNotification(id);}catch(error){console.warn('OFFRYA: mission indisponible',error);}paintMessageBadges();return;}
+   tab('inbox');state.thread=id;renderInbox();
+   try{await loadMessages(id);}catch(error){showError(error);}
+  });
+ }
+ if(!panel.hidden){closeNotificationPanel();return;}
+ renderNotificationPanel();panel.hidden=false;
+ for(const id of ['messageShortcut','proV3MobileAlert'])$(id)?.setAttribute('aria-expanded','true');
+ panel.querySelector('button')?.focus({preventScroll:true});
+}
+document.addEventListener('click',e=>{
+ const bell=e.target.closest?.('#messageShortcut');
+ if(bell){e.preventDefault();e.stopImmediatePropagation();openNotificationPanel();return;}
+ const panel=$('notificationPanel');
+ if(panel&&!panel.hidden&&!panel.contains(e.target)&&!e.target.closest?.('#proV3MobileAlert'))closeNotificationPanel();
+},true);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeNotificationPanel();});
+document.addEventListener('offrya:open-notifications',openNotificationPanel);
+document.addEventListener('offrya:notifications-changed',()=>paintMessageBadges());
 const pushNotifications=createPushNotifications({state,button:$('pushNotificationToggle'),status:$('pushNotificationStatus'),notify:toast});
 proExperience.init();opportunityConsole.init();salesWorkspace.init();
 init().catch(showError);
