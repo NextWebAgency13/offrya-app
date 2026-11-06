@@ -46,3 +46,18 @@ L'architecture reste **provisoire** : un Node worker n’est pas un sandbox OS. 
 - Le test DCE intégral récupère les fichiers historiques de la consultation municipale `01/ST/2026` (dossier public sur le site de Coupvray). Il est constitué à la volée uniquement pour test, n'est pas conservé dans le dépôt, et les rectificatifs et Q/R de simulation sont **explicitement fictifs**.
 
 **Une réussite CI ne prouve pas que la configuration Docker est déployée sur Render.** Tant que le changement de runtime/service et l'autorisation budgétaire n'ont pas été approuvés, aucune installation sur l'infrastructure réelle n'a eu lieu.
+
+## Résultats observés dans GitHub Actions, 6 novembre 2026
+
+- **ClamAV réel** : démon opérationnel, signatures daily récentes, ZIP sain accepté, archive ZIP EICAR détectée et rejetée ; pas de contenu client envoyé à un service externe. Résultat CI : succès.
+- **DCE homogène et authentique** : consultation municipale 01/ST/2026 Coupvray, six pièces téléchargées au même emplacement (RC, CCAP, CCTP lot 1, AE DOCX, BPU XLSX, DQE XLSX), toutes importées, 32 indices sourcés, 9 items de checklist.
+- **Limite importante** : le CCTP de 54 pages dépasse le plafond d’extraction de 25 pages par PDF ; il est correctement signalé comme analysé partiellement. Ces résultats ne certifient PAS une extraction exhaustive.
+- **Versions fictives** : un rectificatif et une réponse aux questions simulés sont détectés avec leur origine, distincts des six vrais documents. Leur ajout modifie le SHA-256 de l’archive.
+- **Comptes** : deux comptes Premium simulés reçoivent chacun leur propre brouillon, le compte non Premium ne peut pas appeler les routes protégées, et l’absence de ClamAV entraîne toujours un refus de l’import. Les essais n’ont pas utilisé de comptes clients réels.
+- **OCR local** : PDF image fabriqué à partir d’une page authentique, reconnaissance française et références de pages validées dans l'environnement CI.
+
+Ces tests valident les bibliothèques et le protocole, pas une installation sur le Render public.
+
+## Coût et décision nécessaire
+
+Selon la grille Render consultée le 6 novembre 2026, l’instance **4 Go** coûte environ **55 USD/mois**, hors éventuels frais additionnels et fiscalité. Ce niveau de ressources vise l’import DCE + ClamAV, mais un test de charge reste indispensable. Une hausse de forfait et la création d’un nouvel environnement facturable requièrent l’accord exprès du propriétaire du compte. **Aucun achat, changement d’offre ou déploiement n’a été effectué.**
