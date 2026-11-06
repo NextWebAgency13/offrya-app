@@ -12,7 +12,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const euro=n=>(Number(n||0)/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
 const date=s=>s?new Date(s).toLocaleDateString('fr-FR'):'—';
 let missionView='available';
-const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,testPremiumUntil:null,boampStatus:'idle',opportunityPrefs:null,tenderTracking:[],opportunityAlerts:[],salesTracking:[],draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login',messageHeaders:[],messageUnreadCount:0,hiddenConversations:new Set(),showHiddenConversations:false};
+const state={db:null,session:null,profile:null,missions:[],conversations:[],messages:[],prefs:null,profiles:[],favorites:[],thread:null,boamp:[],boampOffset:0,boampTotal:0,premium:null,subscription:null,manualIdentity:null,billingEnabled:false,identityEnabled:false,testPremiumUntil:null,boampStatus:'idle',opportunityPrefs:null,tenderTracking:[],opportunityAlerts:[],salesTracking:[],draft:null,proStep:1,proStepUserId:null,signupForPro:false,loaded:false,priorityAlerts:[],lastPriorityIds:null,authMode:'login',messageHeaders:[],messageUnreadCount:0,hiddenConversations:new Set()};
 $('dashboardLoadingRetry')?.addEventListener('click',()=>location.reload());
 setTimeout(()=>{
  if(state.loaded)return;
@@ -302,7 +302,7 @@ async function refresh(){
  if(!state.session){
   missionView='available';
   state.draft=null;state.proStep=1;state.proStepUserId=null;
-  state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.messageHeaders=[];state.messageUnreadCount=0;state.hiddenConversations=new Set();state.showHiddenConversations=false;
+  state.missions=[];state.profile=null;state.conversations=[];state.messages=[];state.messageHeaders=[];state.messageUnreadCount=0;state.hiddenConversations=new Set();
   state.prefs=null;state.profiles=[];state.favorites=[];state.premium=null;
   state.subscription=null;state.testPremiumUntil=null;state.opportunityPrefs=null;state.tenderTracking=[];state.opportunityAlerts=[];state.salesTracking=[];state.manualIdentity=null;state.boamp=[];
   state.priorityAlerts=[];state.lastPriorityIds=null;state.loaded=true;render();return;
@@ -312,7 +312,7 @@ async function refresh(){
  if(state.currentUserId!==uid){
   missionView='available';
   state.currentUserId=uid;state.missions=[];state.profile=null;state.premium=null;state.subscription=null;state.testPremiumUntil=null;
-  state.conversations=[];state.messages=[];state.messageHeaders=[];state.messageUnreadCount=0;state.hiddenConversations=new Set();state.showHiddenConversations=false;messageKnownAccount=null;messageKnownIds=null;state.prefs=null;state.opportunityPrefs=null;state.tenderTracking=[];state.opportunityAlerts=[];state.salesTracking=[];state.profiles=[];state.favorites=[];
+  state.conversations=[];state.messages=[];state.messageHeaders=[];state.messageUnreadCount=0;state.hiddenConversations=new Set();messageKnownAccount=null;messageKnownIds=null;state.prefs=null;state.opportunityPrefs=null;state.tenderTracking=[];state.opportunityAlerts=[];state.salesTracking=[];state.profiles=[];state.favorites=[];
   state.draft=null;state.manualIdentity=null;state.priorityAlerts=[];state.loaded=false;
  }
  // Load the owner's missions first. RLS also independently enforces ownership.
@@ -510,24 +510,19 @@ function renderMissions(){
   '<div class="empty">Vous n’avez pas encore publié de mission. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
 }
 const TRASH_ICON='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
-function conversationRow(c,archived,unreadByThread){
+function conversationRow(c,unreadByThread){
  const mine=c.client_id===state.session?.user.id;
  const contact=profileName(mine?c.professional_id:c.client_id);
  const title=titleForMission(c.mission_id);
  const body=`<span class="offrya-conversation-icon" aria-hidden="true">${mine?'P':'D'}</span><span class="offrya-conversation-body"><strong>${esc(title)}</strong><small>${mine?'Professionnel':'Demandeur'} : ${esc(contact)}</small><time datetime="${esc(c.created_at)}">Discussion ouverte le ${date(c.created_at)}</time></span>`;
- if(archived)return `<div class="conv-row is-archived"><div class="offrya-conversation conv-archived">${body}</div><button type="button" class="conv-action conv-restore" data-restore-thread="${esc(c.id)}" aria-label="Rétablir l’échange ${esc(title)}">Rétablir</button></div>`;
  const selected=state.thread===c.id,unread=unreadByThread.get(c.id)||0;
  return `<div class="conv-row"><button type="button" class="conv-item offrya-conversation ${selected?'selected':''} ${unread?'has-unread':''}" data-thread="${esc(c.id)}" aria-pressed="${selected}">${body}${unread?'<span class="message-thread-badge" aria-label="'+unread+' message(s) non lu(s)">'+(unread>99?'99+':unread)+'</span>':''}<span class="offrya-conversation-chevron" aria-hidden="true">›</span></button><button type="button" class="conv-action conv-remove" data-hide-thread="${esc(c.id)}" aria-label="Retirer l’échange ${esc(title)} de ma messagerie" title="Retirer de ma messagerie">${TRASH_ICON}</button></div>`;
 }
 function renderInbox(){
  const items=state.conversations;
- const visible=items.filter(c=>!isConversationHidden(c.id)),archived=items.filter(c=>isConversationHidden(c.id));
+ const visible=items.filter(c=>!isConversationHidden(c.id));
  const unreadByThread=messageUnread().byThread;
- let html=visible.length?visible.map(c=>conversationRow(c,false,unreadByThread)).join(''):'<div class="empty">Aucune conversation pour le moment. Retrouvez vos échanges ici après une prise de contact au sujet d’une mission.</div>';
- if(archived.length){
-  html+=`<button type="button" class="conv-hidden-toggle" data-toggle-hidden aria-expanded="${state.showHiddenConversations?'true':'false'}">${state.showHiddenConversations?'Cacher':'Voir'} les échanges retirés (${archived.length})</button>`;
-  if(state.showHiddenConversations)html+=archived.map(c=>conversationRow(c,true,unreadByThread)).join('');
- }
+ const html=visible.length?visible.map(c=>conversationRow(c,unreadByThread)).join(''):'<div class="empty">Aucune conversation pour le moment. Retrouvez vos échanges ici après une prise de contact au sujet d’une mission.</div>';
  $('conversationList').innerHTML=html;
  $('messageForm').querySelector('button').disabled=!state.thread;
  const activeConversation=items.find(c=>c.id===state.thread);
@@ -1040,11 +1035,6 @@ async function hideConversation(id){
  render();
  toast('Échange retiré de votre messagerie.');
 }
-async function restoreConversation(id){
- if(!id||!await setConversationHidden(id,false))return;
- render();
- toast('Échange rétabli dans votre messagerie.');
-}
 $('missionSearch').onclick=renderMissions;
 $('missionRefresh').onclick=async()=>{
  const button=$('missionRefresh');if(button.disabled)return;
@@ -1108,9 +1098,6 @@ $('inboxBackToList').onclick=()=>{
 $('conversationList').onclick=async e=>{
  const hideBtn=e.target.closest('[data-hide-thread]');
  if(hideBtn){await hideConversation(hideBtn.dataset.hideThread);return;}
- const restoreBtn=e.target.closest('[data-restore-thread]');
- if(restoreBtn){await restoreConversation(restoreBtn.dataset.restoreThread);return;}
- if(e.target.closest('[data-toggle-hidden]')){state.showHiddenConversations=!state.showHiddenConversations;renderInbox();return;}
  const btn=e.target.closest('[data-thread]');if(!btn)return;state.thread=btn.dataset.thread;renderInbox();try{await loadMessages(state.thread);}catch(err){showError(err);}};
 $('threadHide')?.addEventListener('click',()=>hideConversation(state.thread));
 $('messageForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth()||!state.thread)return;const f=e.currentTarget,body=f.elements.body.value.trim();if(!body)return;try{const r=await state.db.from('offrya_messages').insert({conversation_id:state.thread,sender_id:state.session.user.id,body});if(r.error)throw r.error;f.reset();await loadMessages(state.thread);}catch(err){showError(err);}};

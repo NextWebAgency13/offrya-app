@@ -17,7 +17,7 @@ function harness({hidden=[],confirmAnswer=true,insertError=null}={}){
  const state={session:{user:{id:me}},currentUserId:me,db:null,thread:c1,messages:[{id:'m'}],messageHeaders:[],
   conversations:[{id:c1,mission_id:'a',client_id:me,professional_id:other,created_at:'2026-11-01T10:00:00Z'},
    {id:c2,mission_id:'b',client_id:me,professional_id:other,created_at:'2026-11-02T10:00:00Z'}],
-  hiddenConversations:new Set(hidden),showHiddenConversations:false};
+  hiddenConversations:new Set(hidden)};
  state.db={from(table){return {
   insert:async row=>{calls.push(['insert',table,row]);return {error:insertError};},
   delete:()=>({eq:(a,b)=>({eq:async(c,d)=>{calls.push(['delete',table,[a,b],[c,d]]);return {error:null};}})}),
@@ -31,7 +31,7 @@ function harness({hidden=[],confirmAnswer=true,insertError=null}={}){
  const source=slice('function isConversationHidden','function messageUnread(){')
   +slice('async function setConversationHidden','$(\'missionSearch\').onclick')
   +slice('const TRASH_ICON','function renderMessages(){');
- vm.runInNewContext(source+'\nthis.api={isConversationHidden,setConversationHidden,hideConversation,restoreConversation,renderInbox};',ctx);
+ vm.runInNewContext(source+'\nthis.api={isConversationHidden,setConversationHidden,hideConversation,renderInbox};',ctx);
  return {state,calls,toasts,api:ctx.api,node};
 }
 test('Hiding asks for confirmation and writes only the current user’s own row',async()=>{
@@ -47,12 +47,12 @@ test('Hiding asks for confirmation and writes only the current user’s own row'
  assert.ok(ok.calls.some(c=>c[0]==='render'));
  assert.ok(!ok.calls.some(c=>c[1]==='offrya_conversations'||c[1]==='offrya_messages'),'Aucune suppression de conversation ni de message');
 });
-test('Hiding twice is harmless and restoring deletes only the own row',async()=>{
+test('Hiding twice is harmless and re-showing deletes only the own row',async()=>{
  const dup=harness({insertError:{code:'23505'}});
  await dup.api.hideConversation(c2);
  assert.ok(dup.state.hiddenConversations.has(c2));
  const back=harness({hidden:[c2]});
- await back.api.restoreConversation(c2);
+ assert.equal(await back.api.setConversationHidden(c2,false),true);
  assert.ok(!back.state.hiddenConversations.has(c2));
  assert.equal(JSON.stringify(back.calls.find(c=>c[0]==='delete')),JSON.stringify(['delete','offrya_conversation_hides',['conversation_id',c2],['user_id',me]]));
 });
@@ -61,17 +61,16 @@ test('A real database error leaves the exchange visible',async()=>{
  await assert.rejects(h.api.hideConversation(c1),/refusé/);
  assert.ok(!h.state.hiddenConversations.has(c1));
 });
-test('The list hides retired exchanges, offers a way to show and restore them',()=>{
+test('The list simply omits retired exchanges, with no extra tab or link',()=>{
  const h=harness({hidden:[c2]});
  h.api.renderInbox();
  const list=h.node('conversationList').innerHTML;
  assert.ok(list.includes('data-thread="'+c1+'"')&&list.includes('data-hide-thread="'+c1+'"'));
  assert.ok(!list.includes('data-thread="'+c2+'"'),'Un échange retiré n’apparaît pas');
- assert.match(list,/data-toggle-hidden[^>]*aria-expanded="false"[^>]*>Voir les échanges retirés \(1\)/);
- h.state.showHiddenConversations=true;
- h.api.renderInbox();
- const open=h.node('conversationList').innerHTML;
- assert.ok(open.includes('data-restore-thread="'+c2+'"')&&!open.includes('data-thread="'+c2+'"'));
+ assert.ok(!/échanges retirés|data-toggle-hidden|data-restore-thread/.test(list),'Aucun lien pour afficher les échanges retirés');
+ const all=harness({hidden:[c1,c2]});
+ all.api.renderInbox();
+ assert.match(all.node('conversationList').innerHTML,/Aucune conversation pour le moment/);
 });
 test('Badges ignore hidden exchanges and the database refresh brings them back',()=>{
  const source=slice('const MESSAGE_READ_PREFIX=','function toast(s){');
