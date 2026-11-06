@@ -109,10 +109,11 @@ async function synchronize({env=process.env,browserFactory,load=fetchRows,save=u
  if(!Array.isArray(records))throw Error('Liste de synchronisation invalide.');
  const factory=browserFactory||(()=>require('playwright').chromium.launch({headless:true}));
  const browser=await factory();
- const page=await browser.newPage({locale:'fr-FR',javaScriptEnabled:false,serviceWorkers:'block',userAgent:BOT_USER_AGENT});
- await installBrowserGuard(page,{allowMock:Boolean(browserFactory)});
+ let page;
  let checked=0,expired=0,uncertain=0;
  try{
+  page=await browser.newPage({locale:'fr-FR',javaScriptEnabled:false,serviceWorkers:'block',userAgent:BOT_USER_AGENT});
+  await installBrowserGuard(page,{allowMock:Boolean(browserFactory)});
   for(const row of records.slice(0,MAX_CHECKS)){
    if(row.status!=='published')continue;
    await pause(MIN_REQUEST_GAP_MS);
@@ -127,7 +128,9 @@ async function synchronize({env=process.env,browserFactory,load=fetchRows,save=u
     if(updated&&changes.status==='expired')expired++;
    }
   }
- }finally{await page.close();await browser.close();}
+ }finally{
+  try{if(page)await page.close();}finally{await browser.close();}
+ }
  logger.info('Synchronisation externe : '+JSON.stringify({checked,expired,uncertain,dryRun}));
  return {checked,expired,uncertain,dryRun};
 }
