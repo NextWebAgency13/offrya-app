@@ -1,0 +1,47 @@
+name: OFFRYA — import du flux Leboncoin autorisé
+# Importe un export fourni par Leboncoin ou un partenaire autorisé. Aucun accès robot au site.
+# Activation : variable LEBONCOIN_FEED_ENABLED=true + secret LEBONCOIN_FEED_URL (et LEBONCOIN_FEED_TOKEN si besoin).
+# Simulation par défaut : mettre LEBONCOIN_DRY_RUN=false pour écrire dans Supabase.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '37 6,10,14,18 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: offrya-leboncoin-feed-import
+  cancel-in-progress: false
+jobs:
+  import:
+    if: vars.LEBONCOIN_FEED_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_URL: ${{ secrets.OFFRYA_SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.OFFRYA_SUPABASE_SECRET_KEY }}
+      LEBONCOIN_FEED_ENABLED: ${{ vars.LEBONCOIN_FEED_ENABLED }}
+      LEBONCOIN_FEED_URL: ${{ secrets.LEBONCOIN_FEED_URL }}
+      LEBONCOIN_FEED_TOKEN: ${{ secrets.LEBONCOIN_FEED_TOKEN }}
+      LEBONCOIN_DRY_RUN: ${{ vars.LEBONCOIN_DRY_RUN || 'true' }}
+      LEBONCOIN_PUBLISH_ENABLED: ${{ vars.LEBONCOIN_PUBLISH_ENABLED }}
+      LEBONCOIN_REPUBLICATION_AUTHORIZED: ${{ vars.LEBONCOIN_REPUBLICATION_AUTHORIZED }}
+      LEBONCOIN_VALIDATION_REPORT: offrya-feed-report.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Tests de validation du flux
+        run: node --test tests/leboncoin-feed-validation.test.js tests/leboncoin-feed-download.test.js
+      - name: Importer le flux autorisé
+        run: node scripts/import-leboncoin-feed.js
+      - name: Résumé (compteurs seulement, aucune donnée d’annonce)
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## OFFRYA — import du flux autorisé'
+            echo '```json'
+            cat "$LEBONCOIN_VALIDATION_REPORT" 2>/dev/null || echo '{"rapport":"absent"}'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
