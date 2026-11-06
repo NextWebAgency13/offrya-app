@@ -45,7 +45,7 @@ test('Three professional actions are retained in sidebar and mobile menu, not as
  assert.match(pro,/const secondaryMenu=menu\.filter/);
  for(const word of ['Marchés publics','Veille automatisée','Messagerie','Préférences de veille','Paramètres'])assert.ok(pro.includes(word));
  assert.doesNotMatch(pro,/'<nav class="pro-v3-primary-tabs"/);
- assert.match(pro,/\.\.\.primaryMenu\.filter\(item=>item\[0\]!=='home'\),\.\.\.secondaryMenu/);
+ assert.match(pro,/tools\.innerHTML=[^\n]*accountToolsMenu\.map\(navButton\)/);
  assert.match(css,/body\.offrya-pro-v3 #proExperienceV3 \.pro-v3-primary-tabs\{display:none!important\}/);
 });
 test('Sending remains explicit, uses existing private conversation and moves to tracking',()=>{

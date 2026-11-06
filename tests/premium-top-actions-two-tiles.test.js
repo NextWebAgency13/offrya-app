@@ -17,11 +17,11 @@ test('No duplicate upper action cards remain on Premium',()=>{
  assert.match(pro,/proV3Recommendations/);
  assert.doesNotMatch(pro,/querySelector\('\.pro-v3-primary-tabs'\)\.after\(search\)/);
 });
-test('Proposer mes services and Gérer mon activité are retained in Android menu and desktop sidebar',()=>{
+test('Proposer mes services and Gérer mon activité are retained in the desktop sidebar',()=>{
  assert.match(pro,/const primaryMenu=\[/);
  for(const value of ['Trouver des missions','Proposer mes services','Gérer mon activité'])assert.ok(pro.includes(value));
  assert.match(pro,/nav\.innerHTML=primaryMenu\.map\(navButton\)\.join\(''\)/);
- assert.match(pro,/tools\.innerHTML=[^\n]*\[\.\.\.primaryMenu\.filter\(item=>item\[0\]!=='home'\),\.\.\.secondaryMenu\]\.map\(navButton\)/);
+ assert.match(pro,/tools\.innerHTML=[^\n]*accountToolsMenu\.map\(navButton\)/);
  assert.match(pro,/accountPanel\.prepend\(tools\)/);
  assert.match(html,/data-tab="boamp" aria-label="Espace Premium"/);
  assert.match(pro,/data-pro-screen/);
@@ -30,4 +30,14 @@ test('No top three-card strip can appear on small Android or desktop-site portra
  assert.match(css,/body\.offrya-pro-v3 #proExperienceV3 \.pro-v3-primary-tabs\{display:none!important\}/);
  const parsed=spawnSync(process.execPath,['--input-type=module','--check'],{input:pro,encoding:'utf8'});
  assert.equal(parsed.status,0,parsed.stderr);
+});
+
+test('Top-right account menu no longer repeats Proposer mes services, Gérer mon activité or Paramètres',()=>{
+ const vm=require('node:vm');
+ const start=pro.indexOf('const menu=['),end=pro.indexOf('let initialized=false');
+ assert.ok(start>0&&end>start);
+ const ctx={};
+ vm.runInNewContext(pro.slice(start,end)+'\nthis.keys=accountToolsMenu.map(item=>item[0]);this.labels=accountToolsMenu.map(item=>item[1]);',ctx);
+ assert.equal(JSON.stringify(ctx.keys),JSON.stringify(['boamp','watch','inbox','preferences']));
+ assert.equal(JSON.stringify(ctx.labels),JSON.stringify(['Marchés publics','Veille automatisée','Messagerie','Préférences de veille']));
 });

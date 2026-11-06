@@ -113,6 +113,9 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   ['tracking','Gérer mon activité','ic-check']
  ];
  const secondaryMenu=menu.filter(item=>!['home','requests','tracking','assistant'].includes(item[0]));
+ // Top-right account menu: « Proposer mes services » and « Gérer mon activité » already
+ // live in the Missions tab, and « Paramètres » in Mon compte, so they are not repeated here.
+ const accountToolsMenu=secondaryMenu.filter(item=>item[0]!=='settings');
  let initialized=false,view='home',uid=null;
  let serverRadar=null,radarKey='',radarAt=0,radarLoading=false;
  let radarFilter='all',radarQuery='';
@@ -176,7 +179,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(accountPanel&&!accountPanel.querySelector('#proV3AccountTools')){
    const tools=document.createElement('nav');tools.id='proV3AccountTools';tools.className='pro-v3-account-tools';
    tools.setAttribute('aria-label','Outils professionnels');
-   tools.innerHTML='<strong class="pro-v3-account-title">Outils professionnels</strong>'+[...primaryMenu.filter(item=>item[0]!=='home'),...secondaryMenu].map(navButton).join('');
+   tools.innerHTML='<strong class="pro-v3-account-title">Outils professionnels</strong>'+accountToolsMenu.map(navButton).join('');
    accountPanel.prepend(tools);
   }
   const accountMenu=document.getElementById('accountMenu');
