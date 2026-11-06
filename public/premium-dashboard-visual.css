@@ -236,3 +236,329 @@
 @media(prefers-reduced-motion:reduce){
   body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats > button{transition:none!important}
 }
+
+/* OFFRYA — Premium Android secondary tabs, approved dashboard visual language.
+   Only the Missions, Messages and Mon compte tabs of an authenticated Premium
+   screen are styled. Accueil retains its approved treatment; #boamp/Espace
+   Premium is deliberately excluded. Navigation, RLS, data and controls unchanged. */
+@media (max-width:780px){
+  body.offrya-reference-ui[data-offrya-role="premium"]:has(#missions.active,#inbox.active,#settings.active){
+    background:#faf5ff;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"]:has(#missions.active,#inbox.active,#settings.active) .app-shell .header{
+    position:relative!important;isolation:isolate;overflow:hidden;
+    background:linear-gradient(116deg,#350045 0%,#4a075c 52%,#67146f 100%)!important;
+    border-bottom:1px solid #ae62b1!important;
+    box-shadow:0 9px 25px #54045b29!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"]:has(#missions.active,#inbox.active,#settings.active) .app-shell .header::before{
+    content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:linear-gradient(145deg,transparent 0 45%,#8f2a9066 46%,#b52d8e77 62%,transparent 78%);
+    clip-path:polygon(52% 100%,74% 0,100% 0,100% 100%);
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"]:has(#missions.active,#inbox.active,#settings.active) .app-shell .header::after{
+    content:"";position:absolute;bottom:0;left:0;width:100%;height:2px;
+    background:linear-gradient(90deg,transparent,#f596b8bb,transparent);pointer-events:none;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"]:has(#missions.active,#inbox.active,#settings.active) .app-shell .header :is(.header-left,.header-actions){position:relative;z-index:1}
+  body.offrya-reference-ui[data-offrya-role="premium"]:has(#missions.active,#inbox.active,#settings.active) .app-shell .header .mobile-brand .brand-logo{
+    display:block;height:45px!important;width:auto!important;
+    max-width:min(55vw,220px)!important;object-fit:contain;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"]:has(#missions.active,#inbox.active,#settings.active) .app-shell .header .account-menu summary{
+    background:#ffffff27!important;border:1px solid #ffffff16!important;
+    box-shadow:inset 0 1px #ffffff20!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"]:has(#missions.active,#inbox.active,#settings.active) .app-shell .main-content{
+    min-width:0;
+    background:radial-gradient(ellipse at 65% 25%,#fffaff 0%,#faf4ff 54%,#f6edff 100%)!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"]:has(#missions.active,#inbox.active,#settings.active) .app-shell .sidebar{
+    background:linear-gradient(108deg,#4b0058,#31003f 88%)!important;
+    border-radius:20px 20px 0 0!important;
+    box-shadow:0 -5px 22px #3d054535!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"]:has(#missions.active,#inbox.active,#settings.active) .app-shell .sidebar #nav .nav-link.active{
+    background:linear-gradient(135deg,#ba38de 0%,#8a21d4 58%,#f07591 100%)!important;
+    box-shadow:inset 0 1px #ffffff33,0 4px 13px #2e06402a!important;
+    border-radius:16px!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"]:has(#missions.active,#inbox.active,#settings.active) .app-shell .sidebar #nav .nav-link .nav-icon{width:24px!important;height:24px!important}
+  body.offrya-reference-ui[data-offrya-role="premium"]:has(#missions.active,#inbox.active,#settings.active) .app-shell .sidebar #nav .nav-link span:not(.message-unread-badge){
+    font-size:clamp(9px,2.8vw,11px)!important;line-height:1.15!important;
+  }
+
+  /* Common page header: same plum banner, rounded treatment and coral accent
+     as the approved Accueil Premium, rather than changing underlying page HTML. */
+  body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active){
+    box-sizing:border-box;min-width:0;
+    padding:12px 12px 22px!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active) > .section-top:first-child{
+    position:relative;isolation:isolate;overflow:hidden;
+    display:flex!important;flex-direction:column!important;
+    align-items:stretch!important;gap:13px!important;
+    margin:0 0 18px!important;padding:22px 19px!important;
+    border:1px solid #9a4eab!important;border-radius:23px!important;
+    background:linear-gradient(115deg,#350644 0%,#511169 55%,#661775 100%)!important;
+    box-shadow:0 11px 25px #50105925!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active) > .section-top:first-child::before{
+    content:"";position:absolute;right:-18%;bottom:-65px;z-index:-1;
+    width:84%;height:123px;border-radius:50%;transform:rotate(-13deg);
+    background:linear-gradient(108deg,#ff7a8378,#bd52dc52,transparent);
+    pointer-events:none;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active) > .section-top:first-child::after{
+    content:"";position:absolute;top:0;left:27%;width:73%;height:2px;
+    background:linear-gradient(90deg,transparent,#ffffff72,transparent);
+    pointer-events:none;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active) > .section-top:first-child > div{position:relative;z-index:1;min-width:0}
+  body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active) > .section-top:first-child .eyebrow{
+    display:block;margin:0 0 9px!important;padding:0!important;
+    color:#ffc1cf!important;font:800 10px/1.25 'Plus Jakarta Sans',sans-serif!important;
+    letter-spacing:.16em!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active) > .section-top:first-child h2{
+    margin:0 0 9px!important;color:#fff!important;
+    font:850 clamp(24px,7vw,30px)/1.1 'Plus Jakarta Sans',sans-serif!important;
+    letter-spacing:-.035em!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active) > .section-top:first-child h2::after{
+    content:"";display:block;width:45px;height:3px;margin-top:12px;
+    border-radius:3px;background:#ff7488;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active) > .section-top:first-child p:not(.eyebrow){
+    max-width:600px;margin:0!important;color:#f6e9fa!important;
+    font:500 clamp(12px,3.65vw,14px)/1.45 'DM Sans',sans-serif!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active) :is(.panel,.mission-listing){
+    border-color:#e7dcef;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active) :is(.field,input.field,select.field){
+    min-height:45px;border:1px solid #dfd3ea!important;
+    border-radius:13px!important;background:#fff!important;
+    color:#321342!important;font-size:16px;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active) :is(input.field,select.field):focus-visible{
+    outline:3px solid #b98af0;outline-offset:2px;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active) .button.primary:not(:disabled){
+    border:1px solid #7e23bd!important;border-radius:13px!important;
+    background:linear-gradient(115deg,#8831d7,#6321af)!important;
+    color:#fff!important;box-shadow:0 5px 13px #53167d29!important;
+    font-weight:800!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active) .button.secondary{
+    border:1px solid #d8c6ea!important;border-radius:13px!important;
+    background:#f6eafd!important;color:#552078!important;
+    font-weight:750!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active) :is(.button,.offrya-conversation,.mission-scopes button):focus-visible{
+    outline:3px solid #f2a078!important;outline-offset:2px;
+  }
+
+  /* Missions: keep real counts, existing filters, statuses, navigation and cards. */
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-header-actions{
+    display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    width:100%;gap:9px!important;min-width:0;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-header-actions .button{
+    min-width:0;min-height:45px!important;padding:10px 8px!important;
+    font-size:clamp(11px,3.2vw,13px)!important;line-height:1.22!important;
+    white-space:normal!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-header-actions .button.secondary{
+    border-color:#ffffff9c!important;background:#ffffff18!important;color:#fff!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-header-actions .button.primary{
+    border:1px solid #ef6281!important;
+    background:linear-gradient(120deg,#ff8878,#e83c73)!important;
+    color:#fff!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-scopes:not(.hidden){
+    gap:5px!important;padding:5px!important;margin:0 0 16px!important;
+    border:1px solid #e7d7f4!important;border-radius:19px!important;
+    background:#eee0f8!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-scopes button{
+    min-width:0;min-height:60px!important;gap:4px!important;
+    border-radius:15px!important;color:#5c3673!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-scopes button.is-active{
+    border-color:#812ac9!important;
+    background:linear-gradient(140deg,#bc39dd,#7725c1 67%,#e46e94)!important;
+    box-shadow:0 5px 13px #5b208b30!important;color:#fff!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-scopes button.is-active strong{color:#fff!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active #missionSearchFilters:not(.hidden){
+    margin:0 0 15px!important;padding:13px!important;
+    border:1px solid #e9dcf1!important;border-radius:21px!important;
+    background:linear-gradient(130deg,#fff,#fcf6ff)!important;
+    box-shadow:0 7px 20px #40154a14!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-results-panel{background:transparent!important;box-shadow:none!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-results-panel .panel-heading{
+    margin:0 0 9px!important;padding:4px 2px 10px!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-results-panel .panel-heading h3{
+    color:#2e043d!important;
+    font:850 clamp(18px,4.5vw,22px)/1.2 'Plus Jakarta Sans',sans-serif!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-results-panel .panel-heading .tag{
+    border:1px solid #e4c8f5!important;
+    background:#f3e4fc!important;color:#5e2182!important;
+    border-radius:999px!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-listing{
+    margin:0 0 12px!important;padding:17px 15px!important;
+    border:1px solid #e8daef!important;border-radius:23px!important;
+    background:radial-gradient(ellipse 130px 75px at 112% 113%,#ffe0e3 0%,transparent 85%),linear-gradient(130deg,#fff,#fffcff)!important;
+    box-shadow:0 9px 21px #4e15531a!important;overflow:hidden;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-listing .mission-listing-title{color:#2e043d!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-listing .mission-listing-desc,
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-listing .mission-listing-meta{color:#665576!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-listing .mission-category{
+    background:#f3e9fe!important;color:#632b9f!important;border-color:#e7d7f8!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-listing .mission-listing-actions{
+    border-top:1px solid #eee0f2!important;padding-top:12px!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active :is(.mission-empty,.data-list>.empty){
+    border:1px dashed #dac4e9!important;border-radius:20px!important;
+    background:linear-gradient(130deg,#fff,#fcf6ff)!important;
+    color:#675675!important;padding:25px 17px!important;
+  }
+
+  /* Messagerie: conversation list and active thread remain mutually exclusive
+     under the existing Android .has-active-thread behavior. */
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .inbox-grid{gap:13px!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .inbox-grid>.panel{
+    min-width:0;padding:18px 15px!important;
+    border:1px solid #e7dcef!important;border-radius:23px!important;
+    background:linear-gradient(130deg,#fff,#fefaff)!important;
+    box-shadow:0 9px 21px #4e15531a!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .inbox-grid h3{
+    margin:0 0 7px!important;color:#2e043d!important;
+    font:850 clamp(17px,4.3vw,20px)/1.2 'Plus Jakarta Sans',sans-serif!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .inbox-hint,body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .inbox-thread-context{
+    color:#705b7c!important;font:500 12px/1.52 'DM Sans',sans-serif!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .conv-row{align-items:center}
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .offrya-conversation{
+    min-width:0;min-height:77px!important;padding:12px 10px!important;
+    border:1px solid #e9def3!important;border-radius:17px!important;
+    background:radial-gradient(ellipse 105px 65px at 110% 110%,#f5dbff,transparent 85%),#fff!important;
+    color:#2e043d!important;
+    box-shadow:0 4px 11px #4114430b!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .offrya-conversation.selected{
+    background:linear-gradient(120deg,#f5e6ff,#f5ecfc)!important;
+    border-color:#be87e1!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .offrya-conversation-icon{
+    flex:0 0 45px;width:45px;height:45px;
+    background:linear-gradient(135deg,#f4e0ff,#e8cffb)!important;
+    color:#7026ad!important;border-radius:14px!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .offrya-conversation-body strong{color:#2e043d!important;font-size:13px!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .offrya-conversation-body :is(time,small){color:#756381!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .offrya-conversation-chevron{color:#792ac4!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .message-panel .panel-heading{
+    display:flex;align-items:flex-start;flex-wrap:wrap;gap:9px;
+    padding:0 0 13px!important;margin:0!important;border-bottom:1px solid #eee1f5;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .message-panel .panel-heading .tag{
+    background:#f4e6ff!important;border:1px solid #e5cef3!important;
+    color:#5f2d87!important;border-radius:999px!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .inbox-mobile-back{
+    min-height:40px;margin:0 0 8px!important;padding:7px 10px!important;
+    background:#f4e7ff!important;color:#6826a3!important;
+    border-radius:12px!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .messages{min-height:240px;max-height:58vh;padding:15px 2px!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .bubble{
+    border:1px solid #e6daf0!important;
+    border-radius:17px 17px 17px 5px!important;
+    background:#f5eefc!important;color:#372248!important;
+    font-size:14px;line-height:1.48;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .bubble.mine{
+    border-color:#e0b8ee!important;
+    border-radius:17px 17px 5px 17px!important;
+    background:linear-gradient(130deg,#eee0ff,#f9dff2)!important;
+    color:#34184e!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .send-form{
+    display:flex;gap:8px!important;padding-top:12px;
+    border-top:1px solid #eee2f4;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .send-form input.field{min-width:0;flex:1;font-size:16px!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .send-form .button{min-height:46px;padding:9px 13px!important;flex:none}
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .thread-hide{border-color:#e2d1ef!important;border-radius:12px!important}
+
+  /* Mon compte: consistent card surfaces without changing billing state,
+     notifications permissions, switch logic or checkbox appearance. */
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active .offrya-settings-card,
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active > .two-col > .panel{
+    border:1px solid #e6d9ef!important;border-radius:23px!important;
+    background:radial-gradient(ellipse 160px 90px at 110% 114%,#f5e2fc 0%,transparent 90%),linear-gradient(130deg,#fff,#fffcff)!important;
+    box-shadow:0 9px 21px #4e15531a!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active .offrya-settings-card{
+    min-height:unset!important;padding:20px 16px!important;margin-bottom:14px!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active .account-setting-icon{
+    border-radius:16px!important;
+    background:linear-gradient(135deg,#f5e5ff,#e7d4ff)!important;
+    color:#7928c3!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active .account-setting-heading>h3,
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active .account-plan-heading h3,
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active > .two-col > .panel > h3{
+    color:#2e043d!important;
+    font-family:'Plus Jakarta Sans',sans-serif!important;
+    font-weight:850!important;letter-spacing:-.025em;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active .account-plan-heading,
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active .account-setting-heading>h3{border-left-color:#a353d2!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active .account-billing-divider{background:#eadbef!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active .account-billing-description,
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active .section-top p:not(.eyebrow){line-height:1.48}
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active > .two-col{gap:14px!important;margin-top:15px!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active > .two-col > .panel{padding:19px 16px!important;min-width:0}
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active #profileSummary{gap:12px}
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active #profileSummary > div{
+    min-width:0;padding:13px 12px!important;
+    border:1px solid #eadbf2!important;border-radius:16px!important;
+    background:#fbf5ff!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active #profileSummary strong,body.offrya-reference-ui[data-offrya-role="premium"] #settings.active .check-row strong{color:#321342!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active .status-line{color:#603286!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active #preferencesForm .check-row{
+    padding:15px 12px!important;
+    border:1px solid #e9dbf1!important;border-radius:16px!important;
+    background:linear-gradient(130deg,#fff,#fbf5ff)!important;
+  }
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active #preferencesForm .check-row small{color:#6f607d!important;font-size:12px!important;line-height:1.42}
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active #preferencesForm .button.primary{min-height:48px!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active #accountBillingPortal.account-billing-cta:not(:disabled){
+    background:linear-gradient(120deg,#a53adb,#7b27c1)!important;
+    border-radius:15px!important;box-shadow:0 6px 15px #64299a25!important;
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active) :is(.mission-listing,.offrya-conversation,.bubble){transition:none!important}
+  }
+}
+@media(max-width:375px){
+  body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-header-actions .button{font-size:11px!important;padding-inline:5px!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #inbox.active .inbox-grid>.panel{padding:15px 12px!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active .offrya-settings-card{padding:17px 12px!important}
+  body.offrya-reference-ui[data-offrya-role="premium"] #settings.active .account-setting-heading{gap:7px!important}
+}
