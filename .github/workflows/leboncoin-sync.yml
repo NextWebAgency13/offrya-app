@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   reconcile:
-    if: vars.LEBONCOIN_SYNC_ENABLED == 'true' && vars.LEBONCOIN_COLLECTOR_ENABLED == 'true'
+    if: vars.LEBONCOIN_SYNC_ENABLED == 'true' && vars.LEBONCOIN_COLLECTOR_ENABLED == 'true' && vars.LEBONCOIN_COLLECTION_AUTHORIZED == 'true' && vars.LEBONCOIN_ROBOTS_REVIEWED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -31,6 +31,8 @@ jobs:
         env:
           LEBONCOIN_SYNC_ENABLED: ${{ vars.LEBONCOIN_SYNC_ENABLED }}
           LEBONCOIN_COLLECTOR_ENABLED: ${{ vars.LEBONCOIN_COLLECTOR_ENABLED }}
+          LEBONCOIN_COLLECTION_AUTHORIZED: ${{ vars.LEBONCOIN_COLLECTION_AUTHORIZED }}
+          LEBONCOIN_ROBOTS_REVIEWED: ${{ vars.LEBONCOIN_ROBOTS_REVIEWED }}
           LEBONCOIN_DRY_RUN: ${{ vars.LEBONCOIN_DRY_RUN }}
           SUPABASE_URL: ${{ secrets.OFFRYA_SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.OFFRYA_SUPABASE_SECRET_KEY }}
