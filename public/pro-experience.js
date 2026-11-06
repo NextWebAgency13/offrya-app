@@ -365,8 +365,9 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    }
    seen.add(key);return true;
   }).sort((a,b)=>Number(b.score||0)-Number(a.score||0));
+  const nExternal=rows.filter(x=>x.kind==='external').length;
   const nMission=rows.filter(x=>x.kind==='mission'||x.kind==='external').length,nTender=rows.filter(x=>x.kind==='tender').length;
-  $('proAiInlineSummary').textContent=rows.length+' opportunité'+(rows.length!==1?'s':'')+' correspondant à vos critères, dont '+nTender+' marché'+(nTender!==1?'s':'')+' public'+(nTender!==1?'s':'')+' et '+nMission+' demande'+(nMission!==1?'s':'')+' de prestations.'+
+  $('proAiInlineSummary').textContent=rows.length+' opportunité'+(rows.length!==1?'s':'')+' correspondant à vos critères, dont '+nTender+' marché'+(nTender!==1?'s':'')+' public'+(nTender!==1?'s':'')+' et '+(nMission-nExternal)+' mission'+(nMission-nExternal!==1?'s':'')+(nExternal?' et '+nExternal+' annonce'+(nExternal!==1?'s':'')+' Leboncoin':'')+'.'+
    (serverRadar.truncated?' Seuls les premiers résultats sont chargés.':'');
   for(const [id,n] of [['proAiTabAll',rows.length],['proAiStatAll',rows.length],['proAiTabMissions',nMission],['proAiStatMissions',nMission],['proAiTabTenders',nTender],['proAiStatTenders',nTender]])$(id).textContent=String(n);
   const priority=serverRadar?rows.filter(item=>{
