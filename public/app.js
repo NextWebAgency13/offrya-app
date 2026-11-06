@@ -4,6 +4,7 @@ import {createOpportunityConsole} from './opportunity-console.js';
 import {createSalesWorkspace} from './pro-commercial.js';
 import {createProExperience} from './pro-experience.js';
 import {createPushNotifications} from './push-notifications.js';
+import {initDceAssistant} from './dce-assistant.js';
 import {fetchMissionFeed,missionBuckets} from './mission-feed.js';
 const $=id=>document.getElementById(id);
 const authCaptcha=createAuthCaptcha($('modalAuthCaptcha'));
@@ -1141,4 +1142,5 @@ const salesWorkspace=createSalesWorkspace({state,element:$,canUsePremium,tab,not
 const proExperience=createProExperience({state,element:$,canUsePremium,tab,renderMissions,loadMarkets:()=>loadBoamp(),notify:toast,openProposal:id=>salesWorkspace.openMission(id)});
 const pushNotifications=createPushNotifications({state,button:$('pushNotificationToggle'),status:$('pushNotificationStatus'),notify:toast});
 proExperience.init();opportunityConsole.init();salesWorkspace.init();
+initDceAssistant({state,canUsePremium,notify:toast});
 init().catch(showError);

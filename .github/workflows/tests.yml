@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: offrya-tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -18,7 +22,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install pinned project dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Audit runtime dependency vulnerabilities
+        run: npm audit --omit=dev --audit-level=high
       - run: npm test
+      - name: Live official DECP schema probe (read-only)
+        run: node scripts/probe-decp-live.js
+      - name: Install local French OCR for the scanned-DCE smoke test
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-fra
+      - name: OCR a raster-only PDF made from a genuine public RC page
+        run: OFFRYA_RUN_OCR_SMOKE=true node scripts/test-scanned-dce.js
+      - name: Validate one authentic public six-file DCE and synthetic amendment / Q&A
+        run: OFFRYA_RUN_FULL_DCE_TEST=true node scripts/validate-complete-dce.js
+      - name: Parse two original public consultation PDFs (RC + CCTP)
+        run: node scripts/test-real-dce.js
       - name: Verify BOAMP source and local Premium access control
         run: node scripts/diagnose-boamp.js
       - name: Check official company API response schema
