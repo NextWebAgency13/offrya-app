@@ -20,6 +20,8 @@ jobs:
           node-version: '22'
       - name: Install pinned project dependencies
         run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Audit runtime dependency vulnerabilities
+        run: npm audit --omit=dev --audit-level=high
       - run: npm test
       - name: Live official DECP schema probe (read-only)
         run: node scripts/probe-decp-live.js
