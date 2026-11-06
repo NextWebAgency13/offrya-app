@@ -4,8 +4,9 @@
 // Deux constats explicites espacés d'au moins 15 minutes sont requis avant de masquer une annonce.
 const {leboncoinUrl}=require('../lib/leboncoin-demand');
 const {detectChallenge}=require('./collect-leboncoin');
+const {MAX_REQUESTS_PER_RUN,MIN_REQUEST_GAP_MS,reserveBudget}=require('../lib/leboncoin-collection-budget');
 const MIN_RECHECK_MS=15*60*1000;
-const MAX_CHECKS=30;
+const MAX_CHECKS=MAX_REQUESTS_PER_RUN-1;
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -96,11 +97,14 @@ async function updateRow(env,row,changes,fetcher=fetch){
  return Array.isArray(entries)&&entries.length===1;
 }
 async function synchronize({env=process.env,browserFactory,load=fetchRows,save=updateRow,
- logger=console,pause=sleep,now=new Date()}={}){
+ logger=console,pause=sleep,now=new Date(),reserve=reserveBudget}={}){
  if(env.LEBONCOIN_SYNC_ENABLED!=='true')throw Error('Synchronisation non activée.');
  if(env.LEBONCOIN_COLLECTOR_ENABLED!=='true')throw Error('Autorisation de collecte non activée.');
+ if(env.LEBONCOIN_COLLECTION_AUTHORIZED!=='true'||env.LEBONCOIN_ROBOTS_REVIEWED!=='true')
+  throw Error('Accès direct non autorisé ou robots.txt non contrôlé.');
  const dryRun=env.LEBONCOIN_DRY_RUN!=='false';
  const records=await load(env,now);
+ await reserve(env,'run');
  if(!Array.isArray(records))throw Error('Liste de synchronisation invalide.');
  const factory=browserFactory||(()=>require('playwright').chromium.launch({headless:true}));
  const browser=await factory();
@@ -109,7 +113,8 @@ async function synchronize({env=process.env,browserFactory,load=fetchRows,save=u
  try{
   for(const row of records.slice(0,MAX_CHECKS)){
    if(row.status!=='published')continue;
-   await pause(3500);
+   await pause(MIN_REQUEST_GAP_MS);
+   await reserve(env,'request');
    const observed=await inspect(page,row); // Erreur source => arrêt global, pas de retrait.
    const changes=transition(row,observed,now);
    if(!changes)continue;
