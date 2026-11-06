@@ -6,7 +6,7 @@ const fs=require('node:fs/promises');
 const os=require('node:os');
 const path=require('node:path');
 const {randomUUID}=require('node:crypto');
-const {scanDceArchive}=require('../lib/dce-antivirus');
+const {scanDceArchive,verifyRecentSignatures}=require('../lib/dce-antivirus');
 const {parseTsv,recognizePage}=require('../lib/dce-ocr');
 const sample=Buffer.from('PK\x03\x04'+'.'.repeat(512),'binary');
 async function fakeClamd(result,callback){
@@ -38,7 +38,7 @@ test('No local ClamAV socket blocks every raw DCE import',async()=>{
 test('Official ClamAV stream framing sends binary content and checks explicit OK',async()=>{
  let scanned=null;
  await fakeClamd('OK',Object.assign(data=>{scanned=data},{run:async socketPath=>{
-  const result=await scanDceArchive(sample,{socketPath,timeoutMs:1000});
+  const result=await scanDceArchive(sample,{socketPath,timeoutMs:1000,signatureCheck:async()=>true});
   assert.equal(result.clean,true);assert.equal(result.verified,true);
   assert.match(result.sha256,/^[a-f0-9]{64}$/);
  }}));
@@ -46,7 +46,7 @@ test('Official ClamAV stream framing sends binary content and checks explicit OK
 });
 test('Virus signature detections, errors and invalid replies fail closed',async()=>{
  for(const response of ['Eicar-Test-Signature FOUND','ERROR','WRONG ANSWER']){
-  await fakeClamd(response,{run:socketPath=>assert.rejects(scanDceArchive(sample,{socketPath}),
+  await fakeClamd(response,{run:socketPath=>assert.rejects(scanDceArchive(sample,{socketPath,signatureCheck:async()=>true}),
    error=>error.status===422||error.status===503)});
  }
 });
@@ -78,4 +78,18 @@ test('Scanned OCR text cannot alone establish a definitive financial exclusion',
  assert.equal(scanned.go_no_go.turnover_requirement,null);
  assert.equal(scanned.facts[0].source.ocr,true);
  assert.match(scanned.facts[0].confidence,/OCR incertain/);
+});
+
+
+test('ClamAV blocks archives when daily signatures are absent or older than 72 hours',async()=>{
+ const dir=await fs.mkdtemp(path.join(os.tmpdir(),'offrya-av-test-'));
+ try{
+  await assert.rejects(verifyRecentSignatures(dir),/daily absentes/);
+  const file=path.join(dir,'daily.cld');
+  await fs.writeFile(file,Buffer.alloc(100001));
+  await fs.utimes(file,new Date(Date.now()-4*86400000),new Date(Date.now()-4*86400000));
+  await assert.rejects(verifyRecentSignatures(dir),/trop anciennes/);
+  await fs.utimes(file,new Date(),new Date());
+  assert.equal(await verifyRecentSignatures(dir),true);
+ }finally{await fs.rm(dir,{recursive:true,force:true});}
 });
