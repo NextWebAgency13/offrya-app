@@ -19,8 +19,8 @@ self.addEventListener('push',event=>{
  const target=pushTarget(payload);
  const options={
   body:isTest?'Test push reçu sur cet appareil.':'Vous avez reçu un nouveau message.',
-  icon:'/favicon.svg',
-  badge:'/favicon.svg',
+  icon:'/assets/offrya/android-chrome-192x192.png',
+  badge:'/assets/offrya/favicon-48.png',
   tag:isTest?'offrya-test':target.conversationId?'offrya-message-'+target.conversationId:'offrya-messages',
   renotify:true,
   data:target

@@ -1,0 +1,40 @@
+/* OFFRYA — kit d'identité visuelle : logo, palette et couleurs de marque.
+   Chargé en dernier sur toutes les pages. Palette : violet #7A3CFF, prune #4B0058,
+   corail #FF6B6B (accent uniquement), magenta #C02FC6, lavande #F7F2FC, encre #211728. */
+:root{
+ --offrya-violet:#7A3CFF;--offrya-prune:#4B0058;--offrya-prune-sombre:#2E043D;
+ --offrya-corail:#FF6B6B;--offrya-magenta:#C02FC6;--offrya-lavande:#F7F2FC;--offrya-encre:#211728;
+ --offrya-gradient-marque:linear-gradient(135deg,#7A3CFF 0%,#C02FC6 48%,#FF6B6B 100%);
+ --offrya-gradient-prune:linear-gradient(135deg,#2E043D 0%,#4B0058 100%);
+ /* Variables existantes réalignées sur le kit */
+ --blue:#7A3CFF;--blue-dark:#4B0058;--blue-soft:#F3ECFF;--purple:#7A3CFF;
+ --violet:#7A3CFF;--accent:#7A3CFF;--offrya-interactive:#7A3CFF;
+ --text:#211728;--ink:#211728;--bg:#F7F2FC;
+}
+
+/* Logo */
+.brand-logo{display:block;height:36px;width:auto;max-width:100%}
+a.brand:has(.brand-logo){display:inline-flex;align-items:center;gap:0;line-height:0;letter-spacing:0}
+header .brand .brand-logo{height:32px}
+.sidebar .brand-area .brand{display:flex;justify-content:flex-start;padding:2px 0}
+.sidebar .brand-area .brand-logo{height:34px}
+.sidebar .brand-area .brand-symbol-img{display:none;height:40px;width:auto}
+.mini-brand .brand-logo{height:30px}
+.mobile-brand .brand-mark{display:block;height:30px;width:auto}
+.mobile-brand .brand-word{display:block;height:15px;width:auto}
+body.offrya-reference-ui .app-shell .header .mobile-brand{gap:9px!important}
+@media (max-width:930px) and (min-width:781px){
+ .sidebar .brand-area .brand-logo{display:none}
+ .sidebar .brand-area .brand-symbol-img{display:block}
+ .sidebar .brand-area .brand{justify-content:center}
+}
+@media (max-width:600px){.top nav .brand .brand-logo{height:32px}}
+
+/* En-têtes et surfaces de marque */
+body.offrya-reference-ui .app-shell .header{
+ background:var(--offrya-gradient-prune)!important;border-bottom-color:#5a1a68!important;
+}
+.btn.primary,.button.primary{background:var(--offrya-prune);border-color:var(--offrya-prune)}
+.btn.primary:hover,.button.primary:hover:not(:disabled){background:var(--offrya-violet);border-color:var(--offrya-violet)}
+.footer{background:var(--offrya-prune-sombre)}
+.offer{background:var(--offrya-gradient-prune)}

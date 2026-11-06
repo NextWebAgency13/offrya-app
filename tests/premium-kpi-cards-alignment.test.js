@@ -51,7 +51,7 @@ test('Fourth card has the same icon slot, violet icon and only a subtle lavender
   assert.ok(icon.includes(v),'Generic icon must have '+v);
  }
  assert.match(alert,/background:#f2eafb!important/);
- assert.match(alert,/color:#7732ca!important/);
+ assert.match(alert,/color:#7A3CFF!important/);
 });
 test('Android keeps all four cards in two even rows with no horizontal clipping',()=>{
  assert.ok(rules.includes('@media(max-width:780px)'));
