@@ -219,6 +219,8 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   $('proV3FollowupSlot').appendChild($('opFollowupDetails'));
   $('opFollowupDetails').open=true;
   initialized=true;
+  // Ouvrir une mission depuis « Proposer mes services » la retire du compteur.
+  document.addEventListener('click',e=>{const b=e.target.closest?.('[data-sales-open]');if(b&&canUsePremium())markRequestSeen(b.dataset.salesOpen);},true);
  }
  function available(){
   const current=state.session?.user?.id;
@@ -265,6 +267,37 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   acknowledgedMissionIds.set(user,new Set(recent));
   try{window.localStorage.setItem(alertReadKey(user),JSON.stringify(recent));}catch(_){}
   metrics();
+ }
+// « Proposer mes services » : la pastille compte les missions accessibles
+ // pas encore vues ; ouvrir l'écran les marque comme vues (par compte).
+ const seenRequestIds=new Map();
+ function requestsSeenKey(user){return 'offrya:pro:requests-seen:v1:'+user;}
+ function seenRequests(user){
+  if(!user)return new Set();
+  if(seenRequestIds.has(user))return seenRequestIds.get(user);
+  let stored=[];
+  try{stored=JSON.parse(window.localStorage.getItem(requestsSeenKey(user))||'[]');}catch(_){}
+  const seen=new Set(Array.isArray(stored)?stored.filter(id=>typeof id==='string'&&id.length<=128):[]);
+  seenRequestIds.set(user,seen);
+  return seen;
+ }
+ function unseenRequests(missions){
+  const user=state.session?.user?.id;
+  if(!user||!canUsePremium())return [];
+  const seen=seenRequests(user);
+  return (missions||[]).filter(m=>m&&m.id&&!seen.has(String(m.id)));
+ }
+ function markRequestSeen(id){if(id!=null){markRequestsSeen([{id}]);metrics();}}
+ function markRequestsSeen(missions){
+  const user=state.session?.user?.id;
+  if(!user||!canUsePremium())return;
+  const seen=seenRequests(user);
+  let changed=false;
+  for(const m of missions||[])if(m&&m.id&&!seen.has(String(m.id))){seen.add(String(m.id));changed=true;}
+  if(!changed)return;
+  const recent=[...seen].slice(-2000);
+  seenRequestIds.set(user,new Set(recent));
+  try{window.localStorage.setItem(requestsSeenKey(user),JSON.stringify(recent));}catch(_){}
  }
  function categoryIcon(category){
   if(/vert|jardin|élag|agric/i.test(category))return '♧';
@@ -477,7 +510,12 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
   if(bubble){bubble.hidden=!count;bubble.textContent=String(Math.min(count,99));}
   const trigger=$('proV3MobileAlert');
   if(trigger)trigger.setAttribute('aria-label',count?'Ouvrir '+count+' mission(s) correspondant à mes filtres':'Consulter les missions disponibles');
-  for(const el of document.querySelectorAll('[data-pro-count="requests"]')){el.textContent=String(missions.length);el.hidden=!missions.length;}
+  // Seules les missions pertinentes (secteurs, département, mots-clés, budget de la veille) comptent.
+  const unseen=unseenRequests(matched()).length;
+  for(const el of document.querySelectorAll('[data-pro-count="requests"]')){
+   el.textContent=unseen>99?'99+':String(unseen);el.hidden=!unseen;
+   el.setAttribute('aria-label',unseen+' mission(s) pertinente(s) non consultée(s)');
+  }
   for(const el of document.querySelectorAll('[data-pro-count="inbox"]')){const count=Number(state.messageUnreadCount||0);el.textContent=count>99?'99+':count?String(count):'';el.hidden=!count;}
  }
 
@@ -601,6 +639,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  function openMissionDetail(id){
   const mission=available().find(m=>String(m.id)===String(id));if(!mission)return;
   acknowledgeMatchedNotifications(id);
+  markRequestSeen(id);
   $('missionQuery').value='';$('missionCategory').value='';$('missionDept').value='';
   state.selectedMissionId=mission.id;
   // Preserve the detail selection. renderMissions switches to the available
@@ -611,6 +650,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
  function openMission(id){
   const m=available().find(x=>x.id===id);if(!m)return;
   acknowledgeMatchedNotifications(id);
+  markRequestSeen(id);
   if(openProposal&&openProposal(id)){show('assistant');return;}
   notify('Impossible d’ouvrir cette mission. Actualisez vos opportunités et réessayez.');
  }

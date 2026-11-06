@@ -64,7 +64,7 @@ test('Unavailable browser storage does not block immediate notification dismissa
 test('Notification badge counts unread items, tapping bell or opening mission clears relevant item',()=>{
  assert.match(pro,/const missions=available\(\),count=unreadMatchedNotifications\(\)\.length/);
  assert.match(pro,/alertButton\.addEventListener\('click',\(\)=>\{if\(!canUsePremium\(\)\)return;acknowledgeMatchedNotifications\(\);show\('requests'\);\}\)/);
- assert.match(pro,/acknowledgeMatchedNotifications\(id\);\s*if\(openProposal&&openProposal\(id\)\)/);
+ assert.match(pro,/acknowledgeMatchedNotifications\(id\);\s*markRequestSeen\(id\);\s*if\(openProposal&&openProposal\(id\)\)/);
  assert.match(pro,/window\.addEventListener\('storage',event=>\{/);
  assert.match(pro,/if\(bubble\)\{bubble\.hidden=!count/);
  const result=spawnSync(process.execPath,['--input-type=module','--check'],{input:pro,encoding:'utf8'});
