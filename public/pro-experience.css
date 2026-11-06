@@ -1818,7 +1818,7 @@ body.offrya-pro-v3 #proExperienceV3 .pro-ai-discovery .pro-ai-filter-tabs button
  background:linear-gradient(160deg,#fff 0%,#faf8ff 100%);
  color:#251b36;
 }
-#dceAssistant[hidden],#dceResults[hidden],#dceDrafts[hidden],#dceExportDraft[hidden],#dceOfficialLink[hidden]{display:none!important}
+#dceAssistant[hidden],#dceResults[hidden],#dceDrafts[hidden],#dceExportDraft[hidden],#dceOfficialLink[hidden]{display:none}
 #dceAssistant .dce-workspace-head{margin-bottom:20px}
 #dceAssistant .dce-workspace-head h3{font-size:clamp(20px,3vw,27px);letter-spacing:-.035em;line-height:1.2;margin:7px 0 10px;color:#352052}
 #dceAssistant p{line-height:1.6;margin:5px 0 12px}
