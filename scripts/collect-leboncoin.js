@@ -3,7 +3,6 @@
 // Pas d'évitement des protections, pas de proxy rotatif, pas de connexion cachée.
 // Par défaut : aperçu uniquement, aucune écriture en production.
 const {leboncoinUrl,cleanListing,aiReview}=require('../lib/leboncoin-demand');
-const {parseSearchJson}=require('../lib/leboncoin-next-data');
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const raw=process.env.LEBONCOIN_SEARCH_URLS||'[]';
 const maxPages=8,maxAds=40;
