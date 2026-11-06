@@ -19,7 +19,7 @@ async function fakeClamd(result,callback){
    let pos=10;const chunks=[];
    while(packet.length>=pos+4){
     const size=packet.readUInt32BE(pos);if(size===0){
-     if(callback)callback(Buffer.concat(chunks),packet);
+     if(typeof callback==='function')callback(Buffer.concat(chunks),packet);
      socket.write('stream: '+result+'\0');return;
     }
     if(packet.length<pos+4+size)break;
