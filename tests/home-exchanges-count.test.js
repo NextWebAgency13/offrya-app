@@ -14,7 +14,7 @@ function load(conversations,hidden=[]){
  const a=app.indexOf('function isConversationHidden'),b=app.indexOf('function messageUnread(){',a);
  assert.ok(a>0&&b>a);
  const ctx={state,Set,Boolean,Number,Array};
- vm.runInNewContext(app.slice(a,b)+'\nthis.api={visibleConversationCount,exchangesLabel};',ctx);
+ vm.runInNewContext(app.slice(a,b)+'\nthis.api={visibleConversationCount,exchangesLabel,proEntryLabel};',ctx);
  return ctx.api;
 }
 const conv=id=>({id,mission_id:'m'+id,client_id:me,professional_id:other});
@@ -45,4 +45,14 @@ test('L’accueil et le compteur de discussions utilisent ce décompte',()=>{
  assert.match(app,/\$\('statConvos'\)\.textContent=visibleConversationCount\(\)/);
  assert.doesNotMatch(app,/clientHomeUnreadLabel'\)\.textContent=total\+' message/);
  assert.ok(!/id="clientHomeUnreadLabel">0 message</.test(html),'Pas de « 0 message » par défaut avant chargement');
+});
+
+test('La carte « Espace pro » remplace Notifications et ouvre l’espace professionnel',()=>{
+ const api=load([]);
+ assert.equal(api.proEntryLabel(false),'Devenir pro');
+ assert.equal(api.proEntryLabel(true),'Mon dossier pro');
+ assert.match(app,/\$\('clientHomeProLabel'\)\.textContent=proEntryLabel\(hasProProfile\)/);
+ assert.ok(!/clientHomeNotificationText/.test(app+html),'Plus de référence à l’ancienne carte Notifications');
+ // La carte utilise la navigation par onglet existante, comme « Espace pro » dans le menu du bas.
+ assert.match(html,/<button type="button" data-tab="professional" class="role-ref-action-card">/);
 });

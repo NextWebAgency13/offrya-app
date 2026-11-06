@@ -46,6 +46,8 @@ function isConversationHidden(id){return Boolean(state.hiddenConversations&&stat
 // « Mes échanges » (accueil) compte les discussions en cours, pas seulement les messages non lus :
 // une discussion déjà lue reste une discussion en cours.
 function visibleConversationCount(){return (state.conversations||[]).filter(c=>!isConversationHidden(c.id)).length;}
+// Carte « Espace pro » de l'accueil demandeur : entrée vers l'espace professionnel.
+function proEntryLabel(hasProProfile){return hasProProfile?'Mon dossier pro':'Devenir pro';}
 function exchangesLabel(count,unread){
  const n=Number(count)||0,u=Number(unread)||0;
  if(!n)return 'Aucun échange';
@@ -96,8 +98,6 @@ function paintMessageBadges(){
  if($('roleConversationCount'))$('roleConversationCount').textContent=String(total);
  if($('clientHomeUnread'))$('clientHomeUnread').textContent=String(total);
  if($('clientHomeUnreadLabel'))$('clientHomeUnreadLabel').textContent=exchangesLabel(visibleConversationCount(),total);
- if($('clientHomeNotificationText'))$('clientHomeNotificationText').textContent=
-  total?total+' nouveau'+(total>1?'x':'')+' message'+(total>1?'s':''):'Aucune nouvelle';
 }
 function acknowledgeConversation(conversationId,messages){
  const uid=state.session?.user?.id;
@@ -909,6 +909,7 @@ function render(){
  if(personalDescription)personalDescription.textContent=hasProProfile?
   'Vos missions publiées et vos échanges. Retrouvez les opportunités dans Espace pro.':
   'Publiez vos projets et suivez les échanges avec les professionnels.';
+ if($('clientHomeProLabel'))$('clientHomeProLabel').textContent=proEntryLabel(hasProProfile);
  document.body.classList.add('offrya-reference-ui');
  // Role presentation follows exactly the authenticated premium authorization.
  $('roleClientView').classList.toggle('hidden',eligiblePro);
