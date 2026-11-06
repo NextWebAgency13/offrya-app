@@ -3,7 +3,7 @@
 // Refus, CAPTCHA, timeout, redirection inattendue et erreurs temporaires ne sont JAMAIS des suppressions.
 // Deux constats explicites espacés d'au moins 15 minutes sont requis avant de masquer une annonce.
 const {leboncoinUrl}=require('../lib/leboncoin-demand');
-const {detectChallenge}=require('./collect-leboncoin');
+const {detectChallenge,BOT_USER_AGENT}=require('./collect-leboncoin');
 const {MAX_REQUESTS_PER_RUN,MIN_REQUEST_GAP_MS,reserveBudget}=require('../lib/leboncoin-collection-budget');
 const {installBrowserGuard}=require('../lib/leboncoin-browser-guard');
 const MIN_RECHECK_MS=15*60*1000;
@@ -50,11 +50,11 @@ async function inspect(page,row){
   throw Error('Leboncoin : accès limité ou source indisponible (HTTP '+status+').');
  if(!safetyUrl(page.url(),url))
   return {state:'unknown',reason:'unexpected_redirect'};
+ if(status===404||status===410)return {state:'missing',reason:'http_'+status};
  const heading=String(await page.title()||'');
  const text=String(await page.locator('body').innerText({timeout:10000})||'').slice(0,1600);
  if(detectChallenge(heading+' '+text))
   throw Error('Leboncoin : CAPTCHA ou contrôle anti-bot, arrêt.');
- if(status===404||status===410)return {state:'missing',reason:'http_'+status};
  if(status!==200)return {state:'unknown',reason:'http_'+status};
  const h1=String(await page.locator('h1').first().textContent({timeout:6000}).catch(()=>'')) .trim();
  // Un message explicite dans le titre (pas une simple absence des résultats).
@@ -109,7 +109,7 @@ async function synchronize({env=process.env,browserFactory,load=fetchRows,save=u
  if(!Array.isArray(records))throw Error('Liste de synchronisation invalide.');
  const factory=browserFactory||(()=>require('playwright').chromium.launch({headless:true}));
  const browser=await factory();
- const page=await browser.newPage({locale:'fr-FR',javaScriptEnabled:false,serviceWorkers:'block'});
+ const page=await browser.newPage({locale:'fr-FR',javaScriptEnabled:false,serviceWorkers:'block',userAgent:BOT_USER_AGENT});
  await installBrowserGuard(page,{allowMock:Boolean(browserFactory)});
  let checked=0,expired=0,uncertain=0;
  try{
