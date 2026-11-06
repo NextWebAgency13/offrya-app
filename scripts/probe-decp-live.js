@@ -16,7 +16,11 @@ async function main(fetcher=fetch){
    const fieldNames=Object.keys(json.results[0]);
    const payload={host:new URL(url).host,total_count:json.total_count,fieldNames};
    console.log('DECP LIVE SCHEMA '+JSON.stringify(payload));
-   return payload;
+   const {queryAwards}=require('../lib/decp');
+   const awards=await queryAwards('90910000',fetcher);
+   console.log('DECP LIVE CPV 90910000 '+JSON.stringify({rows:awards.rows.length,sample_cpv:awards.rows[0]?.cpv||null}));
+   if(!awards.rows.length)throw new Error('Recherche CPV 90910000 sans résultat officiel : vérifier la requête et les champs.');
+   return {...payload,cpvRows:awards.rows.length};
   }catch(error){results.push(new URL(url).host+' '+error.name);}
  }
  throw Error('DECP public endpoints unavailable: '+results.join('; '));
