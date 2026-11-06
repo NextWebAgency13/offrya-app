@@ -1,0 +1,48 @@
+/* OFFRYA Premium — préparation DCE, uniquement dans le panneau Marchés publics. */
+#dceAssistant{
+ margin-top:20px;
+ padding:clamp(16px,3vw,26px);
+ border:1px solid #e5e0f3;
+ border-radius:19px;
+ background:linear-gradient(160deg,#fff 0%,#faf8ff 100%);
+ color:#251b36;
+}
+#dceAssistant[hidden],#dceResults[hidden],#dceDrafts[hidden],#dceExportDraft[hidden],#dceOfficialLink[hidden]{display:none}
+#dceAssistant .dce-workspace-head{margin-bottom:20px}
+#dceAssistant .dce-workspace-head h3{font-size:clamp(20px,3vw,27px);letter-spacing:-.035em;line-height:1.2;margin:7px 0 10px;color:#352052}
+#dceAssistant p{line-height:1.6;margin:5px 0 12px}
+#dceAssistant .dce-import-form{display:flex;align-items:flex-start;flex-direction:column;gap:10px;padding:16px;border:1px dashed #c4b3dc;border-radius:14px;background:#f5f1fd}
+#dceAssistant .dce-import-form label{font-weight:700;color:#34224d}
+#dceAssistant .dce-import-form .field{width:100%;background:#fff}
+#dceAssistant .dce-import-form small,#dceAssistant .dce-mini-panel small{font-size:12px;color:#655879;line-height:1.5}
+#dceAssistant .dce-status{margin:14px 0;padding:11px 13px;background:#f2edf9;border-radius:11px;color:#453259}
+#dceAssistant .dce-warning{color:#9b342e!important}
+#dceAssistant .dce-results-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+#dceAssistant .dce-mini-panel{border:1px solid #e8e2f0;background:#fff;border-radius:13px;padding:15px;margin-top:13px;min-width:0}
+#dceAssistant .dce-mini-panel h4{font-size:17px;color:#352052;margin:0 0 10px}
+#dceAssistant .dce-evidence-line{padding:10px 0;border-bottom:1px solid #eee9f5;overflow-wrap:anywhere}
+#dceAssistant .dce-evidence-line:last-child{border-bottom:0}
+#dceAssistant .dce-evidence-line p{font-size:13px;margin:4px 0 5px}
+#dceAssistant .dce-citation{display:block;margin-top:4px;font-size:12px;color:#706382;overflow-wrap:anywhere}
+#dceAssistant .dce-piece-line,#dceAssistant .dce-confirm-inline{display:flex;align-items:flex-start;gap:11px;margin:12px 0;line-height:1.5;font-size:14px;cursor:pointer}
+#dceAssistant .dce-piece-line input,#dceAssistant .dce-confirm-inline input{width:20px;height:20px;flex:0 0 20px;accent-color:#6541a2;margin:0}
+#dceAssistant .dce-company-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}
+#dceAssistant .dce-company-fields label{display:block;font-size:13px;font-weight:600;color:#49385e}
+#dceAssistant .dce-company-fields .field{width:100%;margin-top:5px;min-height:43px}
+#dceAssistant .dce-award-form{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+#dceAssistant .dce-award-form .field{width:min(100%,210px)}
+#dceAssistant .dce-award-row{padding:9px 0;border-bottom:1px solid #eee9f5;display:grid;grid-template-columns:1fr auto;gap:4px 12px}
+#dceAssistant .dce-award-row :is(small,a){grid-column:1/-1;font-size:12px}
+#dceAssistant .dce-draft-details{border:1px solid #e9e1f2;border-radius:10px;padding:9px 13px;margin:9px 0}
+#dceAssistant .dce-draft-details summary{cursor:pointer;font-weight:700;color:#563684}
+#dceAssistant .dce-draft-details p{font-size:13px;overflow-wrap:anywhere}
+#dceAssistant .dce-review-state{font-size:13px}
+#dceAssistant #dceExportDraft,#dceAssistant #dceOfficialLink{margin:9px 12px 9px 0}
+#dceAssistant a{color:#5c368d;overflow-wrap:anywhere}
+@media(max-width:720px){
+ #dceAssistant .dce-results-grid,#dceAssistant .dce-company-fields{grid-template-columns:1fr}
+ #dceAssistant .dce-award-form{align-items:stretch;flex-direction:column}
+ #dceAssistant .dce-award-form .field,#dceAssistant .dce-award-form .button{width:100%;max-width:none}
+ #dceAssistant .dce-import-form button{width:100%}
+ #dceAssistant{border-radius:16px;padding:15px}
+}
