@@ -42,3 +42,23 @@ Le filtre n'accepte que `ad_type=want`, un statut `active` ou `online` (ou non f
 Configurer `LEBONCOIN_FEED_ENABLED=true`, `LEBONCOIN_FEED_FILE` avec le chemin du fichier JSON et conserver `LEBONCOIN_DRY_RUN=true` pour simuler. Facultativement, `LEBONCOIN_VALIDATION_CSV` spécifie le CSV des seules annonces qualifiées et `LEBONCOIN_VALIDATION_REPORT` le rapport JSON de comptage par motif de rejet. Le rapport ne contient ni titres refusés ni coordonnées de contact. Le CSV ne contient que les champs assainis et `status_import=ready` : il ne s'agit pas du statut de publication Supabase.
 
 L'écriture Supabase n'intervient que si `LEBONCOIN_DRY_RUN=false`. L'annonce reste `staged` tant que les deux interrupteurs de publication ne sont pas activés. Les données personnelles, images et prix bruts ne sont pas recopiés. La contrainte `(source, source_id)` empêche les réimports, et les annonces supprimées ne sont pas réactivées.
+
+## Connecteur Scrapfly — aperçu ponctuel, désactivé par défaut
+Le programme `node scripts/preview-leboncoin-scrapfly.js` sait interroger l'API Web Scraping Scrapfly pour UNE URL de recherche Leboncoin configurée puis passer son HTML structuré dans le validateur OFFRYA. Il ne modifie pas Supabase et ne publie aucune annonce. Il ne peut être lancé que de 07 h à 23 h, heure de Paris.
+
+Conditions impératives avant toute exécution : confirmer indépendamment l'authenticité et la portée de l'accord Leboncoin, obtenir la permission écrite d'employer Scrapfly (prestataire tiers et éventuels proxys compris), confirmer les règles robots.txt, puis configurer manuellement les variables suivantes dans un environnement serveur privé :
+
+```env
+SCRAPFLY_API_KEY=<secret-dans-la-plateforme-seulement>
+LEBONCOIN_SCRAPFLY_ENABLED=true
+LEBONCOIN_SCRAPFLY_PARTNER_APPROVED=true
+LEBONCOIN_SCRAPFLY_ROBOTS_REVIEWED=true
+LEBONCOIN_DRY_RUN=true
+LEBONCOIN_SEARCH_URLS=["https://www.leboncoin.fr/recherche?category=34&text=cherche"]
+LEBONCOIN_VALIDATION_REPORT=validation.json
+LEBONCOIN_VALIDATION_CSV=demandes_validation.csv
+```
+
+Le connecteur désactive `asp`, n'active pas les proxys ni le ciblage géographique par paramètre et ne fournit aucun système d'évitement des CAPTCHA. **Attention : les infrastructures Scrapfly peuvent toutefois utiliser des mandataires par défaut ; l'absence de paramètre explicite ne suffit pas à les autoriser.** Les réponses bloquées ou les CAPTCHA provoquent l'arrêt immédiat sans contournement. Aucun cron n'est créé ; respecter le plafond contractuel d'une collecte toutes les quatre heures, les volumes et les obligations de retrait et de purge avant d'autoriser une exploitation réelle.
+
+Placer `SCRAPFLY_API_KEY` uniquement dans un gestionnaire de secrets serveur (Render Environment ou GitHub Actions Secrets, selon le futur environnement isolé). Ne jamais transmettre la clé dans un dépôt public, une capture, une page HTML ni un lien partagé.
