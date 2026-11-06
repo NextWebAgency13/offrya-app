@@ -100,3 +100,27 @@ test('Existing messaging, professional workflows and Auth/RLS remain connected',
  const check=spawnSync(process.execPath,['--input-type=module','--check'],{input:app,encoding:'utf8'});
  assert.equal(check.status,0,check.stderr);
 });
+
+
+test('Approved Premium Android quick access is precisely scoped to its three-card view',()=>{
+ const start=css.indexOf('/* Accès rapide Premium Android — rendu validé.');
+ assert.ok(start>0,'approved scoped Android CSS must be present');
+ const mobile=css.slice(start);
+ assert.match(mobile,/@media \(max-width:780px\)/);
+ assert.match(mobile,/body\.offrya-reference-ui\[data-offrya-role="premium"\] #dashboard \.role-reference-premium/);
+ assert.match(mobile,/\.role-section-heading h3\{/);
+ assert.match(mobile,/\.role-section-heading p\{/);
+ assert.match(mobile,/\.role-pro-links > button\[data-tab="missions"\]\{\s*display:none!important/);
+ assert.match(mobile,/\.role-pro-links > button:not\(\[data-tab="missions"\]\)/);
+ assert.match(mobile,/\.role-ref-link-icon/);
+ assert.match(mobile,/@media \(max-width:360px\)/);
+ // The original destinations and all four HTML buttons remain in the DOM.
+ const cards=second.slice(second.indexOf('<div class="role-pro-links">'),second.indexOf('</div>',second.indexOf('<div class="role-pro-links">')));
+ assert.equal((cards.match(/<button\b/g)||[]).length,4);
+ for(const label of ['Espace Premium','Mon activité','Mon profil pro'])assert.ok(cards.includes(label));
+ assert.match(cards,/data-tab="missions"/);
+ assert.match(cards,/data-tab="boamp"/);
+ assert.match(cards,/data-tab="settings"/);
+ assert.match(cards,/data-role-pro-screen="tracking"/);
+ assert.doesNotMatch(mobile,/#roleClientView|#missions \.|#professional \./);
+});
