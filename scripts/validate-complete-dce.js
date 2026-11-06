@@ -68,6 +68,7 @@ async function main(){
    .map(x=>path.join(dir,x))],{timeout:12000});
   const updated=await importDceZip(await fs.readFile(revision));
   if(updated.archive.sha256===original.archive.sha256)throw Error('Digest revision inchangé');
+  console.log('OFFRYA REVISION DIAGNOSTIC '+JSON.stringify({documents:updated.documents.map(d=>d.name),amendments:updated.facts.filter(f=>f.type==='amendment').map(f=>f.source?.document),fact_count:updated.facts.length,warnings:updated.warnings.length}));
   for(const [name]of simulated){
    if(!updated.facts.some(f=>f.type==='amendment'&&f.source?.document===name))
     throw Error('Rectificatif ou question-réponse TEST sans provenance '+name);
