@@ -2,7 +2,7 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
-const {leboncoinUrl,getSourceId,departmentFor,classify,cleanListing,aiReview}=require('../lib/leboncoin-demand');
+const {leboncoinUrl,getSourceId,departmentFor,classify,cleanListing,aiReview,removePersonalData}=require('../lib/leboncoin-demand');
 const {allowedSearchUrls,detectChallenge,collect}=require('../scripts/collect-leboncoin');
 const {rankCandidates}=require('../lib/ai-matching');
 const base={
@@ -55,6 +55,7 @@ test('Stored external listings never contain contact information, URLs embedded 
  assert.equal(data.source_last_seen_at,now.toISOString());
  assert.doesNotMatch(JSON.stringify(data),/0612345678|foo@example.com|https:\/\/example\.com/);
  assert.equal(data.budget_cents,undefined);
+ assert.doesNotMatch(removePersonalData('Adresse : 14 rue des Lilas, Paris'),/14 rue des Lilas/i);
 });
 test('AI review cannot create demand, bypass deterministic classification or change category',async()=>{
  const row=cleanListing(base,now);
