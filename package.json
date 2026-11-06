@@ -20,5 +20,8 @@
     "pdf-parse": "2.4.5",
     "web-push": "3.6.7",
     "yauzl": "3.4.0"
+  },
+  "devDependencies": {
+    "pdf-lib": "1.17.1"
   }
 }
