@@ -66,19 +66,19 @@ test('Dry run does not update Supabase; authorized active dry-run can inspect fa
   close:async()=>{closed=true;}
  });
  const res=await synchronize({env:{LEBONCOIN_SYNC_ENABLED:'true',
-  LEBONCOIN_COLLECTOR_ENABLED:'true',LEBONCOIN_DRY_RUN:'true'},
+  LEBONCOIN_COLLECTOR_ENABLED:'true',LEBONCOIN_COLLECTION_AUTHORIZED:'true',LEBONCOIN_ROBOTS_REVIEWED:'true',LEBONCOIN_DRY_RUN:'true'},
   browserFactory,load:async()=>[row],save:async()=>{written++;return true;},
-  pause:async()=>{},now,logger:{info:()=>{}}});
+  pause:async()=>{},reserve:async()=>true,now,logger:{info:()=>{}}});
  assert.equal(res.checked,1);assert.equal(res.expired,0);assert.equal(written,0);assert.equal(closed,true);
 });
 test('Qualified second absence is marked expired only when writes explicitly enabled',async()=>{
  let changes=null;
  const pending={...row,missing_checks:1,first_missing_at:new Date(now.getTime()-MIN_RECHECK_MS).toISOString()};
- const res=await synchronize({env:{LEBONCOIN_SYNC_ENABLED:'true',LEBONCOIN_COLLECTOR_ENABLED:'true',
+ const res=await synchronize({env:{LEBONCOIN_SYNC_ENABLED:'true',LEBONCOIN_COLLECTOR_ENABLED:'true',LEBONCOIN_COLLECTION_AUTHORIZED:'true',LEBONCOIN_ROBOTS_REVIEWED:'true',
   LEBONCOIN_DRY_RUN:'false'},browserFactory:async()=>({
    newPage:async()=>mockPage({code:410}),close:async()=>{}
   }),load:async()=>[pending],save:async(_,r,c)=>{changes=c;return true;},
-  pause:async()=>{},now,logger:{info:()=>{}}});
+  pause:async()=>{},reserve:async()=>true,now,logger:{info:()=>{}}});
  assert.equal(res.expired,1);
  assert.equal(changes.status,'expired');
 });
