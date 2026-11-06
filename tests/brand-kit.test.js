@@ -29,3 +29,14 @@ test('La palette du kit remplace l’ancien violet',()=>{
  for(const f of ['public.css','styles.css','role-reference.css','pro-experience.css'])
   assert.doesNotMatch(fs.readFileSync(path.join(pub,f),'utf8'),/#6941d7|#6A0295|#3F0258/i,f);
 });
+test('Finitions : colonne Premium lisible, menus Pro réservés au Premium, cloche mobile pour tous',()=>{
+ const css=fs.readFileSync(path.join(pub,'brand-kit.css'),'utf8');
+ assert.match(css,/body\.offrya-pro-v3 \.app-shell \.sidebar \.nav-link:not\(\.active\)/);
+ assert.match(css,/html body:not\(\.offrya-pro-v3\) \.app-shell \.sidebar :is\(nav#proV3Sidebar,nav#proV3SidebarExtras,div#proV3SidePlan\)\{display:none!important\}/);
+ assert.match(css,/body:not\(\.offrya-pro-v3\) \.app-shell \.header \.header-actions>#messageShortcut\.message-header-shortcut\{/);
+ assert.match(css,/#homePrivateDashboard\.home-private\{margin-top:0!important/);
+ assert.match(css,/body #inbox \.inbox-grid\{grid-template-columns:minmax\(340px,400px\) minmax\(0,1fr\)!important\}/);
+ assert.match(css,/#missions #missionSearchFilters #missionCategory\{grid-column:1\/-1\}/);
+ const app=fs.readFileSync(path.join(pub,'app.js'),'utf8');
+ assert.match(app,/const titles=\{dashboard:'Accueil',missions:canUsePremium\(\)\?'Missions':'Mes missions'/);
+});

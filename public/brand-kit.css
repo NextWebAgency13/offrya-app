@@ -138,3 +138,62 @@ body.offrya-reference-ui #dashboard .role-client-hero h2::after{
 .notif-foot{border-top:1px solid #f0e9f7;padding:10px 14px}
 .notif-foot button{width:100%;border:1px solid #e9e0f3;background:#fff;color:#4B0058;border-radius:12px;padding:11px;font-family:inherit;font-weight:700;font-size:14px;line-height:1.2;cursor:pointer}
 @media (max-width:780px){.notif-panel{top:calc(env(safe-area-inset-top,0px) + 70px)}}
+
+/* ===== Finitions ergonomiques (audit de tous les écrans) ===== */
+
+/* 1. Colonne prune : liens lisibles aussi pour les comptes Premium (le thème Pro forçait un violet foncé) */
+@media (min-width:781px){
+ body.offrya-pro-v3 .app-shell .sidebar .nav-link:not(.active),
+ body.offrya-pro-v3 .app-shell .sidebar .pro-v3-nav-btn:not(.active),
+ body.offrya-reference-ui .app-shell .sidebar .pro-v3-nav-btn:not(.active){color:#efe4fa!important;background:transparent!important}
+ body.offrya-pro-v3 .app-shell .sidebar .nav-link.active,
+ body.offrya-pro-v3 .app-shell .sidebar .pro-v3-nav-btn.active,
+ body.offrya-reference-ui .app-shell .sidebar .pro-v3-nav-btn.active{color:#fff!important;background:rgba(255,255,255,.16)!important;box-shadow:none!important}
+ body.offrya-pro-v3 .app-shell .sidebar .nav-link:not(.active):hover,
+ body.offrya-pro-v3 .app-shell .sidebar .pro-v3-nav-btn:not(.active):hover{background:rgba(255,255,255,.09)!important;color:#fff!important}
+ body.offrya-pro-v3 .app-shell .sidebar :is(.workspace-label,.pro-v3-extras-title){color:#cdb6e6!important}
+ body.offrya-pro-v3 .app-shell .sidebar .pro-v3-sidebar-extras{border-top-color:rgba(255,255,255,.14)!important}
+ body.offrya-pro-v3 .app-shell .sidebar .pro-v3-nav-count{background:rgba(255,255,255,.2)!important;color:#fff!important}
+ body.offrya-pro-v3 .app-shell .sidebar .pro-v3-side-plan{background:#F7F2FC!important;border-color:transparent!important;color:#211728!important}
+ /* Les liens légaux sont déjà en pied de page : la colonne reste dégagée */
+ body .app-shell .sidebar .legal-links{display:none!important}
+}
+
+/* 2. Menus Pro : réservés aux comptes Premium (évite des boutons bruts sur l'Espace pro gratuit) */
+html body:not(.offrya-pro-v3) .app-shell .sidebar :is(nav#proV3Sidebar,nav#proV3SidebarExtras,div#proV3SidePlan){display:none!important}
+
+/* 3. Mobile : la cloche (centre de notifications) aussi pour les demandeurs et les pros non abonnés */
+@media (max-width:620px){
+ body:not(.offrya-pro-v3) .app-shell .header .header-actions>#messageShortcut.message-header-shortcut{
+  display:grid!important;place-items:center;position:relative;min-width:43px;min-height:43px;padding:0;
+  border:0;border-radius:13px;background:rgba(255,255,255,.12);color:#fff;
+ }
+ body:not(.offrya-pro-v3) .app-shell .header #messageShortcut svg{width:21px;height:21px}
+ body:not(.offrya-pro-v3) .app-shell .header #messageShortcut .message-unread-badge:not([hidden]){top:-3px;right:-4px;border-color:#2E043D}
+}
+
+/* 4. Accueil (ordinateur) : suppression de la bande vide et du filet au-dessus du bandeau */
+@media (min-width:781px){
+ body.offrya-reference-ui #dashboard #homePrivateDashboard.home-private{margin-top:0!important;padding-top:0!important;border-top:0!important}
+}
+
+/* 5. Messagerie (ordinateur) : liste des conversations plus large et moins tassée */
+@media (min-width:761px){
+ body #inbox .inbox-grid{grid-template-columns:minmax(340px,400px) minmax(0,1fr)!important}
+ body #inbox .inbox-conversations{padding:20px 16px!important}
+ body #inbox .offrya-conversation{padding:12px 10px!important;gap:10px!important}
+ body #inbox .offrya-conversation-icon{flex:0 0 34px!important;width:34px!important;height:34px!important;border-radius:10px!important}
+ body #inbox .offrya-conversation-body strong{font-size:14px!important;line-height:1.35!important}
+ body #inbox .conv-action{flex-basis:36px!important;min-width:36px!important}
+}
+
+/* 6. Mobile : le filtre « secteur » prend toute la largeur (texte plus tronqué) */
+@media (max-width:620px){
+ #missions #missionSearchFilters #missionCategory{grid-column:1/-1}
+}
+/* Mobile : la barre du bas suffit ; les menus Pro de la colonne ne débordent plus sous l'écran (lecteurs d'écran, tabulation) */
+@media (max-width:780px){
+ html body .app-shell .sidebar :is(nav#proV3Sidebar,nav#proV3SidebarExtras,div#proV3SidePlan){display:none!important}
+}
+/* Mon compte : la carte « Notifications Android » n'a plus de grand vide sous son interrupteur */
+body #settings .push-notifications-settings.offrya-settings-card{min-height:0!important}
