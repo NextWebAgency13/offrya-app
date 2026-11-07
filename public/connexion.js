@@ -180,8 +180,8 @@ async function init(){
  if(!c.supabaseUrl||!c.supabaseKey)throw Error('Configuration de connexion indisponible');
  await authCaptcha.init(c.guestCaptchaSiteKey);
  // Le chargement différé évite qu'un CDN indisponible rende le formulaire inerte.
- const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm');
- db=createClient(c.supabaseUrl,c.supabaseKey,{auth:{detectSessionInUrl:true}});
+ const supabaseModule=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm');
+ db=supabaseModule.createClient(c.supabaseUrl,c.supabaseKey,{auth:{detectSessionInUrl:true}});
  db.auth.onAuthStateChange((event,session)=>{
   if(event==='PASSWORD_RECOVERY'){change('recover');return;}
   if(event==='SIGNED_IN'&&session&&mode!=='recover'){
