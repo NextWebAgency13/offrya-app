@@ -154,3 +154,25 @@ test('Un autre compte sans opt-in ne récupère pas les notifications du précé
  assert.equal(env.device.sub,null,'old browser subscription must be revoked');
  assert.equal(env.server.subscribeCalls,1,'do not register this endpoint for the new account');
 });
+
+test('Le bouton reprend ON immédiatement pendant la vérification asynchrone',async()=>{
+ const env=environment(),first=createBrowser(env);
+ await first.module.init();
+ await first.button.click();
+ const reopened=createBrowser(env);
+ const initialization=reopened.module.init();
+ assert.equal(enabled(reopened),true,'do not flash OFF on reloading the settings');
+ await initialization;
+ assert.equal(enabled(reopened),true);
+});
+test('Une inscription Supabase manquante est réparée pour le même compte avec opt-in',async()=>{
+ const env=environment(),first=createBrowser(env);
+ await first.module.init();
+ await first.button.click();
+ env.server.ownerByEndpoint.clear();
+ const reopened=createBrowser(env);
+ await reopened.module.init();
+ assert.equal(enabled(reopened),true);
+ assert.equal(env.server.subscribeCalls,2);
+ assert.equal(env.server.ownerByEndpoint.get(env.device.sub.endpoint),accountA);
+});
