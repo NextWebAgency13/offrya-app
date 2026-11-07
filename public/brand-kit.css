@@ -1576,3 +1576,16 @@ html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head button{
    Les décors de l'en-tête restent à l'intérieur de son cadre (inset:0). ===== */
 html body.offrya-reference-ui .app-shell .header{overflow:visible!important}
 html body.offrya-reference-ui .app-shell .header #accountMenu[open] .account-menu-panel{z-index:90!important}
+
+/* ===== Pages publiques : textes lisibles sur les fonds clairs « 3D Soft » (07/11) ===== */
+/* Accueil : bouton principal « Je cherche un professionnel » */
+html body.mock-home .offrya-entry-path-primary{color:#2B1840!important}
+html body.mock-home .offrya-entry-path-primary .offrya-entry-copy strong{color:#2B1840!important}
+html body.mock-home .offrya-entry-path-primary .offrya-entry-copy small{color:#5B4E70!important}
+html body.mock-home .offrya-entry-path-primary .offrya-entry-arrow{color:#4B0058!important}
+/* Page Professionnels : en-tête */
+html body .premium-hero .premium-intro .eyebrow{color:#7A3CC0!important}
+html body .premium-hero .premium-intro p{color:#4E4260!important}
+html body .premium-hero .premium-intro a:not(.btn){color:#5E3692!important;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
+html body .premium-hero .premium-intro .btn.outline{background:#fff!important;border-color:#CDB6EA!important;color:#5E3692!important}
+html body .premium-hero .premium-intro .btn.outline:hover{background:#F6EFFD!important}
