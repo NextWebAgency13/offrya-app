@@ -1549,20 +1549,24 @@ html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head button{
  }
  html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head button :is(svg,.nav-icon){color:#fff!important}
 }
-/* Mobile : critères regroupés entre eux ; « Modifier » sous le robot (à droite du titre),
+/* Mobile : critères regroupés à gauche ; « Modifier » sous le robot, en bas à droite (comme sur ordinateur),
    aux couleurs de la version ordinateur. */
 @media (max-width:780px){
  html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria{
   display:grid!important;grid-template-columns:minmax(0,1fr) auto;
-  grid-template-areas:"title edit" "chips chips";align-items:center;column-gap:10px;row-gap:10px;
+  grid-template-areas:"title title" "chips edit";align-items:end;column-gap:10px;row-gap:10px;
  }
  html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head strong{grid-area:title;margin:0}
  html body.offrya-pro-v3 #professional .pro-ai-hero #proAiCriteria{grid-area:chips;display:flex!important;flex-wrap:wrap;gap:8px!important}
  html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head button{
-  grid-area:edit;justify-self:end;align-self:center;margin:0!important;
+  grid-area:edit;justify-self:end;align-self:end;margin:0 0 2px!important;
   background:linear-gradient(115deg,rgba(134,80,197,.92),rgba(111,63,171,.92))!important;
   border:1px solid rgba(233,207,250,.85)!important;color:#fff!important;
   box-shadow:0 3px 10px rgba(75,0,88,.16)!important;
  }
  html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head button :is(svg,.nav-icon){color:#fff!important}
+}
+/* Très petits téléphones : les critères gardent toute la largeur, « Modifier » passe dessous, à droite */
+@media (max-width:360px){
+ html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria{grid-template-areas:"title title" "chips chips" ". edit"}
 }

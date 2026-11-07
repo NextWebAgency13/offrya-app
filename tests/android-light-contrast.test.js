@@ -23,7 +23,7 @@ test('Ma veille intelligente : « Modifier » descendu sur la ligne des critère
 });
 test('« Modifier » : moins transparent sur ordinateur, sous le robot sur mobile',()=>{
  assert.match(css,/background:linear-gradient\(115deg,rgba\(134,80,197,\.92\),rgba\(111,63,171,\.92\)\)!important;/);
- assert.match(css,/grid-template-areas:"title edit" "chips chips";/);
+ assert.match(css,/grid-template-areas:"title title" "chips edit";align-items:end;column-gap:10px;/);
  assert.match(css,/#proAiCriteria\{grid-area:chips;display:flex!important;flex-wrap:wrap;gap:8px!important\}/);
- assert.match(css,/grid-area:edit;justify-self:end;align-self:center;margin:0!important;\n  background:linear-gradient\(115deg,rgba\(134,80,197,\.92\)/);
+ assert.match(css,/grid-area:edit;justify-self:end;align-self:end;margin:0 0 2px!important;\n  background:linear-gradient\(115deg,rgba\(134,80,197,\.92\)/);
 });
