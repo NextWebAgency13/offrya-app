@@ -20,3 +20,6 @@ test('En-tête des pages publiques : « Se connecter » pour un visiteur, « Mon
 test('Accueil : les deux cartes de parcours ont la même couleur',()=>{
  assert.match(css,/html body\.mock-home \.offrya-entry-paths \.offrya-entry-path\{\n border-color:#D5B4ED!important;\n background:linear-gradient\(130deg,#FDF9FF,#E9D8FB\)!important;/);
 });
+test('Accueil : les deux cartes de parcours ont la même taille',()=>{
+ assert.match(css,/html body\.mock-home \.offrya-entry-paths\{grid-auto-rows:1fr!important;align-items:stretch!important\}/);
+});
