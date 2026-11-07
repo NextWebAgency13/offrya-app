@@ -1409,3 +1409,42 @@ html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:n
  #deposit .deposit-form{grid-template-columns:1fr;padding:18px;gap:14px}
  #deposit .deposit-actions .button{width:100%}
 }
+
+/* ===== Android (vidéo du 07/11, 12 h 39) : lisibilité du thème clair ===== */
+@media (max-width:780px){
+ /* 1. Barre du bas claire sur TOUS les onglets, Espace Premium et Déposer compris
+       (avant : barre prune avec icônes prune, donc invisibles, dans l'Espace Premium). */
+ html body.offrya-reference-ui[data-offrya-role="premium"]:has(.tab.active) .app-shell .sidebar,
+ html body.offrya-reference-ui:has(#professional.active,#deposit.active) .app-shell .sidebar{
+  background:linear-gradient(120deg,#FFFCFF 0%,#F0E5FB 100%)!important;
+  border:1px solid #E5D2F5!important;border-bottom:0!important;
+  border-radius:22px 22px 0 0!important;
+  box-shadow:0 -6px 21px #40246530!important;
+ }
+ html body.offrya-reference-ui[data-offrya-role="premium"]:has(.tab.active) .app-shell .sidebar #nav .nav-link:not(.active),
+ html body.offrya-reference-ui[data-offrya-role="premium"]:has(.tab.active) .app-shell .sidebar #nav .nav-link:not(.active) :is(.nav-icon,svg,span:not(.message-unread-badge)){
+  color:#35255F!important;opacity:1!important;background:transparent!important;
+ }
+ /* 2. En-têtes de page (Missions, Messages, Mon compte, Déposer) : la phrase
+       d'explication était blanche sur fond clair, donc invisible. */
+ html body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active,#deposit.active) > .section-top:first-child p:not(.eyebrow),
+ html body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#deposit.active) > .section-top:first-child p:not(.eyebrow){
+  color:#5B4E70!important;opacity:1!important;
+ }
+ html body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active,#deposit.active) > .section-top:first-child :is(h2,.eyebrow){
+  color:#2F1749!important;
+ }
+ /* 3. Bouton « Actualiser » (Missions) : texte blanc sur fond clair → bouton lisible. */
+ html body.offrya-reference-ui[data-offrya-role="premium"] #missions.active .mission-header-actions .button.secondary{
+  background:#fff!important;border:1px solid #DCCBEE!important;color:#5E3692!important;
+ }
+ /* 4. Ma veille intelligente : badge « IA » et bouton « Modifier » lisibles. */
+ html body.offrya-reference-ui #professional.active .pro-ai-hero .pro-ai-intelligence{
+  background:#EFE3FB!important;color:#5E2A93!important;border:1px solid #DCC6F2!important;
+ }
+ html body.offrya-reference-ui #professional.active .pro-ai-hero .pro-ai-intelligence .nav-icon{color:#7A3CC0!important}
+ html body.offrya-reference-ui #professional.active .pro-ai-criteria-head button{
+  background:#fff!important;color:#5E3692!important;border:1px solid #DCCBEE!important;opacity:1!important;
+ }
+ html body.offrya-reference-ui #professional.active .pro-ai-criteria-head button .nav-icon{color:#7A3CC0!important}
+}
