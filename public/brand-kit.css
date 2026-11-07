@@ -1051,7 +1051,7 @@ body:has(.breadcrumb):has(.simple-hero) .section .number{
 /* OFFRYA / accueil demandeur (07-11-2026) — corrective design QA
    A single brand logo in the header, readable light 3D Soft hero, equal cards.
    Intentionally scoped to the free/pending dashboard, NEVER Premium. */
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .client-dashboard-publish.role-client-hero{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .client-dashboard-publish.role-client-hero{
   display:flex!important;
   flex-direction:column!important;
   justify-content:center!important;
@@ -1073,21 +1073,21 @@ body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-refe
   background-size:cover!important;
   box-shadow:0 8px 22px #67468E1B,0 2px 4px #4A2C7010!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .client-dashboard-publish.role-client-hero::after{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .client-dashboard-publish.role-client-hero::after{
   content:none!important;
   display:none!important;
   background:none!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .client-dashboard-publish.role-client-hero::before{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .client-dashboard-publish.role-client-hero::before{
   content:"";position:absolute;z-index:0;pointer-events:none;
   top:-65px;right:-88px;width:195px;height:195px;border-radius:50%;
   border:1px solid #D4AFEF66;background:#D8B0F925;
   box-shadow:0 0 0 22px #DDBAFF15;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-hero-copy{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-hero-copy{
   position:relative;z-index:1;width:100%;max-width:660px!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-client-hero h2{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-client-hero h2{
   max-width:100%!important;
   margin:0 0 12px!important;
   color:#292053!important;
@@ -1095,19 +1095,19 @@ body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-refe
   letter-spacing:-.05em!important;
   text-shadow:none!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-client-hero h2::after{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-client-hero h2::after{
   width:49px!important;height:4px!important;
   margin-top:13px!important;border-radius:999px!important;
   background:linear-gradient(90deg,#8A49D3,#FF986E)!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-client-hero p{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-client-hero p{
   max-width:540px!important;
   margin:0 0 19px!important;
   color:#56486F!important;
   font:550 clamp(14px,1.7vw,16px)/1.52 'DM Sans',sans-serif!important;
   text-shadow:none!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-reference-cta{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-reference-cta{
   display:inline-flex!important;align-items:center!important;justify-content:center!important;
   width:max-content!important;max-width:100%!important;min-width:0!important;
   min-height:51px!important;padding:12px 21px!important;
@@ -1119,28 +1119,28 @@ body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-refe
   text-decoration:none!important;
   box-shadow:inset 0 1px #FFFFFF55,0 6px 13px #6F41A72F!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-reference-cta :is(.nav-icon,svg){
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-reference-cta :is(.nav-icon,svg){
   color:#FFF!important;stroke:#FFF!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-reference-client-section,
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-reference-recent{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-reference-client-section,
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-reference-recent{
   padding-inline:16px!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-reference-client-section h3,
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-reference-recent h3{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-reference-client-section h3,
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-reference-recent h3{
   margin:0 0 15px!important;
   color:#30234E!important;
   font:850 clamp(19px,2.2vw,24px)/1.2 'Plus Jakarta Sans',sans-serif!important;
   letter-spacing:-.04em!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards{
   display:grid!important;
   grid-template-columns:repeat(2,minmax(0,1fr))!important;
   align-items:stretch!important;
   gap:12px!important;
   margin:0 0 24px!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card{
   position:relative!important;isolation:isolate!important;overflow:hidden!important;
   display:flex!important;flex-direction:column!important;
   align-items:flex-start!important;justify-content:flex-start!important;
@@ -1151,16 +1151,16 @@ body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-refe
   border:1px solid #E5D9F0!important;border-radius:21px!important;
   text-align:left!important;box-shadow:0 6px 18px #56417C16,0 1px 3px #41306C0A!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card:nth-child(2){
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card:nth-child(2){
   background:linear-gradient(140deg,#FFFFFF 30%,#FFF3F5 100%)!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card:nth-child(3){
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card:nth-child(3){
   background:linear-gradient(140deg,#FFFFFF 30%,#F3F4FF 100%)!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card:nth-child(4){
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card:nth-child(4){
   background:linear-gradient(140deg,#FFFFFF 30%,#FFF6F0 100%)!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-card-icon{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-card-icon{
   display:grid!important;place-items:center!important;
   width:46px!important;height:46px!important;min-width:46px!important;
   padding:0!important;margin:0 0 5px!important;
@@ -1169,92 +1169,92 @@ body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-refe
   color:#60318E!important;
   box-shadow:inset 0 1px #fff9,0 4px 10px #A579C33B!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card:nth-child(2) .role-ref-card-icon{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card:nth-child(2) .role-ref-card-icon{
   border-color:#F3C0D6!important;background:linear-gradient(135deg,#FFE5EA,#F4ACCB)!important;color:#87325F!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card:nth-child(3) .role-ref-card-icon{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card:nth-child(3) .role-ref-card-icon{
   border-color:#CCD7FA!important;background:linear-gradient(135deg,#E2E8FF,#ADBFF4)!important;color:#354DB0!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card:nth-child(4) .role-ref-card-icon{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card:nth-child(4) .role-ref-card-icon{
   border-color:#F5D7BB!important;background:linear-gradient(135deg,#FFF0D8,#F8CD9C)!important;color:#975623!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-card-icon svg{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-card-icon svg{
   width:24px!important;height:24px!important;
   color:inherit!important;stroke:currentColor!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card strong{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card strong{
   margin:0!important;max-width:100%!important;
   font:800 clamp(14px,1.65vw,16px)/1.2 'Plus Jakarta Sans',sans-serif!important;
   color:#30234E!important;letter-spacing:-.03em!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card small{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card small{
   font:550 clamp(12px,1.35vw,13px)/1.32 'DM Sans',sans-serif!important;
   color:#625477!important;
   max-width:calc(100% - 18px)!important;
   margin:0!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-chevron{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-chevron{
   right:12px!important;bottom:14px!important;
   font:800 24px/1 'Plus Jakarta Sans',sans-serif!important;
   color:#7543AC!important;
 }
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card:focus-visible,
-body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-reference-cta:focus-visible{
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card:focus-visible,
+html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-reference-cta:focus-visible{
   outline:3px solid #F8A276!important;outline-offset:3px!important;
 }
 @media(min-width:960px){
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards{
+ html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards{
   grid-template-columns:repeat(4,minmax(0,1fr))!important;
  }
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card{min-height:165px!important}
+ html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card{min-height:165px!important}
 }
 @media(max-width:780px){
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .client-dashboard-publish.role-client-hero{
+ html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .client-dashboard-publish.role-client-hero{
   width:calc(100% - 28px)!important;
   margin:14px 14px 19px!important;
   padding:23px 20px!important;
   border-radius:22px!important;
   min-height:0!important;
  }
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-hero-copy{
+ html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-hero-copy{
   max-width:100%!important;
  }
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-client-hero h2{
+ html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-client-hero h2{
   max-width:100%!important;
   font-size:clamp(23px,6.6vw,29px)!important;
  }
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-client-hero p{
+ html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-client-hero p{
   max-width:100%!important;
   font-size:14px!important;line-height:1.42!important;
   margin-bottom:16px!important;
  }
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-reference-cta{
+ html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-reference-cta{
   width:100%!important;min-height:49px!important;
   padding:12px 10px!important;font-size:14px!important;
  }
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards{
+ html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards{
   gap:10px!important;margin-bottom:20px!important;
  }
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card{
+ html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card{
   min-height:145px!important;padding:14px 12px 16px!important;
   gap:5px!important;border-radius:19px!important;
  }
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-card-icon{
+ html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-card-icon{
   width:42px!important;height:42px!important;min-width:42px!important;
   margin-bottom:3px!important;
  }
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card strong{
+ html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card strong{
   font-size:14px!important;
  }
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card small{
+ html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card small{
   font-size:12px!important;line-height:1.25!important;
  }
 }
 @media(max-width:360px){
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-client-hero h2{
+ html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-client-hero h2{
   font-size:23px!important;
  }
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card{
+ html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:not(.hidden) .role-ref-client-cards .role-ref-action-card{
   padding:13px 10px 15px!important;min-height:141px!important;
  }
 }
@@ -1262,5 +1262,95 @@ body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-refe
  body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-ref-client-cards .role-ref-action-card,
  body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-cta{
   animation:none!important;transition:none!important;
+ }
+}
+
+
+/* OFFRYA mobile visual-parity corrections (07/11/2026).
+   Only layout and contrast; no data, rights or click handling change.
+   A light navigation dock must not inherit dark-plum icon color. */
+@media (max-width:780px){
+ html body.offrya-reference-ui .app-shell .sidebar,
+ html body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) .app-shell .sidebar,
+ html body.offrya-reference-ui[data-offrya-role="premium"]:has(#missions.active,#inbox.active,#settings.active) .app-shell .sidebar{
+  background:linear-gradient(120deg,#FFFCFF 0%,#F0E5FB 100%)!important;
+  border:1px solid #E5D2F5!important;border-bottom:0!important;
+  border-radius:22px 22px 0 0!important;
+  box-shadow:0 -6px 21px #40246530!important;
+ }
+ html body.offrya-reference-ui .app-shell .sidebar #nav .nav-link:not(.active),
+ html body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) .app-shell .sidebar #nav .nav-link:not(.active),
+ html body.offrya-reference-ui[data-offrya-role="premium"]:has(#missions.active,#inbox.active,#settings.active) .app-shell .sidebar #nav .nav-link:not(.active){
+  background:transparent!important;
+  color:#35255F!important;
+  opacity:1!important;
+ }
+ html body.offrya-reference-ui .app-shell .sidebar #nav .nav-link:not(.active) :is(.nav-icon,svg,span:not(.message-unread-badge)),
+ html body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) .app-shell .sidebar #nav .nav-link:not(.active) :is(.nav-icon,svg,span:not(.message-unread-badge)),
+ html body.offrya-reference-ui[data-offrya-role="premium"]:has(#missions.active,#inbox.active,#settings.active) .app-shell .sidebar #nav .nav-link:not(.active) :is(.nav-icon,svg,span:not(.message-unread-badge)){
+  color:#35255F!important;
+  stroke:currentColor;
+  opacity:1!important;
+ }
+ html body.offrya-reference-ui .app-shell .sidebar #nav .nav-link.active{
+  background:linear-gradient(135deg,#B333DE,#7B2CBD 78%,#A147CF)!important;
+  color:#FFFFFF!important;
+  box-shadow:inset 0 1px 0 #ffffff66,0 4px 12px #4A286C2E!important;
+ }
+ html body.offrya-reference-ui .app-shell .sidebar #nav .nav-link.active :is(.nav-icon,svg,span:not(.message-unread-badge)){
+  color:#FFFFFF!important;
+  stroke:currentColor;
+ }
+ html body.offrya-reference-ui #dashboard .role-premium-top{
+  gap:7px!important;
+  padding:15px 12px!important;
+  min-height:66px!important;
+ }
+ html body.offrya-reference-ui #dashboard .role-premium-top strong{
+  font-size:clamp(15px,4vw,18px)!important;
+  line-height:1.15!important;
+  letter-spacing:-.035em!important;
+  overflow-wrap:normal!important;
+  text-wrap:balance;
+ }
+ html body.offrya-reference-ui #dashboard .role-premium-top .role-premium-pill{
+  padding:8px 10px!important;
+  font-size:clamp(12px,3.2vw,14px)!important;
+ }
+ html body.offrya-reference-ui #dashboard .role-company{
+  gap:10px!important;
+  padding:13px 12px!important;
+ }
+ html body.offrya-reference-ui #dashboard .role-company>div{
+  flex:1!important;min-width:0!important;
+ }
+ html body.offrya-reference-ui #dashboard .role-company strong{
+  overflow-wrap:anywhere!important;
+  font-size:clamp(13px,3.6vw,16px)!important;
+  line-height:1.24!important;
+ }
+ html body.offrya-reference-ui #dashboard .role-validity{
+  flex:none!important;max-width:38%!important;
+  min-height:48px!important;
+  padding:8px!important;
+  font-size:clamp(10px,2.9vw,12px)!important;
+ }
+}
+/* Some Android browsers emulate a 980px desktop viewport on a portrait phone.
+   The desktop site remains desktop-sized, but branding must never disappear. */
+@media screen and (pointer:coarse) and (orientation:portrait) and (min-width:781px) and (max-width:1100px) and (max-aspect-ratio:3/5){
+ html body.offrya-reference-ui .app-shell .header .mobile-brand{
+  display:flex!important;align-items:center!important;flex:none!important;
+  max-width:42vw!important;
+ }
+ html body.offrya-reference-ui .app-shell .header .mobile-brand .brand-logo{
+  height:44px!important;width:auto!important;max-width:100%!important;
+  object-fit:contain!important;
+ }
+ html body.offrya-reference-ui .app-shell .header .header-heading{
+  display:none!important;
+ }
+ html body.offrya-reference-ui .app-shell .header .header-actions{
+  margin-left:auto!important;
  }
 }
