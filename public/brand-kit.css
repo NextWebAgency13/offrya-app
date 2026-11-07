@@ -1576,3 +1576,8 @@ html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head button{
    Les décors de l'en-tête restent à l'intérieur de son cadre (inset:0). ===== */
 html body.offrya-reference-ui .app-shell .header{overflow:visible!important}
 html body.offrya-reference-ui .app-shell .header #accountMenu[open] .account-menu-panel{z-index:90!important}
+
+/* Notifications Android : explication visible uniquement quand une action est nécessaire */
+html body #settings .push-notifications-settings .push-settings-hint{margin:12px 0 0!important;padding:10px 12px;border-radius:12px;background:#FFF5EC;border:1px solid #F6D9BE;color:#7A3E00;font:600 13.5px/1.5 'DM Sans',sans-serif;max-width:none!important}
+html body #settings .push-notifications-settings .push-settings-hint[hidden]{display:none!important}
+html body #settings .push-notifications-settings{min-height:0!important}

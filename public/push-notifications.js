@@ -1,5 +1,5 @@
 // OFFRYA Android push: browser permission + actual account-specific server registration.
-export function createPushNotifications({state,button,status,notify}){
+export function createPushNotifications({state,button,status,hint,notify}){
  let config=null,busy=false,active=false;
  const supported=()=>window.isSecureContext && 'serviceWorker' in navigator &&
   'PushManager' in window && 'Notification' in window;
@@ -15,6 +15,9 @@ export function createPushNotifications({state,button,status,notify}){
   }
  }
  function tell(message){if(status)status.textContent=message;}
+ // Message visible seulement quand une action de l'utilisateur est nécessaire
+ // (notifications bloquées, autre compte, reconnexion…) ; la carte reste sobre sinon.
+ function advise(message){if(!hint)return;hint.textContent=message||'';hint.hidden=!message;}
  async function registration(){return navigator.serviceWorker.register('/sw.js',{scope:'/'});}
  function vapidBytes(value){
   const binary=atob((value+'='.repeat((4-value.length%4)%4)).replace(/-/g,'+').replace(/_/g,'/'));
@@ -34,12 +37,13 @@ export function createPushNotifications({state,button,status,notify}){
   return parsed;
  }
  async function refreshStatus(){
-  active=false;
-  if(!supported()){update('Notifications non compatibles',true);tell('Ouvrez OFFRYA dans Chrome sur Android (HTTPS).');return;}
-  if(!config?.enabled){update('Notifications indisponibles',true);tell('Le service push est temporairement indisponible.');return;}
+  active=false;advise('');
+  if(!supported()){update('Notifications non compatibles',true);tell('Ouvrez OFFRYA dans Chrome sur Android (HTTPS).');advise('Ce navigateur ne permet pas les notifications. Ouvrez OFFRYA dans Chrome sur Android.');return;}
+  if(!config?.enabled){update('Notifications indisponibles',true);tell('Le service push est temporairement indisponible.');advise('Service de notifications momentanément indisponible.');return;}
   if(Notification.permission==='denied'){
    update('Notifications bloquées',true);
    tell('Autorisez les notifications du site OFFRYA dans les paramètres de Chrome.');
+   advise('Notifications bloquées dans Chrome. Touchez le cadenas à côté de l’adresse du site, puis Autorisations › Notifications › Autoriser, et rechargez la page.');
    return;
   }
   const reg=await registration();
@@ -50,7 +54,7 @@ export function createPushNotifications({state,button,status,notify}){
    return;
   }
   const token=await sessionToken();
-  if(!token){update('Reconnectez-vous',true);tell('Une session OFFRYA est nécessaire pour recevoir les notifications.');return;}
+  if(!token){update('Reconnectez-vous',true);tell('Une session OFFRYA est nécessaire pour recevoir les notifications.');advise('Reconnectez-vous pour gérer les notifications.');return;}
   try{
    const remote=await api('status',{endpoint:sub.endpoint},token);
    active=remote.registered===true;
@@ -58,9 +62,11 @@ export function createPushNotifications({state,button,status,notify}){
    tell(active
     ?'Appareil enregistré pour ce compte. Les alertes Android fonctionnent même lorsque la page est fermée (selon les réglages du navigateur).'
     :'Abonnement Chrome présent, mais appareil non enregistré pour ce compte. Appuyez sur Réactiver.');
+   if(!active)advise('Ce téléphone reçoit peut-être les notifications d’un autre compte OFFRYA. Activez l’interrupteur pour les recevoir sur ce compte.');
   }catch(error){
    update('Réactiver les notifications push');
    tell('Impossible de vérifier l’abonnement côté serveur. Vous pouvez tenter de le réactiver.');
+   advise('Vérification impossible pour le moment. Vous pouvez réactiver l’interrupteur.');
   }
  }
  async function syncExisting(){
@@ -84,7 +90,7 @@ export function createPushNotifications({state,button,status,notify}){
    if(active){await disable();return;}
    // Permission must be requested as part of the direct user tap.
    const permission=Notification.permission==='granted'?'granted':await Notification.requestPermission();
-   if(permission!=='granted')throw Error('Autorisation refusée dans Chrome.');
+   if(permission!=='granted')throw Error('Autorisation refusée dans Chrome : les notifications restent désactivées.');
    const token=await sessionToken();
    if(!token)throw Error('Reconnectez-vous à OFFRYA.');
    const reg=await registration();

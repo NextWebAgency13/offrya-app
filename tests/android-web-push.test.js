@@ -259,3 +259,11 @@ test('Closed-browser worker shows a generic Android notification and opens priva
   assert.equal(result.status,0,path+': '+result.stderr);
  }
 });
+test('Notifications Android : explication visible seulement si une action est nécessaire',()=>{
+ const ui=fs.readFileSync('public/push-notifications.js','utf8'),html=fs.readFileSync('public/espace.html','utf8'),app=fs.readFileSync('public/app.js','utf8');
+ assert.match(html,/<p class="push-settings-hint" id="pushNotificationHint" hidden><\/p>/);
+ assert.match(app,/hint:\$\('pushNotificationHint'\)/);
+ assert.match(ui,/async function refreshStatus\(\)\{\n  active=false;advise\(''\);/);
+ assert.match(ui,/advise\('Notifications bloquées dans Chrome\./);
+ assert.match(ui,/if\(!active\)advise\('Ce téléphone reçoit peut-être les notifications d’un autre compte OFFRYA\./);
+});

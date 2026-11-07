@@ -1526,7 +1526,7 @@ window.addEventListener('storage',event=>{
  paintMessageBadges();
  if($('inbox')?.classList.contains('active'))renderInbox();
 });
-const pushNotifications=createPushNotifications({state,button:$('pushNotificationToggle'),status:$('pushNotificationStatus'),notify:toast});
+const pushNotifications=createPushNotifications({state,button:$('pushNotificationToggle'),status:$('pushNotificationStatus'),hint:$('pushNotificationHint'),notify:toast});
 proExperience.init();opportunityConsole.init();salesWorkspace.init();
 init().catch(showError);
 
