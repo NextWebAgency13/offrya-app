@@ -177,6 +177,11 @@ export function createPushNotifications({state,button,status,notify}){
  async function init(){
   if(!button)return;
   button.addEventListener('click',toggle);
+  // Rendre la préférence précédente immédiatement, sans clignotement vers OFF.
+  if(preference(state.session?.user?.id)){
+   active=true;update('Vérification des notifications…',true);
+   tell('Vérification de votre abonnement Android…');
+  }
   if(!supported()){await refreshStatus({force:true});return;}
   try{
    const response=await fetch('/api/push/config',{cache:'no-store'});
