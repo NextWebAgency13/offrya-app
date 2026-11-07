@@ -1,4 +1,5 @@
 import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm';
+import {MAX_PHOTOS,preparePhoto,uploadMissionPhotos} from './mission-photos.js';
 const $=id=>document.getElementById(id);
 let db;
 // Starter stores only sector and city (24h) on this browser; never private details.
@@ -56,6 +57,44 @@ async function init(){
  populateStarter();
  await showPublicationAccess();
 }
+// ---- Photos choisies avant publication (préparées dans le navigateur) ----
+const photos=[];
+function photoNotice(text,failed=false){
+ const el=$('photoStatus');if(!el)return;
+ el.hidden=!text;el.textContent=text||'';el.classList.toggle('is-error',failed);
+}
+function renderPhotos(){
+ const grid=$('photoPreview');if(!grid)return;
+ grid.innerHTML='';
+ photos.forEach((photo,index)=>{
+  const item=document.createElement('figure');item.className='photo-thumb';
+  const img=document.createElement('img');img.src=photo.url;img.alt='Photo '+(index+1)+' de la mission';
+  const remove=document.createElement('button');remove.type='button';remove.className='photo-remove';
+  remove.setAttribute('aria-label','Retirer la photo '+(index+1));remove.textContent='×';
+  remove.addEventListener('click',()=>{URL.revokeObjectURL(photo.url);photos.splice(index,1);renderPhotos();photoNotice('');});
+  item.append(img,remove);grid.append(item);
+ });
+ const add=$('photoAdd');
+ if(add){add.hidden=photos.length>=MAX_PHOTOS;add.querySelector('span').textContent=photos.length?'Ajouter d’autres photos':'Ajouter des photos';}
+ const label=$('photoFieldLabel');if(label)label.textContent='Photos (facultatif)'+(photos.length?' · '+photos.length+'/'+MAX_PHOTOS:'');
+}
+$('missionPhotos')?.addEventListener('change',async event=>{
+ const input=event.currentTarget,files=[...(input.files||[])];input.value='';
+ if(!files.length)return;
+ const room=MAX_PHOTOS-photos.length;
+ const selected=files.slice(0,Math.max(0,room));
+ const errors=[];
+ photoNotice('Préparation des photos…');
+ for(const file of selected){
+  try{const blob=await preparePhoto(file);photos.push({blob,url:URL.createObjectURL(blob)});}
+  catch(error){errors.push(error.message);}
+ }
+ renderPhotos();
+ if(files.length>room)errors.push('Maximum '+MAX_PHOTOS+' photos par mission.');
+ photoNotice(errors.join(' '),Boolean(errors.length));
+});
+function clearPhotos(){for(const photo of photos)URL.revokeObjectURL(photo.url);photos.length=0;renderPhotos();}
+
 $('missionForm').addEventListener('submit',async event=>{
  event.preventDefault();const form=event.currentTarget;
  if(form.dataset.sending==='true')return;
@@ -81,11 +120,19 @@ $('missionForm').addEventListener('submit',async event=>{
    owner_id:uid,title:values.title.trim(),description:values.description.trim(),
    category:values.category,department:values.department.trim().toUpperCase(),
    city:values.city.trim(),budget_cents:amount
-  });
+  }).select('id').single();
   if(result.error)throw result.error;
-  form.reset();
+  let sent={added:0,failed:0};
+  if(photos.length&&result.data?.id){
+   notice('missionStatus','Mission publiée. Envoi des photos…');
+   try{sent=await uploadMissionPhotos(db,uid,result.data.id,photos.map(p=>p.blob));}
+   catch(error){console.warn('OFFRYA: envoi des photos impossible',error);sent={added:0,failed:photos.length};}
+  }
+  form.reset();clearPhotos();photoNotice('');
    try{sessionStorage.removeItem(DRAFT_KEY);}catch(_){}
-  notice('missionStatus','Mission publiée gratuitement. Retrouvez-la dans Mon espace → Missions.');
+  const photoText=sent.added?(' '+sent.added+' photo'+(sent.added>1?'s ajoutées':' ajoutée')+'.'):'';
+  const failText=sent.failed?(' '+sent.failed+' photo'+(sent.failed>1?'s n’ont':' n’a')+' pas pu être envoyée'+(sent.failed>1?'s':'')+' : vous pourrez '+(sent.failed>1?'les':'l’')+'ajouter depuis Mon espace → Missions.'):'';
+  notice('missionStatus','Mission publiée gratuitement.'+photoText+failText+' Retrouvez-la dans Mon espace → Missions.',Boolean(sent.failed));
  }catch(error){
   if(!$('publishArea').hidden)notice('missionStatus',error.message||'Publication indisponible.',true);
   else notice('gateStatus',error.message||'Connexion nécessaire.',true);

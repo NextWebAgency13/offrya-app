@@ -6,6 +6,7 @@ import {createProExperience} from './pro-experience.js';
 import {createPushNotifications} from './push-notifications.js';
 import {fetchMissionFeed,missionBuckets} from './mission-feed.js';
 import {tenderPlatforms,platformTerm} from './tender-platforms.js';
+import {MAX_PHOTOS,preparePhoto,uploadMissionPhotos,listMissionPhotos,removeMissionPhoto,purgeMissionPhotos} from './mission-photos.js';
 const $=id=>document.getElementById(id);
 const authCaptcha=createAuthCaptcha($('modalAuthCaptcha'));
 
@@ -376,6 +377,7 @@ async function refresh(){
   ['prefs',state.db.from('offrya_alert_preferences').select('*').eq('user_id',uid).maybeSingle()],
   ['profiles',state.db.from('offrya_profiles').select('id,display_name,role,city,specialty').limit(300)],
   ['favorites',state.db.from('offrya_favorites').select('mission_id')],
+  ['missionPhotos',state.db.from('offrya_mission_photos').select('mission_id').limit(2000)],
   ['premium',state.db.from('offrya_premium_requests').select('user_id,siret,legal_name,status,premium_until,identity_status,authority_status,representative_kind,registry_name_matched,registry_match_checked_at,registry_match_source,identity_live_verified,presence_verified_at,presence_method,identity_verified_at,authority_verified_at,authority_review_method').eq('user_id',uid).maybeSingle()],
   ['subscription',state.db.from('offrya_premium_subscriptions').select('status,paid_through,stripe_customer_id').eq('user_id',uid).maybeSingle()],
   ['testPremiumUntil',typeof state.db.rpc==='function'?state.db.rpc('offrya_test_premium_expires_at'):Promise.resolve({data:null})],
@@ -401,6 +403,7 @@ async function refresh(){
     continue;
    }
    if(key==='favorites')state.favorites=(res?.data||[]).map(x=>x.mission_id);
+   else if(key==='missionPhotos'){const counts={};for(const x of res?.data||[])counts[x.mission_id]=(counts[x.mission_id]||0)+1;state.photoCounts=counts;}
    else if(key==='tenderTracking')state.tenderTracking=res?.data||[];
    else if(key==='salesTracking')state.salesTracking=res?.data||[];
    else if(key==='opportunityAlerts')state.opportunityAlerts=res?.data||[];
@@ -503,6 +506,9 @@ async function closeMission(id){
  if(!confirm(closeMissionConfirmText(mission,exchanges)))return false;
  const result=await state.db.rpc('offrya_close_mission',{p_id:id});
  if(result.error)throw result.error;
+ // Mission clôturée : ses fichiers photo sont effacés du stockage (la base a déjà retiré les lignes).
+ state.photoCache?.delete(id);if(state.photoCounts)delete state.photoCounts[id];
+ if(typeof purgeMissionPhotos==='function')purgeMissionPhotos(state.db,state.session.user.id,id).catch(error=>console.warn('OFFRYA: photos de la mission non retirées',error));
  forgetMissionLocally(id);
  if(location.pathname===paths.missions&&new URLSearchParams(location.search).has('mission'))
   history.replaceState({tab:'missions'},'',paths.missions);
@@ -524,7 +530,7 @@ function row(m,actions='',context=''){
   (summary?'<p class="item-desc mission-listing-desc">'+esc(summary.slice(0,175))+(summary.length>175?'…':'')+'</p>':'')+
   '<div class="meta-row mission-listing-meta"><span>⌖ '+place+'</span>'+
   '<span>Budget : '+esc(budget)+'</span>'+
-  '<span class="mission-meta-date">Publiée le '+esc(date(m.created_at))+'</span></div>'+
+  '<span class="mission-meta-date">Publiée le '+esc(date(m.created_at))+'</span>'+(typeof photoBadge==='function'?photoBadge(m):'')+'</div>'+
   (context?'<span class="mission-followup-badge">'+esc(context)+'</span>':'')+
   (actions?'<div class="item-actions mission-listing-actions">'+actions+'</div>':'')+'</article>';
 }
@@ -540,6 +546,7 @@ function renderMissionDetail(m){
   '<span>Budget : '+esc(m.budget_cents!=null&&Number(m.budget_cents)>0?euro(m.budget_cents):'Non communiqué')+'</span>'+
   '<span>Publiée le '+esc(date(m.created_at))+'</span></div>'+
   '<h4>Description de la mission</h4><p class="mission-detail-description">'+esc(m.description||'Aucune description renseignée.')+'</p>'+
+  '<section class="mission-photos" data-mission-photos="'+esc(m.id)+'" aria-label="Photos de la mission"></section>'+
   '<div class="mission-detail-actions">'+controls+'</div></div>';
 }
 function followedMissionStatus(m){
@@ -603,6 +610,7 @@ function renderMissions(){
  const ownOpen=groups.published.filter(m=>m.status==='open');
  $('dashMissions').innerHTML=ownOpen.slice(0,3).map(m=>row(m)).join('')||
   '<div class="empty">Vous n’avez pas encore publié de mission. <a href="/deposer-une-mission">Publier ma première mission</a>.</div>';
+ if(detail&&typeof showMissionPhotos==='function')showMissionPhotos(detail);
 }
 const TRASH_ICON='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
 function conversationRow(c,unreadByThread){
@@ -1419,3 +1427,109 @@ window.addEventListener('storage',event=>{
 const pushNotifications=createPushNotifications({state,button:$('pushNotificationToggle'),status:$('pushNotificationStatus'),notify:toast});
 proExperience.init();opportunityConsole.init();salesWorkspace.init();
 init().catch(showError);
+
+// ---- Photos de mission : ajoutées par l'auteur, visibles par lui et les pros autorisés ----
+function cameraIcon(){return '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';}
+function photoCache(){return state.photoCache||(state.photoCache=new Map());}
+function photoBadge(m){
+ const n=Number(state.photoCounts?.[m.id]||0);
+ return n?'<span class="mission-photo-badge">'+cameraIcon()+' '+n+' photo'+(n>1?'s':'')+'</span>':'';
+}
+function missionPhotoBox(id){return document.querySelector('[data-mission-photos="'+(window.CSS?.escape?CSS.escape(id):id)+'"]');}
+function renderMissionPhotos(m,photos,message=''){
+ const box=missionPhotoBox(m.id);if(!box)return;
+ const own=m.owner_id===state.session?.user?.id;
+ const canAdd=own&&m.status==='open'&&photos.length<MAX_PHOTOS;
+ box._photos=photos;
+ if(!photos.length&&!own){box.innerHTML='';return;}
+ const items=photos.map((p,i)=>'<figure class="photo-thumb"><button type="button" class="mission-photo-open" data-photo-open="'+i+'" aria-label="Agrandir la photo '+(i+1)+'"><img src="'+esc(p.url)+'" alt="Photo '+(i+1)+' de la mission" loading="lazy" decoding="async"></button>'+
+  (own?'<button type="button" class="photo-remove" data-photo-remove="'+esc(p.id)+'" aria-label="Supprimer la photo '+(i+1)+'">×</button>':'')+'</figure>').join('');
+ box.innerHTML='<h4>Photos'+(photos.length?' ('+photos.length+')':'')+'</h4>'+
+  (photos.length?'<div class="photo-grid">'+items+'</div>':'<p class="mission-photos-note">Aucune photo pour le moment. Des photos aident les professionnels à estimer le travail.</p>')+
+  (canAdd?'<label class="photo-add">'+cameraIcon()+'<span>'+(photos.length?'Ajouter d’autres photos':'Ajouter des photos')+'</span><input type="file" accept="image/jpeg,image/png,image/webp" multiple data-photo-add="'+esc(m.id)+'" aria-label="Ajouter des photos à la mission"></label>':'')+
+  (message?'<p class="mission-photos-note" role="status">'+esc(message)+'</p>':'');
+}
+async function showMissionPhotos(m,force=false,message=''){
+ if(!state.db)return;
+ const cached=photoCache().get(m.id);
+ if(cached&&!force&&Date.now()-cached.at<45*60e3){renderMissionPhotos(m,cached.photos,message);return;}
+ try{
+  const photos=await listMissionPhotos(state.db,m.id);
+  photoCache().set(m.id,{at:Date.now(),photos});
+  state.photoCounts={...(state.photoCounts||{}),[m.id]:photos.length};
+  renderMissionPhotos(m,photos,message);
+ }catch(error){
+  console.warn('OFFRYA: photos indisponibles',error);
+  const box=missionPhotoBox(m.id);
+  if(box&&m.owner_id===state.session?.user?.id)box.innerHTML='<p class="mission-photos-note">Photos momentanément indisponibles.</p>';
+ }
+}
+var viewerPhotos=[],viewerIndex=0,viewerReturn=null;
+function photoViewer(){
+ let el=document.getElementById('photoViewer');
+ if(el)return el;
+ el=document.createElement('div');el.id='photoViewer';el.className='photo-viewer';el.hidden=true;
+ el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','Photo de la mission');
+ el.innerHTML='<div class="photo-viewer-bar"><span id="photoViewerCount"></span><button type="button" data-viewer-close aria-label="Fermer">×</button></div>'+
+  '<button type="button" class="photo-viewer-nav prev" data-viewer-step="-1" aria-label="Photo précédente">‹</button><img id="photoViewerImage" alt="">'+
+  '<button type="button" class="photo-viewer-nav next" data-viewer-step="1" aria-label="Photo suivante">›</button>';
+ document.body.append(el);
+ el.addEventListener('click',event=>{
+  if(event.target===el||event.target.closest('[data-viewer-close]')){closePhotoViewer();return;}
+  const step=event.target.closest('[data-viewer-step]');if(step)movePhotoViewer(Number(step.dataset.viewerStep));
+ });
+ document.addEventListener('keydown',event=>{
+  if(el.hidden)return;
+  if(event.key==='Escape')closePhotoViewer();
+  else if(event.key==='ArrowLeft')movePhotoViewer(-1);
+  else if(event.key==='ArrowRight')movePhotoViewer(1);
+ });
+ return el;
+}
+function showViewerPhoto(){
+ const photo=viewerPhotos[viewerIndex];if(!photo)return;
+ $('photoViewerImage').src=photo.url;$('photoViewerImage').alt='Photo '+(viewerIndex+1)+' de la mission';
+ $('photoViewerCount').textContent=(viewerIndex+1)+' / '+viewerPhotos.length;
+ for(const nav of document.querySelectorAll('#photoViewer .photo-viewer-nav'))nav.hidden=viewerPhotos.length<2;
+}
+function openPhotoViewer(photos,index,trigger){
+ if(!photos.length)return;
+ const el=photoViewer();viewerPhotos=photos;viewerIndex=Math.min(Math.max(index,0),photos.length-1);viewerReturn=trigger||null;
+ showViewerPhoto();el.hidden=false;el.querySelector('[data-viewer-close]').focus();
+}
+function movePhotoViewer(step){if(viewerPhotos.length<2)return;viewerIndex=(viewerIndex+step+viewerPhotos.length)%viewerPhotos.length;showViewerPhoto();}
+function closePhotoViewer(){const el=document.getElementById('photoViewer');if(!el||el.hidden)return;el.hidden=true;$('photoViewerImage').removeAttribute('src');viewerReturn?.focus?.();}
+document.addEventListener('click',async event=>{
+ const open=event.target.closest('[data-photo-open]');
+ if(open){const box=open.closest('[data-mission-photos]');openPhotoViewer(box?._photos||[],Number(open.dataset.photoOpen),open);return;}
+ const remove=event.target.closest('[data-photo-remove]');
+ if(!remove)return;
+ const box=remove.closest('[data-mission-photos]');
+ const mission=(state.missions||[]).find(m=>m.id===box?.dataset.missionPhotos);
+ const photo=(box?._photos||[]).find(p=>p.id===remove.dataset.photoRemove);
+ if(!mission||!photo||mission.owner_id!==state.session?.user?.id)return;
+ if(!confirm('Supprimer cette photo de la mission ?'))return;
+ remove.disabled=true;
+ try{await removeMissionPhoto(state.db,photo);await showMissionPhotos(mission,true,'Photo supprimée.');}
+ catch(error){remove.disabled=false;showError(error);}
+});
+document.addEventListener('change',async event=>{
+ const input=event.target.closest?.('[data-photo-add]');if(!input)return;
+ const mission=(state.missions||[]).find(m=>m.id===input.dataset.photoAdd);
+ const files=[...(input.files||[])];input.value='';
+ if(!mission||mission.owner_id!==state.session?.user?.id||mission.status!=='open'||!files.length)return;
+ const current=photoCache().get(mission.id)?.photos?.length||0;
+ const room=Math.max(0,MAX_PHOTOS-current);
+ const box=missionPhotoBox(mission.id);
+ const progress=document.createElement('p');progress.className='mission-photos-note';progress.setAttribute('role','status');progress.textContent='Envoi des photos…';box?.append(progress);
+ input.disabled=true;
+ const blobs=[],errors=[];
+ for(const file of files.slice(0,room)){try{blobs.push(await preparePhoto(file));}catch(error){errors.push(error.message);}}
+ if(files.length>room)errors.push('Maximum '+MAX_PHOTOS+' photos par mission.');
+ let sent={added:0,failed:0};
+ try{if(blobs.length)sent=await uploadMissionPhotos(state.db,state.session.user.id,mission.id,blobs);}
+ catch(error){console.warn('OFFRYA: envoi des photos impossible',error);sent={added:0,failed:blobs.length};}
+ if(sent.failed)errors.push(sent.failed+' photo'+(sent.failed>1?'s n’ont':' n’a')+' pas pu être envoyée'+(sent.failed>1?'s':'')+'.');
+ const done=sent.added?(sent.added+' photo'+(sent.added>1?'s ajoutées.':' ajoutée.')):'';
+ await showMissionPhotos(mission,true,[done,...errors].filter(Boolean).join(' '));
+});
