@@ -19,8 +19,8 @@ test('Le panneau liste messages non lus et missions pertinentes ; chaque notific
  assert.match(app,/data-notif-read-all/);
  assert.match(app,/Aucune nouvelle notification\./);
 });
-test('La pastille de la cloche additionne messages non lus et missions pertinentes',()=>{
- assert.match(app,/const missionCount=notificationMissions\(\)\.length,all=total\+missionCount/);
+test('La cloche compte les conversations et les missions à ouvrir une seule fois',()=>{
+ assert.match(app,/const missionCount=notificationMissions\(\)\.length,all=byThread\.size\+missionCount/);
  assert.match(app,/for\(const id of \['messageShortcutBubble','proV3AlertBubble'\]\)/);
  assert.match(app,/document\.addEventListener\('offrya:notifications-changed',\(\)=>paintMessageBadges\(\)\);/);
 });
