@@ -15,7 +15,7 @@ test('Navigation : Espace pro et Marchés publics sont deux onglets différents'
  assert.ok(!pro.includes('id="boampList"'));
  assert.ok(market.includes('id="boampGate"')&&market.includes('id="boampList"'));
  assert.ok(!market.includes('id="premiumRequestForm"'));
- assert.match(js,/professional:'Espace professionnel'/);
+ assert.match(js,/professional:canUsePremium\(\)\?'Espace Premium':'Espace professionnel'/);
  assert.match(js,/tab\('professional'\)/);
 });
 test('Quatre étapes sans TOTP et sans paiement prématuré',()=>{
