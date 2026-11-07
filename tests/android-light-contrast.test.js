@@ -31,3 +31,7 @@ test('Compte Premium : pas de carte « Offre professionnelle / Gérer mon abonne
  assert.match(css,/html body\.offrya-reference-ui\[data-offrya-role="premium"\]\.offrya-pro-v3 \.app-shell \.sidebar div#proV3SidePlan\{display:none!important\}/);
  assert.doesNotMatch(css,/div#proV3SidePlan\{display:grid!important/);
 });
+test('Menu du compte : l’en-tête ne rogne plus le menu (Android, comptes Premium)',()=>{
+ assert.match(css,/html body\.offrya-reference-ui \.app-shell \.header\{overflow:visible!important\}/);
+ assert.match(css,/#accountMenu\[open\] \.account-menu-panel\{z-index:90!important\}/);
+});
