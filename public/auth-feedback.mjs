@@ -9,6 +9,9 @@ export function authFeedback(error, operation = 'login') {
   if (operation === 'signup' && duplicate) {
     return 'Si vous avez déjà un compte OFFRYA, utilisez « Connexion » ou « Mot de passe oublié ». Sinon, vérifiez votre boîte e-mail.';
   }
+  if (/validez la vérification anti-robots|captcha verification failed|captcha_required|captcha_failed/.test(message) || /^(captcha_failed|captcha_required)$/.test(code)) {
+    return 'Validez la vérification anti-robots, puis réessayez.';
+  }
   if (code === 'email_not_confirmed') {
     return 'Votre adresse e-mail n’est pas encore confirmée. Vérifiez votre boîte de réception et vos courriers indésirables.';
   }
