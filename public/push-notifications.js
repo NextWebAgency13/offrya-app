@@ -105,6 +105,14 @@ export function createPushNotifications({state,button,status,notify}){
      await subscribeDevice(reg,sub,token,userId);
      return;
     }
+    if(remote.registered!==true && !wanted){
+     // Un endpoint existant peut appartenir à un ancien compte Android.
+     // Sans consentement du compte courant, arrêter ce push dans le navigateur.
+     await sub.unsubscribe();
+     active=false;update('Activer les notifications push');
+     tell('Aucune notification activée pour ce compte sur cet appareil.');
+     return;
+    }
    }else if(wanted && Notification.permission==='granted'){
     await subscribeDevice(reg,null,token,userId);
     return;
