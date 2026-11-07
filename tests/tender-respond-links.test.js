@@ -95,3 +95,16 @@ test('Veille : chaque ligne envoyée a les mêmes colonnes (insertion groupée)'
  assert.deepEqual(Object.keys(a).sort(),Object.keys(b).sort());
  assert.equal(b.respond_url,null);
 });
+test('Navigation unifiée : un seul menu (mêmes noms que le mobile) et Marchés publics en sous-onglets',()=>{
+ const pro=fs.readFileSync('public/pro-experience.js','utf8'),css=fs.readFileSync('public/brand-kit.css','utf8'),app=fs.readFileSync('public/app.js','utf8');
+ assert.match(pro,/\['home','Opportunités','ic-sparkles'\]/);
+ assert.match(pro,/\['watch','Marchés publics','ic-boamp'\]/);
+ assert.match(pro,/premiumLink\.after\(subnav\)/);
+ assert.match(pro,/\['watch','Ma veille'\],\['boamp','Rechercher un avis'\],\['preferences','Mes critères'\]/);
+ for(const screen of ['boamp','watch','preferences'])assert.match(pro,new RegExp("marketIntro\\('"+screen+"'"));
+ assert.match(pro,/b\.dataset\.proGroup==='markets'&&marketScreens\.includes\(view\)/);
+ assert.match(pro,/#proV3Subnav,#proV3SidePlan'\)/);
+ assert.match(css,/:is\(nav#proV3Sidebar,nav#proV3SidebarExtras\)\{display:none!important\}/);
+ assert.match(css,/@media \(min-width:781px\) and \(not \(\(pointer:coarse\)/);
+ assert.match(app,/professional:canUsePremium\(\)\?'Espace Premium'/);
+});
