@@ -23,7 +23,7 @@ test('Le bandeau gratuit supprime le logo répété et évite un texte sombre su
 });
 test('Accueil demandeur compact, quatre cartes uniformes, parcours réels conservés',()=>{
  assert.match(updated,/role-reference-client:not\(\.hidden\)/);
- assert.match(updated,/not\(\[data-offrya-role="premium"\]\)/);
+ assert.match(updated,/#roleClientView\.role-reference-client:not\(\.hidden\)/);
  assert.match(updated,/min-height:0!important/);
  assert.match(updated,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important/);
  assert.match(updated,/grid-template-columns:repeat\(4,minmax\(0,1fr\)\)!important/);
