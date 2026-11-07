@@ -38,3 +38,8 @@ test('Aucun texte interne Supabase ni secret n’est renvoyé aux visiteurs',()=
  assert.doesNotMatch(authFeedback({message:text},'recover'),/relation auth\.users|do_not_disclose|SQL ERROR/);
  assert.match(authFeedback({code:'signup_disabled'},'signup'),/temporairement indisponible/);
 });
+
+test('Une erreur CAPTCHA donne une consigne exploitable sans détail interne',()=>{
+ assert.match(authFeedback({message:'Validez la vérification anti-robots.'},'login'),/Validez la vérification anti-robots/);
+ assert.match(authFeedback({code:'captcha_failed',message:'captcha verification failed'},'login'),/anti-robots/);
+});

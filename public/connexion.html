@@ -37,7 +37,7 @@
     </div>
     <p class="choice-note">Compte gratuit à la création. L’accès aux missions d’autrui est réservé aux professionnels vérifiés et abonnés.</p>
    </div>
-   <form id="loginForm" class="form auth-form">
+   <form id="loginForm" class="form auth-form" method="post" action="/connexion" novalidate>
     <label id="emailRow">Adresse e-mail
       <input name="email" type="email" autocomplete="email" inputmode="email" placeholder="vous@exemple.fr" required>
     </label>
@@ -53,8 +53,9 @@
      <button type="button" class="auth-text-button" data-mode="reset">Mot de passe oublié ?</button>
     </div>
     <div id="authCaptcha" class="auth-captcha" hidden aria-label="Vérification anti-robots"></div>
+    <p id="loginStatus" role="status" aria-live="polite" aria-atomic="true" class="auth-status"></p>
     <button class="btn primary auth-submit" type="submit" id="loginSubmit">Se connecter <span aria-hidden="true">→</span></button>
-    <p id="loginStatus" role="status" aria-live="polite" class="auth-status"></p><p id="authExistingAccount" class="auth-existing-account" hidden>Vous avez déjà un compte OFFRYA ? <button type="button" class="auth-text-button" data-mode="login">Se connecter</button></p>
+    <p id="authExistingAccount" class="auth-existing-account" hidden>Vous avez déjà un compte OFFRYA ? <button type="button" class="auth-text-button" data-mode="login">Se connecter</button></p>
    </form>
    <button type="button" id="authBack" class="auth-back" data-mode="login" hidden>← Retour à la connexion</button>
    <p class="auth-privacy" id="authModeFootnote">Connexion sécurisée. Aucun paiement n’est déclenché ici.</p>

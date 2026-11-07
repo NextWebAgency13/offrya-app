@@ -6,13 +6,14 @@ const path=require('node:path');
 const vm=require('node:vm');
 
 const filename=path.join(__dirname,'../public/connexion.js');
-const source=fs.readFileSync(filename,'utf8').replace(/^import [^\n]+\n/gm,'');
+const source=fs.readFileSync(filename,'utf8').replace(/^import [^\n]+\n/gm,'')
+ .replace("import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm')","Promise.resolve({createClient})");
 assert.doesNotMatch(source,/^import /);
 const validUser={id:'user-confirmed',email:'client@example.test',email_confirmed_at:'2026-11-01T09:00:00Z',is_anonymous:false};
 const deletedSession={user:{id:'user-deleted',email:'deleted@example.test',email_confirmed_at:'2026-10-31T08:00:00Z',is_anonymous:false}};
 
 async function loadAuthPage({
- session=null,user=null,authError=null,url='?mode=signup&role=client&next=%2Fespace',
+ session=null,user=null,authError=null,loginError=null,url='?mode=signup&role=client&next=%2Fespace',
  simulateSignedIn=false,hash=''
 }={}){
  const redirects=[],signOutCalls=[],signupCalls=[],loginCalls=[],dom={};
@@ -71,13 +72,14 @@ async function loadAuthPage({
   },
   async signInWithPassword(args){
    loginCalls.push(args);
-   return{data:{session:{user:validUser}},error:null};
+   return loginError?{data:{session:null},error:loginError}:{data:{session:{user:validUser}},error:null};
   }
  };
+ const {authFeedback}=await import('../public/auth-feedback.mjs');
  const sandbox={
   createClient:()=>({auth,rpc:async()=>({data:true,error:null})}),
   createAuthCaptcha:()=>({init:async()=>{},requiredToken:()=>undefined,reset:()=>{}}),
-  authFeedback:(error,operation)=>({signup:'Échec de l’inscription',login:'Échec de connexion',reset:'Échec de récupération',recover:'Échec de mise à jour'})[operation],
+  authFeedback,
   URLSearchParams,
   location:{search:url,hash,origin:'https://offrya-app.onrender.com',replace:path=>redirects.push(path)},
   document:{getElementById:id=>dom[id],querySelectorAll:()=>tabButtons},
@@ -87,7 +89,7 @@ async function loadAuthPage({
  vm.runInNewContext(source,sandbox,{filename:'connexion.js'});
  await new Promise(resolve=>setTimeout(resolve,45));
  return{
-  redirects,signOutCalls,signupCalls,loginCalls,dom,
+  redirects,signOutCalls,signupCalls,loginCalls,dom,fields,
   submit:()=>handlers.submit({preventDefault(){},currentTarget:form})
  };
 }
@@ -270,4 +272,36 @@ test('Après un lien de récupération : pas de demande d’adresse e-mail, mot 
  assert.equal(page.dom.emailRow.hidden,true);
  assert.equal(page.dom.passwordRow.hidden,false);
  assert.equal(page.dom.loginSubmit.textContent,'Enregistrer le mot de passe');
+});
+
+test('Connexion Android : un mot de passe court atteint Supabase et reçoit une erreur visible',async()=>{
+ const page=await loadAuthPage({url:'?next=%2Fespace',loginError:{status:400,code:'invalid_credentials',message:'Invalid login credentials'}});
+ page.fields.email.value='inconnu@example.test';
+ page.fields.password.value='abc';
+ assert.equal(page.fields.password.minLength,0);
+ await page.submit();
+ assert.equal(page.loginCalls.length,1);
+ assert.equal(page.loginCalls[0].password,'abc');
+ assert.match(page.dom.loginStatus.textContent,/Adresse e-mail ou mot de passe incorrect/);
+ assert.match(page.dom.loginStatus.className,/auth-status--error/);
+ assert.equal(page.dom.loginSubmit.disabled,false);
+ assert.deepEqual(page.redirects,[]);
+});
+test('Connexion Android : e-mail mal formé et mot de passe vide sont expliqués avant l’appel API',async()=>{
+ const page=await loadAuthPage({url:'?next=%2Fespace'});
+ page.fields.email.value='pas-un-email';
+ await page.submit();
+ assert.match(page.dom.loginStatus.textContent,/adresse e-mail est invalide/);
+ assert.equal(page.loginCalls.length,0);
+ page.fields.email.value='client@example.test';
+ page.fields.password.value='';
+ await page.submit();
+ assert.match(page.dom.loginStatus.textContent,/Saisissez votre mot de passe/);
+ assert.equal(page.loginCalls.length,0);
+});
+test('Connexion : le formulaire n’expose jamais un utilisateur inconnu par un message spécifique',async()=>{
+ const page=await loadAuthPage({url:'?next=%2Fespace',loginError:{code:'invalid_credentials',message:'Invalid login credentials'}});
+ await page.submit();
+ assert.match(page.dom.loginStatus.textContent,/e-mail ou mot de passe incorrect/);
+ assert.doesNotMatch(page.dom.loginStatus.textContent,/compte inexistant|utilisateur inconnu|Invalid login credentials/i);
 });
