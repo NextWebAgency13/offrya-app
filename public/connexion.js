@@ -84,16 +84,24 @@ function change(v){
    if(selected)option.setAttribute('aria-current','true');else option.removeAttribute('aria-current');
   }
  }
+ // Un champ masqué est aussi désactivé : il ne peut plus bloquer l'envoi en silence
+ // (ex. gestionnaire de mots de passe qui remplit le pseudonyme caché avec l'e-mail).
  const userRow=$('usernameRow');
  if(userRow){
+  const input=userRow.querySelector('input');
   userRow.hidden=v!=='signup';
+  input.disabled=userRow.hidden;
   userRow.querySelector('input').required=v==='signup'&&!$('loginForm').hidden;
  }
  const ps=$('passwordRow'),em=$('emailRow');
  ps.hidden=v==='reset';
+ ps.querySelector('input').disabled=ps.hidden;
  ps.querySelector('input').required=!ps.hidden;
  ps.querySelector('input').autocomplete=v==='login'?'current-password':'new-password';
+ // 8 caractères minimum pour un NOUVEAU mot de passe ; à la connexion, le serveur décide.
+ if(v==='signup'||v==='recover')ps.querySelector('input').minLength=8;else ps.querySelector('input').removeAttribute?.('minlength');
  em.hidden=v==='recover';
+ em.querySelector('input').disabled=em.hidden;
  em.querySelector('input').required=!em.hidden;
  // Le masque CSS [hidden] est prioritaire à la grille des formulaires.
  if($('loginStatus'))say('');
@@ -202,7 +210,13 @@ $('usernameRow')?.querySelector('input')?.addEventListener('blur',async event=>{
 });
 $('loginForm').addEventListener('submit',async e=>{
  e.preventDefault();if(!db)return say('Connexion indisponible',true);
- const f=e.currentTarget,email=f.elements.email.value.trim(),password=f.elements.password.value,b=$('loginSubmit');b.disabled=true;
+ const f=e.currentTarget,email=f.elements.email.value.trim(),password=f.elements.password.value,b=$('loginSubmit');
+ // Vérifications visibles (plus de bulle du navigateur, facile à manquer sur Android).
+ const needEmail=mode!=='recover',needPassword=mode!=='reset',newPassword=mode==='signup'||mode==='recover';
+ if(needEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){say('Indiquez une adresse e-mail valide.',true);f.elements.email.focus?.();return;}
+ if(needPassword&&!password){say('Indiquez votre mot de passe.',true);f.elements.password.focus?.();return;}
+ if(newPassword&&password.length<8){say('Le mot de passe doit contenir au moins 8 caractères.',true);f.elements.password.focus?.();return;}
+ b.disabled=true;say('');
  try{
   const captchaToken=authCaptcha.requiredToken();
   let r;if(mode==='signup'){

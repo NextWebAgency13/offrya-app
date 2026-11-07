@@ -37,12 +37,12 @@
     </div>
     <p class="choice-note">Compte gratuit à la création. L’accès aux missions d’autrui est réservé aux professionnels vérifiés et abonnés.</p>
    </div>
-   <form id="loginForm" class="form auth-form">
+   <form id="loginForm" class="form auth-form" novalidate>
     <label id="emailRow">Adresse e-mail
       <input name="email" type="email" autocomplete="email" inputmode="email" placeholder="vous@exemple.fr" required>
     </label>
     <label id="usernameRow" hidden>Pseudonyme OFFRYA
-      <input name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" placeholder="Ex. artisan_pro13">
+      <input name="username" type="text" autocomplete="nickname" autocapitalize="none" spellcheck="false" minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" placeholder="Ex. artisan_pro13">
       <small>3 à 30 caractères : lettres, chiffres et underscore (_). Unique sur OFFRYA.</small>
       <small id="usernameStatus" role="status" aria-live="polite"></small>
     </label>
