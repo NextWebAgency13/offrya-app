@@ -92,18 +92,21 @@ function notificationMissions(){
  try{return (typeof proExperience!=='undefined'&&proExperience?.notifications?.())||[];}catch(_){return [];}
 }
 function paintMessageBadges(){
- const {total}=messageUnread();
+ const {total,byThread}=messageUnread();
  state.messageUnreadCount=total;
  const label=total>99?'99+':total?String(total):'';
  const node=$('messageNavBadge');if(node){node.hidden=!total;node.textContent=label;}
  // La cloche signale toutes les notifications : messages non lus + missions pertinentes.
- const missionCount=notificationMissions().length,all=total+missionCount,allLabel=all>99?'99+':all?String(all):'';
+ // The bell counts actionable notification rows (one per unread conversation),
+ // not every message contained in a single row. Opening one row removes one
+ // notification; the separate Messages tab still reports individual messages.
+ const missionCount=notificationMissions().length,all=byThread.size+missionCount,allLabel=all>99?'99+':all?String(all):'';
  for(const id of ['messageShortcutBubble','proV3AlertBubble']){
   const bell=$(id);if(bell){bell.hidden=!all;bell.textContent=allLabel;}
  }
  const shortcut=$('messageShortcut');
  const parts=[];
- if(total)parts.push(total+' message'+(total>1?'s':'')+' non lu'+(total>1?'s':''));
+ if(byThread.size)parts.push(byThread.size+' conversation'+(byThread.size>1?'s':'')+' à lire');
  if(missionCount)parts.push(missionCount+' nouvelle'+(missionCount>1?'s':'')+' mission'+(missionCount>1?'s':''));
  if(shortcut)shortcut.setAttribute('aria-label',parts.length?'Ouvrir les notifications : '+parts.join(', '):'Ouvrir les notifications');
  if(typeof renderNotificationPanel==='function'&&!$('notificationPanel')?.hidden)renderNotificationPanel();
@@ -205,7 +208,7 @@ function rememberConversationRoute(id){
  if(query.get('conversation')===id)return;
  query.delete('message');
  query.set('conversation',id);
- history.pushState({tab:'inbox',threadId:id},'',paths.inbox+'?'+query.toString());
+ history.pushState({tab:'inbox',threadId:id,fromInboxList:true},'',paths.inbox+'?'+query.toString());
 }
 function rememberProfessionalStep(step){
  if(canUsePremium()||!state.session||state.profile?.role!=='pro'||state.premium
@@ -1190,6 +1193,11 @@ $('missionList').onclick=async e=>{
  try{let c=state.conversations.find(c=>c.mission_id===mission.id&&c.professional_id===state.session.user.id);if(!c){const r=await state.db.from('offrya_conversations').insert({mission_id:mission.id,client_id:mission.owner_id,professional_id:state.session.user.id}).select().single();if(r.error){if(r.error.code==='23505'){await refresh();c=state.conversations.find(x=>x.mission_id===mission.id&&x.professional_id===state.session.user.id);}else throw r.error;}else c=r.data;}if(!c)throw Error('Discussion introuvable');if(isConversationHidden(c.id))await setConversationHidden(c.id,false);state.thread=c.id;await loadMessages(c.id);await refresh();tab('inbox');}catch(err){showError(err);}
 };
 $('inboxBackToList').onclick=()=>{
+ // Return to the actual conversation list when this thread was opened from it.
+ // Deep links from external notifications have no such parent, so use the
+ // local safe fallback rather than navigating out of OFFRYA.
+ if(location.pathname===paths.inbox&&history.state?.fromInboxList===true&&
+   history.state?.threadId===state.thread){history.back();return;}
  state.thread=null;state.messages=[];
  if(location.pathname===paths.inbox){
   const params=new URLSearchParams(location.search);params.delete('conversation');params.delete('message');
