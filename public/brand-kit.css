@@ -385,19 +385,19 @@ body.offrya-reference-ui .app-shell :is(button,a,input,textarea,select,summary):
   border-radius:20px!important;box-shadow:0 6px 16px #48284f12!important;
  }
  /* All other functional tabs: pale header and consistent white panels. */
- body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active)>.section-top:first-child,
- body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active)>.section-top:first-child{
+ body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active,#deposit.active)>.section-top:first-child,
+ body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active,#deposit.active)>.section-top:first-child{
   background:linear-gradient(118deg,#F6EEFB,#EEE2F8)!important;
   border:1px solid #E5D6ED!important;border-radius:20px!important;
   box-shadow:0 5px 14px #4e2b5011!important;
   padding:20px 17px!important;margin:0 12px 17px!important;
  }
- body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active)>.section-top:first-child::before,
- body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active)>.section-top:first-child::before{
+ body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active,#deposit.active)>.section-top:first-child::before,
+ body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active,#deposit.active)>.section-top:first-child::before{
   background:#E4C9F650!important;opacity:.35;
  }
- body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active)>.section-top:first-child :is(h2,h3,.eyebrow,p),
- body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active)>.section-top:first-child :is(h2,h3,.eyebrow,p){
+ body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active,#deposit.active)>.section-top:first-child :is(h2,h3,.eyebrow,p),
+ body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active,#deposit.active)>.section-top:first-child :is(h2,h3,.eyebrow,p){
   color:#39244D!important;
  }
  body.offrya-reference-ui #missions.active .mission-scopes:not(.hidden){
@@ -755,23 +755,23 @@ body.offrya-reference-ui #dashboard .role-client-hero{
  border:1px solid #DFCCF4!important;border-radius:24px!important;
  box-shadow:var(--offrya-3d-shadow)!important;
 }
-body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active)>.section-top:first-child{
+body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active,#deposit.active)>.section-top:first-child{
  position:relative;overflow:hidden;isolation:isolate;
  background:linear-gradient(117deg,#FDFBFF,#EDE1FC)!important;
  border:1px solid #E7D5F7!important;
  border-radius:22px!important;box-shadow:var(--offrya-3d-shadow)!important;
  padding:22px!important;
 }
-body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active)>.section-top:first-child::before{
+body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active,#deposit.active)>.section-top:first-child::before{
  content:"";position:absolute;z-index:-1;pointer-events:none;
  width:240px;height:145px;right:-70px;bottom:-102px;
  border-radius:50%;background:linear-gradient(110deg,#B67CEA,#FFA77D)!important;
  transform:rotate(-13deg);
 }
-body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active)>.section-top:first-child :is(h2,h3){
+body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active,#deposit.active)>.section-top:first-child :is(h2,h3){
  color:#2B215F!important;font-weight:850!important;
 }
-body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active)>.section-top:first-child p:not(.eyebrow){
+body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active,#deposit.active)>.section-top:first-child p:not(.eyebrow){
  color:#625677!important;line-height:1.5!important;
 }
 body.offrya-reference-ui #missions.active .mission-scopes:not(.hidden){
@@ -1392,3 +1392,20 @@ html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:n
 .photo-viewer-nav.prev{left:14px}.photo-viewer-nav.next{right:14px}
 .photo-viewer-nav[hidden]{display:none}
 @media (max-width:620px){.mission-photos .photo-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* ===== Déposer une mission dans Mon espace (en-tête et barre d'onglets conservés) ===== */
+#deposit .deposit-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 18px;padding:24px}
+#deposit .deposit-form > label{display:grid;gap:8px;font-weight:650;font-size:14px;color:#2f1d3f}
+#deposit .deposit-form .wide{grid-column:1/-1}
+#deposit .deposit-form :is(input.field,select.field,textarea.field){width:100%;min-width:0;min-height:48px;font-size:16px}
+#deposit .deposit-form textarea.field{min-height:150px;resize:vertical;line-height:1.5}
+#deposit .deposit-form label.photo-add{display:inline-flex;flex-direction:row;gap:9px;font-size:15px}
+#deposit .deposit-note{margin:0;font-size:13.5px;line-height:1.5;color:#665a74}
+#deposit .deposit-actions{display:flex;justify-content:flex-start}
+#deposit .deposit-actions .button{min-height:48px;padding:12px 26px}
+#deposit .deposit-status{margin:0;font-weight:600;color:#51319d}
+#deposit .deposit-status.is-error{color:#aa324c}
+@media (max-width:780px){
+ #deposit .deposit-form{grid-template-columns:1fr;padding:18px;gap:14px}
+ #deposit .deposit-actions .button{width:100%}
+}

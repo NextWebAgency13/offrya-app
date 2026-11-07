@@ -41,7 +41,10 @@ test('Connexion : retour sûr à l’espace demandeur après inscription',()=>{
 test('Publication accessible par une page dédiée après connexion et e-mail confirmé',()=>{
  assert.doesNotMatch(privatePage,/id="missionAccountNotice"|id="missionForm"/);
  assert.match(privatePage,/id="newMissionBtn"/);
- assert.match(privateJs,/\$\('newMissionBtn'\)\.onclick=\(\)=>location\.assign\('\/deposer-une-mission'\)/);
+ assert.match(privateJs,/\$\('newMissionBtn'\)\.onclick=openDeposit;/);
+ // Depuis Mon espace, le dépôt s'ouvre dans l'onglet « Déposer » (en-tête et barre d'onglets conservés).
+ assert.match(privatePage,/<section class="tab" id="deposit"/);
+ assert.match(privateJs,/if\(!state\.session\?\.user\?\.email_confirmed_at\)\{toast\('Confirmez votre adresse e-mail avant de publier une mission\.'\);return;\}\n tab\('deposit'\)/);
  assert.doesNotMatch(privateJs,/async function ensureMissionPublisher\(\)|\$\('missionForm'\)/);
  assert.match(submit,/auth\.getUser\(\)/);
  assert.match(submit,/email_confirmed_at/);

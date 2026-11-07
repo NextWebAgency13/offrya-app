@@ -125,6 +125,23 @@
           <div class="panel"><div class="panel-heading"><h3>Mon activité</h3><span class="tag">Espace privé</span></div><div id="dashActivity" class="data-list"><div class="empty">Aucune activité récente. <a href="/deposer-une-mission">Publier une mission</a>.</div></div><div class="small-note">Les anciennes missions publiées en invité restent liées à leur navigateur d'origine ; effacer ses données peut rendre leur suivi inaccessible. OFFRYA ne gère pas le règlement des prestations.</div></div>
         </div>
       </section></section>
+     <section class="tab" id="deposit" aria-labelledby="depositTitle">
+       <div class="section-top mission-section-head deposit-section-head">
+        <div><p class="eyebrow">PUBLICATION GRATUITE</p><h2 id="depositTitle">Déposer une mission</h2><p>Décrivez votre besoin : les professionnels vérifiés vous répondent dans Messages.</p></div>
+       </div>
+       <form id="depositForm" class="panel deposit-form">
+        <label>Titre de la mission<input class="field" name="title" minlength="8" maxlength="140" required placeholder="Ex. Remise en peinture d’une chambre de 12 m²" autocomplete="off"></label>
+        <label>Secteur<select class="field" name="category" required><option value="Nettoyage">Nettoyage</option><option value="Espaces verts">Espaces verts</option><option value="Bâtiment">Bâtiment</option><option value="Informatique">Informatique</option><option value="Transport">Transport</option><option value="Restauration &amp; Hôtellerie">Restauration &amp; Hôtellerie</option><option value="Bien-être &amp; Beauté">Bien-être &amp; Beauté</option><option value="Autre">Autre</option></select></label>
+        <label>Département<input class="field" name="department" required maxlength="3" placeholder="13" autocomplete="off"></label>
+        <label>Ville<input class="field" name="mission_city" minlength="2" maxlength="90" required placeholder="Marseille" autocomplete="address-level2"></label>
+        <label>Budget indicatif (€), facultatif<input class="field" name="budget" type="number" inputmode="numeric" min="1" max="1000000" placeholder="1500"></label>
+        <label class="wide">Description détaillée<textarea class="field" name="description" minlength="30" maxlength="5000" rows="6" required placeholder="Décrivez la prestation, le délai et les conditions souhaitées."></textarea></label>
+        <div class="wide photo-field"><span class="photo-field-label" id="depositPhotoLabel">Photos (facultatif)</span><p class="photo-field-help" id="depositPhotoHelp">Jusqu’à 6 photos pour aider les professionnels à estimer le travail. Évitez les visages, les plaques d’immatriculation et les adresses visibles : la position GPS des photos est retirée automatiquement.</p><div class="photo-grid" id="depositPhotoPreview" aria-live="polite"></div><label class="photo-add" id="depositPhotoAdd"><input type="file" id="depositPhotos" accept="image/jpeg,image/png,image/webp" multiple aria-describedby="depositPhotoHelp"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Ajouter des photos</span></label><p class="photo-field-status" id="depositPhotoStatus" role="status" hidden></p></div>
+        <p class="wide deposit-note">La publication est gratuite et réservée aux comptes dont l’adresse e-mail est confirmée. N’ajoutez pas de coordonnées personnelles dans l’annonce : les échanges passent par la messagerie OFFRYA.</p>
+        <div class="wide deposit-actions"><button type="submit" class="button primary" id="depositSubmit">Publier gratuitement</button></div>
+        <p id="depositStatus" class="wide deposit-status" role="status" aria-live="polite" hidden></p>
+       </form>
+     </section>
      <section class="tab" id="missions">
        <div class="section-top mission-section-head">
         <div><p class="eyebrow">MISSIONS · OFFRYA</p><h2 id="missionPageTitle">Mes missions</h2><p id="missionPageDescription">Consultez et suivez les missions que vous avez publiées.</p></div>
