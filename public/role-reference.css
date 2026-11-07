@@ -524,6 +524,11 @@ body.offrya-reference-ui #settings .account-screen-reader-only{
  margin:-1px!important;border:0!important;overflow:hidden!important;
  clip:rect(0 0 0 0)!important;white-space:nowrap!important;
 }
+/* Explication visible quand un blocage empêche l'usage normal du bouton (jamais de bouton muet). */
+body.offrya-reference-ui #settings .push-settings-problem{
+ margin:16px 0 0;padding:12px 15px;border:1px solid #eadcf5;border-radius:14px;
+ background:#fbf5ff;color:#5d2f7e;font:600 13px/1.5 'DM Sans',sans-serif;
+}
 body.offrya-reference-ui #settings .account-billing-heading{
  grid-template-columns:64px minmax(0,1fr);
 }

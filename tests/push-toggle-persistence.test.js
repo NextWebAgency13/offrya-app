@@ -13,7 +13,7 @@ function environment(){
  const store=new Map();
  const ownerByEndpoint=new Map();
  const device={sub:null,created:0};
- const server={ownerByEndpoint,statusFails:false,configFails:false,subscribeCalls:0,unsubscribeCalls:0};
+ const server={ownerByEndpoint,statusFails:false,configFails:false,configHangs:false,statusHangs:false,sessionHangs:false,subscribeCalls:0,unsubscribeCalls:0};
  return {store,device,server};
 }
 
@@ -22,7 +22,8 @@ function createBrowser(env,userId=accountA){
  const attributes=new Map();
  const button={disabled:true,setAttribute:(k,v)=>attributes.set(k,v),
   addEventListener(event,callback){if(event==='click')this.click=callback;}};
- const status={textContent:''};
+ const classes=new Set(['account-screen-reader-only']);
+ const status={textContent:'',classList:{toggle:(name,on)=>on?classes.add(name):classes.delete(name)}};
  const notifications=[];
  const localStorage={getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,v)};
  const fakeNotification={permission:'granted',requestPermission:async()=>fakeNotification.permission};
@@ -37,14 +38,17 @@ function createBrowser(env,userId=accountA){
  };
  const registration={pushManager};
  const state={session:{user:{id:userId}},db:{auth:{async getSession(){
+  if(server.sessionHangs)return new Promise(()=>{});
   return {data:{session:{user:{id:userId},access_token:'token-'+userId}}};
  }}}};
  const fetchMock=async(url,options)=>{
   if(url==='/api/push/config'){
+   if(server.configHangs)return new Promise(()=>{});
    return {ok:!server.configFails,json:async()=>server.configFails?{enabled:false}:{enabled:true,publicKey:'QUFBQQ'}};
   }
   const payload=JSON.parse(options.body);
   if(url==='/api/push/status'){
+   if(server.statusHangs)return new Promise(()=>{});
    if(server.statusFails)return{ok:false,json:async()=>({error:'Service indisponible'})};
    return{ok:true,json:async()=>({registered:server.ownerByEndpoint.get(payload.endpoint)===userId})};
   }
@@ -63,14 +67,16 @@ function createBrowser(env,userId=accountA){
  const context={window:{isSecureContext:true,localStorage,
    PushManager:function(){},Notification:fakeNotification},
   navigator:{serviceWorker:{register:async()=>registration}},
-  Notification:fakeNotification,fetch:fetchMock,
+  Notification:fakeNotification,fetch:fetchMock,setTimeout,clearTimeout,
   atob:str=>Buffer.from(str,'base64').toString('binary'),
   Uint8Array,console};
  const factory=vm.runInNewContext(source+';createPushNotifications',context);
- const module=factory({state,button,status,notify:text=>notifications.push(text)});
- return{module,button,status,attributes,notifications};
+ const module=factory({state,button,status,notify:text=>notifications.push(text),timeoutMs:60});
+ return{module,button,status,attributes,notifications,classes};
 }
 const enabled=browser=>browser.attributes.get('aria-checked')==='true';
+// Une explication est « visible » quand elle n'est plus réservée aux lecteurs d'écran.
+const visible=browser=>!browser.classes.has('account-screen-reader-only')&&browser.classes.has('push-settings-problem');
 
 test('Notification Android: activation sauvegardée et conservée après rechargement',async()=>{
  const env=environment(),first=createBrowser(env);
@@ -114,8 +120,9 @@ test('Une panne de configuration ne révoque pas la préférence enregistrée',a
  const reopened=createBrowser(env);
  await reopened.module.init();
  assert.equal(enabled(reopened),true);
- assert.equal(reopened.button.disabled,true);
+ assert.equal(reopened.button.disabled,false,'le bouton reste utilisable : un appui relance la vérification');
  assert.match(reopened.status.textContent,/Votre choix reste enregistré/);
+ assert.equal(visible(reopened),true,'la raison est affichée à l’écran');
 });
 test('Une désactivation volontaire persiste et ne réactive pas le push sur la page suivante',async()=>{
  const env=environment(),first=createBrowser(env);
@@ -175,4 +182,59 @@ test('Une inscription Supabase manquante est réparée pour le même compte avec
  assert.equal(enabled(reopened),true);
  assert.equal(env.server.subscribeCalls,2);
  assert.equal(env.server.ownerByEndpoint.get(env.device.sub.endpoint),accountA);
+});
+
+// --- Le bouton ne doit jamais rester figé (régression constatée sur Chrome Android) ---
+test('Une panne ponctuelle de configuration au chargement ne fige plus le bouton : un appui la relit et active',async()=>{
+ const env=environment(),page=createBrowser(env);
+ env.server.configFails=true;
+ await page.module.init();
+ assert.equal(page.button.disabled,false,'bouton utilisable malgré la panne');
+ assert.equal(enabled(page),false);
+ assert.equal(visible(page),true,'la raison est affichée, pas réservée aux lecteurs d’écran');
+ env.server.configFails=false;
+ await page.button.click();
+ assert.equal(enabled(page),true,'la configuration est relue au moment de l’appui');
+ assert.equal(env.server.subscribeCalls,1);
+ assert.equal(visible(page),false,'plus de message de problème une fois rétabli');
+});
+test('Appui alors que le service reste indisponible : message clair et bouton toujours utilisable',async()=>{
+ const env=environment(),page=createBrowser(env);
+ env.server.configFails=true;
+ await page.module.init();
+ await page.button.click();
+ assert.match(page.notifications.join(' '),/momentanément indisponibles/);
+ assert.equal(page.button.disabled,false);
+ assert.equal(env.server.subscribeCalls,0);
+});
+test('Une configuration qui ne répond jamais ne fige pas le bouton',async()=>{
+ const env=environment(),page=createBrowser(env);
+ env.server.configHangs=true;
+ await page.module.init();
+ assert.equal(page.button.disabled,false);
+ assert.equal(visible(page),true);
+});
+test('Une vérification serveur qui ne répond jamais ne fige pas le bouton et garde le choix affiché',async()=>{
+ const env=environment(),first=createBrowser(env);
+ await first.module.init();
+ await first.button.click();
+ env.server.statusHangs=true;
+ const reopened=createBrowser(env);
+ await reopened.module.init();
+ assert.equal(reopened.button.disabled,false);
+ assert.equal(enabled(reopened),true,'le choix mémorisé reste affiché');
+ assert.equal(visible(reopened),true);
+});
+test('Une session qui ne répond pas ne fige pas le bouton',async()=>{
+ const env=environment(),page=createBrowser(env);
+ env.server.sessionHangs=true;
+ await page.module.init();
+ assert.equal(page.button.disabled,false);
+ assert.equal(visible(page),true);
+});
+test('Quand tout va bien, aucune explication de problème n’est affichée',async()=>{
+ const env=environment(),page=createBrowser(env);
+ await page.module.init();
+ assert.equal(page.button.disabled,false);
+ assert.equal(visible(page),false);
 });

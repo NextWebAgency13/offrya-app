@@ -56,12 +56,12 @@ test('The switch retains its thumb and reports server-confirmed subscription, no
  };
  const status={textContent:''};
  const activeSub={endpoint:'https://fcm.googleapis.com/fcm/send/test',toJSON(){return {endpoint:this.endpoint}}};
- let sub=null,registered=false;
+ let sub=null,registered=false,clock=1e12;
  const serviceWorker={register:async()=>({pushManager:{
   getSubscription:async()=>sub,
   subscribe:async()=>activeSub
  }})};
- const state={db:{auth:{getSession:async()=>({data:{session:{access_token:'token'}}})}}};
+ const state={db:{auth:{getSession:async()=>({data:{session:{user:{id:'11111111-1111-4111-8111-111111111111'},access_token:'token'}}})}}};
  const ctx=vm.createContext({
   window:{isSecureContext:true,PushManager:function(){},Notification:function(){}},
   navigator:{serviceWorker},Notification:{permission:'granted',requestPermission:async()=> 'granted'},
@@ -70,7 +70,9 @@ test('The switch retains its thumb and reports server-confirmed subscription, no
    if(url.includes('/status'))return {ok:true,json:async()=>({registered})};
    return {ok:true,json:async()=>({})};
   },
-  console,atob:()=>'',Uint8Array
+  console,atob:()=>'',Uint8Array,
+  // Les vérifications sont espacées d'au moins 15 s : l'horloge est pilotée par le test.
+  Date:{now:()=>clock}
  });
  vm.runInContext(source,ctx);
  const manager=ctx.makePush({state,button,status,notify(){}});
@@ -79,11 +81,11 @@ test('The switch retains its thumb and reports server-confirmed subscription, no
  assert.equal(button.disabled,false);
  assert.match(attrs.get('aria-label'),/Activer/);
  assert.equal(button.textContent,undefined,'Never overwrite switch thumb');
- sub=activeSub;registered=true;
+ sub=activeSub;registered=true;clock+=16000;
  await manager.syncExisting();
  assert.equal(attrs.get('aria-checked'),'true');
  assert.match(attrs.get('aria-label'),/Désactiver/);
- registered=false;
+ registered=false;clock+=16000;
  await manager.syncExisting();
  assert.equal(attrs.get('aria-checked'),'false');
 });
