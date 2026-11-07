@@ -1448,3 +1448,78 @@ html body.offrya-reference-ui #dashboard #roleClientView.role-reference-client:n
  }
  html body.offrya-reference-ui #professional.active .pro-ai-criteria-head button .nav-icon{color:#7A3CC0!important}
 }
+
+/* ===== Messagerie optimisée (07/11) =====
+   Ordinateur : la page tient dans l'écran (liste et fil défilent séparément, saisie toujours visible).
+   Mobile : le fil occupe l'écran, la saisie reste au-dessus de la barre d'onglets. */
+html body #inbox .inbox-list-head{display:grid;gap:8px;margin-bottom:12px}
+html body #inbox .inbox-list-head h3{display:flex;align-items:center;gap:8px;margin:0}
+html body #inbox .inbox-count{display:inline-grid;place-items:center;min-width:24px;height:22px;padding:0 7px;border-radius:999px;background:#EFE5FA;color:#5E3692;font:800 12px/1 'DM Sans',sans-serif}
+html body #inbox .inbox-count[hidden],html body #inbox .inbox-search[hidden]{display:none!important}
+html body #inbox .inbox-list-head .inbox-hint{margin:0}
+html body #inbox .inbox-search{width:100%;min-height:42px;font-size:15px}
+html body #inbox .offrya-conversation .conv-line{display:flex;align-items:baseline;justify-content:space-between;gap:10px;min-width:0}
+html body #inbox .offrya-conversation .conv-line strong{min-width:0;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+html body #inbox .offrya-conversation .conv-line time{flex:none;font-size:12px!important;font-weight:600!important;color:#7a6c8c!important;white-space:nowrap}
+html body #inbox .offrya-conversation .conv-meta{display:block;margin-top:3px;font-size:12.5px;color:#7a6c8c}
+html body #inbox .offrya-conversation .conv-status.is-unread{color:#7A2FC0;font-weight:800}
+html body #inbox .offrya-conversation.has-unread .conv-line strong{color:#2B0F40}
+html body #inbox .offrya-conversation.is-closed{opacity:.82}
+html body #inbox .offrya-conversation .offrya-conversation-icon{font-weight:800}
+html body #inbox .inbox-empty{display:grid;gap:6px;text-align:left;padding:16px}
+html body #inbox .inbox-thread-empty{display:grid;justify-items:center;align-content:center;gap:6px;min-height:200px;text-align:center;color:#6b5e7c;border:0;background:transparent}
+html body #inbox .inbox-thread-empty strong{font-size:16px;color:#3a2450}
+html body #inbox .thread-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+html body #inbox .thread-mission{min-height:40px;padding:0 14px;border:1px solid #dcccfa;border-radius:12px;background:#F6EFFD;color:#4B0058;font:inherit;font-size:13px;font-weight:750;cursor:pointer;white-space:nowrap}
+html body #inbox .thread-mission[hidden]{display:none}
+html body #inbox .thread-mission:hover{background:#EEE2FB}
+html body #inbox .thread-mission:focus-visible{outline:3px solid #BF9BED;outline-offset:2px}
+html body #inbox .message-day{display:flex;align-items:center;gap:10px;margin:14px 0 8px;color:#7a6c8c;font:700 12px/1 'DM Sans',sans-serif;text-transform:capitalize}
+html body #inbox .message-day::before,html body #inbox .message-day::after{content:"";flex:1;height:1px;background:#EADFF3}
+html body #inbox .bubble .bubble-text{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.5}
+html body #inbox .bubble time{display:block;margin-top:5px;font-size:11.5px;color:#7a6c8c;text-align:right}
+/* Saisie */
+html body #inbox #messageForm.send-form{display:grid!important;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;align-items:end;margin-top:10px}
+html body #inbox #messageForm textarea.field{width:100%;min-width:0;min-height:48px;max-height:160px;padding:12px 14px;resize:none;overflow-y:auto;font:500 15px/1.45 'DM Sans',sans-serif!important;border-radius:14px!important}
+html body #inbox #messageForm .button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px!important;padding:0 18px!important;border-radius:14px!important}
+html body #inbox #messageForm .button:disabled{opacity:.55;cursor:not-allowed}
+html body #inbox .send-help{grid-column:1/-1;display:flex;justify-content:space-between;gap:10px;margin:0;font-size:12px;color:#8a7d9a}
+html body #inbox .send-count{font-weight:700;color:#8a4b00}
+html body #inbox .inbox-privacy{display:flex;align-items:center;gap:6px;margin:8px 0 0;font-size:12px;line-height:1.45;color:#7a6c8c}
+html body #inbox .inbox-privacy svg{flex:none}
+/* Sans discussion ouverte ou mission clôturée : pas de zone de saisie inutile */
+html body #inbox:not(.has-active-thread) #messageForm,
+html body #inbox.is-read-only #messageForm .send-help{display:none!important}
+html body #inbox.is-read-only #messageForm textarea.field{background:#F6F2FA!important}
+@media (pointer:coarse){html body #inbox .send-help-keys{display:none}}
+
+@media (min-width:781px){
+ html body #inbox > .section-top{display:none!important}
+ html body #inbox .inbox-grid{
+  display:grid!important;grid-template-columns:minmax(320px,380px) minmax(0,1fr)!important;gap:18px!important;
+  height:calc(100vh - 150px);min-height:520px;max-height:960px;align-items:stretch!important;
+ }
+ html body #inbox .inbox-conversations{display:flex!important;flex-direction:column;min-height:0;overflow:hidden;padding:18px 14px!important}
+ html body #inbox #conversationList{flex:1;min-height:0;overflow-y:auto;padding-right:4px;scrollbar-width:thin}
+ html body #inbox .message-panel{display:flex!important;flex-direction:column;min-height:0;overflow:hidden;padding:18px 22px!important}
+ html body #inbox .message-panel .panel-heading{flex:none;padding-bottom:12px;margin-bottom:0;border-bottom:1px solid #EFE6F6}
+ html body #inbox #messageList.messages{flex:1;min-height:0!important;max-height:none!important;overflow-y:auto;padding:4px 4px 8px!important;scrollbar-width:thin}
+ html body #inbox #messageList .bubble{max-width:min(72%,620px)}
+}
+@media (max-width:780px){
+ /* Fil ouvert : plein écran, saisie collée au-dessus de la barre d'onglets */
+ html body #inbox.has-active-thread > .section-top{display:none!important}
+ html body #inbox.has-active-thread .message-panel{
+  display:flex!important;flex-direction:column;min-height:0;
+  height:calc(100dvh - 76px - 112px - env(safe-area-inset-bottom,0px));padding:12px 12px 10px!important;
+ }
+ html body #inbox.has-active-thread .message-panel .panel-heading{flex:none;gap:8px;padding-bottom:8px;margin-bottom:0;border-bottom:1px solid #EFE6F6}
+ html body #inbox.has-active-thread .message-panel .panel-heading h3{font-size:16px!important;line-height:1.3}
+ html body #inbox.has-active-thread .thread-actions .thread-mission,html body #inbox.has-active-thread .thread-actions .thread-hide{min-height:38px;padding:0 12px;font-size:12.5px}
+ html body #inbox.has-active-thread #messageList.messages{flex:1;min-height:0!important;max-height:none!important;overflow-y:auto;padding:4px 2px!important}
+ html body #inbox.has-active-thread .inbox-privacy{display:none}
+ html body #inbox #messageList .bubble{max-width:86%}
+ html body #inbox #messageForm textarea.field{font-size:16px!important}
+ html body #inbox #messageForm .button span{display:none}
+ html body #inbox #messageForm .button{width:48px;padding:0!important}
+}

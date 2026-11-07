@@ -625,19 +625,60 @@ function renderMissions(){
  if(detail&&typeof showMissionPhotos==='function')showMissionPhotos(detail);
 }
 const TRASH_ICON='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
+// ---- Messagerie : liste triée par activité, fil daté, envoi au clavier ----
+function lastActivity(c){
+ let last=Date.parse(c.created_at||'')||0,mineLast=false;
+ for(const m of state.messageHeaders||[]){
+  if(m.conversation_id!==c.id)continue;
+  const t=Date.parse(m.created_at||'');
+  if(Number.isFinite(t)&&t>=last){last=t;mineLast=m.sender_id===state.session?.user?.id;}
+ }
+ return {time:last,mineLast};
+}
+function shortWhen(time){
+ if(!time)return '';
+ const d=new Date(time),now=new Date();
+ const day=x=>new Date(x.getFullYear(),x.getMonth(),x.getDate()).getTime();
+ const diff=Math.round((day(now)-day(d))/864e5);
+ if(diff<=0)return d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+ if(diff===1)return 'Hier';
+ if(diff<7)return d.toLocaleDateString('fr-FR',{weekday:'short'}).replace('.','');
+ return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
+}
+function contactInitial(name,fallback){
+ const letter=String(name||'').trim().charAt(0).toUpperCase();
+ return letter&&name!=='Utilisateur OFFRYA'?letter:fallback;
+}
 function conversationRow(c,unreadByThread){
  const mine=c.client_id===state.session?.user.id;
  const contact=profileName(mine?c.professional_id:c.client_id);
  const title=titleForMission(c.mission_id);
- const body=`<span class="offrya-conversation-icon" aria-hidden="true">${mine?'P':'D'}</span><span class="offrya-conversation-body"><strong>${esc(title)}</strong><small>${mine?'Professionnel':'Demandeur'} : ${esc(contact)}${conversationClosed(c)?' · Mission clôturée':''}</small><time datetime="${esc(c.created_at)}">Discussion ouverte le ${date(c.created_at)}</time></span>`;
+ const closed=conversationClosed(c);
  const selected=state.thread===c.id,unread=unreadByThread.get(c.id)||0;
- return `<div class="conv-row"><button type="button" class="conv-item offrya-conversation ${selected?'selected':''} ${unread?'has-unread':''}" data-thread="${esc(c.id)}" aria-pressed="${selected}">${body}${unread?'<span class="message-thread-badge" aria-label="'+unread+' message(s) non lu(s)">'+(unread>99?'99+':unread)+'</span>':''}<span class="offrya-conversation-chevron" aria-hidden="true">›</span></button><button type="button" class="conv-action conv-remove" data-hide-thread="${esc(c.id)}" aria-label="Retirer l’échange ${esc(title)} de ma messagerie" title="Retirer de ma messagerie">${TRASH_ICON}</button></div>`;
+ const activity=lastActivity(c);
+ const hasMessages=activity.time>(Date.parse(c.created_at||'')||0)||(state.messageHeaders||[]).some(m=>m.conversation_id===c.id);
+ const status=unread?'<b class="conv-status is-unread">'+unread+' nouveau'+(unread>1?'x':'')+' message'+(unread>1?'s':'')+'</b>'
+  :hasMessages?(activity.mineLast?'Vous avez répondu':'Dernier message reçu'):'Aucun message pour l’instant';
+ const body=`<span class="offrya-conversation-icon" aria-hidden="true">${esc(contactInitial(contact,mine?'P':'D'))}</span><span class="offrya-conversation-body"><span class="conv-line"><strong>${esc(title)}</strong><time datetime="${esc(new Date(activity.time||Date.now()).toISOString())}" title="Discussion ouverte le ${date(c.created_at)}">${esc(shortWhen(activity.time))}</time></span><small>${mine?'Professionnel':'Demandeur'} : ${esc(contact)}${closed?' · Mission clôturée':''}</small><span class="conv-meta">${status}</span></span>`;
+ return `<div class="conv-row"><button type="button" class="conv-item offrya-conversation ${selected?'selected':''} ${unread?'has-unread':''} ${closed?'is-closed':''}" data-thread="${esc(c.id)}" aria-pressed="${selected}">${body}${unread?'<span class="message-thread-badge" aria-label="'+unread+' message(s) non lu(s)">'+(unread>99?'99+':unread)+'</span>':''}<span class="offrya-conversation-chevron" aria-hidden="true">›</span></button><button type="button" class="conv-action conv-remove" data-hide-thread="${esc(c.id)}" aria-label="Retirer l’échange ${esc(title)} de ma messagerie" title="Retirer de ma messagerie">${TRASH_ICON}</button></div>`;
+}
+function inboxSearchText(c){
+ const mine=c.client_id===state.session?.user?.id;
+ return (titleForMission(c.mission_id)+' '+profileName(mine?c.professional_id:c.client_id)).toLowerCase();
 }
 function renderInbox(){
  const items=state.conversations;
- const visible=items.filter(c=>!isConversationHidden(c.id));
+ const visible=items.filter(c=>!isConversationHidden(c.id))
+  .map(c=>({c,t:lastActivity(c).time})).sort((a,b)=>b.t-a.t).map(x=>x.c);
  const unreadByThread=messageUnread().byThread;
- const html=visible.length?visible.map(c=>conversationRow(c,unreadByThread)).join(''):'<div class="empty">Aucune conversation pour le moment. Retrouvez vos échanges ici après une prise de contact au sujet d’une mission.</div>';
+ const search=$('inboxSearch');
+ const query=String(search?.value||'').trim().toLowerCase();
+ if(search)search.hidden=visible.length<5&&!query;
+ if($('inboxCount')){$('inboxCount').hidden=!visible.length;$('inboxCount').textContent=String(visible.length);}
+ const shown=query?visible.filter(c=>inboxSearchText(c).includes(query)):visible;
+ const html=shown.length?shown.map(c=>conversationRow(c,unreadByThread)).join('')
+  :visible.length?'<div class="empty">Aucune discussion ne correspond à « '+esc(query)+' ».</div>'
+  :'<div class="empty inbox-empty"><strong>Aucune conversation pour le moment.</strong><span>'+(canUsePremiumSafe()?'Contactez un client depuis une mission : l’échange apparaîtra ici.':'Publiez une mission : les professionnels intéressés vous écriront ici.')+'</span></div>';
  $('conversationList').innerHTML=html;
  const activeConversation=items.find(c=>c.id===state.thread);
  const readOnly=conversationClosed(activeConversation);
@@ -648,14 +689,39 @@ function renderInbox(){
   field.disabled=readOnly;
   field.placeholder=readOnly?'Mission clôturée : échange en lecture seule':field.dataset.openPlaceholder;
  }
+ const mine=activeConversation&&activeConversation.client_id===state.session?.user.id;
+ const contact=activeConversation?profileName(mine?activeConversation.professional_id:activeConversation.client_id):'';
  $('threadTitle').textContent=activeConversation?titleForMission(activeConversation.mission_id):'Sélectionnez une discussion';
- if($('threadContext'))$('threadContext').textContent=activeConversation?(readOnly?'Mission clôturée · échange conservé en lecture seule · ':'Mission associée · ')+(activeConversation.client_id===state.session?.user.id?'Échange avec un professionnel':'Échange avec un demandeur'):'Choisissez une conversation pour retrouver les messages associés à sa mission.';
+ if($('threadContext'))$('threadContext').textContent=activeConversation?(readOnly?'Mission clôturée · échange conservé en lecture seule · ':'')+(mine?'Professionnel : ':'Demandeur : ')+contact
+  :(visible.length?(unreadByThread.size?unreadByThread.size+' discussion'+(unreadByThread.size>1?'s':'')+' avec des messages non lus. ':'')+'Choisissez une discussion dans la liste pour afficher ses messages.':'Vos échanges avec les '+(canUsePremiumSafe()?'clients':'professionnels')+' apparaîtront ici.');
  $('inbox').classList.toggle('has-active-thread',Boolean(activeConversation));
+ $('inbox').classList.toggle('is-read-only',Boolean(readOnly));
  if($('threadHide'))$('threadHide').hidden=!activeConversation;
- if(state.thread)renderMessages();else $('messageList').innerHTML='<div class="empty">Choisissez une discussion.</div>';
+ const missionLink=$('threadMission');
+ if(missionLink){
+  const mission=activeConversation&&(state.missions||[]).find(m=>m.id===activeConversation.mission_id);
+  missionLink.hidden=!mission;
+  if(mission)missionLink.dataset.mission=mission.id;else delete missionLink.dataset?.mission;
+ }
+ if(state.thread)renderMessages();else $('messageList').innerHTML='<div class="empty inbox-thread-empty"><strong>'+(visible.length?'Choisissez une discussion':'Aucun échange pour l’instant')+'</strong><span>'+(visible.length?'Les messages de la discussion sélectionnée s’affichent ici.':'Vos messages s’afficheront ici.')+'</span></div>';
 }
+function canUsePremiumSafe(){try{return typeof canUsePremium==='function'&&canUsePremium();}catch(_){return false;}}
 function renderMessages(){
- $('messageList').innerHTML=state.messages.length?state.messages.map(m=>`<div class="bubble ${m.sender_id===state.session?.user.id?'mine':''}" data-message-id="${esc(m.id)}" tabindex="-1">${esc(m.body)}<time>${date(m.created_at)} · ${new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time></div>`).join(''):'<div class="empty">Commencez la conversation.</div>';
+ const uid=state.session?.user.id;
+ let lastDay='';
+ const dayLabel=time=>{
+  const d=new Date(time),now=new Date();
+  const day=x=>new Date(x.getFullYear(),x.getMonth(),x.getDate()).getTime();
+  const diff=Math.round((day(now)-day(d))/864e5);
+  if(diff===0)return 'Aujourd’hui';if(diff===1)return 'Hier';
+  return d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',...(d.getFullYear()!==now.getFullYear()?{year:'numeric'}:{})});
+ };
+ $('messageList').innerHTML=state.messages.length?state.messages.map(m=>{
+  const label=dayLabel(m.created_at);
+  const separator=label!==lastDay?'<div class="message-day" role="separator"><span>'+esc(label)+'</span></div>':'';
+  lastDay=label;
+  return separator+`<div class="bubble ${m.sender_id===uid?'mine':''}" data-message-id="${esc(m.id)}" tabindex="-1"><p class="bubble-text">${esc(m.body)}</p><time datetime="${esc(m.created_at)}" title="${date(m.created_at)}">${new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time></div>`;
+ }).join(''):'<div class="empty inbox-thread-empty"><strong>Commencez la conversation</strong><span>Présentez-vous et précisez votre disponibilité.</span></div>';
  $('messageList').scrollTop=$('messageList').scrollHeight;
 }
 function renderSettings(){
@@ -1234,7 +1300,31 @@ $('conversationList').onclick=async e=>{
  if(hideBtn){await hideConversation(hideBtn.dataset.hideThread);return;}
  const btn=e.target.closest('[data-thread]');if(!btn)return;state.thread=btn.dataset.thread;renderInbox();try{await loadMessages(state.thread);}catch(err){showError(err);}};
 $('threadHide')?.addEventListener('click',()=>hideConversation(state.thread));
-$('messageForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth()||!state.thread)return;if(conversationClosed(state.conversations.find(c=>c.id===state.thread)))return toast('Mission clôturée : cet échange est en lecture seule.');const f=e.currentTarget,body=f.elements.body.value.trim();if(!body)return;try{const r=await state.db.from('offrya_messages').insert({conversation_id:state.thread,sender_id:state.session.user.id,body});if(r.error)throw r.error;f.reset();await loadMessages(state.thread);}catch(err){showError(err);}};
+// Messagerie : recherche, accès à la mission, saisie confortable.
+$('inboxSearch')?.addEventListener('input',()=>renderInbox());
+$('threadMission')?.addEventListener('click',()=>{
+ const id=$('threadMission').dataset.mission;
+ const mission=(state.missions||[]).find(m=>m.id===id);if(!mission)return;
+ missionView=mission.owner_id===state.session?.user?.id?'published':'available';
+ state.selectedMissionId=mission.id;tab('missions',false,true);renderMissions();rememberMissionRoute(mission.id);
+ window.scrollTo({top:0,behavior:'smooth'});
+});
+function sizeMessageField(){
+ const field=$('messageForm')?.elements?.body;if(!field||field.tagName!=='TEXTAREA')return;
+ field.style.height='auto';field.style.height=Math.min(field.scrollHeight,160)+'px';
+ const count=$('messageCount'),left=2500-field.value.length;
+ if(count)count.textContent=left<=300?left+' caractère'+(left>1?'s':'')+' restant'+(left>1?'s':''):'';
+}
+$('messageForm')?.elements?.body?.addEventListener('input',sizeMessageField);
+$('messageForm')?.elements?.body?.addEventListener('keydown',event=>{
+ // Entrée envoie sur ordinateur ; sur téléphone, Entrée va à la ligne (bouton Envoyer).
+ const touch=window.matchMedia?.('(pointer:coarse)')?.matches;
+ if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing&&!touch){
+  event.preventDefault();
+  if(event.currentTarget.value.trim())$('messageForm').requestSubmit();
+ }
+});
+$('messageForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth()||!state.thread)return;if(conversationClosed(state.conversations.find(c=>c.id===state.thread)))return toast('Mission clôturée : cet échange est en lecture seule.');const f=e.currentTarget,body=f.elements.body.value.trim();if(!body)return;try{const r=await state.db.from('offrya_messages').insert({conversation_id:state.thread,sender_id:state.session.user.id,body});if(r.error)throw r.error;f.reset();sizeMessageField();await loadMessages(state.thread);}catch(err){showError(err);}};
 $('preferencesForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget;// Preserve previously stored alert targeting rather than silently broadening it
  // when these optional selectors are removed from the account interface.
  const payload={user_id:state.session.user.id,missions_enabled:f.elements.missions_enabled.checked,messages_enabled:f.elements.messages_enabled.checked,department:state.prefs?.department||'',category:state.prefs?.category||''};try{let r;if(state.prefs){delete payload.user_id;r=await state.db.from('offrya_alert_preferences').update(payload).eq('user_id',state.session.user.id);}else r=await state.db.from('offrya_alert_preferences').insert(payload);if(r.error)throw r.error;toast('Préférences enregistrées.');await refresh();}catch(err){showError(err);}};
