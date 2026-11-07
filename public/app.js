@@ -1367,10 +1367,12 @@ async function init(){
  if(cfg.supabaseUrl&&cfg.supabaseKey&&!cfg.supabaseUrl.includes('VOTRE')){
   state.db=createClient(cfg.supabaseUrl,cfg.supabaseKey);const {data}=await state.db.auth.getSession();state.session=data?.session||null;
    if(!state.session){location.replace('/connexion?next='+encodeURIComponent(location.pathname+location.search));return;}
+  // Initialiser le bouton avant le chargement complet du tableau de bord.
+  pushNotifications.init().catch(error=>console.warn('OFFRYA: push init indisponible',error));
   state.db.auth.onAuthStateChange((event,session)=>{state.session=session;if(event==='SIGNED_OUT'){location.replace('/connexion?next='+encodeURIComponent(location.pathname));return;}if(event==='PASSWORD_RECOVERY'){state.authMode='recover';$('authTitle').textContent='Choisissez un nouveau mot de passe';$('authSubmit').textContent='Enregistrer le mot de passe';$('authPasswordRow').classList.remove('hidden');authModal(true);}setTimeout(()=>refresh().catch(showError),0);});
   try{await refresh();}catch(err){state.loaded=true;info('Certaines fonctionnalités sont momentanément indisponibles. Veuillez réessayer ultérieurement.',true);render();}
- }else{info('La connexion au service est momentanément indisponible. Veuillez réessayer ultérieurement.',true);render();}
- pushNotifications.init().catch(error=>console.warn('OFFRYA: push init indisponible',error));
+ }else{info('La connexion au service est momentanément indisponible. Veuillez réessayer ultérieurement.',true);render();
+  pushNotifications.init().catch(error=>console.warn('OFFRYA: push init indisponible',error));}
  if(canUsePremium())loadBoamp().catch(error=>console.warn('BOAMP background loading:',error));
  // La file est créée dans Supabase dès la publication; le navigateur vérifie les nouvelles alertes.
  setInterval(()=>{if(state.session&&canUsePremium()&&!document.hidden)loadPriorityAlerts().catch(console.error);},60000);
@@ -1380,6 +1382,8 @@ async function init(){
   if(!document.hidden&&state.session&&state.loaded){
    refreshLiveMissions().catch(error=>console.warn('OFFRYA: mission sync unavailable',error));
    loadMessageNotifications().catch(error=>console.warn('OFFRYA: message sync unavailable',error));
+   // Au retour sur Android, confirmer/rétablir l'opt-in push du compte courant.
+   pushNotifications.syncExisting().catch(error=>console.warn('OFFRYA: push sync unavailable',error));
   }
  };
  document.addEventListener('visibilitychange',refreshOnReturn);
