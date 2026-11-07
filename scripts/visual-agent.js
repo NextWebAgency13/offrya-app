@@ -122,6 +122,9 @@ function extractJson(value){
 }
 async function aiReview(item){
  const image=fs.readFileSync(item.previewPath).toString('base64');
+ const fullPath=item.screenshot?path.join(output,item.screenshot):null;
+ const fullImage=fullPath&&fs.existsSync(fullPath)&&fs.statSync(fullPath).size<2500000
+  ?fs.readFileSync(fullPath).toString('base64'):null;
  const instruction=[
  'Expert UX/UI pour OFFRYA, marketplace francaise violet/prune/corail.',
  'Analyse visuellement la capture. Cherche textes illisibles, contraste, alignement, espacement, surcharges, footer vide et responsive.',
@@ -141,7 +144,8 @@ async function aiReview(item){
    headers:{Authorization:'Bearer '+aiKey,'Content-Type':'application/json'},
    body:JSON.stringify({model:aiModel,max_output_tokens:1200,input:[
     {role:'user',content:[{type:'input_text',text:instruction},
-     {type:'input_image',image_url:'data:image/png;base64,'+image,detail:'low'}]}
+     {type:'input_image',image_url:'data:image/png;base64,'+image,detail:'high'},
+     ...(fullImage?[{type:'input_image',image_url:'data:image/png;base64,'+fullImage,detail:'low'}]:[])]}
    ]})
   });
   if(!r.ok)throw Error('OpenAI HTTP '+r.status+' '+(await r.text()).slice(0,100));
@@ -154,6 +158,10 @@ function publicRecords(records){return records.map(({previewPath,selectors,...r}
 async function main(){
  fs.mkdirSync(output,{recursive:true});
  if(mode==='propose'&&!aiKey)throw Error('OFFRYA_VISUAL_OPENAI_API_KEY requis pour proposer des corrections');
+ if(mode==='propose'&&!['localhost','127.0.0.1'].includes(new URL(base).hostname))
+  throw Error('Mode propose reserve a une instance locale pour comparer les captures avant/apres');
+ if(process.env.OFFRYA_VISUAL_ALLOW_PRIVATE==='1'&&process.env.OFFRYA_VISUAL_STATE_FILE&&aiKey)
+  throw Error('Ne pas envoyer de captures authentifiees a une IA externe');
  const routeList=routes();
  if(!routeList.length)throw Error('Aucune page cible');
  const browser=await chromium.launch({headless:true,args:['--disable-dev-shm-usage']});
