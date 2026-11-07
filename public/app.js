@@ -353,7 +353,9 @@ function requireRole(role){if(!requireAuth())return false;if(!state.profile){tab
 // Une mission clôturée n'est plus lisible : le titre est conservé sur l'échange (mission_title).
 function titleForMission(id){return state.missions.find(m=>m.id===id)?.title||(state.conversations||[]).find(c=>c.mission_id===id)?.mission_title||'Mission';}
 function conversationClosed(c){return Boolean(c&&c.mission_title);}
-function profileName(id){return state.profiles.find(p=>p.id===id)?.display_name||'Utilisateur OFFRYA';}
+// Un pseudonyme technique (« user_edb8b5e0… », identifiant) n'est jamais affiché.
+function isTechnicalName(value){return /^(?:user[_-][a-z0-9_-]{6,}|[a-f0-9-]{24,}|[0-9]{10,})$/i.test(String(value||'').trim());}
+function profileName(id){const name=String(state.profiles.find(p=>p.id===id)?.display_name||'').trim();return name&&!isTechnicalName(name)?name:'Utilisateur OFFRYA';}
 async function refresh(){
  if(!state.db){state.loaded=true;render();return;}
  if(!state.session){
@@ -664,7 +666,7 @@ function renderSettings(){
  const roleStatus=Date.parse(state.testPremiumUntil||'')>Date.now()?'Premium de test — accès temporaire':canUsePremium()?'Professionnel actif — abonnement en cours':verified?'Professionnel vérifié — abonnement à activer':proJourney?'Vérification professionnelle en cours':'Demandeur';
  $('accountRoleStatus').textContent=roleStatus;
  $('accountRoleHelp').textContent=state.testPremiumUntil?'Accès de test autorisé jusqu’au '+date(state.testPremiumUntil)+'. Aucun paiement Stripe ni vérification d’identité n’est simulé.':canUsePremium()?'Vous pouvez consulter les missions et marchés publics réservés aux abonnés.':verified?'Votre dossier est vérifié. Un abonnement actif à 34,99 € TTC/mois est nécessaire pour consulter les missions et marchés publics.':proJourney?'Terminez la vérification de votre entreprise et de votre identité dans l’Espace pro. L’abonnement sera proposé après validation.':'Pour devenir professionnel, commencez la vérification dans l’Espace pro. L’accès aux missions des autres utilisateurs et aux marchés publics exige également un abonnement actif.';
- $('accountPseudonym').textContent=state.profile?.display_name||state.session?.user?.user_metadata?.offrya_username||'Non renseigné';
+ $('accountPseudonym').textContent=[state.profile?.display_name,state.session?.user?.user_metadata?.offrya_username].find(v=>v&&!isTechnicalName(v))||'Non renseigné';
  $('filterStatus').textContent=state.prefs?.missions_enabled||state.prefs?.messages_enabled?'Alertes e-mail configurées.':'Aucune alerte e-mail activée.';
  const p=$('preferencesForm');p.elements.missions_enabled.checked=state.prefs?.missions_enabled||false;p.elements.messages_enabled.checked=state.prefs?.messages_enabled||false;
  const canManage=Boolean(state.session&&!isGuest()&&state.subscription?.stripe_customer_id);

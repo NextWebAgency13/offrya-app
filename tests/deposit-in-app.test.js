@@ -19,3 +19,11 @@ test('Publication depuis Mon espace : e-mail confirmé, champs vérifiés, photo
  assert.match(app,/uploadMissionPhotos\(state\.db,user\.id,id,depositPhotos\.map\(p=>p\.blob\)\)/);
  assert.match(app,/missionView='published';state\.selectedMissionId=id;tab\('missions',false,true\);renderMissions\(\);rememberMissionRoute\(id\);/);
 });
+test('Messages : un pseudonyme technique (user_…) n’est jamais affiché',()=>{
+ assert.match(app,/function isTechnicalName\(value\)/);
+ assert.match(app,/return name&&!isTechnicalName\(name\)\?name:'Utilisateur OFFRYA';/);
+ const fn=new Function(app.match(/function isTechnicalName\(value\)\{[^\n]*\}/)[0]+';return isTechnicalName;')();
+ assert.equal(fn('user_edb8b5e034854ad7a37a91966'),true);
+ assert.equal(fn('Guy Borne'),false);
+ assert.equal(fn('BORNE PAYSAGE'),false);
+});
