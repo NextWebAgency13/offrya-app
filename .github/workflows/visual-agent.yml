@@ -52,14 +52,14 @@ jobs:
           exit 1
       - name: Capturer et analyser toutes les pages
         env:
-          OFFRYA_VISUAL_BASE_URL: http://127.0.0.1:4199
+          OFFRYA_VISUAL_BASE_URL: https://offrya.fr
           OFFRYA_VISUAL_OPENAI_API_KEY: ${{ secrets.OFFRYA_VISUAL_OPENAI_API_KEY }}
           OFFRYA_VISUAL_MODEL: ${{ vars.OFFRYA_VISUAL_MODEL || 'gpt-4.1-mini' }}
           OFFRYA_VISUAL_AI_LIMIT: '8'
           OFFRYA_VISUAL_ROUTE_FILTER: ${{ inputs.route_filter }}
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.mode }}" = "propose" ]; then
-            npm run visual:propose
+            OFFRYA_VISUAL_BASE_URL=http://127.0.0.1:4199 npm run visual:propose
           else
             npm run visual:audit
           fi
