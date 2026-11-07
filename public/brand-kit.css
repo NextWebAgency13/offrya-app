@@ -199,638 +199,261 @@ html body:not(.offrya-pro-v3) .app-shell .sidebar :is(nav#proV3Sidebar,nav#proV3
 body #settings .push-notifications-settings.offrya-settings-card{min-height:0!important}
 
 
-
-/* OFFRYA — Identité NEON 2026 : cinq onglets, comptes demandeur et Premium.
-   Déclinaisons des maquettes validées. Aucun contenu ni accès n'est simulé.
-   Toutes les valeurs, destinations et contrôles restent les composants existants. */
-@media (max-width:780px){
- body.offrya-reference-ui{
-  --neon-ink:#28083e;--neon-plum:#39054f;--neon-deep:#29033e;
-  --neon-purple:#a020e7;--neon-pink:#f336c0;--neon-coral:#ff727b;
-  --neon-gold:#ffae35;--neon-border:#e244fb;
-  background:#340650!important;color:#fff;
- }
- body.offrya-reference-ui .app-shell,
- body.offrya-reference-ui .app-shell .main,
+/* OFFRYA — interface sobre et professionnelle (2026-11-07).
+   Retour aux surfaces claires : prune limité à l'en-tête/navigation,
+   violet réservé aux interactions, corail pour les petits accents.
+   Aucun changement de parcours, de contenu, de contrôle ou de permission. */
+body.offrya-reference-ui{
+ --offrya-page:#F8F6FB;
+ --offrya-surface:#FFF;
+ --offrya-stroke:#EAE3F0;
+ --offrya-body-text:#2E2139;
+ --offrya-muted:#70637A;
+ --offrya-brand:#7546B5;
+ --offrya-subtle:#F4EEFC;
+ --offrya-small-coral:#E87780;
+}
+body.offrya-reference-ui .app-shell .main-content{
+ background:linear-gradient(145deg,#FCFBFE 0%,#F8F6FB 58%,#F5F0FA 100%)!important;
+ color:var(--offrya-body-text);
+}
+body.offrya-reference-ui .app-shell .header{
+ background:linear-gradient(112deg,#492052,#5A2B65)!important;
+ border-bottom:1px solid #704179!important;
+ box-shadow:0 3px 15px #33103f1a!important;
+}
+body.offrya-reference-ui .app-shell .sidebar{
+ background:linear-gradient(115deg,#482052,#572665)!important;
+}
+body.offrya-reference-ui .app-shell :is(.button.primary,.role-primary):not(:disabled){
+ background:linear-gradient(115deg,#8650C5,#6F3FAB)!important;
+ border:1px solid #7546B5!important;
+ color:#fff!important;
+ border-radius:13px!important;
+ box-shadow:0 4px 13px #6E3BA321!important;
+}
+body.offrya-reference-ui .app-shell .button.secondary{
+ color:#60358C!important;background:#F6F0FC!important;
+ border:1px solid #E2D4F2!important;border-radius:13px!important;
+}
+body.offrya-reference-ui .app-shell :is(button,a,input,textarea,select,summary):focus-visible{
+ outline:3px solid #BF9BED!important;outline-offset:2px;
+}
+@media(max-width:780px){
  body.offrya-reference-ui .app-shell .main-content{
-  background:radial-gradient(ellipse at 65% 5%,#64178e 0%,#42075e 40%,#300540 80%,#290339 100%)!important;
-  color:#fff;
- }
- body.offrya-reference-ui .app-shell .main-content{
-  padding-top:12px!important;
-  padding-bottom:calc(122px + env(safe-area-inset-bottom,0px))!important;
+  background:linear-gradient(145deg,#FCFBFE,#F7F3FB)!important;
+  padding-bottom:calc(105px + env(safe-area-inset-bottom,0px));
  }
  body.offrya-reference-ui .app-shell .header{
-  position:relative;isolation:isolate;overflow:visible;
-  background:linear-gradient(120deg,#3e045c 0%,#8c12b9 56%,#4b006b 100%)!important;
-  border-bottom:1px solid #dd50f7!important;
-  box-shadow:0 7px 20px #2e003a66!important;
+  background:linear-gradient(108deg,#482053,#5B2C66)!important;
+  box-shadow:0 3px 13px #320c431d!important;
+ }
+ body.offrya-reference-ui[data-offrya-role="premium"]:has(.tab.active) .app-shell .header{
+  background:linear-gradient(108deg,#482053,#5B2C66)!important;
  }
  body.offrya-reference-ui .app-shell .header::before{
-  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
-  background:radial-gradient(ellipse at 70% -38%,#ed25e865,transparent 57%),
-   linear-gradient(140deg,transparent 52%,#ff4bc026 52% 72%,transparent 72%);
- }
- body.offrya-reference-ui .app-shell .header :is(.header-left,.header-actions){position:relative;z-index:1}
- body.offrya-reference-ui .app-shell .header .mobile-brand .brand-logo{
-  width:auto!important;height:44px!important;max-width:54vw!important;object-fit:contain;
+  background:linear-gradient(145deg,transparent 58%,#ffffff0c 75%,transparent)!important;
  }
  body.offrya-reference-ui .app-shell .sidebar{
-  background:linear-gradient(115deg,#3a034f,#590773 60%,#39034f)!important;
-  border:1px solid #d643ef!important;border-bottom:0!important;
-  border-radius:21px 21px 0 0!important;
-  box-shadow:0 -6px 28px #21002890,0 0 0 1px #c32ded40!important;
+  border-radius:18px 18px 0 0!important;
+  background:linear-gradient(112deg,#492053,#572562)!important;
+  box-shadow:0 -3px 14px #35133f24!important;
  }
- body.offrya-reference-ui .app-shell .sidebar #nav{
-  grid-template-columns:repeat(5,minmax(0,1fr))!important;
-  gap:3px!important;
+ body.offrya-reference-ui[data-offrya-role="premium"]:has(.tab.active) .app-shell .sidebar{
+  background:linear-gradient(112deg,#492053,#572562)!important;
+  box-shadow:0 -3px 14px #35133f24!important;
  }
- body.offrya-reference-ui .app-shell .sidebar #nav .nav-link{
-  min-width:0!important;min-height:0!important;padding:6px 2px!important;
-  border-radius:16px!important;color:#fff!important;
+ body.offrya-reference-ui .app-shell .sidebar #nav .nav-link.active,
+ body.offrya-reference-ui[data-offrya-role="premium"]:has(.tab.active) .app-shell .sidebar #nav .nav-link.active{
+  background:linear-gradient(125deg,#8650C5,#7140AF)!important;
+  box-shadow:0 3px 10px #250c3e33!important;
+  border:1px solid #c7a5e86b!important;
+  border-radius:15px!important;
  }
- body.offrya-reference-ui .app-shell .sidebar #nav .nav-link.active{
-  background:linear-gradient(145deg,#d625f4,#8f17df 60%,#7012c0)!important;
-  border:1px solid #ff8bfa70!important;
-  box-shadow:inset 0 1px 0 #ffffff55,0 6px 14px #25003870!important;
- }
- body.offrya-reference-ui .app-shell .sidebar #nav .nav-link .nav-icon{
-  width:25px!important;height:25px!important;
+ body.offrya-reference-ui .app-shell .sidebar #nav .nav-link:not(.active){
+  background:transparent!important;color:#fff!important;
  }
  body.offrya-reference-ui .app-shell .sidebar #nav .nav-link span:not(.message-unread-badge){
-  font:750 clamp(9px,2.75vw,11px)/1.12 'DM Sans',sans-serif!important;
-  text-wrap:balance;overflow-wrap:normal;color:#fff!important;
+  color:#fff!important;
  }
- body.offrya-reference-ui .app-shell .sidebar #nav .message-unread-badge[hidden]{display:none!important}
- body.offrya-reference-ui .app-shell :is(button,a,input,textarea,select,summary):focus-visible{
-  outline:3px solid #ffbb52!important;outline-offset:3px;
- }
- body.offrya-reference-ui .app-shell :is(.button.primary,.role-reference-cta):not(:disabled){
-  background:linear-gradient(115deg,#c31ce2,#ec38b7 65%,#ff8a46)!important;
-  border:1px solid #f982d8!important;color:#fff!important;
-  border-radius:14px!important;box-shadow:0 5px 16px #4d0558a0!important;
- }
- body.offrya-reference-ui .app-shell :is(.button.secondary,.button.outline){
-  color:#f9e6ff!important;background:#ffffff17!important;
-  border:1px solid #d65aff!important;border-radius:13px!important;
- }
- body.offrya-reference-ui .app-shell :is(input.field,select.field,textarea.field){
-  background:#fff9ff!important;color:#32133e!important;
-  border:1px solid #d8b6eb!important;border-radius:13px!important;
-  font-size:16px!important;min-height:44px;
- }
- body.offrya-reference-ui .app-shell :is(input.field,textarea.field)::placeholder{
-  color:#766382!important;opacity:1;
- }
-
- /* The account banner and four dynamic tiles use the same grid across widths. */
+ /* Professional account banner: small dark branding strip, calm light identity. */
  body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-top{
-  overflow:hidden;position:relative;
-  margin:0 12px!important;padding:17px 13px!important;min-height:66px!important;
-  gap:8px!important;border:1px solid #da4aff!important;border-bottom:0!important;
-  border-radius:22px 22px 0 0!important;
-  background:linear-gradient(116deg,#52096d,#9c1abe 55%,#54066e)!important;
-  box-shadow:0 0 21px #bb27f244!important;color:#fff!important;
-  font-size:clamp(15px,4.4vw,20px)!important;
- }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-top strong{
-  color:#fff!important;min-width:0;line-height:1.16!important;
- }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-top .role-crown{
-  color:#ffc448!important;font-size:28px!important;filter:drop-shadow(0 3px 5px #d4653e66);
+  background:linear-gradient(113deg,#50215d,#693777)!important;
+  border:1px solid #785085!important;border-bottom:0!important;
+  box-shadow:0 7px 18px #4a245224!important;
+  border-radius:21px 21px 0 0!important;
  }
  body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-pill{
-  background:linear-gradient(110deg,#c728e6,#ed359d,#ff9649)!important;
-  border:1px solid #ffd1c5!important;border-radius:999px!important;
-  box-shadow:0 3px 10px #5b036c70!important;color:#fff!important;
-  font:800 clamp(11px,3.3vw,14px)/1.1 'Plus Jakarta Sans',sans-serif!important;
-  padding:9px 10px!important;
+  background:#EBD6F8!important;color:#57236F!important;
+  border:1px solid #DAB3EE!important;box-shadow:none!important;
  }
  body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-company{
-  min-height:90px!important;margin:0 12px 18px!important;padding:15px 12px!important;
-  background:radial-gradient(ellipse at 100% 100%,#fb466e55,transparent 53%),
-    linear-gradient(115deg,#500967,#680b7f 58%,#53096b)!important;
-  border:1px solid #dc4af2!important;border-top:1px solid #ed56ff70!important;
-  border-radius:0 0 22px 22px!important;box-shadow:0 10px 24px #24002d9c!important;
- }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-company>div{
-  min-width:0;gap:5px!important;
+  background:#fff!important;border:1px solid #EAE2F0!important;
+  border-top:0!important;border-radius:0 0 21px 21px!important;
+  box-shadow:0 7px 18px #39214413!important;
  }
  body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-company strong{
-  color:#fff!important;font-size:clamp(12px,3.5vw,16px)!important;
-  overflow-wrap:anywhere;line-height:1.2!important;
+  color:#2F1C3C!important;
  }
  body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-company small{
-  color:#b7ffd0!important;font-size:clamp(10px,2.85vw,13px)!important;
+  color:#1B8853!important;
  }
  body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-ref-company-icon{
-  flex:none;background:linear-gradient(140deg,#c42ae8,#7617ae)!important;
-  color:#fff!important;border:1px solid #f094fb90;border-radius:15px!important;
-  width:47px!important;height:47px!important;
- }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-ref-company-icon .nav-icon{color:#fff!important}
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-validity{
-  flex:none;max-width:38%!important;min-width:0;
-  background:#d9fbea!important;color:#146841!important;
-  border:1px solid #a1efc7!important;border-radius:14px!important;
-  padding:8px!important;font-size:clamp(10px,2.6vw,12px)!important;
+  background:#F1E6FB!important;color:#7441B3!important;
  }
  body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats{
   display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
-  gap:11px!important;margin:0 12px 20px!important;align-items:stretch;
+  gap:11px!important;align-items:stretch;
  }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats > button{
-  position:relative!important;isolation:isolate;overflow:hidden!important;
-  display:grid!important;grid-template-columns:minmax(0,1fr) minmax(53px,45%)!important;
-  grid-template-rows:67px minmax(45px,auto) minmax(37px,auto)!important;
-  gap:2px!important;align-items:center!important;justify-items:stretch!important;
-  width:100%;min-width:0;min-height:182px!important;height:100%;
-  padding:14px 11px 21px!important;
-  border:1.5px solid #ef5afb!important;border-radius:23px!important;
-  color:#fff!important;text-align:left!important;
-  background:linear-gradient(140deg,#9e16d1 0%,#61067e 52%,#46075e 100%)!important;
-  box-shadow:inset 0 1px 0 #ffffff55,0 8px 17px #1e002a8c,0 0 9px #ce31e649!important;
+ body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats>button{
+  position:relative;overflow:hidden;isolation:isolate;
+  background:#fff!important;border:1px solid #E8E0EF!important;
+  border-radius:21px!important;min-height:155px!important;
+  box-shadow:0 6px 17px #4a275414!important;
+  color:#2D183B!important;text-align:center!important;
  }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats > button:nth-child(2){
-  background:linear-gradient(140deg,#b120a3,#710983 54%,#4b0b6a)!important;
+ body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats>button:nth-child(2){
+  background:#FFFBFD!important;
  }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats > button:nth-child(3){
-  background:linear-gradient(140deg,#9a20c9,#651081 52%,#3e085e)!important;
+ body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats>button:nth-child(3){
+  background:#FCFBFF!important;
  }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats > button:nth-child(4){
-  background:linear-gradient(140deg,#be238d,#780e80 50%,#4f0b70)!important;
+ body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats>button:nth-child(4){
+  background:#FFFCFA!important;
  }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats > button::before{
-  content:"";position:absolute;z-index:-1;pointer-events:none;
-  inset:auto -40px -55px -30px;width:auto;height:115px;border-radius:0;
-  background:repeating-radial-gradient(ellipse at 0% 105%,transparent 0 10px,#f346ff75 11px 12px,transparent 13px 18px),
-   linear-gradient(145deg,transparent 35%,#fc35d6b0 75%,#ff9c39e6 98%)!important;
-  transform:none;
+ body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats>button::before{
+  content:"";position:absolute;top:0;left:0;right:0;bottom:auto;
+  width:100%;height:4px;border-radius:0;background:#8451C1!important;
+  transform:none;pointer-events:none;
  }
- /* Independent motifs in the same OFFRYA violet/coral palette: hex rhythm,
-    messaging dot matrix, and concentric alert radar. */
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats > button:nth-child(2)::before{
-  inset:0 0 auto auto;width:84%;height:68%;border-radius:0;
-  background:repeating-linear-gradient(60deg,transparent 0 24px,#fe71f03f 25px 26px,transparent 27px 53px),
-   repeating-linear-gradient(120deg,transparent 0 24px,#fe71f03a 25px 26px,transparent 27px 53px)!important;
-  opacity:.7;
+ body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats>button:nth-child(2)::before{
+  background:#C078BD!important;
  }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats > button:nth-child(3)::before{
-  inset:auto auto -8px -5px;width:88%;height:67%;border-radius:0;
-  background:radial-gradient(circle,#ed58edaa 0 2px,transparent 3px) 0 0/15px 15px!important;
-  mask-image:linear-gradient(45deg,#000 0%,transparent 85%);opacity:1;
+ body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats>button:nth-child(3)::before{
+  background:#9783D5!important;
  }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats > button:nth-child(4)::before{
-  inset:-31px -52px auto auto;width:170px;height:170px;border-radius:50%;
-  background:repeating-radial-gradient(circle at center,transparent 0 16px,#ff92f54a 17px 19px,transparent 20px 28px)!important;
-  opacity:.9;
+ body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats>button:nth-child(4)::before{
+  background:#E18C85!important;
  }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats > button::after{
-  content:"→";position:absolute;right:11px;bottom:10px;
-  display:grid;place-items:center;width:29px;height:29px;border-radius:50%;
-  color:#fff;background:linear-gradient(130deg,#df28fa,#fb4d9b)!important;
-  border:1px solid #ffb5f0a0;font-size:21px;font-weight:750;line-height:1;
-  box-shadow:0 3px 10px #3a034c8c;pointer-events:none;
+ body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats>button::after{
+  content:none!important;
  }
  body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats .role-ref-stat-icon,
  body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats .role-ref-stat-icon.alert{
-  grid-column:2;grid-row:1/3;align-self:start;justify-self:end;
-  display:grid!important;place-items:center!important;
-  width:54px!important;height:54px!important;min-height:54px;min-width:54px;
-  padding:0!important;margin:0!important;
-  border:1px solid #ffc6fb90;border-radius:16px!important;
-  background:linear-gradient(145deg,#dd27ed,#8215b7)!important;
-  color:#fff!important;box-shadow:inset 0 1px 0 #ffffff50,0 5px 12px #23002d66!important;
+  background:#F2E7FC!important;color:#7844BB!important;
+  box-shadow:none!important;border:1px solid #EEE0F7!important;
+ }
+ body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats>button:nth-child(2) .role-ref-stat-icon{
+  background:#FAEAF5!important;color:#AD609E!important;
+ }
+ body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats>button:nth-child(3) .role-ref-stat-icon{
+  background:#F0EDFF!important;color:#7F6CC4!important;
+ }
+ body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats>button:nth-child(4) .role-ref-stat-icon{
+  background:#FCECE7!important;color:#C97875!important;
  }
  body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats .role-ref-stat-icon .nav-icon{
-  color:#fff!important;width:33px!important;height:33px!important;
+  color:inherit!important;
  }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats > button strong{
-  grid-column:1;grid-row:2;align-self:end;justify-self:start;
-  font:850 clamp(29px,9vw,44px)/1.02 'Plus Jakarta Sans',sans-serif!important;
-  letter-spacing:-.055em!important;color:#fff!important;text-align:left!important;
-  margin:0!important;white-space:nowrap;
- }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats > button small{
-  grid-column:1/-1;grid-row:3;align-self:start;
-  max-width:calc(100% - 32px);padding:0 0 0 7px!important;
-  border-left:3px solid #ffba46;
-  color:#fff!important;font:780 clamp(11px,3.5vw,14px)/1.15 'Plus Jakarta Sans',sans-serif!important;
-  text-align:left!important;letter-spacing:-.02em;
-  margin:3px 0 0!important;text-wrap:balance;
+ body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats>button :is(strong,small){
+  color:#2D183B!important;
  }
  body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-section-heading{
-  position:relative;overflow:hidden;isolation:isolate;
-  grid-template-columns:minmax(0,116px) minmax(0,1fr)!important;gap:12px!important;
-  margin:0 12px 15px!important;padding:19px 15px!important;min-height:98px!important;
-  background:radial-gradient(ellipse at 100% 100%,#ff963a8c,transparent 55%),
-   linear-gradient(120deg,#611077,#a319cc 55%,#5d116f)!important;
-  border:1px solid #ee64ff!important;border-radius:22px!important;
-  box-shadow:0 9px 22px #21002799!important;color:#fff!important;
+  background:linear-gradient(120deg,#F8F0FF,#F1E3FA)!important;
+  border:1px solid #E7D6EF!important;border-radius:20px!important;
+  color:#2E1B3A!important;box-shadow:0 5px 13px #4620490e!important;
  }
  body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-section-heading::before{
-  content:"";position:absolute;z-index:-1;inset:auto -20px -60px auto;
-  width:70%;height:90px;border-radius:50%;background:#ff97486e;
+  background:#E6C8F680!important;
  }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-section-heading h3{
-  color:#fff!important;font-size:clamp(19px,6vw,27px)!important;line-height:1.06!important;
+ body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-section-heading :is(h3,p){
+  color:#3C2750!important;
  }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-section-heading p{
-  color:#fff!important;font:650 clamp(12px,3.4vw,15px)/1.32 'DM Sans',sans-serif!important;
-  border-left-color:#ff8fba!important;
- }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-pro-links > button{
-  background:linear-gradient(115deg,#5d0a7c,#8813b0 57%,#681082)!important;
-  border:1px solid #c84beb!important;color:#fff!important;
-  box-shadow:0 6px 14px #22002c81!important;border-radius:18px!important;
- }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-pro-links :is(strong,small,b){
-  color:#fff!important;
- }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-pro-links >button>span:nth-child(2){
-  border-left-color:#ff82c2!important;
- }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-pro-links .role-ref-link-icon{
-  background:linear-gradient(140deg,#cc26dd,#6c1699)!important;
-  border-color:#eb84ff!important;color:#fff!important;
- }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-pro-links .role-ref-link-icon .nav-icon{color:#fff!important}
 
- /* The free account keeps the same brand, without showing Premium data. */
+ /* Free account: same calm brand system, own content and separate permissions. */
  body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-client-hero{
-  background:radial-gradient(ellipse at 110% 95%,#ff8f4e99,transparent 50%),
-   linear-gradient(120deg,#4b065f,#9d1aca 68%,#540666)!important;
-  border:1px solid #ef6af6!important;border-radius:21px!important;
-  margin:0 12px 20px!important;
-  box-shadow:0 8px 23px #1e002c9c!important;
+  background:linear-gradient(117deg,#F3E7FB,#EBDDFA)!important;
+  border:1px solid #DBC5EE!important;border-radius:21px!important;
+  box-shadow:0 8px 18px #47254b14!important;
  }
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client-section,
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-recent{
-  padding-inline:12px!important;
+ body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-client-hero :is(h2,p){
+  color:#352043!important;
  }
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-client-section h3,
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-reference-recent h3{color:#fff!important}
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-ref-client-cards .role-ref-action-card{
-  min-height:151px!important;border:1px solid #ea51f2!important;
-  background:linear-gradient(135deg,#911ac0,#4c0a70)!important;
-  box-shadow:0 6px 16px #26003370!important;color:#fff!important;
- }
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-ref-client-cards .role-ref-action-card:nth-child(2){
-  background:linear-gradient(140deg,#a41aa4,#530b70)!important;
- }
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-ref-action-card :is(strong,small),
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-ref-chevron{color:#fff!important}
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-ref-card-icon{
-  background:#c637dc!important;color:#fff!important;border:1px solid #f488ef85;
- }
+ body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-ref-client-cards .role-ref-action-card,
  body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-mission-row{
-  background:linear-gradient(120deg,#611077,#840fa1)!important;
-  border-color:#d146f5!important;color:#fff!important;
+  background:#fff!important;border:1px solid #E8DDEC!important;
+  border-radius:20px!important;box-shadow:0 6px 16px #48284f12!important;
  }
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-mission-row :is(strong,small,b){color:#fff!important}
- body.offrya-reference-ui:not([data-offrya-role="premium"]) #dashboard .role-text-link{color:#ffb4e9!important}
-
- /* Shared banners for the three functional tabs. */
- body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active) > .section-top:first-child{
-  position:relative;isolation:isolate;overflow:hidden;
-  margin:0 12px 17px!important;padding:20px 17px!important;
-  border:1px solid #db51f8!important;border-radius:22px!important;
-  background:radial-gradient(ellipse at 100% 108%,#ff7c6099 0%,transparent 50%),
-   linear-gradient(120deg,#5f087c 0%,#a31aca 56%,#54026d 100%)!important;
-  box-shadow:inset 0 1px 0 #ffffff55,0 7px 19px #2500368c!important;
+ /* All other functional tabs: pale header and consistent white panels. */
+ body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active)>.section-top:first-child,
+ body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active)>.section-top:first-child{
+  background:linear-gradient(118deg,#F6EEFB,#EEE2F8)!important;
+  border:1px solid #E5D6ED!important;border-radius:20px!important;
+  box-shadow:0 5px 14px #4e2b5011!important;
+  padding:20px 17px!important;margin:0 12px 17px!important;
  }
- body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active) > .section-top:first-child :is(h2,h3){
-  color:#fff!important;font:850 clamp(23px,6vw,31px)/1.13 'Plus Jakarta Sans',sans-serif!important;
-  letter-spacing:-.035em;
+ body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active)>.section-top:first-child::before,
+ body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active)>.section-top:first-child::before{
+  background:#E4C9F650!important;opacity:.35;
  }
- body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active) > .section-top:first-child .eyebrow{
-  color:#ffd3ef!important;letter-spacing:.12em;font-weight:750!important;
- }
- body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active) > .section-top:first-child p:not(.eyebrow){
-  color:#fff0fe!important;font-size:clamp(12px,3.2vw,14px)!important;
-  line-height:1.5!important;
- }
- body.offrya-reference-ui #missions.active,
- body.offrya-reference-ui #inbox.active,
- body.offrya-reference-ui #settings.active,
- body.offrya-reference-ui #boamp.active{
-  padding:0 0 16px!important;color:#fff!important;min-width:0;
- }
- body.offrya-reference-ui #missions.active .mission-header-actions .button{
-  min-height:45px!important;min-width:0;padding:10px 8px!important;
+ body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active)>.section-top:first-child :is(h2,h3,.eyebrow,p),
+ body.offrya-reference-ui[data-offrya-role="premium"] :is(#missions.active,#inbox.active,#settings.active)>.section-top:first-child :is(h2,h3,.eyebrow,p){
+  color:#39244D!important;
  }
  body.offrya-reference-ui #missions.active .mission-scopes:not(.hidden){
-  margin:0 12px 15px!important;padding:5px!important;
-  border:1px solid #c24bef!important;border-radius:19px!important;
-  background:#4c0c67!important;
- }
- body.offrya-reference-ui #missions.active .mission-scopes button{
-  color:#f7e5ff!important;border-radius:14px!important;
+  background:#F0E8F7!important;border:1px solid #E0D4EB!important;
  }
  body.offrya-reference-ui #missions.active .mission-scopes button.is-active{
-  border:1px solid #ffa3ff85!important;color:#fff!important;
-  background:linear-gradient(125deg,#c127eb,#8522d5)!important;
+  background:linear-gradient(115deg,#8350BF,#6D3DAB)!important;
+  border-color:#7C4CBA!important;
  }
- body.offrya-reference-ui #missions.active .mission-scopes button strong{
-  background:#ffffff25!important;color:#fff!important;
+ body.offrya-reference-ui #missions.active .mission-listing,
+ body.offrya-reference-ui #inbox.active .inbox-grid>.panel,
+ body.offrya-reference-ui #settings.active .offrya-settings-card,
+ body.offrya-reference-ui #settings.active>.two-col>.panel,
+ body.offrya-reference-ui #boamp.active .panel{
+  background:#fff!important;border:1px solid #E8DFEE!important;
+  border-radius:20px!important;color:#30203D!important;
+  box-shadow:0 6px 18px #4B285014!important;
  }
- body.offrya-reference-ui #missions.active #missionSearchFilters:not(.hidden){
-  margin:0 12px 15px!important;
-  border:1px solid #cf49ee!important;border-radius:20px!important;
-  background:linear-gradient(125deg,#610979,#4b075f)!important;
-  box-shadow:0 7px 20px #20003395!important;
- }
- body.offrya-reference-ui #missions.active .mission-results-panel{
-  padding:0 12px!important;background:transparent!important;border:0!important;box-shadow:none!important;
- }
- body.offrya-reference-ui #missions.active .mission-results-panel .panel-heading h3{color:#fff!important}
- body.offrya-reference-ui #missions.active .mission-results-panel .panel-heading .tag{
-  color:#fff!important;background:#a724d4!important;border-color:#d658eb!important;
- }
- body.offrya-reference-ui #missions.active .mission-listing{
-  background:radial-gradient(ellipse at 100% 115%,#ff8c4a9c 0%,transparent 50%),
-   linear-gradient(120deg,#721094 0%,#53116f 74%,#6f1175 100%)!important;
-  border:1px solid #e04ff5!important;border-radius:21px!important;
-  color:#fff!important;box-shadow:0 6px 18px #1a002b88!important;
-  padding:16px 14px!important;margin-bottom:12px!important;
- }
- body.offrya-reference-ui #missions.active .mission-listing :is(h3,h4,strong,.mission-listing-title,.mission-listing-desc,.mission-listing-meta,.item-subtitle){
-  color:#fff!important;
- }
- body.offrya-reference-ui #missions.active .mission-listing .mission-category{
-  background:#ac31d3!important;color:#fff!important;border-color:#f5a8ed77!important;
- }
- body.offrya-reference-ui #missions.active .mission-listing .mission-listing-actions{
-  border-color:#ef95fd70!important;
- }
- body.offrya-reference-ui #missions.active .mission-listing .mission-action-secondary,
- body.offrya-reference-ui #missions.active .mission-listing .mission-favorite{
-  color:#fff!important;background:#ffffff24!important;border-color:#da85f0!important;
- }
- body.offrya-reference-ui #missions.active .mission-empty,
- body.offrya-reference-ui #missions.active #missionList .empty{
-  color:#fff!important;background:#55106a!important;border:1px dashed #e96ef0!important;
-  border-radius:17px!important;padding:20px!important;
- }
- body.offrya-reference-ui #missions.active #missionList a{color:#ffd9f7!important}
- body.offrya-reference-ui #missions.active .mission-detail{
-  background:linear-gradient(120deg,#5e0b7e,#49105d)!important;color:#fff!important;
-  border:1px solid #d75deb!important;border-radius:20px!important;
- }
-
- /* Existing conversation list and send action; never fabricate notifications. */
- body.offrya-reference-ui #inbox.active .inbox-grid>.panel{
-  padding:18px 14px!important;border:1px solid #de50f2!important;
-  border-radius:22px!important;
-  background:linear-gradient(125deg,#681084,#46075f)!important;
-  box-shadow:0 8px 22px #1d002d99!important;color:#fff!important;
- }
- body.offrya-reference-ui #inbox.active .inbox-grid h3,
- body.offrya-reference-ui #inbox.active .inbox-grid :is(.inbox-hint,.inbox-thread-context){color:#fff!important}
  body.offrya-reference-ui #inbox.active .offrya-conversation{
-  background:linear-gradient(115deg,#8a17a8,#580a77)!important;
-  border:1px solid #d554f1!important;
-  border-radius:17px!important;min-height:72px!important;
-  color:#fff!important;margin-bottom:9px!important;
+  background:#FBF9FD!important;border:1px solid #ECE2F1!important;
+  border-radius:15px!important;
  }
  body.offrya-reference-ui #inbox.active .offrya-conversation.selected{
-  background:linear-gradient(115deg,#a920cc,#6b0e9a)!important;
-  border-color:#ff99ff!important;
- }
- body.offrya-reference-ui #inbox.active .offrya-conversation-icon{
-  background:#ad2bdb!important;color:#fff!important;border:1px solid #ef92fd80!important;
- }
- body.offrya-reference-ui #inbox.active .offrya-conversation-body :is(strong,small,time),
- body.offrya-reference-ui #inbox.active .offrya-conversation-chevron{color:#fff!important}
- body.offrya-reference-ui #inbox.active .conv-action{
-  color:#fff!important;background:#ffffff1b!important;border:1px solid #d458f4!important;
- }
- body.offrya-reference-ui #inbox.active .message-panel .panel-heading{border-bottom-color:#e17fff88!important}
- body.offrya-reference-ui #inbox.active .message-panel .panel-heading .tag{
-  background:#991ac0!important;color:#fff!important;border-color:#ef72f7!important;
- }
- body.offrya-reference-ui #inbox.active .bubble{
-  background:#f4e2ff!important;color:#371047!important;
-  border:1px solid #dd8ef3!important;border-radius:16px 16px 16px 5px!important;
+  background:#F2E8FA!important;border-color:#C9A6E4!important;
  }
  body.offrya-reference-ui #inbox.active .bubble.mine{
-  background:linear-gradient(110deg,#b827df,#8021be)!important;
-  color:#fff!important;border-color:#e78bf5!important;
-  border-radius:16px 16px 5px 16px!important;
+  background:#EDE0FA!important;border:1px solid #D9C3ED!important;
+  color:#39214C!important;
  }
- body.offrya-reference-ui #inbox.active .bubble.mine time{color:#fff4ff!important}
- body.offrya-reference-ui #inbox.active .send-form{border-top-color:#d954ed99!important}
- body.offrya-reference-ui #inbox.active .inbox-mobile-back,
- body.offrya-reference-ui #inbox.active .thread-hide{
-  color:#fff!important;background:#9421b9!important;border:1px solid #db78ed!important;
+ body.offrya-reference-ui #settings.active .offrya-settings-card .account-setting-icon{
+  background:#F2E8FB!important;color:#7846B0!important;
  }
- body.offrya-reference-ui #inbox.active #messageList .empty,
- body.offrya-reference-ui #inbox.active #conversationList .empty{color:#f5e9fc!important}
-
- /* Settings preserve readable inputs, Stripe states, push switches and consent. */
- body.offrya-reference-ui #settings.active .offrya-settings-card,
- body.offrya-reference-ui #settings.active > .two-col > .panel{
-  margin-inline:12px!important;margin-bottom:14px!important;
-  padding:19px 15px!important;border:1px solid #d74ff0!important;
-  border-radius:22px!important;
-  background:radial-gradient(ellipse at 112% 108%,#ec38b940,transparent 50%),
-   linear-gradient(120deg,#6c1185,#4d0a68)!important;
-  color:#fff!important;box-shadow:0 8px 20px #21003488!important;
+ body.offrya-reference-ui #professional.active .pro-ai-welcome,
+ body.offrya-reference-ui #professional.active .pro-ai-hero,
+ body.offrya-reference-ui #professional.active .pro-v3-page-intro{
+  border:1px solid #E5D5ED!important;border-radius:20px!important;
+  box-shadow:0 6px 17px #43265016!important;
  }
- body.offrya-reference-ui #settings.active :is(.account-setting-heading>h3,.account-plan-heading h3,.two-col .panel h3,.account-billing-description,.account-plan-expiry,.status-line){
-  color:#fff!important;
- }
- body.offrya-reference-ui #settings.active .account-setting-icon{
-  background:linear-gradient(130deg,#c52be2,#7a19b2)!important;color:#fff!important;
-  border:1px solid #e782f9!important;
- }
- body.offrya-reference-ui #settings.active .account-setting-heading>h3,
- body.offrya-reference-ui #settings.active .account-plan-heading{
-  border-left-color:#f177de!important;
- }
- body.offrya-reference-ui #settings.active .account-billing-divider{
-  background:#ed9df066!important;
- }
- body.offrya-reference-ui #settings.active #profileSummary > div,
- body.offrya-reference-ui #settings.active #preferencesForm .check-row{
-  background:#501069!important;color:#fff!important;
-  border:1px solid #b957d7!important;border-radius:15px!important;
- }
- body.offrya-reference-ui #settings.active :is(#profileSummary strong,#profileSummary p,#profileSummary small,#preferencesForm .check-row strong,#preferencesForm .check-row small){
-  color:#fff!important;
- }
- body.offrya-reference-ui #settings.active .settings-form label{color:#fff!important}
- body.offrya-reference-ui #settings.active .account-plan-badge[data-status="paid"],
- body.offrya-reference-ui #settings.active .account-plan-badge[data-status="test"]{
-  color:#136f41!important;background:#d5f9e4!important;
- }
- body.offrya-reference-ui #settings.active #accountBillingPortal.account-billing-cta:not(:disabled){
-  background:linear-gradient(115deg,#c52beb,#e936a5,#ff8c44)!important;
-  border:1px solid #f991f6!important;color:#fff!important;
- }
-
- /* Premium opportunities and all nested Pro screens retain their real controls.
-    This is the real #professional workspace, not new mock tabs. */
- body.offrya-reference-ui #professional.active{padding:0 12px 24px!important;min-width:0;color:#fff!important}
- body.offrya-reference-ui #professional.active :is(.pro-entry-heading,.pro-hero,.pro-head,.pro-ai-welcome,.pro-ai-hero,.pro-v3-page-intro){
-  background:radial-gradient(ellipse at 95% 110%,#ff864d85,transparent 54%),
-   linear-gradient(120deg,#731098,#ab1ac1 55%,#4e0968)!important;
-  border:1px solid #e34cf6!important;border-radius:22px!important;
-  padding:19px 15px!important;box-shadow:0 8px 19px #22003386!important;color:#fff!important;
-  margin:0 0 14px!important;
- }
- body.offrya-reference-ui #professional.active :is(.pro-entry-heading,.pro-head,.pro-ai-welcome,.pro-ai-hero,.pro-v3-page-intro) :is(h2,h3,p,small,strong),
- body.offrya-reference-ui #professional.active :is(.pro-ai-welcome-eyebrow,.pro-v3-eyebrow){
-  color:#fff!important;
- }
- body.offrya-reference-ui #professional.active :is(.pro-v3-panel,.pro-v3-metric,.pro-ai-card,.pro-tender-card,.pro-stage-card,.pro-offer,.pro-progress-summary,.pro-v3-reco-card){
-  background:linear-gradient(120deg,#6a0e8c,#50106b)!important;
-  border:1px solid #d851ef!important;border-radius:21px!important;
-  box-shadow:0 7px 19px #22003288!important;color:#fff!important;
- }
- body.offrya-reference-ui #professional.active :is(.pro-v3-metric,.pro-v3-panel,.pro-stage-card) :is(h2,h3,h4,strong,small,p){
-  color:#fff!important;
- }
- body.offrya-reference-ui #professional.active :is(.pro-v3-metric,.pro-v3-panel,.pro-stage-card,.pro-ai-card,.pro-tender-card) .nav-icon{
-  color:#ffd2f7!important;
- }
- body.offrya-reference-ui #professional.active :is(.pro-ai-card,.pro-tender-card) :is(h3,h4,.pro-ai-card-description,.pro-tender-description,.pro-tender-information h4){
-  color:#fff!important;
- }
- body.offrya-reference-ui #professional.active :is(.pro-v3-context-back,.pro-v3-work-actions button){
-  background:#9622bb!important;color:#fff!important;
-  border:1px solid #d95fe8!important;border-radius:13px!important;
- }
- body.offrya-reference-ui #professional.active .pro-ai-filter-tabs button.is-active{
-  background:linear-gradient(115deg,#a22add,#ec37bb)!important;color:#fff!important;
- }
- body.offrya-reference-ui #professional.active :is(.pro-v3-metric,.pro-v3-panel,.pro-stage-card,.pro-ai-card,.pro-tender-card) :is(input,textarea,select).field{
-  color:#32133e!important;background:#fff8ff!important;
- }
-
- /* Premium public tenders in either their dedicated tab or their existing slot. */
- body.offrya-reference-ui #boamp.active :is(.panel,.pro-market-gate),
- body.offrya-reference-ui #professional.active #proV3BoampSlot .panel{
-  border:1px solid #db4cf0!important;border-radius:21px!important;
-  background:linear-gradient(115deg,#651081,#4b0c68)!important;
-  box-shadow:0 7px 20px #20002f8a!important;color:#fff!important;
-  padding:18px 15px!important;
- }
- body.offrya-reference-ui #boamp.active :is(h3,p),
- body.offrya-reference-ui #professional.active #proV3BoampSlot :is(h3,p){
-  color:#fff!important;
- }
- body.offrya-reference-ui :is(#boamp.active,#professional.active #proV3BoampSlot) :is(.data-list .empty,.pro-market-seal){
-  color:#f7e8ff!important;
- }
-}
-@media(max-width:365px){
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats > button{
-  min-height:174px!important;padding:13px 9px 19px!important;
- }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-premium-stats > button small{
-  font-size:11px!important;
- }
- body.offrya-reference-ui[data-offrya-role="premium"] #dashboard .role-section-heading{
-  grid-template-columns:minmax(0,90px) minmax(0,1fr)!important;
-  gap:9px!important;padding:15px 11px!important;
- }
- body.offrya-reference-ui .app-shell .sidebar #nav .nav-link span:not(.message-unread-badge){
-  font-size:9px!important;
+ body.offrya-reference-ui #professional.active :is(.pro-v3-panel,.pro-ai-card,.pro-tender-card,.pro-v3-metric){
+  border-radius:19px!important;border-color:#E8DDEE!important;
+  box-shadow:0 5px 16px #41234e12!important;
  }
 }
 @media(min-width:781px){
- /* Desktop keeps its richer information density while reusing the same brand. */
- body.offrya-reference-ui .app-shell .header{
-  background:linear-gradient(115deg,#3e045c,#7310a2 60%,#490264)!important;
-  border-bottom:1px solid #ca5de9!important;
- }
  body.offrya-reference-ui .app-shell .main-content{
-  background:radial-gradient(ellipse at 90% 0%,#efd6ff 0%,#f8efff 42%,#f7f2fc 100%)!important;
+  background:linear-gradient(135deg,#FCFBFE,#F7F3FB)!important;
  }
- body.offrya-reference-ui #dashboard .role-premium-stats > button,
- body.offrya-reference-ui #dashboard .role-ref-client-cards .role-ref-action-card{
-  border:1px solid #d997f3!important;
-  background:linear-gradient(135deg,#fcecff,#f8e9ff)!important;
-  box-shadow:0 6px 17px #6b238f16!important;
+ body.offrya-reference-ui #dashboard .role-premium-stats>button{
+  background:#fff!important;border:1px solid #E8E0EE!important;
  }
- body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active) > .section-top:first-child,
- body.offrya-reference-ui #professional.active .pro-v3-page-intro{
-  border:1px solid #d19de9!important;border-radius:22px!important;
-  background:linear-gradient(115deg,#fdf3ff,#f4e4ff)!important;
-  padding:23px!important;
+ body.offrya-reference-ui #dashboard .role-premium-stats>button:nth-child(2){
+  background:#FFFCFE!important;
  }
 }
 @media(prefers-reduced-motion:reduce){
- body.offrya-reference-ui .app-shell :is(.role-premium-stats button,.mission-listing,.offrya-conversation,.button){
+ body.offrya-reference-ui .app-shell :is(.role-premium-stats button,.mission-listing,.offrya-conversation){
   transition:none!important;animation:none!important;
- }
-}
-
-
-
-/* Lisibilité garantie des dossiers et résultats Premium : texte réel sur fond néon.
-   Les badges de statut conservent leurs couleurs sémantiques. */
-@media(max-width:780px){
- body.offrya-reference-ui #professional.active .pro-ai-card:not(.pro-tender-card)
- :is(.pro-ai-card-content,.pro-ai-card-content h4,.pro-ai-card-content strong,
-     .pro-ai-card-content small,.pro-ai-card-description,.pro-ai-card-place,
-     .pro-ai-match-reason,.pro-ai-card-due,.pro-ai-card-budget small,.pro-ai-card-budget strong){
-  color:#fff!important;
- }
- body.offrya-reference-ui #professional.active .pro-ai-card:not(.pro-tender-card) .pro-ai-card-tags span{
-  background:#f1ddff!important;color:#4c1a68!important;border-color:#d8b3eb!important;
- }
- body.offrya-reference-ui #professional.active .pro-ai-card:not(.pro-tender-card) .pro-ai-card-icon{
-  background:linear-gradient(140deg,#c72bf2,#7b14ac)!important;color:#fff!important;
-  border:1px solid #ffa1f5;
- }
- body.offrya-reference-ui #professional.active .pro-tender-card
- :is(.pro-tender-information h4,.pro-tender-details,.pro-tender-detail-copy b,
-     .pro-tender-detail-copy span,.pro-tender-detail,.pro-tender-heading){
-  color:#fff!important;
- }
- body.offrya-reference-ui #professional.active .pro-tender-card .pro-tender-detail{
-  border-color:#cc6fed88!important;
- }
- body.offrya-reference-ui #professional.active .pro-v3-panel
- :is(.pro-v3-panel-head h3,.pro-v3-panel-head p,.pro-v3-helper){
-  color:#fff!important;
- }
- body.offrya-reference-ui #professional.active .pro-v3-metric :is(small,strong,em){
-  color:#fff!important;
- }
- body.offrya-reference-ui #professional.active .pro-v3-metric>.nav-icon{
-  background:#8e29bc!important;color:#fff!important;
- }
- body.offrya-reference-ui #professional.active .pro-ai-hero
- :is(h2,p,.pro-ai-criteria-head strong){
-  color:#fff!important;
- }
- body.offrya-reference-ui #professional.active .pro-ai-heading :is(h2,h3,p),
- body.offrya-reference-ui #professional.active .pro-v3-opportunities :is(.pro-v3-empty,.pro-ai-disclaimer){
-  color:#fff!important;
- }
- body.offrya-reference-ui #settings.active .panel
- :is(.muted,.tiny,.account-role-status,.account-billing-description){
-  color:#f8e8ff!important;
- }
- body.offrya-reference-ui #settings.active #preferencesForm label.check-row>input[type="checkbox"]{
-  background:#fff!important;
- }
- body.offrya-reference-ui #settings.active #preferencesForm label.check-row>input[type="checkbox"]:checked{
-  background:#b22bd7!important;
- }
- /* Keep the navigation fully legible on narrower Android viewports. */
- body.offrya-reference-ui #inbox.active .send-form .button{
-  min-width:72px!important;min-height:44px!important;
- }
- body.offrya-reference-ui #missions.active .mission-header-actions{
-  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
-  gap:8px!important;width:100%;min-width:0;
- }
- body.offrya-reference-ui #missions.active .mission-header-actions>.button{
-  font-size:clamp(11px,3vw,13px)!important;
-  white-space:normal!important;overflow-wrap:anywhere;
  }
 }
