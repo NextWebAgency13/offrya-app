@@ -64,6 +64,39 @@ async function inspect(page){
    if(size<14&&issues.filter(i=>i.type==='small-font').length<22)
     issue('medium','small-font','Police '+size+'px : '+el.textContent.trim().slice(0,45),el);
   }
+  // Contraste : seulement lorsque le fond opaque est calculable de facon fiable.
+  function rgb(value){
+   const m=String(value).match(/^rgba?\(([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/);
+   return m?[Number(m[1]),Number(m[2]),Number(m[3])]:null;
+  }
+  function luminance(c){
+   const parts=c.map(n=>{const x=n/255;return x<=0.04045?x/12.92:Math.pow((x+0.055)/1.055,2.4);});
+   return 0.2126*parts[0]+0.7152*parts[1]+0.0722*parts[2];
+  }
+  function background(el){
+   for(let node=el;node&&node instanceof HTMLElement;node=node.parentElement){
+    const style=getComputedStyle(node);
+    if(style.backgroundImage!=='none')return null;
+    if(/rgba?\([^)]*,\s*0(?:\.0+)?\s*\)/.test(style.backgroundColor))continue;
+    const value=rgb(style.backgroundColor);
+    if(value && !/^rgba\(/.test(style.backgroundColor))return value;
+    const alpha=String(style.backgroundColor).match(/rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\)/);
+    if(value&&alpha&&Number(alpha[1])>=0.99)return value;
+   }
+   return [255,255,255];
+  }
+  for(const el of els.filter(el=>el.matches('p,a,li,span,label,button')).slice(0,280)){
+   if(issues.filter(i=>i.type==='contrast').length>=12)break;
+   if(!el.textContent||el.textContent.trim().length<8||el.children.length>1)continue;
+   const style=getComputedStyle(el),fg=rgb(style.color),bg=background(el);
+   if(!fg||!bg)continue;
+   const a=luminance(fg),b=luminance(bg),ratio=(Math.max(a,b)+0.05)/(Math.min(a,b)+0.05);
+   const size=parseFloat(style.fontSize),minimum=size>=24?3:4.5;
+   if(ratio<minimum)issue('medium','contrast','Contraste environ '+ratio.toFixed(1)+':1 (cible '+minimum+':1)',el);
+  }
+  for(const image of els.filter(el=>el.tagName==='IMG').slice(0,100)){
+   if(image.complete&&image.naturalWidth===0)issue('high','broken-image','Image non chargee : '+String(image.currentSrc||image.src).slice(0,65),image);
+  }
   const footer=els.find(el=>el.tagName==='FOOTER');
   if(footer&&html.scrollHeight<=innerHeight+10){
    const gap=innerHeight-footer.getBoundingClientRect().bottom;
