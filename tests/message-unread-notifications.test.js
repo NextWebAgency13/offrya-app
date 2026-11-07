@@ -61,9 +61,9 @@ test('Incoming messages display badges for both user types; sent messages are ex
   app.api.paintMessageBadges();
   assert.equal(app.node('messageNavBadge').hidden,false);
   assert.equal(app.node('messageNavBadge').textContent,'2');
-  assert.equal(app.node('messageShortcutBubble').textContent,'2');
+  assert.equal(app.node('messageShortcutBubble').textContent,'1','Une conversation correspond à une notification');
   assert.equal(app.node('proUnreadBadge').textContent,'2');
-  assert.match(app.node('messageShortcut').attrs['aria-label'],/2 messages non lus/);
+  assert.match(app.node('messageShortcut').attrs['aria-label'],/1 conversation à lire/);
  }
 });
 test('Opening a thread clears only its unread messages; a new response reactivates the badge',()=>{
