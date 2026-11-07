@@ -11,8 +11,8 @@ const first=html.slice(html.indexOf('id="roleClientView"'),html.indexOf('id="rol
 const second=html.slice(html.indexOf('id="rolePremiumView"'),html.indexOf('id="priorityAlertsPanel"'));
 
 test('Reference client home matches its own verified-email journey, without Premium access',()=>{
- assert.match(first,/Bienvenue sur OFFRYA/);
- assert.match(first,/Publiez vos missions et recevez des propositions de professionnels vérifiés/);
+ assert.match(first,/Vos projets, en toute simplicité/);
+ assert.match(first,/Déposez gratuitement une mission et retrouvez les échanges avec les professionnels vérifiés/);
  assert.match(first,/href="\/deposer-une-mission"/);
  for(const name of ['Mon espace demandeur','Mes missions','Mes échanges','Espace pro','Mon profil','Mes missions récentes'])
   assert.ok(first.includes(name),name);
