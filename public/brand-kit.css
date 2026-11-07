@@ -500,10 +500,10 @@ body.offrya-pro-v3 .pro-v3-watch-item a.pro-v3-watch-respond{display:inline-flex
   font:700 14px/1.2 'DM Sans',sans-serif!important;
  }
  html body.offrya-reference-ui[data-offrya-role="premium"] .app-shell .sidebar #nav .nav-link .nav-icon{width:20px!important;height:20px!important}
- /* Carte du bas : l'abonnement du compte (et non la publicité « Découvrir l'offre ») sur toutes les pages */
+ /* Bas de colonne (Premium) : publicité « Découvrir l'offre » masquée */
  html body.offrya-reference-ui[data-offrya-role="premium"].offrya-pro-v3 .app-shell .sidebar .sidebar-bottom{display:none!important}
- html body.offrya-reference-ui[data-offrya-role="premium"].offrya-pro-v3 .app-shell .sidebar div#proV3SidePlan{display:grid!important;margin-top:auto}
- html body.offrya-reference-ui[data-offrya-role="premium"].offrya-pro-v3 .app-shell .sidebar div#proV3SidePlan{flex-shrink:0}
+ /* Compte Premium : ni publicité ni carte d'abonnement dans la colonne (l'abonnement se gère dans Mon compte) */
+ html body.offrya-reference-ui[data-offrya-role="premium"].offrya-pro-v3 .app-shell .sidebar div#proV3SidePlan{display:none!important}
  /* Dans l'Espace Premium : le titre reste en gras, c'est le sous-onglet qui est surligné */
  html body.offrya-reference-ui[data-offrya-role="premium"].offrya-pro-workspace .app-shell .sidebar #nav .nav-link[data-tab="boamp"].active{
   background:transparent!important;color:#fff!important;font-weight:800!important;
