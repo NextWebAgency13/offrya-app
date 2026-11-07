@@ -6,7 +6,8 @@ test('Bas de page sans bandeau de conversion redondant',()=>{
  assert.match(h,/La confiance au cœur d’OFFRYA/);
  assert.match(h,/Comment fonctionne OFFRYA/);
 });
-test('Les trois portes d entrée sont les seuls appels à action principaux de la vitrine',()=>{
- for(const part of ['client','professional','manage'])assert.equal((h.match(new RegExp('data-journey="'+part+'"','g'))||[]).length,1);
+test('Les deux portes d entrée sont les seuls appels à action principaux de la vitrine',()=>{
+ assert.doesNotMatch(h,/data-journey="manage"/);
+ for(const part of ['client','professional'])assert.equal((h.match(new RegExp('data-journey="'+part+'"','g'))||[]).length,1);
  assert.match(c,/\.mock-home \.offrya-entry-paths\{/);
 });

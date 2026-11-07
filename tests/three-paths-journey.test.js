@@ -2,15 +2,15 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const read=p=>fs.readFileSync(p,'utf8');
 const home=read('public/index.html'),css=read('public/public.css'),deposit=read('public/deposer.js'),app=read('public/app.js'),pro=read('public/pro-experience.js');
-test('Entrée sans friction : demander, travailler ou suivre son activité',()=>{
+test('Entrée sans friction : demander ou travailler (la connexion reste dans l’en-tête)',()=>{
  const client=home.indexOf('data-journey="client"');
  const professional=home.indexOf('data-journey="professional"');
- const manage=home.indexOf('data-journey="manage"');
- assert.ok(client>=0&&professional>client&&manage>professional);
+ assert.ok(client>=0&&professional>client);
+ assert.doesNotMatch(home,/data-journey="manage"/);
+ assert.match(home,/href="\/connexion\?next=%2Fespace">Se connecter<\/a>/);
  assert.match(home,/href="\/deposer-une-mission" data-journey="client"/);
  assert.match(home,/href="\/professionnels" data-journey="professional"/);
- assert.match(home,/href="\/connexion\?next=%2Fespace" data-journey="manage"/);
- assert.equal((home.match(/<h1\b/g)||[]).length,1);
+assert.equal((home.match(/<h1\b/g)||[]).length,1);
 });
 test('La simplification n ouvre aucun accès non autorisé aux missions',()=>{
  assert.match(deposit,/user\.email_confirmed_at/);

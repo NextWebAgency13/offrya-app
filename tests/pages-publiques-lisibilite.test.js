@@ -17,3 +17,6 @@ test('En-tête des pages publiques : « Se connecter » pour un visiteur, « Mon
   assert.match(fs.readFileSync(page,'utf8'),/<script src="\/account-link\.js" defer><\/script><\/body>/);
  assert.match(server,/\['\/account-link\.js','text\/javascript; charset=utf-8'\]/);
 });
+test('Accueil : les deux cartes de parcours ont la même couleur',()=>{
+ assert.match(css,/html body\.mock-home \.offrya-entry-paths \.offrya-entry-path\{\n border-color:#D5B4ED!important;\n background:linear-gradient\(130deg,#FDF9FF,#E9D8FB\)!important;/);
+});
