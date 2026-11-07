@@ -1523,3 +1523,29 @@ html body #inbox.is-read-only #messageForm textarea.field{background:#F6F2FA!imp
  html body #inbox #messageForm .button span{display:none}
  html body #inbox #messageForm .button{width:48px;padding:0!important}
 }
+
+/* ===== Ma veille intelligente : bouton « Modifier » descendu sur la ligne des critères =====
+   Il ne chevauche plus le robot et s'aligne sur les pastilles (même hauteur, même forme). */
+html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria{
+ display:grid!important;grid-template-columns:minmax(0,1fr) auto;
+ grid-template-areas:"title title" "chips edit";
+ align-items:center;column-gap:12px;row-gap:11px;
+}
+html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head{display:contents!important}
+html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head strong{grid-area:title}
+html body.offrya-pro-v3 #professional .pro-ai-hero #proAiCriteria{grid-area:chips;min-width:0}
+html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head button{
+ grid-area:edit;align-self:end;justify-self:end;margin:0!important;
+ min-height:36px!important;padding:7px 14px!important;border-radius:999px!important;
+ background:#fff!important;color:#5E3692!important;border:1px solid #C9B5E8!important;
+ box-shadow:0 2px 6px rgba(75,0,88,.06)!important;opacity:1!important;
+ font:750 12.5px/1.2 'Plus Jakarta Sans',sans-serif!important;white-space:nowrap;
+}
+html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head button:hover{background:#F6EFFD!important;border-color:#B597E0!important}
+html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head button .nav-icon,
+html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head button svg{color:#7A3CC0!important}
+/* Badge « IA » lisible sur ordinateur aussi */
+html body.offrya-reference-ui #professional.active .pro-ai-hero .pro-ai-intelligence{
+ background:#EFE3FB!important;color:#5E2A93!important;border:1px solid #DCC6F2!important;
+}
+html body.offrya-reference-ui #professional.active .pro-ai-hero .pro-ai-intelligence .nav-icon{color:#7A3CC0!important}
