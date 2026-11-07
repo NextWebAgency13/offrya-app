@@ -1019,3 +1019,29 @@ body:has(.premium-hero) .top,
   animation:none!important;transition:none!important;transform:none!important;
  }
 }
+
+
+
+/* Identical visual language for SEO sector landing pages and 3D FAQ cards. */
+body:has(.breadcrumb):has(.simple-hero) .section .grid.three>.card{
+ background:linear-gradient(140deg,#fff,#F8F0FF)!important;
+ border:1px solid #E6D6F2!important;border-radius:20px!important;
+ box-shadow:var(--offrya-3d-shadow)!important;
+}
+body:has(.breadcrumb):has(.simple-hero) .faq details{
+ border-radius:17px!important;border:1px solid #E5D8F3!important;
+ background:#fff!important;box-shadow:0 6px 14px #68499913!important;
+}
+body:has(.breadcrumb):has(.simple-hero) .section .number{
+ color:#8035C8!important;
+}
+@media(min-width:1000px){
+ body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active)
+ #dashboard .role-premium-stats{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ }
+ body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active)
+ #dashboard .role-premium-stats>button{
+  min-height:177px!important;
+ }
+}
