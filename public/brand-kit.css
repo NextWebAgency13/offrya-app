@@ -915,3 +915,77 @@ body.offrya-pro-v3 .pro-v3-watch-item a.pro-v3-watch-respond{display:inline-flex
  .pro-v3-market-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}
  .pro-v3-market-tabs button{padding:9px 6px;font-size:12.5px;white-space:normal;min-height:44px}
 }
+
+/* ===== Finitions du thème néon (mobile) ===== */
+@media (max-width:780px){
+ /* Pied de page : plus de bande blanche entre le contenu et la barre du bas */
+ html body.offrya-reference-ui .app-shell .main-content{padding-bottom:20px!important}
+ html body.offrya-reference-ui .offrya-global-footer,
+ html body.offrya-reference-ui:has(#missions.active) .offrya-global-footer,
+ html body.offrya-reference-ui.offrya-pro-v3:has(#professional.active) .offrya-global-footer{
+  margin:0!important;padding:18px 18px calc(118px + env(safe-area-inset-bottom,0px))!important;
+  background:#2b0340!important;border-top:1px solid rgba(226,68,251,.28)!important;
+ }
+ html body.offrya-reference-ui .offrya-global-footer a{color:#ead6fb!important;text-decoration-color:rgba(234,214,251,.45)!important}
+ /* Accueil demandeur : le nombre de missions en cours redevient lisible */
+ html body.offrya-reference-ui #dashboard .role-ref-action-card #clientStatOpen{color:inherit!important;background:none!important;font-weight:800;opacity:1!important}
+ /* Mon compte : texte décollé du bord des encadrés Pseudonyme et Statut */
+ html body.offrya-reference-ui #settings.active #profileSummary > div{padding:14px 15px!important;display:grid;gap:6px}
+ html body.offrya-reference-ui #settings.active #profileSummary > div :is(p,strong){margin:0!important;padding:0!important}
+ html body.offrya-reference-ui #settings.active #profileSummary > div .button{justify-self:start;margin-top:4px}
+}
+
+/* Déposer une mission (mobile) : même univers néon que Mon espace */
+@media (max-width:780px){
+ html:has(body.page-deposer){background:#290339}
+ body.page-deposer{background:radial-gradient(ellipse at 65% 0%,#64178e 0%,#42075e 30%,#300540 70%,#290339 100%) #290339!important;color:#fff;min-height:100vh}
+ body.page-deposer header.top{
+  background:linear-gradient(120deg,#3e045c 0%,#8c12b9 56%,#4b006b 100%)!important;
+  border-bottom:1px solid #dd50f7!important;box-shadow:0 7px 20px #2e003a66!important;
+ }
+ body.page-deposer header.top .account-link{color:#fff!important;background:rgba(255,255,255,.12)!important;border:1px solid rgba(255,255,255,.32)!important}
+ body.page-deposer main,body.page-deposer .simple-hero{background:transparent!important}
+ body.page-deposer .simple-hero :is(h1,.lead){color:#fff!important}
+ body.page-deposer .simple-hero .eyebrow{color:#ffb4ef!important}
+ body.page-deposer .form-wrap{
+  background:linear-gradient(160deg,rgba(120,24,160,.55),rgba(64,8,92,.75))!important;
+  border:1px solid #e244fb!important;border-radius:22px!important;box-shadow:0 10px 28px rgba(33,0,40,.45)!important;
+ }
+ body.page-deposer .form-wrap :is(h2,label,p,.muted){color:#fff!important}
+ body.page-deposer .form-wrap .muted{color:#ecd9fb!important}
+ body.page-deposer .form-wrap :is(input,select,textarea){background:#fff!important;color:#28083e!important;border-color:#d7a6f0!important}
+ body.page-deposer .form-wrap .btn.primary{background:linear-gradient(115deg,#c52beb,#e936a5,#ff8c44)!important;border:1px solid #f991f6!important;color:#fff!important}
+ body.page-deposer .form-wrap .btn.outline{background:transparent!important;color:#fff!important;border-color:rgba(255,255,255,.55)!important}
+ body.page-deposer footer.footer{background:#2b0340!important;color:#ead6fb!important;border-top:1px solid rgba(226,68,251,.28)!important}
+ body.page-deposer footer.footer :is(a,small,strong){color:#ead6fb!important}
+}
+
+/* Espace Premium mobile (thème néon) : textes lisibles sur fond violet */
+@media (max-width:780px){
+ /* Ma veille : alertes en cartes néon (avant : texte blanc sur carte blanche) */
+ html body.offrya-reference-ui #professional.active .pro-v3-watch-item{
+  background:#501069!important;border:1px solid #b957d7!important;border-radius:15px!important;
+ }
+ html body.offrya-reference-ui #professional.active .pro-v3-watch-item :is(strong,small){color:#fff!important}
+ html body.offrya-reference-ui #professional.active .pro-v3-watch-item small{color:#ecd9fb!important}
+ html body.offrya-reference-ui #professional.active .pro-v3-watch-item a{color:#ffd2f7!important}
+ /* Rechercher un avis : champs à hauteur normale, titres des avis lisibles */
+ html body.offrya-reference-ui #professional.active #premiumContent .panel.filters{flex-direction:column!important;align-items:stretch!important}
+ html body.offrya-reference-ui #professional.active #premiumContent .panel.filters :is(input,select){flex:0 0 auto!important;height:48px!important;min-height:48px!important}
+ html body.offrya-reference-ui #professional.active #boampList .item-title{color:#fff!important}
+ html body.offrya-reference-ui #professional.active #boampList :is(.item-desc,.meta-row,.meta-row span){color:#ecd9fb!important}
+ /* Mes critères : le texte d'introduction réapparaît (il était blanc sur blanc) */
+ html body.offrya-reference-ui #professional.active #proV3PreferenceSlot #opWatchDetails{
+  background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;
+ }
+ html body.offrya-reference-ui #professional.active #proV3PreferenceSlot :is(legend,label,.tiny,.muted){color:#fff!important}
+ html body.offrya-reference-ui #professional.active #proV3PreferenceSlot #opSectorChoices :is(label,label *){color:#3a1450!important}
+ html body.offrya-reference-ui #professional.active .pro-tender-card :is(.pro-tender-detail-icon,.pro-tender-detail-icon svg,.pro-tender-detail .nav-icon){color:#f2c9ff!important}
+ html body.offrya-reference-ui #professional.active .tender-platform strong{color:#4B0058!important}
+ html body.offrya-reference-ui #professional.active .tender-platform small{color:#5d4d6b!important}
+ /* Sous-onglets Marchés publics */
+ html body.offrya-reference-ui #professional.active .pro-v3-market-tabs{background:rgba(255,255,255,.1)!important;border:1px solid #c94cf0}
+ html body.offrya-reference-ui #professional.active .pro-v3-market-tabs button{color:#fff!important}
+ html body.offrya-reference-ui #professional.active .pro-v3-market-tabs button.active{background:#fff!important;color:#4B0058!important}
+ html body.offrya-reference-ui #professional.active .pro-v3-market-lead{color:#f3e4ff!important;padding:0 4px}
+}

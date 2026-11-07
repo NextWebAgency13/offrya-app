@@ -108,3 +108,17 @@ test('Navigation unifiée : un seul menu (mêmes noms que le mobile) et Marchés
  assert.match(css,/@media \(min-width:781px\) and \(not \(\(pointer:coarse\)/);
  assert.match(app,/professional:canUsePremium\(\)\?'Espace Premium'/);
 });
+test('Thème néon mobile : pied de page sombre, textes lisibles, pseudonyme technique masqué, page Déposer assortie',()=>{
+ const css=fs.readFileSync('public/brand-kit.css','utf8'),app=fs.readFileSync('public/app.js','utf8'),dep=fs.readFileSync('public/deposer-une-mission.html','utf8');
+ assert.match(css,/\.offrya-global-footer\{\s*margin:0!important;padding:18px 18px calc\(118px/);
+ assert.match(css,/#clientStatOpen\{color:inherit!important/);
+ assert.match(css,/#profileSummary > div\{padding:14px 15px!important/);
+ assert.match(css,/\.pro-v3-watch-item\{\s*background:#501069!important/);
+ assert.match(css,/#boampList \.item-title\{color:#fff!important\}/);
+ assert.match(css,/#opWatchDetails\{\s*background:transparent!important/);
+ assert.match(app,/function isTechnicalName\(value\)/);
+ assert.match(app,/name&&!isTechnicalName\(name\)\?name:'Utilisateur OFFRYA'/);
+ assert.match(dep,/<body class="page-deposer">/);
+ assert.match(dep,/<source media="\(max-width:780px\)" srcset="\/assets\/offrya\/logo-offrya-blanc\.png">/);
+ assert.match(css,/body\.page-deposer \.form-wrap\{/);
+});
