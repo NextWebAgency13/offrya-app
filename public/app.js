@@ -1034,7 +1034,11 @@ function render(){
   return '<button type="button" class="role-mission-row" data-open-own-mission="'+esc(m.id)+'" aria-label="Consulter la mission '+esc(m.title)+'">'+picture+
    '<span class="role-ref-mission-data"><strong>'+esc(m.title)+'</strong><small>Publiée le '+esc(date(m.created_at))+'</small><span class="role-ref-status">'+esc(statusLabel)+'</span></span><b aria-hidden="true">›</b></button>';
  }).join(''):'<p class="role-empty">Vous n’avez pas encore publié de mission. Déposez gratuitement votre première demande.</p>';
- $('roleBusinessName').textContent=state.premium?.legal_name||state.profile?.display_name||'Entreprise à vérifier';
+ // A generated internal placeholder is not a human-readable account name.
+ // Keep real registered legal names or user-chosen display names unchanged.
+ const rawBusinessName=String(state.premium?.legal_name||state.profile?.display_name||'').trim();
+ $('roleBusinessName').textContent=/^user_[a-z0-9_-]{12,}$/i.test(rawBusinessName)
+  ?'Mon espace professionnel':rawBusinessName||'Mon espace professionnel';
  const endDate=state.subscription?.paid_through;
  const validEnd=endDate&&Number.isFinite(Date.parse(endDate))?new Intl.DateTimeFormat('fr-FR',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(endDate)):null;
  $('rolePremiumUntil').textContent=!eligiblePro?'Accès en cours'
