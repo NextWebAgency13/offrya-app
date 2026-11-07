@@ -5,6 +5,7 @@ import {createSalesWorkspace} from './pro-commercial.js';
 import {createProExperience} from './pro-experience.js';
 import {createPushNotifications} from './push-notifications.js';
 import {fetchMissionFeed,missionBuckets} from './mission-feed.js';
+import {tenderPlatforms,platformTerm} from './tender-platforms.js';
 const $=id=>document.getElementById(id);
 const authCaptcha=createAuthCaptcha($('modalAuthCaptcha'));
 
@@ -301,7 +302,7 @@ function tab(name,fromHistory=false,preserveMissionDetail=false){
  document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.id===name));
  document.querySelectorAll('.nav-link').forEach(el=>el.classList.toggle('active',el.dataset.tab===name||(name==='professional'&&canUsePremium()&&el.dataset.tab==='boamp')));
  document.getElementById('accountMenu')?.removeAttribute('open');
- const titles={dashboard:'Accueil',missions:canUsePremium()?'Missions':'Mes missions',boamp:'Espace Premium',professional:'Espace professionnel',inbox:'Messages',settings:'Mon compte'};
+ const titles={dashboard:'Accueil',missions:canUsePremium()?'Missions':'Mes missions',boamp:'Espace Premium',professional:canUsePremium()?'Espace Premium':'Espace professionnel',inbox:'Messages',settings:'Mon compte'};
  $('pageTitle').textContent=titles[name];$('breadcrumb').textContent='OFFRYA / '+titles[name].toUpperCase();
  if(!fromHistory&&location.pathname!==paths[name])history.pushState({tab:name},'',paths[name]);
  if(name==='boamp'&&canUsePremium()&&!state.boamp.length)loadBoamp();
@@ -378,7 +379,7 @@ async function refresh(){
   ['opportunityPrefs',state.db.from('offrya_opportunity_preferences').select('*').eq('user_id',uid).maybeSingle()],
   ['tenderTracking',state.db.from('offrya_tender_tracking').select('user_id,tender_id,title,url,stage,updated_at').eq('user_id',uid).limit(100)],
   ['salesTracking',state.db.from('offrya_pro_lead_tracking').select('mission_id,stage,updated_at').eq('user_id',uid).limit(200)],
-  ['opportunityAlerts',state.db.from('offrya_tender_alerts').select('user_id,tender_id,title,buyer,departments,url,deadline,source,match_score,match_reason,detected_at,seen_at').eq('user_id',uid).order('detected_at',{ascending:false}).limit(50)],
+  ['opportunityAlerts',state.db.from('offrya_tender_alerts').select('user_id,tender_id,title,buyer,departments,url,deadline,source,match_score,match_reason,detected_at,seen_at,respond_url,respond_kind').eq('user_id',uid).order('detected_at',{ascending:false}).limit(50)],
   ['draft',state.db.from('offrya_professional_drafts').select('step,siret,legal_name,representative_name,representative_capacity,representative_kind').eq('user_id',uid).maybeSingle()],
   ['manualIdentity',state.db.from('offrya_manual_identity_requests').select('status,requested_at,updated_at').eq('user_id',uid).maybeSingle()]
  ];
@@ -682,6 +683,7 @@ function canUsePremium(){
  return Boolean(state.session&&!state.session.user?.is_anonymous&&((hasVerifiedProfessionalIdentity()&&paid)||trial));
 }
 function renderPremium(){
+ try{renderTenderPlatforms();}catch(error){console.warn('OFFRYA: plateformes indisponibles',error);}
  const allowed=canUsePremium(),pro=Boolean(state.session&&(state.profile?.role==='pro'||Date.parse(state.testPremiumUntil||'')>Date.now()));
  $('boampGate').classList.toggle('hidden',allowed);
  document.querySelectorAll('.nav-link[data-tab="boamp"]').forEach(el=>el.classList.toggle('hidden',!allowed));
@@ -1204,8 +1206,24 @@ $('messageForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth()||!state
 $('preferencesForm').onsubmit=async e=>{e.preventDefault();if(!requireAuth())return;const f=e.currentTarget;// Preserve previously stored alert targeting rather than silently broadening it
  // when these optional selectors are removed from the account interface.
  const payload={user_id:state.session.user.id,missions_enabled:f.elements.missions_enabled.checked,messages_enabled:f.elements.messages_enabled.checked,department:state.prefs?.department||'',category:state.prefs?.category||''};try{let r;if(state.prefs){delete payload.user_id;r=await state.db.from('offrya_alert_preferences').update(payload).eq('user_id',state.session.user.id);}else r=await state.db.from('offrya_alert_preferences').insert(payload);if(r.error)throw r.error;toast('Préférences enregistrées.');await refresh();}catch(err){showError(err);}};
+// Autres plateformes d'appels d'offres : liens préremplis (métier, région), sans copie d'annonces.
+function renderTenderPlatforms(){
+ const node=$('tenderPlatformList');if(!node)return;
+ const prefs=state.opportunityPrefs||{};
+ const term=platformTerm(prefs,$('boampKeyword')?.value);
+ const dept=$('boampDept')?.value||prefs.department||'';
+ node.innerHTML=tenderPlatforms({term,dept}).map(p=>`<a class="tender-platform" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer nofollow"><strong>${esc(p.name)}</strong><small>${esc(p.note)}</small><span aria-hidden="true">↗</span></a>`).join('');
+}
+// Lien « pour répondre » fourni par la source officielle (dossier, dépôt ou plateforme de l'acheteur).
+function respondButton(m){
+ const url=String(m?.respondUrl||'');
+ if(!/^https?:\/\/[^\s"'<>]+$/i.test(url)||url.length>600)return '';
+ const label={documents:'Dossier de consultation',submission:'Répondre en ligne'}[m.respondKind]||'Plateforme de l’acheteur';
+ return `<a class="button secondary micro-button tender-respond-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer nofollow">${esc(label)} ↗</a>`;
+}
 async function loadBoamp(append=false){if(!canUsePremium()){renderPremium();return;}if(!append){state.boampOffset=0;state.boamp=[];}state.boampStatus='loading';$('boampCount').textContent='Recherche en cours';$('boampList').innerHTML='<div class="boamp-skeleton" aria-hidden="true"><div></div><div></div></div>';try{const qs=new URLSearchParams({q:$('boampKeyword').value.trim(),dept:$('boampDept').value.trim(),offset:String(state.boampOffset)});const {data:{session}}=await state.db.auth.getSession();if(!session)throw Error('Session expirée.');
-const r=await fetch('/api/annonces?'+qs,{headers:{Authorization:'Bearer '+session.access_token}});const data=await r.json();if(!r.ok)throw Error(data.error||'Source indisponible');state.boamp.push(...data.items);state.boampOffset+=data.items.length;state.boampTotal=data.total;state.boampStatus='ready';proExperience.render();$('boampCount').textContent=`${data.total} avis officiels`;$('boampList').innerHTML=state.boamp.map(m=>`<article class="data-item"><span class="tag">BOAMP OFFICIEL</span><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.buyer)}</div><div class="meta-row"><span>Dépt. : ${esc(m.departments)}</span><span>Publié : ${date(m.published)}</span><span>Échéance : ${date(m.deadline)}</span></div><a class="button secondary micro-button" href="${esc(m.url)}" target="_blank" rel="noopener noreferrer">Consulter l'avis officiel ↗</a></article>`).join('')||'<div class="empty">Aucune annonce correspondante.</div>';$('boampMore').classList.toggle('hidden',state.boampOffset>=data.total||!data.items.length);}catch(err){state.boampStatus='error';proExperience.render();$('boampCount').textContent='Indisponible';$('boampList').innerHTML='<div class="empty">Le service officiel ne répond pas. Aucune donnée fictive n’est affichée.</div>';console.error(err);}}
+const r=await fetch('/api/annonces?'+qs,{headers:{Authorization:'Bearer '+session.access_token}});const data=await r.json();if(!r.ok)throw Error(data.error||'Source indisponible');state.boamp.push(...data.items);state.boampOffset+=data.items.length;state.boampTotal=data.total;state.boampStatus='ready';proExperience.render();$('boampCount').textContent=`${data.total} avis officiels`;$('boampList').innerHTML=state.boamp.map(m=>`<article class="data-item"><span class="tag">BOAMP OFFICIEL</span><div class="item-title">${esc(m.title)}</div><div class="item-desc">${esc(m.buyer)}</div><div class="meta-row"><span>Dépt. : ${esc(m.departments)}</span><span>Publié : ${date(m.published)}</span><span>Échéance : ${date(m.deadline)}</span></div><div class="boamp-actions"><a class="button secondary micro-button" href="${esc(m.url)}" target="_blank" rel="noopener noreferrer">Consulter l'avis officiel ↗</a>${respondButton(m)}</div></article>`).join('')||'<div class="empty">Aucune annonce correspondante.</div>';$('boampMore').classList.toggle('hidden',state.boampOffset>=data.total||!data.items.length);}catch(err){state.boampStatus='error';proExperience.render();$('boampCount').textContent='Indisponible';$('boampList').innerHTML='<div class="empty">Le service officiel ne répond pas. Aucune donnée fictive n’est affichée.</div>';console.error(err);}}
+for(const id of ['boampKeyword','boampDept'])$(id)?.addEventListener('input',renderTenderPlatforms);
 $('boampSearch').onclick=()=>loadBoamp();$('boampMore').onclick=()=>loadBoamp(true);$('exportBoamp').onclick=async()=>{
  if(!canUsePremium())return renderPremium();
  try{
@@ -1270,7 +1288,7 @@ async function init(){
   tenderAlertRefresh=true;
   try{
    const r=await state.db.from('offrya_tender_alerts')
-    .select('user_id,tender_id,title,buyer,departments,url,deadline,source,match_score,match_reason,detected_at,seen_at')
+    .select('user_id,tender_id,title,buyer,departments,url,deadline,source,match_score,match_reason,detected_at,seen_at,respond_url,respond_kind')
     .eq('user_id',uid).order('detected_at',{ascending:false}).limit(50);
    if(r.error)throw r.error;
    if(uid===state.session?.user?.id){

@@ -52,7 +52,7 @@ test('The interface progressively loads verified account state before optional s
 });
 test('No opt-in requirement is reintroduced into the automatic Premium watch',()=>{
  assert.match(pro,/Date\.parse\(state\.testPremiumUntil\|\|''\)>Date\.now\(\)\?'Accès test':'Automatique'/);
- assert.match(pro,/BOAMP et TED automatiquement/);
+ assert.match(pro,/surveille automatiquement les avis BOAMP et TED/);
  assert.doesNotMatch(pro,/Activation volontaire/);
  assert.doesNotMatch(pro,/Les alertes restent désactivées tant que/);
  assert.match(app,/offrya_tender_alerts/);

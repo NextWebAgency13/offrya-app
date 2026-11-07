@@ -457,3 +457,85 @@ body.offrya-reference-ui .app-shell :is(button,a,input,textarea,select,summary):
   transition:none!important;animation:none!important;
  }
 }
+
+/* Appels d'offres : lien pour répondre + autres plateformes */
+/* Lien « Dossier de consultation » : action secondaire, distincte de « Consulter l’appel d’offres » */
+body.offrya-pro-v3 .pro-tender-card .pro-tender-actions a.pro-v3-reco-btn.pro-tender-respond{background:#F3EAFB!important;color:var(--offrya-prune,#4B0058)!important;border:1px solid #DCC8F2!important;box-shadow:none!important}
+body.offrya-pro-v3 .pro-tender-card .pro-tender-actions a.pro-v3-reco-btn.pro-tender-respond:hover{background:#EADCF8!important;border-color:#C9AEEC!important}
+.pro-v3-watch-item .pro-v3-watch-links{display:flex;flex-wrap:wrap;align-items:center;gap:0 20px;margin-top:2px}
+body.offrya-pro-v3 .pro-v3-watch-item a.pro-v3-watch-respond{display:inline-flex;align-items:center;gap:5px;color:var(--offrya-prune,#4B0058)}
+#boampList .boamp-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+#boampList .boamp-actions .tender-respond-link{background:#F3EAFB;color:var(--offrya-prune,#4B0058);border:1px solid #DCC8F2;box-shadow:none}
+#boampList .boamp-actions .tender-respond-link:hover{background:#EADCF8;border-color:#C9AEEC}
+.tender-platforms .panel-heading{align-items:flex-start}
+.tender-platforms-intro{margin:6px 0 0;font-size:13px;line-height:1.5;color:#6b5e78;max-width:70ch}
+.tender-platform-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:14px}
+.tender-platform{position:relative;display:flex;flex-direction:column;gap:4px;padding:14px 40px 14px 16px;border:1px solid #e9e0f3;border-radius:14px;background:#fff;color:#211728;text-decoration:none;transition:border-color .15s,box-shadow .15s}
+.tender-platform:hover{border-color:#c9b0ef;box-shadow:0 6px 18px rgba(75,0,88,.08)}
+.tender-platform:focus-visible{outline:3px solid #7A3CFF;outline-offset:2px}
+.tender-platform strong{font-size:14px;color:#4B0058}
+.tender-platform small{font-size:12.5px;line-height:1.45;color:#6b5e78}
+.tender-platform span{position:absolute;top:14px;right:14px;color:#7A3CFF;font-weight:800}
+@media (max-width:620px){.tender-platform-list{grid-template-columns:1fr}}
+
+/* ===== Navigation unifiée (ordinateur, comptes Premium) =====
+   Un seul menu à gauche, mêmes noms que la barre mobile :
+   Accueil · Missions · Espace Premium (4 sous-onglets) · Messages · Mon compte.
+   Les anciens menus « Espace professionnel » restent dans la page mais ne s'affichent plus. */
+#proV3Subnav{display:none}
+@media (min-width:781px) and (not ((pointer:coarse) and (orientation:portrait) and (max-aspect-ratio:3/5))){
+ html body.offrya-reference-ui[data-offrya-role="premium"] .app-shell .sidebar,
+ html body.offrya-reference-ui[data-offrya-role="premium"].offrya-pro-v3.offrya-pro-workspace .app-shell .sidebar{
+  background:linear-gradient(180deg,#2E043D 0%,#3a0850 55%,#4B0058 100%)!important;border-right:0!important;
+  overflow-y:auto!important;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.25) transparent;
+ }
+ html body.offrya-reference-ui[data-offrya-role="premium"] .app-shell .sidebar .workspace-label{display:block!important;color:#cdb6e6!important}
+ html body.offrya-reference-ui[data-offrya-role="premium"] .app-shell .sidebar nav#nav{display:grid!important;align-content:start;gap:3px}
+ html body.offrya-reference-ui[data-offrya-role="premium"] .app-shell .sidebar :is(nav#proV3Sidebar,nav#proV3SidebarExtras){display:none!important}
+ html body.offrya-reference-ui[data-offrya-role="premium"] .app-shell .sidebar #nav .nav-link:is([data-tab="professional"],[data-role-deposit]){display:none!important}
+ html body.offrya-reference-ui[data-offrya-role="premium"] .app-shell .sidebar #nav .nav-link[data-tab="boamp"]{display:flex!important}
+ /* Même taille de liens partout (avant : plus grands dans l'Espace Premium) */
+ html body.offrya-reference-ui[data-offrya-role="premium"] .app-shell .sidebar #nav .nav-link{
+  min-height:46px!important;padding:11px 14px!important;gap:12px!important;border-radius:12px!important;
+  font:700 14px/1.2 'DM Sans',sans-serif!important;
+ }
+ html body.offrya-reference-ui[data-offrya-role="premium"] .app-shell .sidebar #nav .nav-link .nav-icon{width:20px!important;height:20px!important}
+ /* Carte du bas : l'abonnement du compte (et non la publicité « Découvrir l'offre ») sur toutes les pages */
+ html body.offrya-reference-ui[data-offrya-role="premium"].offrya-pro-v3 .app-shell .sidebar .sidebar-bottom{display:none!important}
+ html body.offrya-reference-ui[data-offrya-role="premium"].offrya-pro-v3 .app-shell .sidebar div#proV3SidePlan{display:grid!important;margin-top:auto}
+ html body.offrya-reference-ui[data-offrya-role="premium"].offrya-pro-v3 .app-shell .sidebar div#proV3SidePlan{flex-shrink:0}
+ /* Dans l'Espace Premium : le titre reste en gras, c'est le sous-onglet qui est surligné */
+ html body.offrya-reference-ui[data-offrya-role="premium"].offrya-pro-workspace .app-shell .sidebar #nav .nav-link[data-tab="boamp"].active{
+  background:transparent!important;color:#fff!important;font-weight:800!important;
+ }
+ html body.offrya-reference-ui[data-offrya-role="premium"].offrya-pro-v3.offrya-pro-workspace .app-shell .sidebar #proV3Subnav{
+  display:grid!important;gap:2px;margin:0 0 8px 24px;padding-left:10px;border-left:1px solid rgba(255,255,255,.2);
+ }
+ html body.offrya-reference-ui[data-offrya-role="premium"] .app-shell .sidebar #proV3Subnav .pro-v3-nav-btn{
+  display:flex!important;align-items:center;gap:10px;width:100%;min-height:40px;padding:8px 10px!important;
+  border:0!important;border-radius:10px!important;text-align:left;cursor:pointer;
+  font:600 13px/1.25 'DM Sans',sans-serif!important;color:#e6d9f2!important;background:transparent!important;
+ }
+ html body.offrya-reference-ui[data-offrya-role="premium"] .app-shell .sidebar #proV3Subnav .pro-v3-nav-btn .nav-icon{width:17px;height:17px;flex:0 0 17px}
+ html body.offrya-reference-ui[data-offrya-role="premium"] .app-shell .sidebar #proV3Subnav .pro-v3-nav-btn:hover{background:rgba(255,255,255,.09)!important;color:#fff!important}
+ html body.offrya-reference-ui[data-offrya-role="premium"] .app-shell .sidebar #proV3Subnav .pro-v3-nav-btn.active{
+  background:rgba(255,255,255,.16)!important;color:#fff!important;font-weight:700!important;
+ }
+ html body.offrya-reference-ui[data-offrya-role="premium"] .app-shell .sidebar #proV3Subnav .pro-v3-nav-btn:focus-visible{outline:3px solid #fff;outline-offset:1px}
+ html body.offrya-reference-ui[data-offrya-role="premium"] .app-shell .sidebar #proV3Subnav .pro-v3-nav-count:not([hidden]){
+  margin-left:auto;min-width:22px;padding:2px 7px;border-radius:999px;text-align:center;
+  font:800 11px/1.3 'DM Sans',sans-serif;background:rgba(255,255,255,.2)!important;color:#fff!important;
+ }
+}
+
+/* Marchés publics : sous-onglets Ma veille · Rechercher un avis · Mes critères */
+.pro-v3-market-tabs{display:flex;gap:4px;margin:18px 0 6px;padding:4px;border-radius:14px;background:#F3EAFB;width:max-content;max-width:100%;overflow-x:auto}
+.pro-v3-market-tabs button{flex:0 0 auto;min-height:40px;padding:9px 18px;border:0;border-radius:10px;background:transparent;color:#4B0058;font:700 13.5px/1.2 'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
+.pro-v3-market-tabs button:hover{background:rgba(255,255,255,.7)}
+.pro-v3-market-tabs button.active{background:#fff;color:#2E043D;box-shadow:0 2px 8px rgba(75,0,88,.12)}
+.pro-v3-market-tabs button:focus-visible{outline:3px solid #7A3CFF;outline-offset:2px}
+.pro-v3-market-lead{margin:8px 0 18px;font-size:14px;line-height:1.5;color:#6b5e78;max-width:75ch}
+@media (max-width:620px){
+ .pro-v3-market-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}
+ .pro-v3-market-tabs button{padding:9px 6px;font-size:12.5px;white-space:normal;min-height:44px}
+}
