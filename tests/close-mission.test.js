@@ -29,7 +29,8 @@ function harness({confirmAnswer=true,rpcError=null,user=me,mission={}}={}){
   location:{pathname:'/espace/missions',search:'?mission='+m1},
   history:{replaceState:(...a)=>calls.push(['replaceState',a[2]])},
   confirm:text=>{calls.push(['confirm',text]);return confirmAnswer;},
-  render:()=>calls.push(['render']),refresh:async()=>{calls.push(['refresh']);},toast:t=>toasts.push(t),console};
+  render:()=>calls.push(['render']),refresh:async()=>{calls.push(['refresh']);},toast:t=>toasts.push(t),console,
+  purgeMissionPhotos:async()=>0};
  vm.runInNewContext(slice('function canCloseMission','// ---- fin clôture')+'\nthis.api={canCloseMission,closeMissionConfirmText,forgetMissionLocally,closeMission};',ctx);
  return {state,calls,toasts,api:ctx.api};
 }
