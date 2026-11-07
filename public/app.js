@@ -1380,6 +1380,8 @@ async function init(){
   if(!document.hidden&&state.session&&state.loaded){
    refreshLiveMissions().catch(error=>console.warn('OFFRYA: mission sync unavailable',error));
    loadMessageNotifications().catch(error=>console.warn('OFFRYA: message sync unavailable',error));
+   // Au retour sur Android, confirmer/rétablir l'opt-in push du compte courant.
+   pushNotifications.syncExisting().catch(error=>console.warn('OFFRYA: push sync unavailable',error));
   }
  };
  document.addEventListener('visibilitychange',refreshOnReturn);
