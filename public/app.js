@@ -1403,6 +1403,15 @@ document.addEventListener('click',e=>{
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeNotificationPanel();});
 document.addEventListener('offrya:open-notifications',openNotificationPanel);
 document.addEventListener('offrya:notifications-changed',()=>paintMessageBadges());
+// Keep the read state in sync between open OFFRYA tabs on the same device.
+// User-scoped localStorage stores only conversation IDs and read timestamps.
+window.addEventListener('storage',event=>{
+ const uid=state.session?.user?.id;
+ if(!uid||event.key!==messageReadKey(uid))return;
+ messageReadAccount=null;
+ paintMessageBadges();
+ if($('inbox')?.classList.contains('active'))renderInbox();
+});
 const pushNotifications=createPushNotifications({state,button:$('pushNotificationToggle'),status:$('pushNotificationStatus'),notify:toast});
 proExperience.init();opportunityConsole.init();salesWorkspace.init();
 init().catch(showError);
