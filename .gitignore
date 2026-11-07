@@ -3,3 +3,7 @@
 .env.*.local
 node_modules/
 .DS_Store
+visual-report/
+playwright-report/
+test-results/
+*.storage-state.json
