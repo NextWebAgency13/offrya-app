@@ -45,8 +45,11 @@
 .auth-page .auth-submit{display:flex;align-items:center;justify-content:center;gap:20px;width:100%;min-height:52px;border-radius:11px;font-size:15px;margin-top:5px;background:#7A3CFF;color:#fff;box-shadow:0 8px 18px #7A3CFF26}
 .auth-page .auth-submit:hover{background:#5d32cc}
 .auth-page .auth-submit:disabled{opacity:.6;cursor:progress}
-.auth-page .auth-status{font-size:13px;line-height:1.55;margin:0}
+.auth-page .auth-status{font-size:14px;line-height:1.55;margin:0;padding:12px 14px;border-radius:10px;overflow-wrap:anywhere}
+.auth-page .auth-status--error{background:#fff1f4;color:#8e1f3c;border:1px solid #e7afbe;font-weight:680}
+.auth-page .auth-status--info{background:#f4efff;color:#4e318a;border:1px solid #dfd0f5}
 .auth-page .auth-status:empty{display:none}
+.auth-page .auth-form input[aria-invalid="true"]{border-color:#c33a62;box-shadow:0 0 0 2px #fff1f4}
 .auth-page .auth-privacy{font-size:12px;color:#81748d;text-align:center;margin:21px 0 0;line-height:1.6}
 .auth-page .auth-back{display:inline-block;margin-top:17px}
 .auth-page .account-type-choice{margin-bottom:23px}
