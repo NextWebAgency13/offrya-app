@@ -1,4 +1,3 @@
-import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm';
 import {authFeedback} from './auth-feedback.mjs';
 import {createAuthCaptcha} from './auth-captcha.mjs';
 const $=id=>document.getElementById(id),query=new URLSearchParams(location.search);
@@ -31,7 +30,24 @@ const cardDescriptions={
  reset:'Seule votre adresse e-mail est nécessaire. Aucun mot de passe ne vous sera demandé.',
  recover:'Choisissez un mot de passe d’au moins huit caractères.'
 };
-function say(s,error=false){$('loginStatus').textContent=s;$('loginStatus').style.color=error?'#ab294d':'#4e318a';}
+function say(s,error=false){
+ const status=$('loginStatus');
+ if(!status)return;
+ status.textContent=s;
+ status.className='auth-status'+(s?(error?' auth-status--error':' auth-status--info'):'');
+ status.setAttribute?.('role',s&&error?'alert':'status');
+}
+function validateAuthInput(email,password){
+ if(mode!=='recover'){
+  if(!email)return {field:'email',message:'Saisissez votre adresse e-mail.'};
+  if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email))return {field:'email',message:'Cette adresse e-mail est invalide. Vérifiez sa saisie.'};
+ }
+ if(mode!=='reset'){
+  if(!password)return {field:'password',message:'Saisissez votre mot de passe.'};
+  if((mode==='signup'||mode==='recover')&&password.length<8)return {field:'password',message:'Le mot de passe doit contenir au moins 8 caractères.'};
+ }
+ return null;
+}
 function change(v){
  if(!Object.prototype.hasOwnProperty.call(labels,v))return;
  mode=v;
@@ -92,6 +108,7 @@ function change(v){
  const ps=$('passwordRow'),em=$('emailRow');
  ps.hidden=v==='reset';
  ps.querySelector('input').required=!ps.hidden;
+ ps.querySelector('input').minLength=v==='signup'||v==='recover'?8:0;
  ps.querySelector('input').autocomplete=v==='login'?'current-password':'new-password';
  em.hidden=v==='recover';
  em.querySelector('input').required=!em.hidden;
@@ -162,6 +179,8 @@ async function init(){
  const r=await fetch('/api/config');if(!r.ok)throw Error('Connexion indisponible');const c=await r.json();
  if(!c.supabaseUrl||!c.supabaseKey)throw Error('Configuration de connexion indisponible');
  await authCaptcha.init(c.guestCaptchaSiteKey);
+ // Le chargement différé évite qu'un CDN indisponible rende le formulaire inerte.
+ const {createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm');
  db=createClient(c.supabaseUrl,c.supabaseKey,{auth:{detectSessionInUrl:true}});
  db.auth.onAuthStateChange((event,session)=>{
   if(event==='PASSWORD_RECOVERY'){change('recover');return;}
@@ -200,9 +219,24 @@ $('usernameRow')?.querySelector('input')?.addEventListener('blur',async event=>{
  if(serial!==usernameCheckSerial)return;
  status.textContent=result.error?'Disponibilité indisponible.':result.data===true?'Pseudonyme disponible.':'Pseudonyme déjà utilisé.';
 });
+$('loginForm').addEventListener('input',e=>{
+ e.target?.removeAttribute?.('aria-invalid');
+ if($('loginStatus')?.className?.includes('auth-status--error'))say('');
+});
 $('loginForm').addEventListener('submit',async e=>{
- e.preventDefault();if(!db)return say('Connexion indisponible',true);
- const f=e.currentTarget,email=f.elements.email.value.trim(),password=f.elements.password.value,b=$('loginSubmit');b.disabled=true;
+ e.preventDefault();
+ const f=e.currentTarget,email=f.elements.email.value.trim(),password=f.elements.password.value,b=$('loginSubmit');
+ if(b.disabled)return;
+ const invalid=validateAuthInput(email,password);
+ if(invalid){
+  f.elements[invalid.field]?.setAttribute?.('aria-invalid','true');
+  return say(invalid.message,true);
+ }
+ if(!db)return say('Le service de connexion n’est pas encore disponible. Vérifiez votre connexion Internet et réessayez.',true);
+ f.elements.email?.removeAttribute?.('aria-invalid');
+ f.elements.password?.removeAttribute?.('aria-invalid');
+ say(mode==='login'?'Vérification de vos identifiants…':'Traitement de votre demande…');
+ b.disabled=true;
  try{
   const captchaToken=authCaptcha.requiredToken();
   let r;if(mode==='signup'){
