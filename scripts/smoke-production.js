@@ -38,7 +38,7 @@ async function run(){
    &&!header.includes('home-nav-links')
    &&!header.includes('mock-brand-tagline')
    &&landing.text.includes('class="offrya-entry-paths"')
-    &&['client','professional','manage'].every(x=>landing.text.includes('data-journey="'+x+'"'))
+    &&['client','professional'].every(x=>landing.text.includes('data-journey="'+x+'"'))
     &&!landing.text.includes('id="choisir-compte"')
    &&authPage.text.includes('id="accountTypeChoice"')
    &&authScript.text.includes('offrya_signup_intent');
@@ -317,7 +317,7 @@ async function run(){
  assert.ok(!landingWithoutBanner.text.includes('mock-activity'));
  assert.ok(landingWithoutBanner.text.includes('class="offrya-entry-paths"'));
  assert.ok(!landingWithoutBanner.text.includes('class="mock-choice-grid"'));
- assert.ok(['client','professional','manage'].every(x=>landingWithoutBanner.text.includes('data-journey="'+x+'"')));
+ assert.ok(['client','professional'].every(x=>landingWithoutBanner.text.includes('data-journey="'+x+'"')));
  console.log('PASS: absence de fausses statistiques et trois parcours accessibles');
  const publicConfig=cfg.json||{};
  assert.ok(typeof publicConfig.supabaseKey==='string'&&publicConfig.supabaseKey.length>10);

@@ -13,9 +13,9 @@ test('Trois parcours visibles et une seule décision à prendre sur la vitrine',
  assert.equal((home.match(/<h1\b/g)||[]).length,1);
  assert.match(home,/<h1 id="heroHeading">Votre projet mérite<br>le bon <span>professionnel\.<\/span><\/h1>/);
  const paths=[...home.matchAll(/data-journey="([^"]+)"/g)].map(m=>m[1]);
- assert.deepEqual(paths,['client','professional','manage']);
+ assert.deepEqual(paths,['client','professional']);
  for(const wording of ['Je cherche un professionnel','Je décris mon projet gratuitement','Je suis professionnel',
-  'Je trouve une mission et je propose mes services','Je gère mon activité','Je retrouve mes échanges et mes dossiers'])assert.ok(home.includes(wording),wording);
+  'Je trouve une mission et je propose mes services'])assert.ok(home.includes(wording),wording);
  assert.doesNotMatch(home,/class="mock-container mock-choice"|id="choisir-compte"|class="mock-pro-price"/);
  const heroEnd=home.indexOf('</section>',home.indexOf('<section class="mock-hero'));
  const next=home.slice(heroEnd+10).trimStart();
@@ -25,7 +25,7 @@ test('Trois parcours visibles et une seule décision à prendre sur la vitrine',
 test('Les trois CTA utilisent les parcours existants sécurisés, sans exposer les missions',()=>{
  assert.match(home,/href="\/deposer-une-mission" data-journey="client"/);
  assert.match(home,/href="\/professionnels" data-journey="professional"/);
- assert.match(home,/href="\/connexion\?next=%2Fespace" data-journey="manage"/);
+ assert.doesNotMatch(home,/data-journey="manage"|Je gère mon activité/);
  assert.match(home,/après confirmation de l’e-mail/);
  assert.match(home,/Professionnels vérifiés/);
  assert.match(pro,/Sans engagement, résiliable à tout moment\./);

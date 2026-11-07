@@ -4,8 +4,9 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const {spawnSync}=require('node:child_process');
 const smoke=fs.readFileSync('scripts/smoke-production.js','utf8');
-test('Production smoke verifies the three live entry journeys, not removed account cards',()=>{
- for(const term of ['client','professional','manage'])assert.ok(smoke.includes(term),'Missing entry '+term);
+test('Production smoke verifies the two live entry journeys, not removed account cards',()=>{
+ assert.ok(!smoke.includes("'manage'"),'Le parcours « Je gère mon activité » a été retiré');
+ for(const term of ['client','professional'])assert.ok(smoke.includes(term),'Missing entry '+term);
  assert.match(smoke,/offrya-entry-paths/);
  assert.match(smoke,/offrya-entry-hero/);
  assert.ok(smoke.includes("!landing.text.includes('id=\"choisir-compte\"')"));
