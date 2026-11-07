@@ -1570,3 +1570,9 @@ html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head button{
 @media (max-width:360px){
  html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria{grid-template-areas:"title title" "chips chips" ". edit"}
 }
+
+/* ===== Menu du compte (☰) : il s'ouvrait derrière la page sur Android (comptes Premium,
+   onglets Accueil, Missions, Messages, Mon compte) car l'en-tête rognait son contenu.
+   Les décors de l'en-tête restent à l'intérieur de son cadre (inset:0). ===== */
+html body.offrya-reference-ui .app-shell .header{overflow:visible!important}
+html body.offrya-reference-ui .app-shell .header #accountMenu[open] .account-menu-panel{z-index:90!important}
