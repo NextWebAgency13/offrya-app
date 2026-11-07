@@ -1011,3 +1011,19 @@
 @media(prefers-reduced-motion:reduce){
  .mock-home .offrya-entry-path{transition:none;transform:none!important}
 }
+
+/* Page publique « Déposer une mission » : le pied de page termine le viewport
+   lorsque l'accès au formulaire est bloqué, sans recouvrir un formulaire long. */
+body.deposit-public-page{
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+  min-height:100dvh;
+}
+body.deposit-public-page > main{
+  flex:1 0 auto;
+  width:100%;
+}
+body.deposit-public-page > footer.footer{
+  flex-shrink:0;
+}
