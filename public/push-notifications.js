@@ -64,8 +64,10 @@ export function createPushNotifications({state,button,status,notify}){
    tell('Ouvrez OFFRYA dans Chrome sur Android (HTTPS).');return;
   }
   if(!config?.enabled){
-   active=false;update('Notifications indisponibles',true);
-   tell('Le service push est temporairement indisponible.');return;
+   // Une panne de configuration ne doit pas effacer l'activation mémorisée.
+   active=preference(state.session?.user?.id);
+   update('Notifications temporairement indisponibles',true);
+   tell('Le service push est temporairement indisponible. Votre choix reste enregistré.');return;
   }
   let token,userId;
   try{({token,userId}=await account());}
