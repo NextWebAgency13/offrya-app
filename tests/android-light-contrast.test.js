@@ -21,3 +21,8 @@ test('Ma veille intelligente : « Modifier » descendu sur la ligne des critère
  assert.match(css,/#professional \.pro-ai-hero \.pro-ai-criteria-head\{display:contents!important\}/);
  assert.match(css,/grid-area:edit;align-self:end;justify-self:end;margin:0 0 2px!important;\n\}/);
 });
+test('« Modifier » : moins transparent sur ordinateur, à la suite des pastilles sur mobile',()=>{
+ assert.match(css,/background:linear-gradient\(115deg,rgba\(134,80,197,\.92\),rgba\(111,63,171,\.92\)\)!important;/);
+ assert.match(css,/#professional \.pro-ai-hero #proAiCriteria\{display:contents!important\}/);
+ assert.match(css,/\.pro-ai-criteria-head button\{order:2;align-self:center;margin:0!important\}/);
+});

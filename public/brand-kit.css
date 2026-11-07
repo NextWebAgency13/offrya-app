@@ -1537,3 +1537,25 @@ html body.offrya-pro-v3 #professional .pro-ai-hero #proAiCriteria{grid-area:chip
 html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head button{
  grid-area:edit;align-self:end;justify-self:end;margin:0 0 2px!important;
 }
+/* Ordinateur : même bouton, fond moins transparent pour rester lisible sur la zone claire */
+@media (min-width:781px){
+ html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head button{
+  background:linear-gradient(115deg,rgba(134,80,197,.92),rgba(111,63,171,.92))!important;
+  border:1px solid rgba(233,207,250,.85)!important;color:#fff!important;
+  box-shadow:0 3px 10px rgba(75,0,88,.16)!important;
+ }
+ html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head button:hover{
+  background:linear-gradient(115deg,#8650C5,#6F3FAB)!important;
+ }
+ html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head button :is(svg,.nav-icon){color:#fff!important}
+}
+/* Mobile : le bouton suit directement les pastilles de critères */
+@media (max-width:780px){
+ html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria{
+  display:flex!important;flex-wrap:wrap;align-items:center;gap:8px!important;
+ }
+ html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head strong{flex:0 0 100%;margin-bottom:3px}
+ html body.offrya-pro-v3 #professional .pro-ai-hero #proAiCriteria{display:contents!important}
+ html body.offrya-pro-v3 #professional .pro-ai-hero .pro-ai-criteria-head button{order:2;align-self:center;margin:0!important}
+ html body.offrya-pro-v3 #professional .pro-ai-hero #proAiCriteria > *{order:1}
+}
