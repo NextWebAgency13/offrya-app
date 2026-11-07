@@ -23,9 +23,11 @@ une capture ou une variable client Render.
 
 GitHub > Actions > OFFRYA — Agent de qualité visuelle > Run workflow.
 
-- Mode audit : captures et rapport, sans modification de code. Exécution
-  automatique le lundi à 06 h 20 UTC, même sans clé API.
-- Mode propose : nécessite la clé IA. Propose au maximum 6 corrections CSS,
+- Mode audit : captures et rapport du site public https://offrya.fr, sans
+  modification de code. Exécution automatique le lundi à 06 h 20 UTC,
+  même sans clé API.
+- Mode propose : nécessite la clé IA. Utilise une instance locale de
+  développement (sans effet sur offrya.fr). Propose au maximum 6 corrections CSS,
   refait les captures et restaure l'ancien CSS si un nouveau problème grave
   est détecté. La proposition est soumise à une pull request ; elle n'est
   jamais fusionnée ou déployée automatiquement.
