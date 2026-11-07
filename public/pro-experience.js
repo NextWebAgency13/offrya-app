@@ -583,13 +583,18 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    const href=official?esc(a.url):null;
    const name=a.source==='TED'?'TED · Union européenne':'BOAMP · DILA';
    const why=(item.reasons||[]).slice(0,2).join(' · ');
-   return '<div class="pro-v3-watch-item"><small>'+esc(name)+' · '+
-    esc(a.seen_at?'Déjà consultée':'Marché prioritaire non consulté')+'</small>'+
-    '<strong>'+esc(a.title||'Marché public')+'</strong>'+
-    '<small>Pertinence : '+Math.round(Number(item.score))+'/100 · '+esc(why)+'</small>'+
-    '<small>Échéance : '+esc(a.deadline?new Date(a.deadline).toLocaleDateString('fr-FR'):'À vérifier')+'</small>'+
+   const days=a.deadline?Math.ceil((Date.parse(a.deadline)-Date.now())/864e5):null;
+   const soon=days!==null&&days<=7;
+   return '<div class="pro-v3-watch-item'+(a.seen_at?' is-seen':'')+'">'+
+    '<div class="watch-top"><span class="watch-source">'+esc(name)+'</span>'+
+    '<span class="watch-state">'+esc(a.seen_at?'Déjà consultée':'Prioritaire · non consultée')+'</span>'+
+    '<span class="watch-score" title="Correspondance avec vos critères">Pertinence '+Math.round(Number(item.score))+'/100</span></div>'+
+    '<strong class="watch-title">'+esc(a.title||'Marché public')+'</strong>'+
+    (why?'<small class="watch-meta">'+esc(why)+'</small>':'')+
+    '<small class="watch-deadline'+(soon?' is-soon':'')+'">Date limite : '+esc(a.deadline?new Date(a.deadline).toLocaleDateString('fr-FR'):'à vérifier')+
+     (days!==null&&days>=0?' · '+(days===0?'aujourd’hui':days===1?'demain':'dans '+days+' jours'):'')+'</small>'+
     '<div class="pro-v3-watch-links">'+
-    (href?'<a href="'+href+'" target="_blank" rel="noopener noreferrer">Consulter la publication officielle</a>':'')+
+    (href?'<a class="watch-official" href="'+href+'" target="_blank" rel="noopener noreferrer">Consulter la publication officielle ↗</a>':'')+
     respondLink(a,'pro-v3-watch-respond')+'</div></div>';
   }).join(''):'<div class="pro-v3-empty">Aucun marché suffisamment pertinent pour une alerte prioritaire. Les avis moins pertinents restent consultables dans le radar.</div>';
  }
