@@ -1,0 +1,37 @@
+name: OFFRYA — Playwright (ordinateur et Android)
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install project and test dependencies
+        run: npm install --include=dev --no-audit --no-fund
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Run desktop and Android browser tests
+        run: npm run test:e2e
+      - name: Upload browser screenshots and report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: offrya-playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
