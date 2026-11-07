@@ -183,7 +183,7 @@ async function loadMessageNotifications(){
 function toast(s){const t=$('toast');t.textContent=s;t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300);}
 function showError(e){const msg=e?.message||String(e);toast(msg);console.error(e);}
 function info(s,error=false){$('alert').textContent=s;$('alert').classList.toggle('error',error);$('alert').classList.remove('hidden');}
-const paths={dashboard:'/espace',missions:'/espace/missions',boamp:'/espace/marches-publics',professional:'/espace/professionnel',inbox:'/espace/messagerie',settings:'/espace/reglages'};
+const paths={dashboard:'/espace',missions:'/espace/missions',deposit:'/espace/deposer',boamp:'/espace/marches-publics',professional:'/espace/professionnel',inbox:'/espace/messagerie',settings:'/espace/reglages'};
 const pathsReverse=Object.fromEntries(Object.entries(paths).map(([name,p])=>[p,name]));
 // Only trusted data already returned through Supabase RLS can be opened through
 // a URL. Route state is presentation metadata, never an authorization grant.
@@ -305,8 +305,9 @@ function tab(name,fromHistory=false,preserveMissionDetail=false){
  }
  document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.id===name));
  document.querySelectorAll('.nav-link').forEach(el=>el.classList.toggle('active',el.dataset.tab===name||(name==='professional'&&canUsePremium()&&el.dataset.tab==='boamp')));
+ document.querySelectorAll('[data-role-deposit]').forEach(el=>el.classList.toggle('active',name==='deposit'));
  document.getElementById('accountMenu')?.removeAttribute('open');
- const titles={dashboard:'Accueil',missions:canUsePremium()?'Missions':'Mes missions',boamp:'Espace Premium',professional:canUsePremium()?'Espace Premium':'Espace professionnel',inbox:'Messages',settings:'Mon compte'};
+ const titles={dashboard:'Accueil',missions:canUsePremium()?'Missions':'Mes missions',boamp:'Espace Premium',professional:canUsePremium()?'Espace Premium':'Espace professionnel',inbox:'Messages',settings:'Mon compte',deposit:'Déposer une mission'};
  $('pageTitle').textContent=titles[name];$('breadcrumb').textContent='OFFRYA / '+titles[name].toUpperCase();
  if(!fromHistory&&location.pathname!==paths[name])history.pushState({tab:name},'',paths[name]);
  if(name==='boamp'&&canUsePremium()&&!state.boamp.length)loadBoamp();
@@ -316,9 +317,18 @@ function tab(name,fromHistory=false,preserveMissionDetail=false){
 }
 window.addEventListener('popstate',()=>restoreContextualRoute(pathsReverse[location.pathname]||'dashboard'));
 for(const n of document.querySelectorAll('[data-tab]'))n.addEventListener('click',()=>tab(n.dataset.tab));
-for(const n of document.querySelectorAll('[data-role-deposit]'))n.addEventListener('click',()=>{
+// Déposer une mission reste dans Mon espace : l'en-tête et la barre d'onglets restent affichés.
+function openDeposit(){
  if(!state.session?.user?.email_confirmed_at){toast('Confirmez votre adresse e-mail avant de publier une mission.');return;}
- location.assign('/deposer-une-mission');
+ tab('deposit');prefillDeposit();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+for(const n of document.querySelectorAll('[data-role-deposit]'))n.addEventListener('click',openDeposit);
+document.addEventListener('click',event=>{
+ const link=event.target.closest('a[href="/deposer-une-mission"]');
+ if(!link||!state.session||!link.closest('.app-shell'))return;
+ if(event.button||event.metaKey||event.ctrlKey||event.shiftKey)return;
+ event.preventDefault();openDeposit();
 });
 function currentProEntry(){
  return proEntry({session:Boolean(state.session),guest:isGuest(),eligible:canUsePremium(),
@@ -1162,7 +1172,7 @@ $('missionRefresh').onclick=async()=>{
  }catch(error){console.error('OFFRYA: mission refresh failed',error);toast('Actualisation indisponible. Réessayez.');}
  finally{button.disabled=false;}
 };
-$('newMissionBtn').onclick=()=>location.assign('/deposer-une-mission');
+$('newMissionBtn').onclick=openDeposit;
 // Open the selected owner's mission, not merely the list tab.
 $('roleRecentMissions').addEventListener('click',event=>{
  const button=event.target.closest('[data-open-own-mission]');
@@ -1532,4 +1542,100 @@ document.addEventListener('change',async event=>{
  if(sent.failed)errors.push(sent.failed+' photo'+(sent.failed>1?'s n’ont':' n’a')+' pas pu être envoyée'+(sent.failed>1?'s':'')+'.');
  const done=sent.added?(sent.added+' photo'+(sent.added>1?'s ajoutées.':' ajoutée.')):'';
  await showMissionPhotos(mission,true,[done,...errors].filter(Boolean).join(' '));
+});
+
+// ---- Déposer une mission, sans quitter Mon espace ----
+var depositPhotos=[];
+function depositNotice(text,failed=false){
+ const el=$('depositStatus');if(!el)return;
+ el.hidden=!text;el.textContent=text||'';el.classList.toggle('is-error',failed);
+}
+function depositPhotoNotice(text,failed=false){
+ const el=$('depositPhotoStatus');if(!el)return;
+ el.hidden=!text;el.textContent=text||'';el.classList.toggle('is-error',failed);
+}
+function renderDepositPhotos(){
+ const grid=$('depositPhotoPreview');if(!grid)return;
+ grid.innerHTML='';
+ depositPhotos.forEach((photo,index)=>{
+  const item=document.createElement('figure');item.className='photo-thumb';
+  const img=document.createElement('img');img.src=photo.url;img.alt='Photo '+(index+1)+' de la mission';
+  const remove=document.createElement('button');remove.type='button';remove.className='photo-remove';
+  remove.setAttribute('aria-label','Retirer la photo '+(index+1));remove.textContent='×';
+  remove.addEventListener('click',()=>{URL.revokeObjectURL(photo.url);depositPhotos.splice(index,1);renderDepositPhotos();depositPhotoNotice('');});
+  item.append(img,remove);grid.append(item);
+ });
+ const add=$('depositPhotoAdd');
+ if(add){add.hidden=depositPhotos.length>=MAX_PHOTOS;add.querySelector('span').textContent=depositPhotos.length?'Ajouter d’autres photos':'Ajouter des photos';}
+ const label=$('depositPhotoLabel');if(label)label.textContent='Photos (facultatif)'+(depositPhotos.length?' · '+depositPhotos.length+'/'+MAX_PHOTOS:'');
+}
+function clearDepositPhotos(){for(const photo of depositPhotos)URL.revokeObjectURL(photo.url);depositPhotos=[];renderDepositPhotos();}
+function prefillDeposit(){
+ const form=$('depositForm');if(!form)return;
+ const city=String(state.profile?.city||'').trim();
+ if(city&&!form.elements.mission_city.value)form.elements.mission_city.value=city.slice(0,90);
+}
+function depositDepartment(value){
+ let v=String(value||'').trim().toUpperCase();
+ if(/^\d$/.test(v))v='0'+v;
+ return /^(0[1-9]|[1-8]\d|9[0-5]|2A|2B|97[1-6])$/.test(v)?v:'';
+}
+$('depositPhotos')?.addEventListener('change',async event=>{
+ const input=event.currentTarget,files=[...(input.files||[])];input.value='';
+ if(!files.length)return;
+ const room=MAX_PHOTOS-depositPhotos.length,errors=[];
+ depositPhotoNotice('Préparation des photos…');
+ for(const file of files.slice(0,Math.max(0,room))){
+  try{const blob=await preparePhoto(file);depositPhotos.push({blob,url:URL.createObjectURL(blob)});}
+  catch(error){errors.push(error.message);}
+ }
+ renderDepositPhotos();
+ if(files.length>room)errors.push('Maximum '+MAX_PHOTOS+' photos par mission.');
+ depositPhotoNotice(errors.join(' '),Boolean(errors.length));
+});
+$('depositForm')?.addEventListener('submit',async event=>{
+ event.preventDefault();
+ const form=event.currentTarget;
+ if(form.dataset.sending==='true')return;
+ const button=$('depositSubmit');
+ const user=state.session?.user;
+ if(!user||user.is_anonymous||!user.email_confirmed_at){depositNotice('Confirmez votre adresse e-mail avant de publier une mission.',true);return;}
+ const values=Object.fromEntries(new FormData(form));
+ const title=String(values.title||'').trim(),description=String(values.description||'').trim(),city=String(values.mission_city||'').trim();
+ const department=depositDepartment(values.department);
+ if(title.length<8){depositNotice('Le titre doit contenir au moins 8 caractères.',true);form.elements.title.focus();return;}
+ if(!department){depositNotice('Indiquez un numéro de département valide (ex. 13, 2A, 974).',true);form.elements.department.focus();return;}
+ if(city.length<2){depositNotice('Indiquez la ville de la mission.',true);form.elements.mission_city.focus();return;}
+ if(description.length<30){depositNotice('La description doit contenir au moins 30 caractères.',true);form.elements.description.focus();return;}
+ const budget=values.budget?Math.round(Number(values.budget)*100):null;
+ if(budget!==null&&!(budget>=100&&budget<=100000000)){depositNotice('Le budget doit être compris entre 1 € et 1 000 000 €.',true);form.elements.budget.focus();return;}
+ form.dataset.sending='true';button.disabled=true;depositNotice('Publication en cours…');
+ try{
+  if(!state.profile){
+   const created=await state.db.from('offrya_profiles').insert({id:user.id,role:'client',display_name:'Auteur de mission',city:'',specialty:''});
+   if(created.error&&created.error.code!=='23505')throw created.error;
+  }
+  const result=await state.db.from('offrya_missions').insert({
+   owner_id:user.id,title,description,category:values.category,department,city,budget_cents:budget
+  }).select('id').single();
+  if(result.error)throw result.error;
+  const id=result.data?.id;
+  let sent={added:0,failed:0};
+  if(depositPhotos.length&&id){
+   depositNotice('Mission publiée. Envoi des photos…');
+   try{sent=await uploadMissionPhotos(state.db,user.id,id,depositPhotos.map(p=>p.blob));}
+   catch(error){console.warn('OFFRYA: envoi des photos impossible',error);sent={added:0,failed:depositPhotos.length};}
+  }
+  form.reset();clearDepositPhotos();depositPhotoNotice('');depositNotice('');
+  await refresh();
+  if(id&&state.missions.some(m=>m.id===id)){
+   missionView='published';state.selectedMissionId=id;tab('missions',false,true);renderMissions();rememberMissionRoute(id);
+  }else tab('missions');
+  window.scrollTo({top:0,behavior:'smooth'});
+  const photoText=sent.added?(' '+sent.added+' photo'+(sent.added>1?'s ajoutées':' ajoutée')+'.'):'';
+  const failText=sent.failed?(' '+sent.failed+' photo'+(sent.failed>1?'s n’ont':' n’a')+' pas pu être envoyée'+(sent.failed>1?'s':'')+' : ajoutez-'+(sent.failed>1?'les':'la')+' depuis la fiche de la mission.'):'';
+  toast('Mission publiée gratuitement.'+photoText+failText);
+ }catch(error){
+  depositNotice(error?.message||'Publication momentanément indisponible.',true);
+ }finally{delete form.dataset.sending;button.disabled=false;}
 });

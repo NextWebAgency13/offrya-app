@@ -23,5 +23,6 @@ test('Cliquer sur un onglet ouvre toujours sa destination, jamais la publication
  assert.match(app,/for\(const n of document\.querySelectorAll\('\[data-tab\]'\)\)n\.addEventListener\('click',\(\)=>tab\(n\.dataset\.tab\)\)/);
  assert.doesNotMatch(app,/if\(n\.dataset\.action===\x27publish\x27\)/);
  assert.match(html,/id="newMissionBtn"/);
- assert.match(app,/\$\('newMissionBtn'\)\.onclick=\(\)=>location\.assign\('\/deposer-une-mission'\)/);
+ assert.match(app,/\$\('newMissionBtn'\)\.onclick=openDeposit;/);
+ assert.match(app,/for\(const n of document\.querySelectorAll\('\[data-role-deposit\]'\)\)n\.addEventListener\('click',openDeposit\);/);
 });
