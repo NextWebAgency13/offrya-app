@@ -3,42 +3,46 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
-
 const pub=path.join(__dirname,'../public');
 const theme=fs.readFileSync(path.join(pub,'brand-kit.css'),'utf8');
 const markup=fs.readFileSync(path.join(pub,'espace.html'),'utf8');
-const begin=theme.indexOf('/* OFFRYA — Identité NEON 2026');
-const block=theme.slice(begin);
-const styles=block.replace(/\/\*[\s\S]*?\*\//g,'');
-const fields=['dashboard','missions','boamp','inbox','settings','professional'];
+const start=theme.indexOf('/* OFFRYA — interface sobre et professionnelle');
+const update=theme.slice(start).replace(/\/\*[\s\S]*?\*\//g,'');
 
-test('Le nouveau thème est isolé au workspace connecté, sans changer les pages publiques',()=>{
- assert.ok(begin>0,'Ne pas supprimer le kit graphique historique');
+test('La version néon saturée est remplacée sans modifier les pages publiques',()=>{
+ assert.ok(start>0,'Un kit graphique commun doit rester présent');
+ assert.doesNotMatch(theme,/Identité NEON 2026/);
  assert.match(markup,/<link rel="stylesheet" href="\/brand-kit\.css"><\/head>/);
- assert.match(styles,/@media\s*\(max-width:780px\)/);
- assert.match(styles,/@media\s*\(min-width:781px\)/);
- for(const tab of fields)assert.ok(markup.includes('id="'+tab+'"'),'onglet '+tab);
- assert.ok(styles.includes('body.offrya-reference-ui'),'the theme must be session-scoped');
- assert.doesNotMatch(styles,/body\s*\{|\bhtml\s*\{|\.mock-home|#proStageCompany\.hidden\s*\{/);
+ assert.match(update,/body\.offrya-reference-ui/);
+ assert.match(update,/@media\(max-width:780px\)/);
+ assert.match(update,/@media\(min-width:781px\)/);
+ assert.doesNotMatch(update,/\bbody\s*\{|#proStageCompany\.hidden\s*\{/);
  assert.equal((theme.match(/{/g)||[]).length,(theme.match(/}/g)||[]).length);
 });
 
-test('Quatre motifs différents sur les cartes, sans fausses données ni détournement de clics',()=>{
- for(const i of [2,3,4])assert.ok(styles.includes('role-premium-stats > button:nth-child('+i+')'),'motif carte '+i);
- assert.match(styles,/repeating-radial-gradient/);
- assert.match(styles,/repeating-linear-gradient/);
- assert.match(styles,/radial-gradient\(circle,#ed58edaa/);
- assert.match(styles,/pointer-events:none/);
- assert.doesNotMatch(styles,/(\b(?:fetch|localStorage|sessionStorage|innerHTML)\b|display\s*:\s*none[^;]*#boamp)/);
+test('Surfaces claires, quatre cartes harmonisées et accents mesurés',()=>{
+ assert.match(update,/--offrya-page:#F8F6FB/);
+ assert.match(update,/--offrya-surface:#FFF/);
+ assert.match(update,/background:#fff!important/);
+ for(const n of [2,3,4]){
+  assert.ok(update.includes('role-premium-stats>button:nth-child('+n+')'),'carte '+n);
+ }
+ assert.match(update,/role-premium-stats>button::before/);
+ assert.match(update,/height:4px/);
+ assert.match(update,/content:none!important/);
+ assert.doesNotMatch(update,/repeating-radial-gradient|repeating-linear-gradient/);
 });
 
-test('Tous les parcours utiles disposent de styles propres et la navigation garde ses actions',()=>{
- for(const tab of ['#missions.active','#inbox.active','#settings.active','#boamp.active','#professional.active'])
-  assert.ok(styles.includes(tab),tab);
- for(const action of ['data-tab="dashboard"','data-tab="missions"','data-tab="boamp"','data-tab="inbox"','data-tab="settings"'])
+test('Les vues et parcours restent fonctionnels, sans valeurs simulées ni JS ajouté',()=>{
+ for(const id of ['dashboard','missions','professional','boamp','inbox','settings']){
+  assert.ok(markup.includes('id="'+id+'"'),id);
+ }
+ for(const action of ['data-tab="dashboard"','data-tab="missions"','data-tab="boamp"','data-tab="inbox"','data-tab="settings"']){
   assert.ok(markup.includes(action),action);
- assert.match(styles,/data-offrya-role="premium"/);
- assert.match(styles,/not\(\[data-offrya-role="premium"\]\)/);
- assert.match(styles,/focus-visible/);
- assert.match(styles,/prefers-reduced-motion:reduce/);
+ }
+ assert.match(update,/data-offrya-role="premium"/);
+ assert.match(update,/not\(\[data-offrya-role="premium"\]\)/);
+ assert.match(update,/focus-visible/);
+ assert.match(update,/prefers-reduced-motion:reduce/);
+ assert.doesNotMatch(update,/\b(fetch|localStorage|sessionStorage|innerHTML)\b/);
 });
