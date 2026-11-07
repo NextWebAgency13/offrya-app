@@ -27,3 +27,7 @@ test('« Modifier » : moins transparent sur ordinateur, sous le robot sur mobil
  assert.match(css,/#proAiCriteria\{grid-area:chips;display:flex!important;flex-wrap:wrap;gap:8px!important\}/);
  assert.match(css,/grid-area:edit;justify-self:end;align-self:end;margin:0 0 2px!important;\n  background:linear-gradient\(115deg,rgba\(134,80,197,\.92\)/);
 });
+test('Compte Premium : pas de carte « Offre professionnelle / Gérer mon abonnement » dans la colonne',()=>{
+ assert.match(css,/html body\.offrya-reference-ui\[data-offrya-role="premium"\]\.offrya-pro-v3 \.app-shell \.sidebar div#proV3SidePlan\{display:none!important\}/);
+ assert.doesNotMatch(css,/div#proV3SidePlan\{display:grid!important/);
+});
