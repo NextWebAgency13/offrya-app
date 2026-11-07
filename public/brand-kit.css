@@ -766,3 +766,71 @@ body #settings .push-notifications-settings.offrya-settings-card{min-height:0!im
   transition:none!important;animation:none!important;
  }
 }
+
+
+
+/* Lisibilité garantie des dossiers et résultats Premium : texte réel sur fond néon.
+   Les badges de statut conservent leurs couleurs sémantiques. */
+@media(max-width:780px){
+ body.offrya-reference-ui #professional.active .pro-ai-card:not(.pro-tender-card)
+ :is(.pro-ai-card-content,.pro-ai-card-content h4,.pro-ai-card-content strong,
+     .pro-ai-card-content small,.pro-ai-card-description,.pro-ai-card-place,
+     .pro-ai-match-reason,.pro-ai-card-due,.pro-ai-card-budget small,.pro-ai-card-budget strong){
+  color:#fff!important;
+ }
+ body.offrya-reference-ui #professional.active .pro-ai-card:not(.pro-tender-card) .pro-ai-card-tags span{
+  background:#f1ddff!important;color:#4c1a68!important;border-color:#d8b3eb!important;
+ }
+ body.offrya-reference-ui #professional.active .pro-ai-card:not(.pro-tender-card) .pro-ai-card-icon{
+  background:linear-gradient(140deg,#c72bf2,#7b14ac)!important;color:#fff!important;
+  border:1px solid #ffa1f5;
+ }
+ body.offrya-reference-ui #professional.active .pro-tender-card
+ :is(.pro-tender-information h4,.pro-tender-details,.pro-tender-detail-copy b,
+     .pro-tender-detail-copy span,.pro-tender-detail,.pro-tender-heading){
+  color:#fff!important;
+ }
+ body.offrya-reference-ui #professional.active .pro-tender-card .pro-tender-detail{
+  border-color:#cc6fed88!important;
+ }
+ body.offrya-reference-ui #professional.active .pro-v3-panel
+ :is(.pro-v3-panel-head h3,.pro-v3-panel-head p,.pro-v3-helper){
+  color:#fff!important;
+ }
+ body.offrya-reference-ui #professional.active .pro-v3-metric :is(small,strong,em){
+  color:#fff!important;
+ }
+ body.offrya-reference-ui #professional.active .pro-v3-metric>.nav-icon{
+  background:#8e29bc!important;color:#fff!important;
+ }
+ body.offrya-reference-ui #professional.active .pro-ai-hero
+ :is(h2,p,.pro-ai-criteria-head strong){
+  color:#fff!important;
+ }
+ body.offrya-reference-ui #professional.active .pro-ai-heading :is(h2,h3,p),
+ body.offrya-reference-ui #professional.active .pro-v3-opportunities :is(.pro-v3-empty,.pro-ai-disclaimer){
+  color:#fff!important;
+ }
+ body.offrya-reference-ui #settings.active .panel
+ :is(.muted,.tiny,.account-role-status,.account-billing-description){
+  color:#f8e8ff!important;
+ }
+ body.offrya-reference-ui #settings.active #preferencesForm label.check-row>input[type="checkbox"]{
+  background:#fff!important;
+ }
+ body.offrya-reference-ui #settings.active #preferencesForm label.check-row>input[type="checkbox"]:checked{
+  background:#b22bd7!important;
+ }
+ /* Keep the navigation fully legible on narrower Android viewports. */
+ body.offrya-reference-ui #inbox.active .send-form .button{
+  min-width:72px!important;min-height:44px!important;
+ }
+ body.offrya-reference-ui #missions.active .mission-header-actions{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;width:100%;min-width:0;
+ }
+ body.offrya-reference-ui #missions.active .mission-header-actions>.button{
+  font-size:clamp(11px,3vw,13px)!important;
+  white-space:normal!important;overflow-wrap:anywhere;
+ }
+}
