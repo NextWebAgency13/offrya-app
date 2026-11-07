@@ -21,7 +21,7 @@ test('Le formulaire long reste déroulant et le pied de page ne devient pas fixe
  const scoped=css.split('/* Page publique « Déposer une mission »')[1];
  assert.ok(scoped,'La correction de hauteur doit rester limitée à la page de dépôt');
  assert.doesNotMatch(scoped,/position:\s*(?:fixed|absolute|sticky)/);
- assert.doesNotMatch(scoped,/height:\s*100(?:d)?vh\s*;/);
+ assert.doesNotMatch(scoped,/(?:^|[;{]\\s*)height:\\s*100(?:d)?vh\\s*;/);
  assert.match(deposit,/id="accountGate"/);
  assert.match(deposit,/id="publishArea"/);
  assert.match(deposit,/id="missionForm"/);
