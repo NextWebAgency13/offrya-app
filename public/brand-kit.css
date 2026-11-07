@@ -539,3 +539,509 @@ body.offrya-pro-v3 .pro-v3-watch-item a.pro-v3-watch-respond{display:inline-flex
  .pro-v3-market-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}
  .pro-v3-market-tabs button{padding:9px 6px;font-size:12.5px;white-space:normal;min-height:44px}
 }
+
+
+
+/* OFFRYA — identité 3D Soft, référence Android validée le 07/11/2026.
+   Surfaces claires, profondeur tactile, icônes en relief et accents violet/corail.
+   Adaptation responsive des vrais composants ; aucun élément métier simulé. */
+:root{
+ --offrya-3d-ink:#29205A;
+ --offrya-3d-muted:#645B7C;
+ --offrya-3d-violet:#8135C8;
+ --offrya-3d-violet-light:#B16BEC;
+ --offrya-3d-corail:#FF936F;
+ --offrya-3d-lavande:#F2EBFE;
+ --offrya-3d-border:#E5D8F3;
+ --offrya-3d-shadow:0 13px 30px #54338B24,0 3px 8px #51337D12;
+ --offrya-3d-header:linear-gradient(113deg,#4E1B89 0%,#7430BA 52%,#A246CD 100%);
+}
+body.offrya-reference-ui{
+ color:var(--offrya-3d-ink);
+}
+body.offrya-reference-ui .app-shell .main-content{
+ background:radial-gradient(ellipse at 81% 4%,#E3D1FB 0%,#F2EAFE 35%,#FBF9FE 76%)!important;
+}
+body.offrya-reference-ui .app-shell .header{
+ background:var(--offrya-3d-header)!important;
+ box-shadow:0 5px 20px #50217835!important;
+ border-bottom:1px solid #C691EF!important;
+}
+body.offrya-reference-ui .app-shell .sidebar{
+ background:linear-gradient(165deg,#532080,#632795 66%,#431B68)!important;
+}
+body.offrya-reference-ui .app-shell .sidebar .nav-link.active{
+ background:linear-gradient(140deg,#A933DF,#7729BD)!important;
+ color:#fff!important;border-radius:17px!important;
+ box-shadow:inset 0 1px #ffffff50,0 7px 14px #2C12555E!important;
+}
+body.offrya-reference-ui .app-shell :is(.button.primary,.role-primary):not(:disabled){
+ color:#fff!important;
+ border:1px solid #CA7DE9!important;border-radius:15px!important;
+ background:linear-gradient(117deg,#AD35DA 0%,#8131C8 65%,#7230B5 100%)!important;
+ box-shadow:inset 0 1px #ffffff6e,0 6px 13px #6E2DAB3C!important;
+}
+body.offrya-reference-ui .app-shell :is(.button.secondary,.button.outline){
+ border:1px solid #D9C6F0!important;border-radius:14px!important;
+ background:linear-gradient(145deg,#fff,#F4EDFD)!important;
+ color:#5E3692!important;
+}
+body.offrya-reference-ui .app-shell :is(input.field,select.field,textarea.field){
+ min-height:45px;border-radius:14px!important;
+ background:#fff!important;color:#2F2455!important;
+ border:1px solid #D9C8EA!important;
+ box-shadow:inset 0 2px 4px #48338310!important;
+}
+body.offrya-reference-ui .app-shell :is(a,button,input,select,textarea,summary):focus-visible{
+ outline:3px solid #FFA96E!important;outline-offset:3px;
+}
+
+/* Real dashboard tiles: four different pale surfaces, common 3D geometry. */
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-top{
+ background:linear-gradient(119deg,#FDF9FF,#F1E2FC)!important;
+ color:var(--offrya-3d-ink)!important;
+ border:1px solid #EAD8F6!important;border-bottom:0!important;
+ box-shadow:0 9px 19px #603C8740!important;
+ border-radius:23px 23px 0 0!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-top strong{
+ color:var(--offrya-3d-ink)!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-top .role-crown{color:#FFA72E!important}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-pill{
+ color:#fff!important;
+ background:linear-gradient(110deg,#B43DD9,#E94EA7 62%,#FF915E)!important;
+ border:1px solid #FFE7F0!important;border-radius:999px!important;
+ box-shadow:0 5px 13px #D850AB47!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-company{
+ background:linear-gradient(126deg,#fff 30%,#F9EEFF)!important;
+ border:1px solid #E5D5F2!important;border-top:0!important;
+ border-radius:0 0 23px 23px!important;
+ box-shadow:var(--offrya-3d-shadow)!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-company strong{color:var(--offrya-3d-ink)!important}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-ref-company-icon{
+ border:1px solid #CE96EF!important;border-radius:17px!important;
+ background:linear-gradient(138deg,#CB78FF,#823ACD)!important;
+ color:#fff!important;box-shadow:inset 0 2px #ffffff70,0 6px 12px #7732C73E!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-ref-company-icon .nav-icon{color:#fff!important}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats{
+ display:grid!important;
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:12px!important;align-items:stretch!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats >button{
+ position:relative!important;isolation:isolate!important;overflow:hidden!important;
+ display:grid!important;grid-template-columns:minmax(0,1fr) 65px!important;
+ grid-template-rows:86px minmax(55px,auto)!important;
+ align-items:center!important;justify-items:start!important;
+ min-width:0;min-height:190px!important;gap:7px!important;
+ padding:19px 12px 25px!important;
+ text-align:left!important;
+ border:1px solid #EEE1F9!important;border-radius:24px!important;
+ background:linear-gradient(140deg,#fff,#F3E5FE)!important;
+ box-shadow:inset 0 2px #fff,0 13px 23px #5C368344,0 4px 7px #60348C19!important;
+ transition:transform .18s ease,box-shadow .18s ease!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats >button:nth-child(2){
+ background:linear-gradient(145deg,#FFFDFE,#FFE8E9)!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats >button:nth-child(3){
+ background:linear-gradient(145deg,#fff,#E9EEFF)!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats >button:nth-child(4){
+ background:linear-gradient(145deg,#fff,#FFECEB)!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats >button::before{
+ content:"";position:absolute;z-index:-1;pointer-events:none;
+ inset:auto -35px -85px -30px!important;width:auto!important;height:142px!important;
+ transform:rotate(-10deg)!important;border-radius:45% 65% 0 0!important;
+ background:linear-gradient(110deg,#D4A9F9,#8D45D9 65%,#BD68EC)!important;
+ opacity:.62;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats >button:nth-child(2)::before{
+ background:linear-gradient(115deg,#FFDDDF,#FF9E8F 70%,#FFC39A)!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats >button:nth-child(3)::before{
+ background:linear-gradient(115deg,#C7DDFF,#9EBCF8 67%,#B99FF5)!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats >button:nth-child(4)::before{
+ background:linear-gradient(115deg,#FFD6E5,#FFA399 65%,#FFCD8C)!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats >button::after{
+ content:"→";position:absolute;z-index:2;
+ display:grid!important;place-items:center!important;
+ right:12px;bottom:11px;width:35px;height:35px;
+ border:1px solid #F6C0F9;border-radius:50%;
+ background:linear-gradient(130deg,#C93EE6,#8131CA)!important;
+ color:#fff;font-size:23px;font-weight:760;line-height:1;
+ box-shadow:0 5px 12px #6F30A95E;pointer-events:none;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats >button strong{
+ grid-column:1!important;grid-row:1!important;
+ align-self:end!important;justify-self:start!important;
+ font:850 clamp(30px,8vw,43px)/1 'Plus Jakarta Sans',sans-serif!important;
+ color:#2D2264!important;margin:0!important;
+ letter-spacing:-.05em!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats >button small{
+ grid-column:1 / -1!important;grid-row:2!important;
+ align-self:start!important;
+ max-width:calc(100% - 34px)!important;
+ padding:0!important;margin:0!important;
+ border:0!important;
+ color:#2D2264!important;
+ font:800 clamp(11px,3.3vw,14px)/1.2 'Plus Jakarta Sans',sans-serif!important;
+ text-align:left!important;text-wrap:balance;overflow-wrap:normal;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats .role-ref-stat-icon,
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats .role-ref-stat-icon.alert{
+ grid-column:2!important;grid-row:1!important;
+ justify-self:end!important;align-self:start!important;
+ display:grid!important;place-items:center!important;
+ width:61px!important;height:61px!important;min-width:61px!important;min-height:61px!important;
+ background:linear-gradient(135deg,#C78BFF,#8744DA)!important;
+ border:1px solid #DDC0FC!important;border-radius:18px!important;
+ box-shadow:inset 0 2px #ffffff88,0 7px 12px #753ABB4F!important;
+ color:#fff!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats >button:nth-child(2) .role-ref-stat-icon{
+ background:linear-gradient(140deg,#FFAFAF,#D769B8)!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats >button:nth-child(3) .role-ref-stat-icon{
+ background:linear-gradient(140deg,#B9C7FE,#7C75D4)!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats >button:nth-child(4) .role-ref-stat-icon{
+ background:linear-gradient(140deg,#FFC37F,#EE8E65)!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats .role-ref-stat-icon .nav-icon{
+ width:32px!important;height:32px!important;color:#fff!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-section-heading{
+ background:linear-gradient(118deg,#7F29BA,#6B2BA9 60%,#AF3DBB)!important;
+ border:1px solid #D38DF1!important;border-radius:23px!important;
+ box-shadow:var(--offrya-3d-shadow)!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-section-heading :is(h3,p){
+ color:#fff!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-section-heading::before{
+ background:linear-gradient(110deg,#FC75BEB0,#FFC077A8)!important;
+}
+body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-pro-links >button{
+ background:linear-gradient(125deg,#fff,#F7ECFF)!important;
+ border:1px solid #E6D7F3!important;color:var(--offrya-3d-ink)!important;
+ border-radius:20px!important;box-shadow:var(--offrya-3d-shadow)!important;
+}
+
+/* A single surface system for all private tabs and both account types. */
+body.offrya-reference-ui #dashboard .role-reference-client-section .role-ref-action-card,
+body.offrya-reference-ui #dashboard .role-mission-row{
+ border-radius:21px!important;border:1px solid #E6D8F3!important;
+ background:linear-gradient(135deg,#fff,#F7EEFF)!important;
+ box-shadow:var(--offrya-3d-shadow)!important;
+}
+body.offrya-reference-ui #dashboard .role-ref-card-icon,
+body.offrya-reference-ui #dashboard .role-ref-link-icon{
+ background:linear-gradient(135deg,#D9B7FF,#8948D4)!important;
+ color:#fff!important;border-radius:16px!important;
+ box-shadow:inset 0 2px #ffffff6c,0 5px 10px #7737AE3B!important;
+}
+body.offrya-reference-ui #dashboard .role-client-hero{
+ background:radial-gradient(ellipse at 94% 110%,#FFD19D 0%,transparent 34%),
+ linear-gradient(115deg,#F4EAFF,#E4CFFB)!important;
+ border:1px solid #DFCCF4!important;border-radius:24px!important;
+ box-shadow:var(--offrya-3d-shadow)!important;
+}
+body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active)>.section-top:first-child{
+ position:relative;overflow:hidden;isolation:isolate;
+ background:linear-gradient(117deg,#FDFBFF,#EDE1FC)!important;
+ border:1px solid #E7D5F7!important;
+ border-radius:22px!important;box-shadow:var(--offrya-3d-shadow)!important;
+ padding:22px!important;
+}
+body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active)>.section-top:first-child::before{
+ content:"";position:absolute;z-index:-1;pointer-events:none;
+ width:240px;height:145px;right:-70px;bottom:-102px;
+ border-radius:50%;background:linear-gradient(110deg,#B67CEA,#FFA77D)!important;
+ transform:rotate(-13deg);
+}
+body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active)>.section-top:first-child :is(h2,h3){
+ color:#2B215F!important;font-weight:850!important;
+}
+body.offrya-reference-ui :is(#missions.active,#inbox.active,#settings.active,#boamp.active)>.section-top:first-child p:not(.eyebrow){
+ color:#625677!important;line-height:1.5!important;
+}
+body.offrya-reference-ui #missions.active .mission-scopes:not(.hidden){
+ background:#F2E7FD!important;border:1px solid #E6D6F3!important;
+ border-radius:17px!important;
+}
+body.offrya-reference-ui #missions.active .mission-scopes button.is-active{
+ background:linear-gradient(115deg,#A948D7,#7336BC)!important;
+ color:#fff!important;border-radius:14px!important;
+}
+body.offrya-reference-ui #missions.active .mission-listing{
+ position:relative;overflow:hidden;border:1px solid #EADCF5!important;
+ border-radius:21px!important;
+ background:linear-gradient(138deg,#fff 46%,#F9F1FF)!important;
+ box-shadow:var(--offrya-3d-shadow)!important;
+ padding:18px!important;
+}
+body.offrya-reference-ui #missions.active .mission-listing::before{
+ content:"";position:absolute;bottom:0;left:0;width:100%;height:4px;
+ background:linear-gradient(90deg,#B36BEC 0%,#E3A5F8 60%,#FFAA82 100%);
+}
+body.offrya-reference-ui #missions.active #missionSearchFilters:not(.hidden),
+body.offrya-reference-ui #inbox.active .inbox-grid >.panel,
+body.offrya-reference-ui #settings.active .offrya-settings-card,
+body.offrya-reference-ui #settings.active >.two-col >.panel,
+body.offrya-reference-ui #boamp.active .panel{
+ border:1px solid #E5D7F0!important;border-radius:22px!important;
+ background:linear-gradient(135deg,#fff,#F9F4FF)!important;
+ box-shadow:var(--offrya-3d-shadow)!important;
+}
+body.offrya-reference-ui #inbox.active .offrya-conversation{
+ background:#fff!important;border:1px solid #EAE0F3!important;
+ border-radius:17px!important;min-height:70px!important;
+}
+body.offrya-reference-ui #inbox.active .offrya-conversation.selected{
+ background:linear-gradient(115deg,#F5EBFF,#EFDEFF)!important;
+ border-color:#C99FE9!important;
+}
+body.offrya-reference-ui #inbox.active .offrya-conversation-icon{
+ background:linear-gradient(145deg,#D9AEFF,#9251CD)!important;
+ color:#fff!important;border:1px solid #E0BCFB!important;
+ box-shadow:inset 0 1px #ffffffaa,0 4px 9px #7d45a636!important;
+}
+body.offrya-reference-ui #inbox.active .bubble{
+ border-radius:18px 18px 18px 6px!important;
+ background:#F0E7FB!important;color:#2F225C!important;
+}
+body.offrya-reference-ui #inbox.active .bubble.mine{
+ border-radius:18px 18px 6px 18px!important;
+ background:linear-gradient(120deg,#EBD9FF,#E8CFFA)!important;
+ color:#2F225C!important;
+}
+body.offrya-reference-ui #settings.active .account-setting-icon{
+ background:linear-gradient(140deg,#D7B2FF,#9153D8)!important;
+ color:#fff!important;border-radius:18px!important;
+ box-shadow:inset 0 1px #ffffff85,0 5px 11px #8650A83B!important;
+}
+body.offrya-reference-ui #settings.active #accountBillingPortal.account-billing-cta:not(:disabled){
+ background:linear-gradient(118deg,#B44BDC,#7E32BF)!important;
+ border:1px solid #C493F0!important;border-radius:15px!important;
+}
+body.offrya-reference-ui #professional.active .pro-ai-welcome,
+body.offrya-reference-ui #professional.active .pro-ai-hero,
+body.offrya-reference-ui #professional.active .pro-v3-page-intro,
+body.offrya-reference-ui #professional.active .pro-entry-heading{
+ border:1px solid #E5D6F5!important;border-radius:23px!important;
+ background:radial-gradient(ellipse at 92% 114%,#FFC8976A 0%,transparent 38%),
+ linear-gradient(116deg,#FDFBFF,#EDE0FC)!important;
+ box-shadow:var(--offrya-3d-shadow)!important;
+}
+body.offrya-reference-ui #professional.active :is(.pro-ai-welcome,.pro-ai-hero,.pro-v3-page-intro) :is(h2,h3,p,strong){
+ color:#2D225D!important;
+}
+body.offrya-reference-ui #professional.active :is(.pro-v3-panel,.pro-v3-metric,.pro-ai-card,.pro-tender-card,.pro-stage-card,.pro-offer){
+ background:linear-gradient(137deg,#fff,#F9F2FF)!important;
+ border:1px solid #E6D8F2!important;border-radius:21px!important;
+ box-shadow:var(--offrya-3d-shadow)!important;
+}
+body.offrya-reference-ui #professional.active .pro-ai-card-icon,
+body.offrya-reference-ui #professional.active .pro-v3-metric>.nav-icon{
+ background:linear-gradient(140deg,#D4B1FF,#8744CF)!important;
+ color:#fff!important;border:1px solid #DEBFF3!important;
+ border-radius:16px!important;
+ box-shadow:inset 0 1px #fff9,0 5px 10px #8954AF3E!important;
+}
+body.offrya-reference-ui #professional.active .pro-v3-context-back,
+body.offrya-reference-ui #professional.active .pro-v3-work-actions button{
+ border-radius:13px!important;min-height:44px;
+}
+body.offrya-reference-ui .notif-panel{
+ border:1px solid #E1CDF1!important;border-radius:22px!important;
+ box-shadow:0 20px 48px #361E5790!important;
+}
+body.offrya-reference-ui .notif-item{
+ border-bottom:1px solid #F0E9F8;
+}
+body.offrya-reference-ui .notif-item:active{background:#F4EBFC;transform:scale(.995)}
+
+/* Public-facing discovery, subscription, onboarding, and mission form. */
+body.mock-home,
+body.auth-page,
+body:has(>.top):has(.simple-hero),
+body:has(>.top):has(.premium-hero){
+ background:radial-gradient(ellipse at 88% 10%,#E6D2FC 0%,#F4ECFE 36%,#FAF8FD 76%)!important;
+ color:#2E245A;
+}
+.mock-home .mock-hero,
+.mock-home .offrya-entry-hero,
+body:has(.premium-hero) .premium-hero,
+body:has(.simple-hero) .simple-hero{
+ position:relative;isolation:isolate;overflow:hidden;
+ background:radial-gradient(ellipse at 95% 95%,#FFCCA38C 0%,transparent 40%),
+ linear-gradient(115deg,#FDFBFF,#EAD8FF)!important;
+ border:1px solid #E6D6F6!important;border-radius:26px!important;
+ box-shadow:var(--offrya-3d-shadow)!important;
+}
+.mock-home .offrya-entry-path,
+.auth-page .auth-card,
+.auth-page .auth-benefit,
+.auth-page .account-type-option,
+body:has(.premium-hero) :is(.premium-price-card,.premium-steps .card),
+body:has(.simple-hero) :is(.form-wrap,#accountGate,#publishArea){
+ background:linear-gradient(140deg,#fff,#F9F2FF)!important;
+ border:1px solid #E9DDF4!important;border-radius:21px!important;
+ box-shadow:var(--offrya-3d-shadow)!important;
+}
+.mock-home .offrya-entry-path-primary{
+ border-color:#D5B4ED!important;
+ background:linear-gradient(130deg,#FDF9FF,#E9D8FB)!important;
+}
+.mock-home .offrya-entry-icon,
+.auth-page .auth-benefit-icon{
+ border:1px solid #D9B7F5!important;border-radius:16px!important;
+ background:linear-gradient(135deg,#D8A9FF,#8C47D6)!important;
+ color:#fff!important;box-shadow:inset 0 1px #fff8,0 6px 12px #7650A647!important;
+}
+.auth-page .auth-layout{align-items:start}
+.auth-page .auth-card{border-radius:25px!important}
+.auth-page .auth-tabs button[aria-pressed="true"],
+.auth-page .auth-submit:not(:disabled){
+ background:linear-gradient(113deg,#AB38D6,#7935BC)!important;
+ color:#fff!important;border-color:#D7AAE9!important;border-radius:14px!important;
+ box-shadow:0 6px 15px #6B36B545!important;
+}
+.auth-page .auth-intro h1,
+.mock-home .mock-hero h1,
+body:has(.simple-hero) .simple-hero h1,
+body:has(.premium-hero) .premium-hero h1{color:#2B205C!important}
+.auth-page input,
+body:has(.simple-hero) .form :is(input,select,textarea){
+ border-radius:14px!important;min-height:48px!important;
+ background:#fff!important;color:#2E245A!important;
+ border:1px solid #DCC9EF!important;
+}
+body:has(.simple-hero) .form-wrap{padding:clamp(18px,3vw,32px)!important}
+body:has(.simple-hero) #publishArea[hidden],
+body:has(.simple-hero) #accountGate[hidden]{display:none!important}
+body:has(.premium-hero) .premium-price-card{
+ background:radial-gradient(ellipse at 100% 100%,#FFCCAB85 0%,transparent 55%),
+ linear-gradient(115deg,#FDFBFF,#EDDDFD)!important;
+}
+body:has(.premium-hero) .premium-price-card :is(strong,small,p,li){color:#34245C!important}
+body:has(.simple-hero) .top,
+body:has(.premium-hero) .top,
+.auth-page .auth-top,
+.mock-home .home-top{
+ background:#FFFFFFE8!important;border-bottom:1px solid #E7DCF2!important;
+ box-shadow:0 2px 10px #4E2F6A0F!important;
+}
+
+/* Consistent geometry on Android and desktop. */
+@media(max-width:780px){
+ body.offrya-reference-ui .app-shell .header{
+  background:var(--offrya-3d-header)!important;
+  border-bottom:1px solid #D4A4F5!important;
+ }
+ body.offrya-reference-ui .app-shell .sidebar{
+  border:1px solid #F3D9FFAA!important;
+  background:linear-gradient(118deg,#FDFBFF,#F0E4FC)!important;
+  border-radius:24px 24px 0 0!important;
+  box-shadow:0 -6px 21px #57378E3B!important;
+ }
+ body.offrya-reference-ui .app-shell .sidebar #nav{gap:4px!important}
+ body.offrya-reference-ui .app-shell .sidebar #nav .nav-link:not(.active){
+  background:transparent!important;color:#292058!important;
+ }
+ body.offrya-reference-ui .app-shell .sidebar #nav .nav-link:not(.active) span:not(.message-unread-badge){
+  color:#292058!important;
+ }
+ body.offrya-reference-ui .app-shell .sidebar #nav .nav-link.active{
+  background:linear-gradient(130deg,#B234DF,#7829BA)!important;color:#fff!important;
+ }
+ body.offrya-reference-ui .app-shell .sidebar #nav .nav-link.active span:not(.message-unread-badge){
+  color:#fff!important;
+ }
+ body.offrya-reference-ui .app-shell .main-content{padding-bottom:calc(116px + env(safe-area-inset-bottom,0px))!important}
+ body.offrya-reference-ui #missions.active .mission-listing,
+ body.offrya-reference-ui #settings.active .offrya-settings-card,
+ body.offrya-reference-ui #inbox.active .inbox-grid>.panel,
+ body.offrya-reference-ui #professional.active :is(.pro-v3-panel,.pro-ai-card,.pro-tender-card){
+  margin-bottom:13px!important;
+ }
+ body.offrya-reference-ui #professional.active :is(.pro-v3-panel,.pro-ai-card,.pro-tender-card){
+  padding:clamp(13px,3vw,18px)!important;
+ }
+ body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats >button{
+  min-height:180px!important;
+  padding:17px 11px 23px!important;
+  grid-template-columns:minmax(0,1fr) 52px!important;
+  grid-template-rows:76px minmax(55px,auto)!important;
+ }
+ body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats .role-ref-stat-icon,
+ body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats .role-ref-stat-icon.alert{
+  width:52px!important;height:52px!important;min-width:52px!important;min-height:52px!important;
+ }
+ .mock-home .offrya-entry-hero,
+ body:has(.premium-hero) .premium-hero,
+ body:has(.simple-hero) .simple-hero{
+  margin:14px 12px!important;padding:25px 17px!important;border-radius:24px!important;
+ }
+ .auth-page .auth-layout{gap:15px!important}
+ .auth-page .auth-card{padding:22px 17px!important}
+}
+@media(max-width:365px){
+ body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats >button{
+  min-height:174px!important;padding:14px 9px 19px!important;
+ }
+ body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats >button small{font-size:11px!important}
+ body.offrya-reference-ui .app-shell .sidebar #nav .nav-link span:not(.message-unread-badge){
+  font-size:9px!important;
+ }
+}
+@media(hover:hover) and (pointer:fine){
+ body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active) #dashboard .role-premium-stats >button:hover{
+  transform:translateY(-4px)!important;
+  box-shadow:0 17px 29px #5C36834D,0 4px 8px #60348C1C!important;
+ }
+ .mock-home .offrya-entry-path:hover{
+  transform:translateY(-3px);box-shadow:0 16px 29px #603B893D!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ body.offrya-reference-ui :is(.role-premium-stats button,.mission-listing,.notif-item),
+ .mock-home .offrya-entry-path{
+  animation:none!important;transition:none!important;transform:none!important;
+ }
+}
+
+
+
+/* Identical visual language for SEO sector landing pages and 3D FAQ cards. */
+body:has(.breadcrumb):has(.simple-hero) .section .grid.three>.card{
+ background:linear-gradient(140deg,#fff,#F8F0FF)!important;
+ border:1px solid #E6D6F2!important;border-radius:20px!important;
+ box-shadow:var(--offrya-3d-shadow)!important;
+}
+body:has(.breadcrumb):has(.simple-hero) .faq details{
+ border-radius:17px!important;border:1px solid #E5D8F3!important;
+ background:#fff!important;box-shadow:0 6px 14px #68499913!important;
+}
+body:has(.breadcrumb):has(.simple-hero) .section .number{
+ color:#8035C8!important;
+}
+@media(min-width:1000px){
+ body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active)
+ #dashboard .role-premium-stats{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ }
+ body.offrya-reference-ui[data-offrya-role="premium"]:has(#dashboard.active)
+ #dashboard .role-premium-stats>button{
+  min-height:177px!important;
+ }
+}
