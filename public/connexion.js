@@ -40,7 +40,7 @@ function say(s,error=false){
 function validateAuthInput(email,password){
  if(mode!=='recover'){
   if(!email)return {field:'email',message:'Saisissez votre adresse e-mail.'};
-  if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email))return {field:'email',message:'Cette adresse e-mail est invalide. Vérifiez sa saisie.'};
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return {field:'email',message:'Cette adresse e-mail est invalide. Vérifiez sa saisie.'};
  }
  if(mode!=='reset'){
   if(!password)return {field:'password',message:'Saisissez votre mot de passe.'};
