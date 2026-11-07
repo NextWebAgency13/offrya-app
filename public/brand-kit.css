@@ -1592,3 +1592,12 @@ html body .premium-hero .premium-intro .btn.outline:hover{background:#F6EFFD!imp
 
 /* Accueil : deux parcours (« Je gère mon activité » retiré, la connexion reste en haut à droite) */
 @media (min-width:821px){html body.mock-home .offrya-entry-paths{grid-template-columns:repeat(2,minmax(0,1fr));max-width:760px}}
+/* Accueil : les deux cartes de parcours ont exactement la même apparence */
+html body.mock-home .offrya-entry-paths .offrya-entry-path{
+ border-color:#D5B4ED!important;
+ background:linear-gradient(130deg,#FDF9FF,#E9D8FB)!important;
+ color:#2B1840!important;
+}
+html body.mock-home .offrya-entry-paths .offrya-entry-path .offrya-entry-copy strong{color:#2B1840!important}
+html body.mock-home .offrya-entry-paths .offrya-entry-path .offrya-entry-copy small{color:#5B4E70!important}
+html body.mock-home .offrya-entry-paths .offrya-entry-path .offrya-entry-arrow{color:#4B0058!important}
