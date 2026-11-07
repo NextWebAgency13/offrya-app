@@ -19,5 +19,5 @@ test('Android : textes des en-têtes, « Actualiser », badge IA et « Modifier 
 test('Ma veille intelligente : « Modifier » descendu sur la ligne des critères, sans chevaucher le robot',()=>{
  assert.match(css,/grid-template-areas:"title title" "chips edit";/);
  assert.match(css,/#professional \.pro-ai-hero \.pro-ai-criteria-head\{display:contents!important\}/);
- assert.match(css,/grid-area:edit;align-self:end;justify-self:end;margin:0!important;\n min-height:36px!important;/);
+ assert.match(css,/grid-area:edit;align-self:end;justify-self:end;margin:0 0 2px!important;\n\}/);
 });
