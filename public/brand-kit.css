@@ -1601,3 +1601,6 @@ html body.mock-home .offrya-entry-paths .offrya-entry-path{
 html body.mock-home .offrya-entry-paths .offrya-entry-path .offrya-entry-copy strong{color:#2B1840!important}
 html body.mock-home .offrya-entry-paths .offrya-entry-path .offrya-entry-copy small{color:#5B4E70!important}
 html body.mock-home .offrya-entry-paths .offrya-entry-path .offrya-entry-arrow{color:#4B0058!important}
+/* Accueil : les deux cartes de parcours ont aussi la même taille (hauteur alignée sur la plus grande) */
+html body.mock-home .offrya-entry-paths{grid-auto-rows:1fr!important;align-items:stretch!important}
+html body.mock-home .offrya-entry-paths .offrya-entry-path{height:100%!important;box-sizing:border-box}
