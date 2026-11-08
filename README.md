@@ -27,7 +27,7 @@ Un bloc `Mes opportunités prioritaires` s'affiche sur le tableau de bord Premiu
 
 Les e-mails ne sont envoyés que si le destinataire avait activé les alertes de missions au moment de la publication, que son adresse est confirmée et qu'il a toujours donné son accord au moment de l'envoi. Les rappels quotidiens continuent pour les autres utilisateurs avec opt-in ; une même mission envoyée en alerte prioritaire n'est pas répétée dans leur récapitulatif.
 
-`.github/workflows/alerts.yml` prévoit un passage toutes les cinq minutes pour les alertes Premium et un passage quotidien pour les récapitulatifs. La cadence est indicative : GitHub Actions peut retarder les jobs. L'e-mail **n'est pas actif** sans configuration d'un domaine d'expédition vérifié chez Resend et sans secrets propres au dépôt OFFRYA :
+`.github/workflows/alerts.yml` prévoit un passage toutes les heures pour les alertes Premium (le quota gratuit de minutes GitHub Actions ne permet pas un passage toutes les cinq minutes) et un passage quotidien pour les récapitulatifs. La cadence est indicative : GitHub Actions peut retarder les jobs. L'e-mail **n'est pas actif** sans configuration d'un domaine d'expédition vérifié chez Resend et sans secrets propres au dépôt OFFRYA :
 `OFFRYA_SUPABASE_URL`, `OFFRYA_SUPABASE_SECRET_KEY`, `OFFRYA_RESEND_API_KEY`, `OFFRYA_EMAIL_FROM`, `OFFRYA_UNSUBSCRIBE_SECRET` (32 caractères ou plus).
 Ne copiez pas de secrets d'autres projets ; ne les commitez jamais. Le travailleur Premium est inerte en leur absence.
 

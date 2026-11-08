@@ -27,8 +27,8 @@ test('Only the owner can change their watch or tender tracking; privileged data 
  assert.match(sql,/grant execute on function public\.offrya_watch_targets\(\) to service_role/);
  assert.doesNotMatch(sql,/grant execute on function public\.offrya_watch_targets\(\) to authenticated/);
 });
-test('Hourly opt-in source discovery deduplicates official tenders and never sends commercial mail',()=>{
- assert.match(workflow,/cron: '23 \* \* \* \*'/);
+test('Six-hourly opt-in source discovery deduplicates official tenders and never sends commercial mail',()=>{
+ assert.match(workflow,/cron: '23 \*\/6 \* \* \*'/);
  assert.match(worker,/rpc\/offrya_agent_watch_targets/);
   const agentSQL=fs.readFileSync('sql/tender_agent_preparation.sql','utf8');
   assert.match(agentSQL,/grant execute on function public\.offrya_agent_watch_targets\(\) to service_role/);

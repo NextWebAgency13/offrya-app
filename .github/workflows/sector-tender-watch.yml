@@ -10,7 +10,8 @@ on:
       - 'lib/tender-assistant.js'
       - '.github/workflows/sector-tender-watch.yml'
   schedule:
-    - cron: '23 * * * *'
+    # Toutes les 6 heures (00:23, 06:23, 12:23, 18:23 UTC) : les marchés publics ne changent pas à l'heure.
+    - cron: '23 */6 * * *'
   workflow_dispatch:
 permissions:
   contents: read

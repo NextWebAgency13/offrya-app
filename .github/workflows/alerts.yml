@@ -2,7 +2,9 @@ name: OFFRYA — alertes opt-in
 on:
   schedule:
     # GitHub Actions peut exécuter avec quelques minutes de retard.
-    - cron: '*/5 * * * *'
+    # Toutes les heures (et non plus toutes les 5 minutes) : chaque exécution compte au moins
+    # une minute du quota gratuit, et 288 passages par jour l'épuisaient en une semaine.
+    - cron: '7 * * * *'
     - cron: '17 7 * * *'
   workflow_dispatch:
 permissions:
@@ -12,7 +14,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   premium:
-    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '*/5 * * * *'
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '7 * * * *'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:
