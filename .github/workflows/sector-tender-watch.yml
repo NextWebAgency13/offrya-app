@@ -6,6 +6,7 @@ on:
       - 'scripts/watch-sector-tenders.js'
       - 'lib/ted.js'
       - 'lib/boamp.js'
+      - 'lib/approch.js'
       - 'sql/automatic_premium_watch.sql'
       - 'lib/tender-assistant.js'
       - '.github/workflows/sector-tender-watch.yml'
@@ -24,10 +25,12 @@ jobs:
     env:
       SUPABASE_URL: ${{ secrets.OFFRYA_SUPABASE_URL }}
       SUPABASE_SECRET_KEY: ${{ secrets.OFFRYA_SUPABASE_SECRET_KEY }}
+      # APProch : mettre la variable à true après la migration sql/approch_opportunity_source.sql.
+      OFFRYA_APPROCH_ENABLED: ${{ vars.OFFRYA_APPROCH_ENABLED }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: "Veille BOAMP + TED : opportunités publiques pour abonnés vérifiés"
+      - name: "Veille BOAMP + TED + APProch : opportunités publiques pour abonnés vérifiés"
         run: node scripts/watch-sector-tenders.js

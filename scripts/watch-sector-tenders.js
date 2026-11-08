@@ -1,9 +1,11 @@
 'use strict';
-// OFFRYA read-only public-opportunity monitoring: BOAMP (France) + TED (EU).
+// OFFRYA read-only public-opportunity monitoring: BOAMP (France) + TED (EU)
+// + APProch (projets d'achats de l'État, activé par OFFRYA_APPROCH_ENABLED=true).
 // Every verified, paid professional is monitored automatically in-app. Optional profile filters narrow matching.
 // No AI-generated reply, bid submission, external contact or unsolicited email.
 const {queryBoamp}=require('../lib/boamp');
 const {queryTed}=require('../lib/ted');
+const {queryApproch}=require('../lib/approch');
 const {qualifyTender}=require('../lib/tender-assistant');
 const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
 const key=process.env.SUPABASE_SECRET_KEY;
@@ -33,7 +35,7 @@ function cleanRow(item,user,prefs={},now=new Date()){
  if(!ranked)return null;
  // Discovery rows are solely notifications, not automatically prepared dossiers.
  const {first_steps:unused,...alert}=ranked;
- return {...alert,source:item.source==='TED'?'TED':'BOAMP'};
+ return {...alert,source:['TED','APPROCH'].includes(item.source)?item.source:'BOAMP'};
 }
 function queryTerms(pref){
  const selected=(Array.isArray(pref.sectors)?pref.sectors:[]).filter(s=>Boolean(termsBySector[s]));
@@ -41,7 +43,9 @@ function queryTerms(pref){
  const keyword=String(pref.keywords||'').trim().slice(0,60);
  return [...new Set([...sectorTerms,...(keyword?[keyword]:[])])].slice(0,8);
 }
-async function run({boamp=queryBoamp,ted=queryTed,store=rest,logger=console}={}){
+const SOURCE_NAMES=['BOAMP','TED','APProch'];
+async function run({boamp=queryBoamp,ted=queryTed,approch=queryApproch,store=rest,logger=console,
+ approchEnabled=process.env.OFFRYA_APPROCH_ENABLED==='true'}={}){
  if(!/^https:\/\/[a-z0-9.-]+\.supabase\.co$/.test(base)||!key)
   throw Error('OFFRYA veille indisponible : vérifier les secrets Supabase du dépôt GitHub.');
  const targets=await store('rpc/offrya_agent_watch_targets',{method:'POST',body:'{}'});
@@ -63,7 +67,9 @@ async function run({boamp=queryBoamp,ted=queryTed,store=rest,logger=console}={})
     queries++;
     cache.set(cacheKey,Promise.allSettled([
      boamp({q:term,dept:pref.department||'',limit:25}),
-     ted(term)
+     ted(term),
+     // Si APProch est désactivé : résultat vide, sans appel réseau.
+     approchEnabled?approch(term,{dept:pref.department||''}):Promise.resolve([])
     ]));
    }
    const results=await cache.get(cacheKey);
@@ -71,7 +77,7 @@ async function run({boamp=queryBoamp,ted=queryTed,store=rest,logger=console}={})
     const result=results[index];
     if(result.status!=='fulfilled'){
      failures++;
-     logger.warn((index===0?'BOAMP':'TED')+' source indisponible: '+String(result.reason?.message||'erreur').slice(0,100));
+     logger.warn(SOURCE_NAMES[index]+' source indisponible: '+String(result.reason?.message||'erreur').slice(0,100));
      continue;
     }
     const notices=index===0?(result.value?.items||[]):result.value||[];
@@ -81,7 +87,7 @@ async function run({boamp=queryBoamp,ted=queryTed,store=rest,logger=console}={})
      qualified++;
      const unique=fingerprint(row);
      const previous=matches.get(unique);
-     // Prefer the France-specific official BOAMP record if both sources cover one notice.
+     // Prefer the France-specific official BOAMP record if several sources cover one notice.
      if(!previous||row.match_score>previous.match_score ||
        (row.match_score===previous.match_score&&row.source==='BOAMP'))
       matches.set(unique,row);

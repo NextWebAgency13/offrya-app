@@ -42,7 +42,7 @@ function tenderLead(a,now){
  if(!Number.isFinite(score)||score<45)return null;
  const days=Math.ceil((expiration-now)/day);
  const reason=String(a.match_reason||'').slice(0,350);
- return {kind:'tender',id:String(a.tender_id),title:String(a.title),source:a.source==='TED'?'TED':'BOAMP',
+ return {kind:'tender',id:String(a.tender_id),title:String(a.title),source:['TED','APPROCH'].includes(a.source)?a.source:'BOAMP',
   score:clamp(score),reasons:reason?reason.split(' · ').slice(0,4):['correspondance estimée'],
   location:a.departments||'France / lieu à vérifier',deadline:a.deadline,url:a.url,
   created_at:a.detected_at||null,daysLeft:days};

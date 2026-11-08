@@ -103,7 +103,7 @@ export function createOpportunityConsole({state,element,canUsePremium,tab,render
    .sort((a,b)=>verified.get(String(b.tender_id)).score-verified.get(String(a.tender_id)).score);
   node.innerHTML=rows.length?rows.slice(0,15).map(a=>{
    const item=verified.get(String(a.tender_id));
-   const source=a.source==='TED'?'TED · Union européenne':'BOAMP · DILA';
+   const source=a.source==='TED'?'TED · Union européenne':a.source==='APPROCH'?'APProch · Projet d’achat de l’État':'BOAMP · DILA';
    const allowed=/^https:\/\/(www\.)?boamp\.fr\//i.test(a.url||'')
     ||/^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(a.url||'');
    const link=allowed?'<a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer">Consulter l’avis officiel</a>':'';
