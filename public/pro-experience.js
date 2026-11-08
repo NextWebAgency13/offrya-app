@@ -476,7 +476,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    const score=Math.min(100,Math.max(0,Math.round(Number(item.score)||0)));
    const scoreLabel=tender&&!serverRadar?'Pertinence en cours de calcul':
     score+' % pertinent'+(item.locationType==='unknown'?' · Zone à confirmer':'');
-   const source=tender?esc(item.source==='TED'?'TED':'BOAMP'):external?'LEBONCOIN':'MISSION OFFRYA';
+   const source=tender?esc(item.source==='TED'?'TED':item.source==='APPROCH'?'APPROCH':'BOAMP'):external?'LEBONCOIN':'MISSION OFFRYA';
    const action=tender
     ?'<a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer" class="pro-v3-reco-btn"><span aria-hidden="true">↗</span> Consulter l’appel d’offres</a>'
     :external?'<a href="'+esc(item.url)+'" target="_blank" rel="noopener noreferrer" class="pro-v3-reco-btn">Voir l’annonce sur Leboncoin ↗</a>'
@@ -581,7 +581,7 @@ export function createProExperience({state,element,canUsePremium,tab,renderMissi
    const official=/^https:\/\/(www\.)?boamp\.fr\//i.test(a.url||'')||
     /^https:\/\/ted\.europa\.eu\/fr\/notice\/-\/detail\/\d{4,8}-20\d{2}$/i.test(a.url||'');
    const href=official?esc(a.url):null;
-   const name=a.source==='TED'?'TED · Union européenne':'BOAMP · DILA';
+   const name=a.source==='TED'?'TED · Union européenne':a.source==='APPROCH'?'APProch · Projet d’achat de l’État':'BOAMP · DILA';
    const why=(item.reasons||[]).slice(0,2).join(' · ');
    return '<div class="pro-v3-watch-item"><small>'+esc(name)+' · '+
     esc(a.seen_at?'Déjà consultée':'Marché prioritaire non consulté')+'</small>'+
